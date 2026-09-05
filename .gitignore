@@ -35,3 +35,9 @@ artifacts/
 backups/
 migration/
 *-backup-*.txt
+
+# Extension packages and signing keys
+packages/
+*.crx
+*.pem
+*.key

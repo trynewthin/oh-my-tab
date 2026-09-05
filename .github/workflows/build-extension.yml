@@ -1,0 +1,81 @@
+name: Build extension
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extension-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check code
+        run: |
+          npm run lint
+          npm run test:unit
+      - name: Build extension
+        run: npm run build
+      - name: Prepare ZIP
+        id: package
+        run: |
+          VERSION=$(node -p 'JSON.parse(require("fs").readFileSync("dist/manifest.json", "utf8")).version')
+          NAME="oh-my-tab-${VERSION}-${GITHUB_SHA:0:7}"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          mkdir -p packages
+          (cd dist && zip -q -r "../packages/${NAME}.zip" .)
+      - name: Sign CRX
+        if: github.event_name != 'pull_request'
+        env:
+          EXTENSION_SIGNING_KEY: ${{ secrets.EXTENSION_SIGNING_KEY }}
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+        run: |
+          if [ -z "$EXTENSION_SIGNING_KEY" ]; then
+            echo '::error::Configure the EXTENSION_SIGNING_KEY repository secret to build CRX.'
+            exit 1
+          fi
+          umask 077
+          KEY_PATH="$RUNNER_TEMP/extension-signing.pem"
+          trap 'rm -f "$KEY_PATH"' EXIT
+          printf '%s\n' "$EXTENSION_SIGNING_KEY" > "$KEY_PATH"
+          unset EXTENSION_SIGNING_KEY
+          google-chrome --headless=new --no-sandbox --no-message-box \
+            --user-data-dir="$RUNNER_TEMP/extension-pack-profile" \
+            --pack-extension="$GITHUB_WORKSPACE/dist" \
+            --pack-extension-key="$KEY_PATH"
+          test -s dist.crx
+          mv dist.crx "packages/${PACKAGE_NAME}.crx"
+      - name: Verify packages
+        run: python3 scripts/verify-packages.py
+      - name: Upload extension packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: packages/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Build summary
+        env:
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+        run: |
+          echo "## Extension packages" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download **${PACKAGE_NAME}** from this run's Artifacts section." >> "$GITHUB_STEP_SUMMARY"
+          echo 'The ZIP contains manifest.json at its root. Extract it to load unpacked in Chrome or Edge.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Trusted builds also include a CRX signed with the stable repository signing key.' >> "$GITHUB_STEP_SUMMARY"

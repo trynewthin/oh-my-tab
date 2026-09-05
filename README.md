@@ -108,3 +108,14 @@ plugins/                开发预览的图标下载代理
 ## 致谢
 
 界面采用 [shadcn/ui](https://ui.shadcn.com/)，输入框基于 [Prompt Kit](https://www.prompt-kit.com/)。图标使用 [Phosphor](https://phosphoricons.com/) 与 [Simple Icons](https://simpleicons.org/)，动画使用 [GSAP](https://gsap.com/)，拖拽基于 [dnd kit](https://dndkit.com/)。网站标识属于各自权利人。
+
+## CI 自动打包
+
+推送 `main`、推送 `v*` 标签或手动运行 **Build extension** 工作流，会生成 ZIP 和 CRX。PR 构建只生成 ZIP，不读取签名密钥。
+
+在仓库 **Actions → Build extension → 对应运行 → Artifacts** 下载构建产物，保留 30 天。解压 artifact 后包含：
+
+- `oh-my-tab-版本-提交.zip`：扩展安装目录，解压后可在 Chrome / Edge 加载；`manifest.json` 位于根目录。
+- `oh-my-tab-版本-提交.crx`：使用固定私钥签名的 CRX3 包。浏览器对商店外 CRX 安装存在限制，开发调试优先使用 ZIP。
+
+签名私钥由仓库 Secret `EXTENSION_SIGNING_KEY` 提供，值为完整 PEM 文本。自行 fork 时，需要生成 RSA 私钥并配置同名 Secret；请在仓库外保管密钥。保持同一私钥才能保持同一扩展 ID。本地按目录加载的扩展 ID 可能与签名 CRX 不同。

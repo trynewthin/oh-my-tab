@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Browser verification output
+test-results/
+playwright-report/
+artifacts/
+
+# Private configuration and migration exports
+.env
+.env.*
+!.env.example
+backups/
+migration/
+*-backup-*.txt

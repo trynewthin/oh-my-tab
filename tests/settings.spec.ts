@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test"
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "omt.onboarding",
+      JSON.stringify({ state: { seen: true }, version: 0 })
+    )
+  })
+})
+
 test("custom search engines validate URLs and persist selection", async ({
   page,
 }) => {

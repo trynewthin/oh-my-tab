@@ -11,6 +11,7 @@ export default function AddGridItemButton() {
         type="button"
         variant="ghost"
         size="icon"
+        data-tour="add"
         aria-label="添加标签或文件夹"
         title="添加标签或文件夹"
         onClick={() => setOpen(true)}

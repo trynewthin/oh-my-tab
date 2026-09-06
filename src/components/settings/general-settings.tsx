@@ -1,3 +1,5 @@
+import { useOnboardingStore } from "@/stores/onboarding-store"
+import { useSettingsStore } from "@/stores/settings-store"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,6 +40,23 @@ export default function GeneralSettings() {
       <h2 id="general-settings-title" className="text-base font-medium">
         常规设置
       </h2>
+      <div className="flex items-center justify-between gap-3 rounded-xl border p-4">
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium">新手教程</h3>
+          <p className="text-xs text-muted-foreground">
+            逐步了解按钮功能和主页操作。
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            useSettingsStore.getState().setOpen(false)
+            useOnboardingStore.getState().start()
+          }}
+        >
+          重新开始教程
+        </Button>
+      </div>
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="config-text" className="text-sm">

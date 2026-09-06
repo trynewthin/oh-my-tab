@@ -22,6 +22,7 @@ export default function SearchEngineSelect() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
+        data-tour="engine"
         render={<Button variant="ghost" />}
         aria-label={`搜索引擎：${selected.name}`}
         onClick={(event) => event.stopPropagation()}

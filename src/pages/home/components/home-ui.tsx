@@ -1,3 +1,4 @@
+import OnboardingTour from "@/components/onboarding/onboarding-tour"
 import HomePromptInput from "@/pages/home/components/home-prompt-input"
 
 import HomeContentContainer from "@/pages/home/components/home-content-container"
@@ -27,6 +28,7 @@ export default function HomeUI() {
       </HomeContentContainer>
       <HomePromptInput onSubmit={search} />
       <TabGrid />
+      <OnboardingTour />
     </div>
   )
 }

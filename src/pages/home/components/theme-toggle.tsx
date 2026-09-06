@@ -18,6 +18,7 @@ export default function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon"
+      data-tour="theme"
       className="mr-auto"
       aria-label={`当前${current.label}，切换为${current.next}`}
       title={`当前${current.label}，点击切换为${current.next}`}

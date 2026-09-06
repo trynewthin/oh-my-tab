@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test"
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "omt.onboarding",
+      JSON.stringify({ state: { seen: true }, version: 0 })
+    )
+  })
+})
+
 test("new tab renders the prompt input", async ({ page }) => {
   await page.goto("/")
   await expect(page.getByRole("textbox", { name: "对话输入" })).toBeVisible()

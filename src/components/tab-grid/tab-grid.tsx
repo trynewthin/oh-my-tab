@@ -535,6 +535,7 @@ export default function TabGrid() {
 
   return (
     <section
+      data-tour="grid"
       aria-label="标签网格"
       className="mx-auto mt-6 min-h-0 w-full max-w-3xl flex-1"
     >

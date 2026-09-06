@@ -35,6 +35,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
       value={draft}
       onValueChange={setDraft}
       onSubmit={handleSubmit}
+      data-tour="search"
       className="mx-auto mt-6 w-full max-w-3xl shrink-0"
     >
       <PromptInputTextarea aria-label="对话输入" placeholder="搜索点什么…" />

@@ -23,7 +23,42 @@ export type FolderItem = {
   dynamicEffect?: boolean
 }
 
-export type GridItem = TabItem | FolderItem
+export type DotCanvasItem = {
+  id: string
+  kind: "dot-canvas"
+  name: string
+  size: "large"
+  color: string
+  pixels: string[]
+  dynamicEffect?: boolean
+}
+
+export type GardenPlant = {
+  slot: number
+  plantedAt: number
+  species: "flowers" | "ferns"
+  seed?: number
+  appearanceVersion?: 2
+  name?: string
+  boost?: number
+  rewardedLevel?: number
+}
+export type EcosystemItem = {
+  id: string
+  kind: "ecosystem"
+  name: string
+  size: "large"
+  color: string
+  species: "flowers" | "ferns"
+  plants: GardenPlant[]
+  album?: GardenPlant[]
+  points?: number
+  pointsUpdatedAt?: number
+  lastCheckIn?: string
+  dynamicEffect?: boolean
+}
+
+export type GridItem = TabItem | FolderItem | DotCanvasItem | EcosystemItem
 
 export function normalizeTabUrl(value: string): string | null {
   try {

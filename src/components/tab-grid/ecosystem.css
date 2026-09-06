@@ -1,0 +1,23 @@
+.ecosystem-plant {
+  transform-origin: 32px 36px;
+  animation: garden-sway var(--plant-period, 5s) ease-in-out var(--plant-delay, 0s) infinite;
+}
+.ecosystem-plant[data-stage="0"] { animation-name: garden-sprout; }
+.garden-growth { transform-origin: 32px 36px; animation: garden-grow 1.2s ease-out both; }
+.garden-leaf { animation: garden-leaf 4.7s ease-in-out infinite alternate; }
+.garden-blossom { animation: garden-bloom 5.3s ease-in-out infinite alternate; }
+@keyframes garden-sway {
+  0%, 100% { transform: rotate(calc(var(--plant-sway, 3deg) * -1)); }
+  35% { transform: rotate(var(--plant-sway, 3deg)) translateY(-.3px); }
+  70% { transform: rotate(-.5deg); }
+}
+@keyframes garden-sprout {
+  0%, 100% { transform: rotate(-3deg) scaleY(.96); }
+  50% { transform: rotate(3deg) scaleY(1.04); }
+}
+@keyframes garden-grow { from { transform: scaleY(.8); opacity: .65; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes garden-leaf { from { transform: rotate(-4deg); } to { transform: rotate(5deg); } }
+@keyframes garden-bloom { from { transform: rotate(-2deg) scale(.95); } to { transform: rotate(2deg) scale(1.05); } }
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom { animation: none; }
+}

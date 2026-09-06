@@ -1,3 +1,7 @@
+import Ecosystem from "./ecosystem"
+import EcosystemConfiguration from "./ecosystem-configuration"
+import DotCanvasConfiguration from "./dot-canvas-configuration"
+import DotArt from "./dot-art"
 import { useState } from "react"
 import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -54,7 +58,17 @@ export default function GridItemDialog({
   item?: GridItem
   onClose: () => void
 }) {
-  const [selected, setSelected] = useState<"tab" | "folder" | null>(null)
+  const [selected, setSelected] = useState<
+    "tab" | "folder" | "dot-canvas" | "ecosystem" | null
+  >(null)
+  if (item?.kind === "ecosystem")
+    return (
+      <EcosystemConfiguration item={item} onClose={onClose} onSaved={onClose} />
+    )
+  if (item?.kind === "dot-canvas")
+    return (
+      <DotCanvasConfiguration item={item} onClose={onClose} onSaved={onClose} />
+    )
   if (item)
     return (
       <ComponentConfiguration item={item} onClose={onClose} onSaved={onClose} />
@@ -82,7 +96,7 @@ export default function GridItemDialog({
                 className="w-full justify-start px-2"
               >
                 <BookmarkSimple />
-                书签
+                全部组件
               </Button>
             </nav>
           </aside>
@@ -92,6 +106,8 @@ export default function GridItemDialog({
                 [
                   { id: "tab", label: "标签" },
                   { id: "folder", label: "文件夹" },
+                  { id: "dot-canvas", label: "点阵画布" },
+                  { id: "ecosystem", label: "像素花盆" },
                 ] as const
               ).map((entry) => (
                 <button
@@ -101,7 +117,39 @@ export default function GridItemDialog({
                   className="min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => setSelected(entry.id)}
                 >
-                  <BookmarkPreview folder={entry.id === "folder"} />
+                  {entry.id === "ecosystem" ? (
+                    <div className="h-44">
+                      <Ecosystem
+                        preview
+                        item={{
+                          id: "ecosystem-preview",
+                          kind: "ecosystem",
+                          name: "像素花盆",
+                          size: "large",
+                          color: "#42b883",
+                          species: "flowers",
+                          plants: [],
+                        }}
+                      />
+                    </div>
+                  ) : entry.id === "dot-canvas" ? (
+                    <div className="flex h-44 items-center justify-center p-3">
+                      <div className="aspect-square h-full max-w-full">
+                        <DotArt
+                          pixels={Array.from({ length: 576 }, (_, i) =>
+                            Math.hypot(
+                              (i % 24) - 11.5,
+                              Math.floor(i / 24) - 11.5
+                            ) < 6
+                              ? "#3291ff"
+                              : ""
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <BookmarkPreview folder={entry.id === "folder"} />
+                  )}
                   <span className="block px-4 pb-4 text-center text-sm font-medium">
                     {entry.label}
                   </span>
@@ -110,13 +158,25 @@ export default function GridItemDialog({
             </div>
           </div>
         </div>
-        {selected && (
-          <ComponentConfiguration
-            key={selected}
-            initialKind={selected}
+        {selected === "ecosystem" ? (
+          <EcosystemConfiguration
             onClose={() => setSelected(null)}
             onSaved={onClose}
           />
+        ) : selected === "dot-canvas" ? (
+          <DotCanvasConfiguration
+            onClose={() => setSelected(null)}
+            onSaved={onClose}
+          />
+        ) : (
+          selected && (
+            <ComponentConfiguration
+              key={selected}
+              initialKind={selected}
+              onClose={() => setSelected(null)}
+              onSaved={onClose}
+            />
+          )
         )}
       </DialogContent>
     </Dialog>

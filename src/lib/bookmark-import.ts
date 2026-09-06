@@ -48,7 +48,11 @@ export function mergeBookmarks(
   const seen = new Set(
     existing
       .flatMap((item) =>
-        item.kind === "tab" ? [item.url] : item.tabs.map((tab) => tab.url)
+        item.kind === "tab"
+          ? [item.url]
+          : item.kind === "folder"
+            ? item.tabs.map((tab) => tab.url)
+            : []
       )
       .map((url) => new URL(url).href)
   )

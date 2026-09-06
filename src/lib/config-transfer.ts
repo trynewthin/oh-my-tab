@@ -1,3 +1,8 @@
+import {
+  useGardenStore,
+  validSharedGarden,
+  migrateGarden,
+} from "@/stores/garden-store"
 import { GRID_COLUMNS } from "@/components/tab-grid/grid-layout"
 import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
@@ -14,6 +19,7 @@ function snapshot() {
   const grid = useTabGridStore.getState()
   return {
     version: 1,
+    garden: useGardenStore.getState(),
     home: {
       topComponent: home.topComponent,
       content: home.content,
@@ -44,6 +50,7 @@ export async function parseConfig(text: string): Promise<Config> {
   const hex = (v: unknown) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)
   if (
     config.version !== 1 ||
+    (config.garden !== undefined && !validSharedGarden(config.garden)) ||
     !home ||
     !theme ||
     !search ||
@@ -123,6 +130,10 @@ export function importConfig(config: Config) {
     ["omt.theme-mode", config.theme],
     ["omt.search-engines", config.search],
     ["omt.tab-grid", config.grid],
+    [
+      "omt.garden",
+      config.garden ?? migrateGarden(config.grid.items, Date.now()),
+    ],
   ] as const
   const previous = entries.map(
     ([key]) => [key, localStorage.getItem(key)] as const

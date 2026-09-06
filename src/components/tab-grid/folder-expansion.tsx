@@ -6,10 +6,13 @@ import { X } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import FolderBackground from "./folder-background"
-import FolderTabStack from "./folder-tab-stack"
+import FolderExpandedGrid from "./folder-expanded-grid"
 
 function expandedBounds() {
-  const width = Math.min(560, window.innerWidth - 32)
+  const width = Math.min(
+    window.innerWidth >= 1024 ? 800 : 560,
+    window.innerWidth - 32
+  )
   const height = Math.min(560, window.innerHeight - 48)
   return {
     left: (window.innerWidth - width) / 2,
@@ -201,13 +204,7 @@ export default function FolderExpansion({
             <X />
           </Button>
         </header>
-        {folder.tabs.length > 0 && (
-          <FolderTabStack
-            surface="dialog"
-            folder={folder}
-            className="min-h-24 flex-1"
-          />
-        )}
+        {folder.tabs.length > 0 && <FolderExpandedGrid folder={folder} />}
       </div>
     </section>,
     document.body

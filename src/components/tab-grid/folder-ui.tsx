@@ -21,7 +21,7 @@ export default function FolderUI({
       <button
         type="button"
         onClick={onOpen}
-        className="relative z-20 flex h-5 w-full min-w-0 shrink-0 items-center gap-2 pr-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="relative z-20 flex h-5 w-full min-w-0 shrink-0 items-center gap-2 pr-5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="truncate text-sm font-medium">{item.name}</span>
       </button>

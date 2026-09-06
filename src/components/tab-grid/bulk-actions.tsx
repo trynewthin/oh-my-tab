@@ -79,7 +79,21 @@ export default function BulkActions() {
             </Button>
             <Button
               variant="secondary"
-              disabled={selected.length < 2}
+              disabled={
+                selected.length < 2 ||
+                selected.some(
+                  (item) =>
+                    item.kind === "dot-canvas" || item.kind === "ecosystem"
+                )
+              }
+              title={
+                selected.some(
+                  (item) =>
+                    item.kind === "dot-canvas" || item.kind === "ecosystem"
+                )
+                  ? "文件夹仅支持收纳书签"
+                  : undefined
+              }
               onClick={() => {
                 setName("新文件夹")
                 setDialog("group")

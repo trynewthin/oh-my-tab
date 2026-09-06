@@ -41,12 +41,14 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
       .flatMap((item): TabItem[] =>
         item.kind === "tab"
           ? [item]
-          : item.tabs.map((tab) => ({
-              ...tab,
-              kind: "tab",
-              size: tab.size ?? "small",
-              color: tab.color ?? item.color,
-            }))
+          : item.kind === "folder"
+            ? item.tabs.map((tab) => ({
+                ...tab,
+                kind: "tab",
+                size: tab.size ?? "small",
+                color: tab.color ?? item.color,
+              }))
+            : []
       )
       .filter((tab) => {
         const match = `${tab.name} ${tab.url}`
@@ -138,6 +140,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
       className="relative z-20 mx-auto mt-6 w-full max-w-3xl shrink-0"
     >
       <PromptInput
+        className="dark:bg-card"
         value={draft}
         onValueChange={(value) => {
           setDraft(value)

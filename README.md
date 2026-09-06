@@ -109,9 +109,11 @@ plugins/                开发预览的图标下载代理
 
 界面采用 [shadcn/ui](https://ui.shadcn.com/)，输入框基于 [Prompt Kit](https://www.prompt-kit.com/)。图标使用 [Phosphor](https://phosphoricons.com/) 与 [Simple Icons](https://simpleicons.org/)，动画使用 [GSAP](https://gsap.com/)，拖拽基于 [dnd kit](https://dndkit.com/)。网站标识属于各自权利人。
 
-## CI 自动打包
+## 发布与自动打包
 
-推送 `main`、推送 `v*` 标签或手动运行 **Build extension** 工作流，会生成 ZIP 和 CRX。PR 构建只生成 ZIP，不读取签名密钥。
+在 [Releases](https://github.com/trynewthin/oh-my-tab/releases) 下载正式版本的 ZIP 或 CRX。
+
+推送 `main`、推送 `v*` 标签或手动运行 **Build extension** 工作流，会生成 ZIP 和 CRX。PR 构建只生成 ZIP，不读取签名密钥。推送 `v*` 标签会在构建和校验通过后自动发布 GitHub Release，附带 ZIP 和 CRX。
 
 在仓库 **Actions → Build extension → 对应运行 → Artifacts** 下载构建产物，保留 30 天。解压 artifact 后包含：
 

@@ -79,3 +79,34 @@ jobs:
           echo "Download **${PACKAGE_NAME}** from this run's Artifacts section." >> "$GITHUB_STEP_SUMMARY"
           echo 'The ZIP contains manifest.json at its root. Extract it to load unpacked in Chrome or Edge.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Trusted builds also include a CRX signed with the stable repository signing key.' >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: oh-my-tab-*
+          path: packages
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > release-notes.md <<'NOTES'
+          浏览器新标签页扩展，支持电子点阵、可拖拽标签网格和快捷搜索。
+
+          下载 ZIP，解压后在 Chrome / Edge 扩展管理页开启开发者模式，选择「加载已解压的扩展程序」。
+          CRX 使用固定密钥签名；浏览器可能限制商店外 CRX 安装。
+          NOTES
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" packages/* --clobber
+          else
+            gh release create "$RELEASE_TAG" packages/* --verify-tag \
+              --title "Oh My Tab $RELEASE_TAG" --notes-file release-notes.md
+          fi

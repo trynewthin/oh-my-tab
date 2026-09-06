@@ -1,3 +1,4 @@
+import { toast } from "@/stores/toast-store"
 import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,13 +16,12 @@ export default function SearchEngineForm({
 }) {
   const [name, setName] = useState(engine.name)
   const [url, setUrl] = useState(engine.url)
-  const [error, setError] = useState("")
   const saveEngine = useSearchEngineStore((state) => state.saveEngine)
 
   function save(event: FormEvent) {
     event.preventDefault()
     if (!name.trim() || !isSearchUrl(url.trim())) {
-      setError("请输入名称，以及包含 {query} 的 http / https 搜索地址。")
+      toast("请输入名称，以及包含 {query} 的 http / https 搜索地址。", "error")
       return
     }
     saveEngine({ ...engine, name: name.trim(), url: url.trim() })
@@ -62,11 +62,7 @@ export default function SearchEngineForm({
       <p id="search-url-hint" className="text-xs text-muted-foreground">
         用 {"{query}"} 表示搜索关键词。
       </p>
-      {error && (
-        <p role="alert" className="text-xs text-destructive">
-          {error}
-        </p>
-      )}
+
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
           取消

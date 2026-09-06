@@ -1,3 +1,4 @@
+import { matrixPets, isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -12,8 +13,6 @@ export default function HomeSettings() {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
-  const color = useHomeSettingsStore((state) => state.color)
-  const setColor = useHomeSettingsStore((state) => state.setColor)
   const pet = useHomeSettingsStore((state) => state.pet)
   const setTopComponent = useHomeSettingsStore((state) => state.setTopComponent)
   const setContent = useHomeSettingsStore((state) => state.setContent)
@@ -86,18 +85,6 @@ export default function HomeSettings() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-              <label htmlFor="matrix-color" className="text-sm">
-                点阵颜色
-              </label>
-              <Input
-                id="matrix-color"
-                type="color"
-                value={color}
-                className="w-full cursor-pointer p-1"
-                onChange={(event) => setColor(event.target.value)}
-              />
-            </div>
             {content === "text" && (
               <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
                 <label htmlFor="matrix-text" className="text-sm">
@@ -121,15 +108,20 @@ export default function HomeSettings() {
                 <Select
                   value={pet}
                   onValueChange={(value) => {
-                    if (value === "cat" || value === "dog") setPet(value)
+                    if (isMatrixPet(value)) setPet(value)
                   }}
                 >
                   <SelectTrigger id="matrix-pet" className="w-full min-w-0">
-                    <SelectValue>{pet === "cat" ? "小猫" : "小狗"}</SelectValue>
+                    <SelectValue>
+                      {matrixPets.find((item) => item.id === pet)?.label}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cat">小猫</SelectItem>
-                    <SelectItem value="dog">小狗</SelectItem>
+                    {matrixPets.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

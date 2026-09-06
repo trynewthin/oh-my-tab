@@ -60,7 +60,7 @@ export default function DraggableFolderTab({
         {...attributes}
         role="group"
         aria-label={`拖动 ${tab.name}`}
-        className="h-11 cursor-grab rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-full cursor-grab rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
         style={{ opacity: isDragging ? 0.2 : 1 }}
         onMouseDown={(event) => {
           if (event.button !== 0) return
@@ -81,6 +81,7 @@ export default function DraggableFolderTab({
           folderId={folderId}
           index={index}
           animated={animated}
+          entrance
         />
       </ContextMenuTrigger>
       <ContextMenuContent positionerClassName="z-[80]">

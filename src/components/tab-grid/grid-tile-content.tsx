@@ -15,12 +15,16 @@ export default function GridTileContent({
 }) {
   return item.kind === "tab" ? (
     <>
-      <TabBackground item={item} animated={!!item.dynamicEffect} />
+      <TabBackground
+        item={item}
+        animated={!!item.dynamicEffect}
+        entrance={!preview}
+      />
       <TabUI item={item} />
     </>
   ) : (
     <>
-      <FolderBackground color={item.color} />
+      <FolderBackground color={item.color} animated={!!item.dynamicEffect} />
       <FolderUI item={item} onOpen={onOpen} preview={preview} />
     </>
   )

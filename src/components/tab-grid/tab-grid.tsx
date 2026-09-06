@@ -1,4 +1,14 @@
-import { useEffect, useRef, useState } from "react"
+import { useGridSelectionStore } from "@/stores/grid-selection-store"
+import BulkActions from "./bulk-actions"
+import { Plus } from "@phosphor-icons/react"
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "@/components/ui/context-menu"
+import { columnsForWidth } from "./grid-layout"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import {
   DndContext,
@@ -34,6 +44,7 @@ import { FOLDER_DWELL, confirmedFolderDrop } from "./folder-drop"
 type Point = { x: number; y: number }
 type Bounds = { left: number; top: number; width: number; height: number }
 type DragSession = {
+  columns: number
   item: GridItem
   width: number
   height: number
@@ -63,14 +74,18 @@ function contains(point: Point, rect: Bounds, insetX = 0, insetY = 0) {
 }
 
 export default function TabGrid() {
+  const selecting = useGridSelectionStore((state) => state.active)
+  const selectedIds = useGridSelectionStore((state) => state.ids)
+  const toggleSelection = useGridSelectionStore((state) => state.toggle)
   const items = useTabGridStore((state) => state.items)
   const layouts = useTabGridStore((state) => state.layouts)
   const setLayout = useTabGridStore((state) => state.setLayout)
+  const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const transferTab = useTabGridStore((state) => state.transferTab)
   const gridRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const pointer = useRef<Point | null>(null)
-  const [width, setWidth] = useState(768)
+  const [width, setWidth] = useState(0)
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
   const [dragging, setDragging] = useState<DragSession | null>(null)
@@ -86,7 +101,7 @@ export default function TabGrid() {
   } | null>(null)
   const [dialogSuspended, setDialogSuspended] = useState(false)
   const [heldLayout, setHeldLayout] = useState<GridPositions | null>(null)
-  const columns = width >= 640 ? 12 : width >= 420 ? 8 : 4
+  const columns = dragging?.columns ?? columnsForWidth(width)
   const columnStep = (width + 12) / columns
   const positions =
     heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
@@ -104,6 +119,10 @@ export default function TabGrid() {
   )
 
   useEffect(() => {
+    if (width > 0 && !dragging) ensureLayout(columns)
+  }, [columns, width, items, layouts, dragging, ensureLayout])
+
+  useLayoutEffect(() => {
     const element = gridRef.current
     if (!element) return
     const viewport = scrollRef.current
@@ -220,6 +239,7 @@ export default function TabGrid() {
         }
       : { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
     const session: DragSession = {
+      columns,
       item,
       width: rect.width,
       height: rect.height,
@@ -534,122 +554,177 @@ export default function TabGrid() {
           : ""
 
   return (
-    <section
-      data-tour="grid"
-      aria-label="标签网格"
-      className="mx-auto mt-6 min-h-0 w-full max-w-3xl flex-1"
-    >
-      <DndContext
-        sensors={sensors}
-        onDragStart={startDrag}
-        onDragMove={(event: DragMoveEvent) => updateIntent(event.delta)}
-        onDragEnd={finishDrag}
-        onDragCancel={resetDrag}
+    <ContextMenu>
+      <ContextMenuTrigger
+        render={<section />}
+        data-tour="grid"
+        aria-label="标签网格"
+        className="mx-auto mt-6 min-h-0 w-full max-w-[1340px] flex-1"
       >
-        <div
-          ref={scrollRef}
-          tabIndex={0}
-          aria-label="滚动标签网格"
-          className="h-full min-h-0 pb-4 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
-          style={{
-            maskImage:
-              "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
-          }}
+        <DndContext
+          sensors={sensors}
+          onDragStart={startDrag}
+          onDragMove={(event: DragMoveEvent) => updateIntent(event.delta)}
+          onDragEnd={finishDrag}
+          onDragCancel={resetDrag}
         >
           <div
-            ref={gridRef}
-            className="relative grid min-h-11 auto-rows-[44px] gap-3"
+            ref={scrollRef}
+            tabIndex={0}
+            aria-label="滚动标签网格"
+            className={`h-full min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain ${selecting ? "pb-28" : "pb-4"} outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden`}
             style={{
-              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+              margin: "-20px -20px 0",
+              paddingTop: 20,
+              paddingLeft: 20,
+              paddingRight: 20,
+              height: "calc(100% + 20px)",
+              maskImage:
+                "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
             }}
           >
-            {items.map((item) => (
-              <DraggableGridItem
-                key={item.id}
-                item={item}
-                placement={
-                  !dragging?.sourceFolderId && dragging?.item.id === item.id
-                    ? { ...dragging.origin, height: itemHeight(item) }
-                    : placements[item.id]
-                }
-                dropState={
-                  intent.kind === "folder" && intent.folderId === item.id
-                    ? intent.ready
-                      ? "ready"
-                      : "pending"
-                    : undefined
-                }
-                onOpen={() => setFolderId(item.id)}
-                onEdit={() => setEditor({ item })}
-              />
-            ))}
-            {dragging && intent.kind === "grid" && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-200 ease-out motion-reduce:transition-none"
-                style={{
-                  width: columnStep * 4 - 12,
-                  height: itemHeight(dragging.item) * ROW_STEP - 12,
-                  transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * ROW_STEP}px, 0)`,
-                }}
-              />
-            )}
-          </div>
-        </div>
-        {createPortal(
-          <DragOverlay
-            zIndex={1000}
-            dropAnimation={
-              dragging?.sourceFolderId ||
-              intent.kind === "folder" ||
-              window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                ? null
-                : {
-                    duration: 240,
-                    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                    sideEffects: defaultDropAnimationSideEffects({
-                      styles: { active: { opacity: "0" } },
-                    }),
-                  }
-            }
-          >
-            {dragging && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none relative isolate cursor-grabbing rounded-2xl border shadow-lg"
-                style={{ width: dragging.width, height: dragging.height }}
-              >
-                <GridTileContent
-                  item={dragging.item}
-                  onOpen={() => {}}
-                  preview
+            <div
+              ref={gridRef}
+              className="relative grid min-h-11 auto-rows-[44px] gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+              }}
+            >
+              {(width > 0 && layouts[columns] ? items : []).map((item) =>
+                selecting ? (
+                  <div
+                    key={item.id}
+                    data-grid-item-id={item.id}
+                    className="relative isolate min-w-0 rounded-2xl border transition-shadow duration-200 motion-reduce:transition-none"
+                    style={{
+                      boxShadow: selectedIds.includes(item.id)
+                        ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
+                        : undefined,
+                      gridColumn: `${placements[item.id].x + 1} / span 4`,
+                      gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
+                    }}
+                  >
+                    <div
+                      inert
+                      className="pointer-events-none relative h-full overflow-hidden rounded-[inherit]"
+                    >
+                      <GridTileContent
+                        item={{
+                          ...item,
+                          dynamicEffect: selectedIds.includes(item.id),
+                        }}
+                        onOpen={() => {}}
+                        preview
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={selectedIds.includes(item.id)}
+                      aria-label={`选择${item.name}`}
+                      className="absolute inset-0 z-30 cursor-pointer appearance-none rounded-[inherit] border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => toggleSelection(item.id)}
+                    />
+                  </div>
+                ) : (
+                  <DraggableGridItem
+                    key={item.id}
+                    item={item}
+                    placement={
+                      !dragging?.sourceFolderId && dragging?.item.id === item.id
+                        ? { ...dragging.origin, height: itemHeight(item) }
+                        : placements[item.id]
+                    }
+                    dropState={
+                      intent.kind === "folder" && intent.folderId === item.id
+                        ? intent.ready
+                          ? "ready"
+                          : "pending"
+                        : undefined
+                    }
+                    onOpen={() => setFolderId(item.id)}
+                    onEdit={() => setEditor({ item })}
+                  />
+                )
+              )}
+              {dragging && intent.kind === "grid" && (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-200 ease-out motion-reduce:transition-none"
+                  style={{
+                    width: columnStep * 4 - 12,
+                    height: itemHeight(dragging.item) * ROW_STEP - 12,
+                    transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * ROW_STEP}px, 0)`,
+                  }}
                 />
-                {intentText && (
-                  <span className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-lg bg-primary px-3 py-1 text-xs whitespace-nowrap text-primary-foreground">
-                    {intentText}
-                  </span>
-                )}
-              </div>
-            )}
-          </DragOverlay>,
-          document.body
-        )}
-        <span role="status" className="sr-only">
-          {intentText}
-        </span>
-        {editor && (
-          <GridItemDialog item={editor.item} onClose={() => setEditor(null)} />
-        )}
-        {folderId && (
-          <FolderExpansion
-            folderId={folderId}
-            suspended={dialogSuspended}
-            onClose={() => setFolderId(null)}
-          />
-        )}
-      </DndContext>
-    </section>
+              )}
+            </div>
+          </div>
+          {createPortal(
+            <DragOverlay
+              zIndex={1000}
+              dropAnimation={
+                dragging?.sourceFolderId ||
+                intent.kind === "folder" ||
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                  ? null
+                  : {
+                      duration: 240,
+                      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                      sideEffects: defaultDropAnimationSideEffects({
+                        styles: { active: { opacity: "0" } },
+                      }),
+                    }
+              }
+            >
+              {dragging && (
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none relative isolate cursor-grabbing rounded-2xl border shadow-lg"
+                  style={{ width: dragging.width, height: dragging.height }}
+                >
+                  <GridTileContent
+                    item={dragging.item}
+                    onOpen={() => {}}
+                    preview
+                  />
+                  {intentText && (
+                    <span className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-lg bg-primary px-3 py-1 text-xs whitespace-nowrap text-primary-foreground">
+                      {intentText}
+                    </span>
+                  )}
+                </div>
+              )}
+            </DragOverlay>,
+            document.body
+          )}
+          <span role="status" className="sr-only">
+            {intentText}
+          </span>
+          {editor && (
+            <GridItemDialog
+              item={editor.item}
+              onClose={() => setEditor(null)}
+            />
+          )}
+          {folderId && (
+            <FolderExpansion
+              folderId={folderId}
+              suspended={dialogSuspended}
+              onClose={() => setFolderId(null)}
+            />
+          )}
+          <BulkActions />
+        </DndContext>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => setEditor({})}>
+          <Plus />
+          添加组件
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

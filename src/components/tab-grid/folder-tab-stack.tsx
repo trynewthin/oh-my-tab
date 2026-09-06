@@ -4,8 +4,6 @@ import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
 import type { FolderItem } from "./types"
 
-const ROW_HEIGHT = 44
-
 export default function FolderTabStack({
   folder,
   className = "",
@@ -19,8 +17,9 @@ export default function FolderTabStack({
   surface?: "preview" | "dialog"
   draggable?: boolean
 }) {
-  const rowGap = folder.size === "tall" && surface === "preview" ? 4 : 8
-  const rowStep = ROW_HEIGHT + rowGap
+  const rowHeight = folder.size === "large" && surface === "preview" ? 36 : 44
+  const rowGap = surface === "preview" && folder.size !== "small" ? 4 : 8
+  const rowStep = rowHeight + rowGap
   const viewportRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -39,7 +38,7 @@ export default function FolderTabStack({
       const progress = Math.min(1, viewport.scrollTop / rowStep)
       const folding = progress * progress * (3 - 2 * progress)
       const focusLine = Math.max(0, height - 64)
-      const spread = Math.max(12, height - ROW_HEIGHT - focusLine)
+      const spread = Math.max(12, height - rowHeight - focusLine)
       rows.forEach((row, index) => {
         const position = index * rowStep - viewport.scrollTop
         const depth = Math.max(0, (position - focusLine) / rowStep)
@@ -50,17 +49,17 @@ export default function FolderTabStack({
         const scale = motion.matches
           ? 1
           : 1 - Math.min(0.22, depth * 0.07) * folding
-        const bottomLimit = Math.max(0, height - ROW_HEIGHT * scale - 1)
+        const bottomLimit = Math.max(0, height - rowHeight * scale - 1)
         const animatedPosition = position + (projected - position) * folding
         const boundedPosition = Math.min(animatedPosition, bottomLimit)
-        const initiallyBelow = index * rowStep + ROW_HEIGHT > height
+        const initiallyBelow = index * rowStep + rowHeight > height
         const reveal = initiallyBelow ? folding : 1
         const opacity =
           (position < 0
-            ? Math.max(0, 1 + position / ROW_HEIGHT)
+            ? Math.max(0, 1 + position / rowHeight)
             : Math.max(0, 1 - (folding * Math.max(0, depth - 2)) / 3)) * reveal
         const hidden = motion.matches
-          ? position + ROW_HEIGHT <= 0 || position + ROW_HEIGHT > height
+          ? position + rowHeight <= 0 || position + rowHeight > height
           : opacity <= 0.02
         row.inert = hidden
         gsap.set(row, {
@@ -80,7 +79,7 @@ export default function FolderTabStack({
       if (!viewport) return
       viewport.style.setProperty(
         "--stack-bottom",
-        `${Math.max(0, viewport.clientHeight - topBleed - ROW_HEIGHT)}px`
+        `${Math.max(0, viewport.clientHeight - topBleed - rowHeight)}px`
       )
       const maxScroll = Math.max(0, (rows.length - 1) * rowStep)
       viewport.scrollTop = Math.min(viewport.scrollTop, maxScroll)
@@ -145,7 +144,7 @@ export default function FolderTabStack({
         row.inert = false
       })
     }
-  }, [folder.id, folder.tabs, topBleed, rowStep])
+  }, [folder.id, folder.tabs, topBleed, rowStep, rowHeight])
 
   return (
     <div
@@ -196,8 +195,11 @@ export default function FolderTabStack({
             data-stack-row
             data-tab-id={tab.id}
             role="listitem"
-            className="relative h-11 will-change-transform"
-            style={{ marginBottom: index < folder.tabs.length - 1 ? rowGap : 0 }}
+            className="relative will-change-transform"
+            style={{
+              height: rowHeight,
+              marginBottom: index < folder.tabs.length - 1 ? rowGap : 0,
+            }}
           >
             {draggable ? (
               <DraggableFolderTab

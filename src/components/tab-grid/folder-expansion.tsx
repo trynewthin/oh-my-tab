@@ -183,7 +183,10 @@ export default function FolderExpansion({
       data-expanded-folder={folder.id}
       className="folder-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border bg-card shadow-xl outline-none"
     >
-      <FolderBackground color={folder.color} />
+      <FolderBackground
+        color={folder.color}
+        animated={!!folder.dynamicEffect}
+      />
       <div className="relative z-10 flex h-full min-h-0 [scrollbar-width:none] flex-col gap-4 overflow-y-auto p-5 [&::-webkit-scrollbar]:hidden">
         <header className="flex shrink-0 items-center justify-between gap-3">
           <h2 id={titleId} className="min-w-0 truncate text-base font-medium">

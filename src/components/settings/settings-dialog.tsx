@@ -1,4 +1,7 @@
-import { MagnifyingGlass, X, House, Gear } from "@phosphor-icons/react"
+import EffectSurface from "@/components/effects/effect-surface"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import PersonalizationSettings from "./personalization-settings"
+import { MagnifyingGlass, X, House, Gear, Palette } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +21,7 @@ import GeneralSettings from "./general-settings"
 const sections = [
   { id: "general", label: "常规设置", icon: Gear },
   { id: "home", label: "主页设置", icon: House },
+  { id: "personalization", label: "个性化", icon: Palette },
   { id: "search-engines", label: "搜索引擎", icon: MagnifyingGlass },
 ] satisfies {
   id: SettingsSection
@@ -26,6 +30,7 @@ const sections = [
 }[]
 
 export default function SettingsDialog() {
+  const color = useHomeSettingsStore((state) => state.color)
   const open = useSettingsStore((state) => state.open)
   const setOpen = useSettingsStore((state) => state.setOpen)
   const section = useSettingsStore((state) => state.section)
@@ -37,7 +42,18 @@ export default function SettingsDialog() {
         showCloseButton={false}
         className="gap-0 overflow-hidden p-0 sm:max-w-3xl"
       >
-        <div className="flex h-[min(560px,80svh)] min-h-0 min-w-0">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] opacity-40"
+        >
+          <EffectSurface
+            textureId={"personalization-background"}
+            color={color}
+            animated
+            visible={section === "personalization"}
+          />
+        </div>
+        <div className="relative z-10 flex h-[min(560px,80svh)] min-h-0 min-w-0">
           <aside className="flex w-28 shrink-0 flex-col overflow-y-auto p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
             <DialogHeader className="px-2 pb-6 text-left">
               <DialogTitle>设置</DialogTitle>
@@ -76,6 +92,8 @@ export default function SettingsDialog() {
               <GeneralSettings />
             ) : section === "search-engines" ? (
               <SearchEngineSettings />
+            ) : section === "personalization" ? (
+              <PersonalizationSettings />
             ) : (
               <HomeSettings />
             )}

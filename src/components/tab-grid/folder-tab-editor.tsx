@@ -1,3 +1,4 @@
+import { toast } from "@/stores/toast-store"
 import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,13 +22,12 @@ export default function FolderTabEditor({
 }) {
   const [name, setName] = useState(tab.name)
   const [url, setUrl] = useState(tab.url)
-  const [error, setError] = useState("")
   const updateFolderTab = useTabGridStore((state) => state.updateFolderTab)
   function save(event: FormEvent) {
     event.preventDefault()
     const normalized = normalizeTabUrl(url)
     if (!name.trim() || !normalized) {
-      setError("请输入名称和有效的 http / https 网址。")
+      toast("请输入名称和有效的 http / https 网址。", "error")
       return
     }
     updateFolderTab(folderId, tab.id, { name: name.trim(), url: normalized })
@@ -67,11 +67,7 @@ export default function FolderTabEditor({
               onChange={(event) => setUrl(event.target.value)}
             />
           </label>
-          {error && (
-            <p role="alert" className="text-xs text-destructive">
-              {error}
-            </p>
-          )}
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={onClose}>
               取消

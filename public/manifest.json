@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Oh My Tab · 新标签页",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "基于 shadcn/ui 的新标签页。",
   "chrome_url_overrides": {
     "newtab": "index.html"

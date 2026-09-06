@@ -11,6 +11,7 @@ export default function SettingsButton() {
       type="button"
       variant="ghost"
       size="icon"
+      data-tour="settings"
       aria-label="打开设置"
       title="设置"
       onClick={(event) => {

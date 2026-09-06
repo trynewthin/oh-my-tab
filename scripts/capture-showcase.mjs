@@ -38,6 +38,7 @@ await context.route('**/__favicon?**', async route => {
  return route.fulfill(logo ? {status:200,...logo} : {status:404,body:''})
 })
 await context.addInitScript(({items, positions}) => {
+ localStorage.setItem('omt.onboarding', JSON.stringify({state:{seen:true},version:0}))
  if (!localStorage.getItem('showcase-seeded')) {
   localStorage.setItem('omt.tab-grid',JSON.stringify({state:{items,layouts:{12:positions},mockDataVersion:2},version:0}))
   localStorage.setItem('omt.home-settings',JSON.stringify({state:{topComponent:'dot-matrix',content:'text',text:'OH MY TAB',pet:'cat',color:'#a58bc6'},version:0}))

@@ -11,14 +11,23 @@ test("first visit tour completes and can be replayed from settings", async ({
   await expect(tour.getByRole("button", { name: "上一步" })).toBeDisabled()
   await tour.getByRole("button", { name: "下一步" }).click()
   await expect(
-    tour.getByRole("heading", { name: "加号：添加标签或文件夹" })
+    tour.getByRole("heading", { name: "四宫格：更多操作" })
   ).toBeVisible()
   await tour.getByRole("button", { name: "上一步" }).click()
   await expect(
     tour.getByRole("heading", { name: "搜索与打开结果" })
   ).toBeVisible()
-  for (let i = 0; i < 10; i++)
-    await tour.getByRole("button", { name: "下一步" }).click()
+  const titles: string[] = []
+  for (let i = 0; i < 20; i++) {
+    titles.push(await tour.getByRole("heading").innerText())
+    const next = tour.getByRole("button", { name: "下一步" })
+    if (!(await next.count())) break
+    await next.click()
+  }
+  expect(titles).toContain("组件：预览、配置与添加")
+  expect(titles).toContain("批量操作：成组与删除")
+  expect(titles).toContain("个性化：主题色与燃烧")
+  expect(titles.at(-1)).toBe("随时重看教程")
   await tour.getByRole("button", { name: "开始使用" }).click()
   await expect(tour).toHaveCount(0)
   await page.reload()
@@ -49,6 +58,6 @@ test("skip persists on a narrow screen without changing user content", async ({
   await page.reload()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await expect(
-    page.getByRole("button", { name: "添加标签或文件夹", exact: true })
+    page.getByRole("button", { name: "更多操作", exact: true })
   ).toBeVisible()
 })

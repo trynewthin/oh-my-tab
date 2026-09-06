@@ -1,3 +1,11 @@
+import { groupComponents } from "@/lib/grid-operations"
+import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
+import {
+  GRID_COLUMNS,
+  reconcileLayouts,
+  deriveLayout,
+} from "@/components/tab-grid/grid-layout"
+import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import {
@@ -24,6 +32,8 @@ import {
 import { randomFolderColor } from "@/lib/folder-colors"
 
 type TabGridState = {
+  lastLayoutColumns?: number
+  ensureLayout: (columns: number) => void
   mockDataVersion: number
   layouts: Record<number, GridPositions>
   setLayout: (columns: number, positions: GridPositions) => void
@@ -34,6 +44,12 @@ type TabGridState = {
   randomizeItemColor: (id: string) => void
   resizeItem: (id: string, size: GridItem["size"]) => void
   removeItem: (id: string) => void
+  removeItems: (ids: string[]) => void
+  groupItems: (ids: string[], name: string) => boolean
+  importBookmarks: (bookmarks: ImportedBookmark[]) => {
+    added: number
+    duplicates: number
+  }
   saveItem: (item: GridItem) => void
   updateFolderTab: (
     folderId: string,
@@ -79,12 +95,48 @@ export function validItem(value: unknown): value is GridItem {
 
 export const useTabGridStore = create<TabGridState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       mockDataVersion: import.meta.env.DEV ? MOCK_DATA_VERSION : 0,
       layouts: {},
+      ensureLayout: (columns) =>
+        set((state) => {
+          const layouts = reconcileLayouts(state.items, state.layouts)
+          if (!layouts[columns]) {
+            const sourceColumns =
+              state.lastLayoutColumns && layouts[state.lastLayoutColumns]
+                ? state.lastLayoutColumns
+                : Object.keys(layouts)
+                    .map(Number)
+                    .sort(
+                      (a, b) => Math.abs(a - columns) - Math.abs(b - columns)
+                    )[0]
+            layouts[columns] = deriveLayout(
+              state.items,
+              columns,
+              layouts[sourceColumns] ?? {}
+            )
+          }
+          const unchanged =
+            Object.keys(layouts).length === Object.keys(state.layouts).length &&
+            Object.entries(layouts).every(([key, layout]) => {
+              const old = state.layouts[Number(key)]
+              return (
+                old &&
+                Object.keys(layout).length === Object.keys(old).length &&
+                Object.entries(layout).every(
+                  ([id, position]) =>
+                    old[id]?.x === position.x && old[id]?.y === position.y
+                )
+              )
+            })
+          return unchanged && state.lastLayoutColumns === columns
+            ? state
+            : { layouts, lastLayoutColumns: columns }
+        }),
       setLayout: (columns, positions) =>
         set((state) => ({
           layouts: { ...state.layouts, [columns]: positions },
+          lastLayoutColumns: columns,
         })),
       items: initialItems,
       transferTab: (move) => set((state) => transferTab(state, move)),
@@ -116,18 +168,72 @@ export const useTabGridStore = create<TabGridState>()(
             return item
           }),
         })),
-      removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((item) => item.id !== id),
+      removeItem: (id) => get().removeItems([id]),
+      removeItems: (ids) => {
+        const before = get()
+        const removed = before.items.filter((item) => ids.includes(item.id))
+        if (!removed.length) return
+        set({
+          items: before.items.filter((item) => !ids.includes(item.id)),
           layouts: Object.fromEntries(
-            Object.entries(state.layouts).map(([columns, layout]) => [
+            Object.entries(before.layouts).map(([columns, layout]) => [
               columns,
               Object.fromEntries(
-                Object.entries(layout).filter(([itemId]) => itemId !== id)
+                Object.entries(layout).filter(([id]) => !ids.includes(id))
               ),
             ])
           ),
-        })),
+        })
+        toast(
+          removed.length === 1
+            ? `已删除${removed[0].kind === "folder" ? "文件夹" : "标签"}「${removed[0].name}」`
+            : `已删除 ${removed.length} 个组件`,
+          "warning",
+          {
+            label: "撤销",
+            run: () => {
+              set((state) => {
+                const items = [...state.items]
+                const layouts = { ...state.layouts }
+                for (const item of removed) {
+                  if (items.some((entry) => entry.id === item.id)) continue
+                  items.splice(
+                    Math.min(
+                      before.items.findIndex((entry) => entry.id === item.id),
+                      items.length
+                    ),
+                    0,
+                    item
+                  )
+                  for (const [columns, layout] of Object.entries(
+                    before.layouts
+                  )) {
+                    if (layout[item.id])
+                      layouts[Number(columns)] = {
+                        ...layouts[Number(columns)],
+                        [item.id]: layout[item.id],
+                      }
+                  }
+                }
+                return { items, layouts }
+              })
+              toast(`已恢复 ${removed.length} 个组件`, "success")
+            },
+          }
+        )
+      },
+      groupItems: (ids, name) => {
+        const next = groupComponents(get(), ids, name)
+        if (!next) return false
+        set(next)
+        toast(`已创建文件夹「${name.trim()}」`, "success")
+        return true
+      },
+      importBookmarks: (bookmarks) => {
+        const result = mergeBookmarks(get().items, bookmarks)
+        if (result.added) set({ items: result.items })
+        return { added: result.added, duplicates: result.duplicates }
+      },
       saveItem: (item) =>
         set((state) => ({
           items: state.items.some((existing) => existing.id === item.id)
@@ -160,7 +266,8 @@ export const useTabGridStore = create<TabGridState>()(
     }),
     {
       name: "omt.tab-grid",
-      partialize: ({ items, layouts, mockDataVersion }) => ({
+      partialize: ({ items, layouts, mockDataVersion, lastLayoutColumns }) => ({
+        lastLayoutColumns,
         items,
         layouts,
         mockDataVersion,
@@ -172,7 +279,7 @@ export const useTabGridStore = create<TabGridState>()(
           persisted as { layouts?: Record<string, unknown> } | null
         )?.layouts
         const layouts: Record<number, GridPositions> = {}
-        for (const columns of [4, 8, 12]) {
+        for (const columns of GRID_COLUMNS) {
           const layout = savedLayouts?.[columns]
           if (!layout || typeof layout !== "object") continue
           layouts[columns] = Object.fromEntries(
@@ -214,6 +321,12 @@ export const useTabGridStore = create<TabGridState>()(
         }
         return {
           ...current,
+          lastLayoutColumns: GRID_COLUMNS.find(
+            (columns) =>
+              columns ===
+              (persisted as { lastLayoutColumns?: number } | null)
+                ?.lastLayoutColumns
+          ),
           layouts,
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION

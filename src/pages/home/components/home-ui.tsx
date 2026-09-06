@@ -1,3 +1,4 @@
+import Toaster from "@/components/ui/toaster"
 import OnboardingTour from "@/components/onboarding/onboarding-tour"
 import HomePromptInput from "@/pages/home/components/home-prompt-input"
 
@@ -29,6 +30,7 @@ export default function HomeUI() {
       <HomePromptInput onSubmit={search} />
       <TabGrid />
       <OnboardingTour />
+      <Toaster />
     </div>
   )
 }

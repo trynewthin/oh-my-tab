@@ -1,3 +1,5 @@
+import { GRID_COLUMNS } from "@/components/tab-grid/grid-layout"
+import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
@@ -18,6 +20,9 @@ function snapshot() {
       text: home.text,
       pet: home.pet,
       color: home.color,
+      burningAmplitude: home.burningAmplitude,
+      effectStyle: home.effectStyle,
+      transitionsEnabled: home.transitionsEnabled,
     },
     theme: { theme: useThemeStore.getState().theme },
     search: { engines: search.engines, selectedId: search.selectedId },
@@ -48,7 +53,15 @@ export async function parseConfig(text: string): Promise<Config> {
     typeof home.text !== "string" ||
     home.text.length > 80 ||
     !hex(home.color) ||
-    !["cat", "dog"].includes(home.pet) ||
+    (home.effectStyle !== undefined &&
+      !["burning", "particles"].includes(home.effectStyle)) ||
+    (home.burningAmplitude !== undefined &&
+      (!Number.isFinite(home.burningAmplitude) ||
+        home.burningAmplitude < 0 ||
+        home.burningAmplitude > 2)) ||
+    (home.transitionsEnabled !== undefined &&
+      typeof home.transitionsEnabled !== "boolean") ||
+    !isMatrixPet(home.pet) ||
     !["light", "dark", "system"].includes(theme.theme) ||
     !Array.isArray(search.engines) ||
     !search.engines.length ||
@@ -79,7 +92,7 @@ export async function parseConfig(text: string): Promise<Config> {
   if (new Set(ids).size !== ids.length) throw new Error("标签或文件夹标识重复")
   for (const [columns, positions] of Object.entries(grid.layouts)) {
     if (
-      !["4", "8", "12"].includes(columns) ||
+      !GRID_COLUMNS.some((value) => String(value) === columns) ||
       !positions ||
       typeof positions !== "object" ||
       !Object.values(positions).every(
@@ -95,6 +108,10 @@ export async function parseConfig(text: string): Promise<Config> {
     )
       throw new Error("网格布局无效")
   }
+  home.effectStyle ??= "burning"
+  home.burningAmplitude ??= 1
+  home.transitionsEnabled ??=
+    (home as { burningEntrance?: unknown }).burningEntrance === true
   home.text = home.text.replace(/[^\x20-\x7e]/g, "")
   grid.mockDataVersion = MOCK_DATA_VERSION
   return config

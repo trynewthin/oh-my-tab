@@ -8,21 +8,24 @@ export default function FolderTabRow({
   folderId,
   index,
   animated = false,
+  entrance = false,
 }: {
   tab: TabEntry
   color: string
   folderId: string
   index: number
   animated?: boolean
+  entrance?: boolean
 }) {
   const item: TabItem = { ...tab, kind: "tab", size: "small", color }
   return (
-    <div className="pointer-events-auto relative isolate h-11 min-w-0 shrink-0 rounded-2xl border">
+    <div className="pointer-events-auto relative isolate h-full min-w-0 shrink-0 rounded-2xl border">
       <TabBackground
         item={item}
         textureId={folderId}
         offsetY={index * 52}
         animated={animated}
+        entrance={entrance}
       />
       <TabUI item={item} />
     </div>

@@ -1,7 +1,7 @@
 {
   "name": "oh-my-tab",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,8 @@
     "test:extension": "node scripts/verify-extension.mjs",
     "test:icons": "node --test scripts/tests/favicon-cache.test.mjs",
     "test:unit": "node --test scripts/tests/*.test.mjs",
-    "screenshots": "node scripts/capture-showcase.mjs"
+    "screenshots": "node scripts/capture-showcase.mjs",
+    "demos": "node scripts/capture-features.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

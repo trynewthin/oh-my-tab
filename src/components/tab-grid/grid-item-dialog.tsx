@@ -1,21 +1,51 @@
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
+import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl, type GridItem } from "./types"
+import TabBackground from "./tab-background"
+import FolderBackground from "./folder-background"
+import ComponentConfiguration from "./component-configuration"
+import type { GridItem } from "./types"
+
+function BookmarkPreview({ folder = false }: { folder?: boolean }) {
+  const tile = (name: string, color: string) => (
+    <div className="relative isolate h-11 min-w-0 rounded-2xl border">
+      <TabBackground
+        item={{ id: name, kind: "tab", name, url: "", size: "small", color }}
+        showIcon={false}
+      />
+      <span className="relative z-10 flex h-full items-center px-4 pr-12 text-sm font-medium">
+        {name}
+      </span>
+      <BookmarkSimple className="absolute top-1/2 right-4 z-10 size-5 -translate-y-1/2" />
+    </div>
+  )
+  return (
+    <div
+      aria-hidden="true"
+      className="flex h-44 w-full items-center justify-center p-3"
+    >
+      {folder ? (
+        <div className="relative isolate w-full rounded-2xl border p-3">
+          <FolderBackground color="#a58bc6" />
+          <div className="relative z-10 space-y-2 text-left">
+            <span className="block text-sm font-medium">常用网站</span>
+            {tile("设计灵感", "#a58bc6")}
+            {tile("阅读收藏", "#a58bc6")}
+          </div>
+        </div>
+      ) : (
+        <div className="w-full">{tile("我的书签", "#6c8bd4")}</div>
+      )}
+    </div>
+  )
+}
 
 export default function GridItemDialog({
   item,
@@ -24,47 +54,11 @@ export default function GridItemDialog({
   item?: GridItem
   onClose: () => void
 }) {
-  const [id] = useState(() => item?.id ?? crypto.randomUUID())
-  const [kind, setKind] = useState<"tab" | "folder">(item?.kind ?? "tab")
-  const [name, setName] = useState(item?.name ?? "")
-  const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
-  const [size, setSize] = useState<"small" | "medium" | "large" | "tall">(
-    item?.size ?? "small"
-  )
-  const [color, setColor] = useState(item?.color ?? "#6c8bd4")
-  const [error, setError] = useState("")
-  const saveItem = useTabGridStore((state) => state.saveItem)
-
-  function save(event: FormEvent) {
-    event.preventDefault()
-    const normalized = normalizeTabUrl(url)
-    if (!name.trim() || (kind === "tab" && !normalized)) {
-      setError("请输入名称和有效的 http / https 网址。")
-      return
-    }
-    if (kind === "tab")
-      saveItem({
-        id,
-        kind,
-        name: name.trim(),
-        url: normalized!,
-        dynamicEffect: item?.kind === "tab" ? item.dynamicEffect : false,
-        size: size === "medium" ? "medium" : "small",
-        color,
-      })
-    else
-      saveItem({
-        id,
-        kind,
-        name: name.trim(),
-        size: size === "large" || size === "tall" ? size : "small",
-        color,
-        tabs: item?.kind === "folder" ? item.tabs : [],
-        dynamicEffect: item?.kind === "folder" ? item.dynamicEffect : false,
-      })
-    onClose()
-  }
-
+  const [selected, setSelected] = useState<"tab" | "folder" | null>(null)
+  if (item)
+    return (
+      <ComponentConfiguration item={item} onClose={onClose} onSaved={onClose} />
+    )
   return (
     <Dialog
       open
@@ -72,120 +66,58 @@ export default function GridItemDialog({
         if (!open) onClose()
       }}
     >
-      <DialogContent showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>
-            {item ? "编辑" : "添加"}
-            {kind === "tab" ? "标签" : "文件夹"}
-          </DialogTitle>
-        </DialogHeader>
-        <form className="space-y-4" onSubmit={save}>
-          {!item && (
-            <div className="grid grid-cols-2 items-center gap-3">
-              <label htmlFor="grid-kind">类型</label>
-              <Select
-                value={kind}
-                onValueChange={(value) => {
-                  if (value === "tab" || value === "folder") {
-                    setKind(value)
-                    setSize("small")
-                  }
-                }}
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-3xl">
+        <div className="flex h-[min(560px,80svh)] min-h-0 min-w-0">
+          <aside className="flex w-24 shrink-0 flex-col p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
+            <DialogHeader className="px-2 pb-6 text-left">
+              <DialogTitle>组件</DialogTitle>
+              <DialogDescription className="sr-only">
+                选择组件预览，配置后添加到主页。
+              </DialogDescription>
+            </DialogHeader>
+            <nav aria-label="组件分类">
+              <Button
+                variant="secondary"
+                aria-current="page"
+                className="w-full justify-start px-2"
               >
-                <SelectTrigger id="grid-kind" className="w-full">
-                  <SelectValue>
-                    {kind === "tab" ? "标签" : "文件夹"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tab">标签</SelectItem>
-                  <SelectItem value="folder">文件夹</SelectItem>
-                </SelectContent>
-              </Select>
+                <BookmarkSimple />
+                书签
+              </Button>
+            </nav>
+          </aside>
+          <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-3 pt-16 pb-6 sm:p-6 sm:pt-16">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {(
+                [
+                  { id: "tab", label: "标签" },
+                  { id: "folder", label: "文件夹" },
+                ] as const
+              ).map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  aria-label={`添加${entry.label}`}
+                  className="min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => setSelected(entry.id)}
+                >
+                  <BookmarkPreview folder={entry.id === "folder"} />
+                  <span className="block px-4 pb-4 text-center text-sm font-medium">
+                    {entry.label}
+                  </span>
+                </button>
+              ))}
             </div>
-          )}
-          <label className="grid grid-cols-2 items-center gap-3">
-            名称
-            <Input
-              autoFocus
-              required
-              maxLength={40}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </label>
-          {kind === "tab" && (
-            <label className="grid grid-cols-2 items-center gap-3">
-              网址
-              <Input
-                required
-                placeholder="https://example.com"
-                value={url}
-                onChange={(event) => setUrl(event.target.value)}
-              />
-            </label>
-          )}
-          <div className="grid grid-cols-2 items-center gap-3">
-            <label htmlFor="grid-size">显示大小</label>
-            <Select
-              value={size}
-              onValueChange={(value) => {
-                if (
-                  value === "small" ||
-                  value === "medium" ||
-                  value === "large" ||
-                  value === "tall"
-                )
-                  setSize(value)
-              }}
-            >
-              <SelectTrigger id="grid-size" className="w-full">
-                <SelectValue>
-                  {size === "small"
-                    ? kind === "tab"
-                      ? "小 · 4×1"
-                      : "小 · 4×2"
-                    : kind === "tab"
-                      ? "中 · 4×2"
-                      : size === "tall"
-                        ? "高 · 4×8"
-                        : "大 · 4×4"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="small">
-                  {kind === "tab" ? "小 · 4×1" : "小 · 4×2"}
-                </SelectItem>
-                <SelectItem value={kind === "tab" ? "medium" : "large"}>
-                  {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
-                </SelectItem>
-                {kind === "folder" && (
-                  <SelectItem value="tall">高 · 4×8</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
           </div>
-          <label className="grid grid-cols-2 items-center gap-3">
-            {kind === "folder" ? "文件夹颜色" : "背景颜色"}
-            <input
-              type="color"
-              className="h-8 w-full cursor-pointer rounded border"
-              value={color}
-              onChange={(event) => setColor(event.target.value)}
-            />
-          </label>
-          {error && (
-            <p role="alert" className="text-xs text-destructive">
-              {error}
-            </p>
-          )}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              取消
-            </Button>
-            <Button type="submit">保存</Button>
-          </div>
-        </form>
+        </div>
+        {selected && (
+          <ComponentConfiguration
+            key={selected}
+            initialKind={selected}
+            onClose={() => setSelected(null)}
+            onSaved={onClose}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

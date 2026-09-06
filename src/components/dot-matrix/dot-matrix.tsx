@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from "react"
-
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { fitBitmap, textBitmap } from "./bitmap-font"
+import { matrixPets } from "./pet-catalog"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { petBitmap } from "./pet-frames"
-
 import { breathingWave, oceanCellColor } from "./breathing-wave"
+import {
+  CELL_SIZE,
+  CELL_GAP,
+  clockBitmap,
+  matrixColumns,
+} from "./responsive-layout"
 
-const COLUMNS = 52
-const ROWS = 7
-
-export default function DotMatrix() {
+function MatrixContent({ columns }: { columns: number }) {
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const color = useHomeSettingsStore((state) => state.color)
@@ -28,24 +30,25 @@ export default function DotMatrix() {
       },
       content === "time"
         ? 1000
-        : content === "pet"
-          ? 220
-          : content === "breathing"
-            ? 80
-            : 140
+        : content === "text"
+          ? 140
+          : content === "pet"
+            ? 220
+            : 80
     )
     return () => window.clearInterval(timer)
   }, [content])
 
   const time = clock.toLocaleTimeString("en-GB", { hour12: false })
+  const clockDisplay = clockBitmap(time, columns)
   const pixels =
     content === "time"
-      ? fitBitmap(textBitmap(time), COLUMNS)
+      ? clockDisplay.pixels
       : content === "pet"
-        ? petBitmap(pet, COLUMNS, frame)
+        ? petBitmap(pet, columns, frame)
         : content === "breathing"
-          ? breathingWave(COLUMNS, ROWS, frame)
-          : fitBitmap(textPixels, COLUMNS, frame)
+          ? breathingWave(columns, 7, frame)
+          : fitBitmap(textPixels, columns, frame)
   const label =
     content === "time"
       ? `时间 ${time}`
@@ -53,36 +56,66 @@ export default function DotMatrix() {
         ? text || "空白点阵"
         : content === "breathing"
           ? "呼吸海浪点阵"
-          : pet === "cat"
-            ? "点阵小猫"
-            : "点阵小狗"
-
+          : `颜文字宠物 ${matrixPets.find((item) => item.id === pet)?.label}`
   return (
-    <div role="img" aria-label={label} className="w-full">
+    <div className="w-full">
       <div
-        className="grid gap-[2px] sm:gap-[3px]"
-        style={{ gridTemplateColumns: `repeat(${COLUMNS}, minmax(0, 1fr))` }}
-        aria-hidden="true"
+        role="img"
+        aria-label={label}
+        data-matrix-columns={columns}
+        data-time-format={content === "time" ? clockDisplay.format : undefined}
+        className="mx-auto grid w-fit"
+        style={{
+          gridTemplateColumns: `repeat(${columns}, ${CELL_SIZE}px)`,
+          gap: CELL_GAP,
+        }}
       >
-        {Array.from({ length: ROWS * COLUMNS }, (_, index) => (
-          <span
-            key={index}
-            className="aspect-square min-w-0 rounded-[25%]"
-            style={{
-              backgroundColor:
-                content === "breathing"
-                  ? oceanCellColor(
-                      pixels[Math.floor(index / COLUMNS)]?.[index % COLUMNS] ??
-                        0,
-                      color
-                    )
-                  : pixels[Math.floor(index / COLUMNS)]?.[index % COLUMNS]
-                    ? color
-                    : "var(--muted)",
-            }}
-          />
-        ))}
+        {pixels.flatMap((row, y) =>
+          row.map((value, x) => (
+            <span
+              key={`${x}-${y}`}
+              aria-hidden="true"
+              className="rounded-[25%]"
+              style={{
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+                backgroundColor:
+                  content === "breathing"
+                    ? oceanCellColor(value, color)
+                    : value
+                      ? color
+                      : "var(--muted)",
+              }}
+            />
+          ))
+        )}
       </div>
+    </div>
+  )
+}
+
+export default function DotMatrix() {
+  const container = useRef<HTMLDivElement>(null)
+  const [columns, setColumns] = useState(0)
+  const content = useHomeSettingsStore((state) => state.content)
+  const text = useHomeSettingsStore((state) => state.text)
+  useEffect(() => {
+    const element = container.current
+    if (!element) return
+    const observer = new ResizeObserver(([entry]) =>
+      setColumns(matrixColumns(entry.contentRect.width))
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <div ref={container} className="min-h-[102px] w-full">
+      {columns > 0 && (
+        <MatrixContent
+          key={`${columns}-${content}-${text}`}
+          columns={columns}
+        />
+      )}
     </div>
   )
 }

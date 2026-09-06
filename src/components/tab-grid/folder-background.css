@@ -61,3 +61,26 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+
+.folder-glass[data-animated="true"]::before {
+  background-size: 150% 150%;
+  animation: folder-color-flow 8s ease-in-out infinite alternate;
+}
+
+@keyframes folder-color-flow {
+  from {
+    background-position: 0% 0%;
+    opacity: 0.65;
+  }
+  to {
+    background-position: 100% 100%;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-glass[data-animated="true"]::before {
+    animation: none;
+    background-size: auto;
+  }
+}

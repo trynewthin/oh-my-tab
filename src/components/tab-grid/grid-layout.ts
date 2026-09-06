@@ -1,5 +1,13 @@
 import type { GridItem } from "./types"
 
+export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
+
+export function columnsForWidth(width: number): number {
+  if (width >= 1260) return 20
+  if (width >= 1000) return 16
+  return width >= 640 ? 12 : width >= 420 ? 8 : 4
+}
+
 export type GridPosition = { x: number; y: number }
 export type GridPlacement = GridPosition & { height: number }
 export type GridPositions = Record<string, GridPosition>
@@ -76,4 +84,39 @@ export function placeItems(
     result[item.id] = candidate
   }
   return result
+}
+
+export function positionsOnly(
+  placements: Record<string, GridPlacement>
+): GridPositions {
+  return Object.fromEntries(
+    Object.entries(placements).map(([id, { x, y }]) => [id, { x, y }])
+  )
+}
+
+export function reconcileLayouts(
+  items: GridItem[],
+  layouts: Record<number, GridPositions>
+) {
+  return Object.fromEntries(
+    Object.entries(layouts).map(([columns, positions]) => [
+      columns,
+      positionsOnly(placeItems(items, Number(columns), positions)),
+    ])
+  )
+}
+
+export function deriveLayout(
+  items: GridItem[],
+  columns: number,
+  source: GridPositions
+): GridPositions {
+  const ordered = [...items].sort((a, b) => {
+    const left = source[a.id]
+    const right = source[b.id]
+    if (!left) return right ? 1 : 0
+    if (!right) return -1
+    return left.y - right.y || left.x - right.x
+  })
+  return positionsOnly(placeItems(ordered, columns, {}))
 }

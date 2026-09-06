@@ -1,3 +1,4 @@
+import MoreActions from "./more-actions"
 import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { ArrowUp, Check, MagnifyingGlass } from "@phosphor-icons/react"
@@ -12,9 +13,7 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import TabBackground from "@/components/tab-grid/tab-background"
 import type { TabItem } from "@/components/tab-grid/types"
 import SearchEngineSelect from "@/pages/home/components/search-engine-select"
-import ThemeToggle from "@/pages/home/components/theme-toggle"
 import SettingsButton from "@/pages/home/components/settings-button"
-import AddGridItemButton from "@/pages/home/components/add-grid-item-button"
 
 type HomePromptInputProps = { onSubmit?: (message: string) => void }
 
@@ -196,9 +195,10 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
           }}
         />
         <PromptInputActions className="justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2">
-          <AddGridItemButton />
-          <SettingsButton />
-          <ThemeToggle />
+          <MoreActions />
+          <div className="mr-auto">
+            <SettingsButton />
+          </div>
           <SearchEngineSelect />
           <Button
             type="button"

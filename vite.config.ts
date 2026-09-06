@@ -1,3 +1,4 @@
+import { searchSuggestionsProxy } from "./plugins/search-suggestions-proxy.ts"
 import path from "path"
 import { faviconProxy } from "./plugins/favicon-proxy.ts"
 import tailwindcss from "@tailwindcss/vite"
@@ -7,7 +8,7 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig({
   base: "./",
-  plugins: [react(), tailwindcss(), faviconProxy()],
+  plugins: [react(), tailwindcss(), faviconProxy(), searchSuggestionsProxy()],
   build: {
     rolldownOptions: {
       input: {

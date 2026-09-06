@@ -28,7 +28,9 @@ export default function SearchEngineSelect() {
         onClick={(event) => event.stopPropagation()}
       >
         <EngineIcon icon={selected.icon} />
-        {selected.name}
+        <span className="hidden max-w-32 truncate sm:inline">
+          {selected.name}
+        </span>
         <CaretDown className="size-3 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent

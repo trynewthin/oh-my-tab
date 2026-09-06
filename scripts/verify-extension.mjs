@@ -23,7 +23,7 @@ try {
     if (message.type() === "error") errors.push(message.text())
   })
   await page.goto("chrome://newtab/")
-  await page.getByRole("textbox", { name: "对话输入" }).waitFor()
+  await page.getByRole("combobox", { name: "对话输入" }).waitFor()
   await page.screenshot({
     path: "artifacts/newtab-extension.png",
     fullPage: true,

@@ -48,6 +48,8 @@ function DialogContent({
   showCloseButton?: boolean
   overlayClassName?: string
 }) {
+  const scrollClass = typeof className === "string" ? className : ""
+  const internalScroll = scrollClass.includes("overflow-y-auto")
   return (
     <DialogPortal>
       <DialogOverlay className={overlayClassName} />
@@ -55,11 +57,20 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-[min(var(--radius-4xl),24px)] bg-popover p-6 text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none sm:max-w-md dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          className
+          internalScroll
+            ? scrollClass.replace("overflow-y-auto", "overflow-hidden") +
+                " flex flex-col"
+            : className
         )}
         {...props}
       >
-        {children}
+        {internalScroll ? (
+          <div className="grid min-h-0 gap-6 overflow-y-auto overscroll-contain pr-1">
+            {children}
+          </div>
+        ) : (
+          children
+        )}
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"

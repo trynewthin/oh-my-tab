@@ -1,3 +1,4 @@
+import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import PopupBackground from "./popup-background"
 import { useEffect, useState, type ReactNode, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,8 @@ function PopupSurface({
 export default function Popup() {
   const [name, setName] = useState("")
   const [url, setUrl] = useState("")
+  const items = useTabGridStore((state) => state.items)
+  const existing = findBookmarkByUrl(items, url)
   const [unsupported, setUnsupported] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -60,8 +63,16 @@ export default function Popup() {
           setUnsupported(true)
           return
         }
+        await useTabGridStore.persist.rehydrate()
+        if (cancelled) return
+        const match = findBookmarkByUrl(
+          useTabGridStore.getState().items,
+          address
+        )
         setUrl(address)
-        setName(tab.title?.trim() || new URL(address).hostname)
+        setName(
+          match?.entry.name || tab.title?.trim() || new URL(address).hostname
+        )
       } catch (e) {
         if (!cancelled)
           setError(e instanceof Error ? e.message : "读取当前页面失败")
@@ -82,14 +93,7 @@ export default function Popup() {
     setError("")
     try {
       await useTabGridStore.persist.rehydrate()
-      useTabGridStore.getState().saveItem({
-        id: crypto.randomUUID(),
-        kind: "tab",
-        name: name.trim(),
-        url: address,
-        size: "small",
-        color: "#3478f6",
-      })
+      useTabGridStore.getState().upsertBookmark(name, address)
       setSuccess(true)
     } catch {
       setError("保存失败，请重试")
@@ -119,6 +123,7 @@ export default function Popup() {
           </label>
           <Input
             id="tab-name"
+            className="border-border bg-popover dark:bg-popover"
             value={name}
             disabled={loading || saving}
             maxLength={120}
@@ -134,6 +139,7 @@ export default function Popup() {
           </label>
           <Input
             id="tab-url"
+            className="border-border bg-popover dark:bg-popover"
             value={url}
             disabled={loading || saving}
             placeholder="https://"
@@ -147,8 +153,8 @@ export default function Popup() {
           type="submit"
           className={
             success
-              ? "w-full bg-emerald-600 text-white disabled:opacity-100"
-              : "w-full"
+              ? "w-full border-border bg-emerald-600 text-white disabled:opacity-100"
+              : "w-full border-border"
           }
           disabled={
             loading ||
@@ -159,7 +165,17 @@ export default function Popup() {
           }
           aria-live="polite"
         >
-          {success ? "成功" : loading ? "读取中…" : saving ? "添加中…" : "添加"}
+          {success
+            ? "成功"
+            : loading
+              ? "读取中…"
+              : saving
+                ? existing
+                  ? "更新中…"
+                  : "添加中…"
+                : existing
+                  ? "更新"
+                  : "添加"}
         </Button>
         {error && (
           <p role="alert" className="text-xs text-destructive">

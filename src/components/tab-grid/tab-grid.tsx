@@ -38,7 +38,6 @@ import type { GridItem, TabItem } from "./types"
 import type { FolderTabDragData } from "./drag-types"
 
 const emptyPositions: GridPositions = {}
-const ROW_STEP = 56
 import { FOLDER_DWELL, confirmedFolderDrop } from "./folder-drop"
 
 type Point = { x: number; y: number }
@@ -103,6 +102,7 @@ export default function TabGrid() {
   const [heldLayout, setHeldLayout] = useState<GridPositions | null>(null)
   const columns = dragging?.columns ?? columnsForWidth(width)
   const columnStep = (width + 12) / columns
+  const rowStep = columnStep
   const positions =
     heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
   const gridTarget =
@@ -168,8 +168,8 @@ export default function TabGrid() {
     const delta = {
       ArrowLeft: [-columnStep, 0],
       ArrowRight: [columnStep, 0],
-      ArrowUp: [0, -ROW_STEP],
-      ArrowDown: [0, ROW_STEP],
+      ArrowUp: [0, -rowStep],
+      ArrowDown: [0, rowStep],
     }[event.code]
     if (!delta) return undefined
     event.preventDefault()
@@ -287,7 +287,12 @@ export default function TabGrid() {
       if (row.dataset.tabId === session.item.id || row.inert) continue
       const rect = row.getBoundingClientRect()
       if (rect.bottom <= viewport.top || rect.top >= viewport.bottom) continue
-      if (point.y < rect.top + rect.height / 2)
+      if (
+        surface.dataset.folderSurface === "dialog" && window.innerWidth >= 1024
+          ? point.y < rect.top ||
+            (point.y <= rect.bottom && point.x < rect.left + rect.width / 2)
+          : point.y < rect.top + rect.height / 2
+      )
         return Math.max(
           0,
           remaining.findIndex((tab) => tab.id === row.dataset.tabId)
@@ -432,7 +437,7 @@ export default function TabGrid() {
         0,
         Math.min(
           500,
-          Math.round((point.y - session.grabOffset.y - grid.top) / ROW_STEP)
+          Math.round((point.y - session.grabOffset.y - grid.top) / rowStep)
         )
       ),
     }
@@ -487,7 +492,7 @@ export default function TabGrid() {
             0,
             Math.min(
               500,
-              Math.round((point.y - session.grabOffset.y - grid.top) / ROW_STEP)
+              Math.round((point.y - session.grabOffset.y - grid.top) / rowStep)
             )
           ),
         },
@@ -587,9 +592,10 @@ export default function TabGrid() {
           >
             <div
               ref={gridRef}
-              className="relative grid min-h-11 auto-rows-[44px] gap-3"
+              className="relative grid min-h-11 gap-3"
               style={{
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                gridAutoRows: Math.max(1, rowStep - 12),
               }}
             >
               {(width > 0 && layouts[columns] ? items : []).map((item) =>
@@ -597,7 +603,7 @@ export default function TabGrid() {
                   <div
                     key={item.id}
                     data-grid-item-id={item.id}
-                    className="relative isolate min-w-0 rounded-2xl border transition-shadow duration-200 motion-reduce:transition-none"
+                    className={`relative isolate min-w-0 rounded-2xl ${item.kind === "dot-canvas" || item.kind === "ecosystem" ? "" : "border"} transition-shadow duration-200 motion-reduce:transition-none`}
                     style={{
                       boxShadow: selectedIds.includes(item.id)
                         ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
@@ -644,7 +650,11 @@ export default function TabGrid() {
                           : "pending"
                         : undefined
                     }
-                    onOpen={() => setFolderId(item.id)}
+                    onOpen={() =>
+                      item.kind === "dot-canvas" || item.kind === "ecosystem"
+                        ? setEditor({ item })
+                        : setFolderId(item.id)
+                    }
                     onEdit={() => setEditor({ item })}
                   />
                 )
@@ -655,8 +665,8 @@ export default function TabGrid() {
                   className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-200 ease-out motion-reduce:transition-none"
                   style={{
                     width: columnStep * 4 - 12,
-                    height: itemHeight(dragging.item) * ROW_STEP - 12,
-                    transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * ROW_STEP}px, 0)`,
+                    height: itemHeight(dragging.item) * rowStep - 12,
+                    transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * rowStep}px, 0)`,
                   }}
                 />
               )}

@@ -1,3 +1,6 @@
+import { initializeGarden } from "./garden-store"
+import { validGardenPlant } from "@/lib/garden"
+import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { groupComponents } from "@/lib/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
@@ -51,6 +54,7 @@ type TabGridState = {
     duplicates: number
   }
   saveItem: (item: GridItem) => void
+  upsertBookmark: (name: string, url: string) => void
   updateFolderTab: (
     folderId: string,
     tabId: string,
@@ -83,6 +87,35 @@ export function validItem(value: unknown): value is GridItem {
     !/^#[0-9a-f]{6}$/i.test(item.color)
   )
     return false
+  if (item.kind === "ecosystem")
+    return (
+      item.size === "large" &&
+      ["flowers", "ferns"].includes(item.species) &&
+      Array.isArray(item.plants) &&
+      item.plants.length <= 8 &&
+      new Set(item.plants.map((p) => p?.slot)).size === item.plants.length &&
+      item.plants.every(validGardenPlant) &&
+      (item.lastCheckIn === undefined ||
+        (typeof item.lastCheckIn === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(item.lastCheckIn))) &&
+      (item.pointsUpdatedAt === undefined ||
+        (Number.isFinite(item.pointsUpdatedAt) && item.pointsUpdatedAt >= 0)) &&
+      (item.points === undefined ||
+        (Number.isInteger(item.points) && item.points >= 0)) &&
+      (item.album === undefined ||
+        (Array.isArray(item.album) && item.album.every(validGardenPlant)))
+    )
+  if (item.kind === "dot-canvas")
+    return (
+      item.size === "large" &&
+      Array.isArray(item.pixels) &&
+      [384, 576, 1024].includes(item.pixels.length) &&
+      item.pixels.every(
+        (pixel) =>
+          typeof pixel === "string" &&
+          (pixel === "" || /^#[0-9a-f]{6}$/i.test(pixel))
+      )
+    )
   return item.kind === "tab"
     ? validEntry(item) && ["small", "medium"].includes(item.size)
     : item.kind === "folder" &&
@@ -186,7 +219,7 @@ export const useTabGridStore = create<TabGridState>()(
         })
         toast(
           removed.length === 1
-            ? `已删除${removed[0].kind === "folder" ? "文件夹" : "标签"}「${removed[0].name}」`
+            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : "标签"}「${removed[0].name}」`
             : `已删除 ${removed.length} 个组件`,
           "warning",
           {
@@ -233,6 +266,30 @@ export const useTabGridStore = create<TabGridState>()(
         const result = mergeBookmarks(get().items, bookmarks)
         if (result.added) set({ items: result.items })
         return { added: result.added, duplicates: result.duplicates }
+      },
+      upsertBookmark: (name, url) => {
+        const address = normalizeTabUrl(url)
+        if (!name.trim() || !address) throw new Error("请输入名称和有效网址")
+        const state = get()
+        const match = findBookmarkByUrl(state.items, address)
+        if (match?.folderId)
+          state.updateFolderTab(match.folderId, match.entry.id, {
+            name: name.trim(),
+            url: address,
+          })
+        else if (match) {
+          const item = state.items.find((item) => item.id === match.entry.id)
+          if (item?.kind === "tab")
+            state.saveItem({ ...item, name: name.trim(), url: address })
+        } else
+          state.saveItem({
+            id: crypto.randomUUID(),
+            kind: "tab",
+            name: name.trim(),
+            url: address,
+            size: "small",
+            color: "#3478f6",
+          })
       },
       saveItem: (item) =>
         set((state) => ({
@@ -337,3 +394,6 @@ export const useTabGridStore = create<TabGridState>()(
     }
   )
 )
+
+
+initializeGarden(useTabGridStore.getState().items)

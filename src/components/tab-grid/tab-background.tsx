@@ -6,11 +6,13 @@ import type { ComponentProps } from "react"
 export default function TabBackground({
   item,
   showIcon = true,
+  compact = false,
   textureId = item.id,
   ...effects
 }: Omit<ComponentProps<typeof EffectSurface>, "color" | "textureId"> & {
   item: TabItem
   showIcon?: boolean
+  compact?: boolean
   textureId?: string
 }) {
   return (
@@ -21,7 +23,9 @@ export default function TabBackground({
           <TabIcon
             key={item.url}
             url={item.url}
-            className={item.size === "small" ? "size-7" : "size-12"}
+            className={
+              compact ? "size-5" : item.size === "small" ? "size-7" : "size-12"
+            }
           />
         </div>
       )}

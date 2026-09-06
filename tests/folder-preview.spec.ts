@@ -49,6 +49,22 @@ for (const [size, count] of [
         bounds!.y + bounds!.height
       )
     }
+    await page.getByRole("button", { name: "资料", exact: true }).click()
+    const expanded = page.getByRole("dialog", { name: "资料", exact: true })
+    const links = expanded.getByRole("link")
+    await expect.poll(async () => {
+      const first = (await links.nth(0).boundingBox())!
+      const second = (await links.nth(1).boundingBox())!
+      return Math.abs(first.y - second.y) < 1 && second.x > first.x
+    }).toBe(true)
+    await page.setViewportSize({ width: 390, height: 969 })
+    await expect.poll(async () => {
+      const first = (await links.nth(0).boundingBox())!
+      const second = (await links.nth(1).boundingBox())!
+      return Math.abs(first.x - second.x) < 1 && second.y > first.y
+    }).toBe(true)
+    await expanded.getByRole("button", { name: "关闭文件夹" }).click()
+    await expect(expanded).toHaveCount(0)
     await region.focus()
     await region.press("End")
     await expect(

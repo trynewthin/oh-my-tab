@@ -63,3 +63,22 @@ test("more menu opens the picker and folder creation works on mobile", async ({
     page.getByRole("button", { name: "收藏", exact: true })
   ).toBeVisible()
 })
+
+test("dot canvas catalog preview keeps square proportions", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "更多操作" }).click()
+  await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  const preview = page
+    .getByRole("button", { name: "添加点阵画布" })
+    .getByRole("img", { name: "点阵画布" })
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 969 })
+    await expect
+      .poll(async () => {
+        const box = (await preview.boundingBox())!
+        return Math.abs(box.width - box.height)
+      })
+      .toBeLessThan(1)
+  }
+})

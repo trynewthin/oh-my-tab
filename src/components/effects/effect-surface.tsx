@@ -13,6 +13,7 @@ export default function EffectSurface({
   color,
   textureId,
   offsetY = 0,
+  coverage = 65,
   animated = false,
   visible = true,
   entrance = false,
@@ -20,6 +21,7 @@ export default function EffectSurface({
   color: string
   textureId: string
   offsetY?: number
+  coverage?: number
   animated?: boolean
   visible?: boolean
   entrance?: boolean
@@ -146,7 +148,8 @@ export default function EffectSurface({
     >
       <div
         ref={region}
-        className="absolute inset-y-0 right-0 w-[65%] overflow-hidden"
+        className="absolute inset-y-0 right-0 overflow-hidden"
+        style={{ width: `${coverage}%` }}
       >
         <div
           className="absolute top-0 right-0 grid"

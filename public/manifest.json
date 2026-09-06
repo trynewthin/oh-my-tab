@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Oh My Tab · 新标签页",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "自定义浏览器新标签页：拖拽书签网格、文件夹与多选整理、实时搜索联想、电子点阵和粒子效果。",
   "chrome_url_overrides": {
     "newtab": "index.html"

@@ -8,6 +8,12 @@ type GridData = {
 
 export function groupComponents(before: GridData, ids: string[], name: string) {
   const selected = before.items.filter((item) => ids.includes(item.id))
+  if (
+    selected.some(
+      (item) => item.kind === "dot-canvas" || item.kind === "ecosystem"
+    )
+  )
+    return null
   if (selected.length < 2 || !name.trim()) return null
   const layout = before.layouts[before.lastLayoutColumns ?? 0] ?? {}
   selected.sort(
@@ -22,7 +28,7 @@ export function groupComponents(before: GridData, ids: string[], name: string) {
     size: "large",
     color: selected[0].color,
     tabs: selected.flatMap((item) =>
-      item.kind === "tab" ? [item] : item.tabs
+      item.kind === "tab" ? [item] : item.kind === "folder" ? item.tabs : []
     ),
     dynamicEffect: false,
   }

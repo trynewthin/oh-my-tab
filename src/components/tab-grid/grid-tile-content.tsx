@@ -1,3 +1,5 @@
+import Ecosystem from "./ecosystem"
+import DotArt from "./dot-art"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
 import FolderBackground from "./folder-background"
@@ -13,6 +15,21 @@ export default function GridTileContent({
   onOpen: () => void
   preview?: boolean
 }) {
+  if (item.kind === "ecosystem")
+    return <Ecosystem item={item} preview={preview} onEdit={onOpen} />
+  if (item.kind === "dot-canvas")
+    return (
+      <button
+        type="button"
+        aria-label={`编辑点阵画布 ${item.name}`}
+        onClick={onOpen}
+        className="flex h-full w-full flex-col rounded-[inherit] bg-transparent text-left"
+      >
+        <div className="min-h-0 w-full flex-1">
+          <DotArt pixels={item.pixels} />
+        </div>
+      </button>
+    )
   return item.kind === "tab" ? (
     <>
       <TabBackground

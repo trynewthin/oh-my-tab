@@ -16,6 +16,10 @@ try {
     ],
     viewport: { width: 1440, height: 1000 },
   })
+  await context.addInitScript(() => {
+    if (location.protocol === "chrome-extension:")
+      localStorage.setItem("omt.onboarding", JSON.stringify({ state: { seen: true }, version: 0 }))
+  })
   const page = await context.newPage()
   const errors = []
   page.on("pageerror", (error) => errors.push(error.message))

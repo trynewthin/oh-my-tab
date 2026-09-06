@@ -25,7 +25,7 @@ export default function ComponentConfiguration({
   onClose,
   onSaved,
 }: {
-  item?: GridItem
+  item?: Exclude<GridItem, { kind: "dot-canvas" | "ecosystem" }>
   initialKind?: "tab" | "folder"
   onClose: () => void
   onSaved: () => void

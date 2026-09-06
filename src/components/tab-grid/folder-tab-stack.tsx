@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import gsap from "gsap"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
@@ -17,10 +17,29 @@ export default function FolderTabStack({
   surface?: "preview" | "dialog"
   draggable?: boolean
 }) {
-  const rowHeight = folder.size === "large" && surface === "preview" ? 36 : 44
+  const [rowHeight, setRowHeight] = useState(44)
   const rowGap = surface === "preview" && folder.size !== "small" ? 4 : 8
   const rowStep = rowHeight + rowGap
   const viewportRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+    const update = () => {
+      const count = folder.size === "tall" ? 8 : folder.size === "large" ? 4 : 2
+      setRowHeight(
+        surface === "preview"
+          ? Math.max(
+              1,
+              (viewport.clientHeight - topBleed - (count - 1) * rowGap) / count
+            )
+          : 44
+      )
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(viewport)
+    return () => observer.disconnect()
+  }, [folder.size, surface, topBleed, rowGap])
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current

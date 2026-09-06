@@ -52,7 +52,7 @@ page.on('pageerror',e=>errors.push(e.message))
 await mkdir('docs/screenshots',{recursive:true})
 try {
  await page.goto(baseURL)
- await page.getByRole('textbox',{name:'对话输入'}).waitFor()
+ await page.getByRole('combobox',{name:'对话输入'}).waitFor()
  await page.evaluate(()=>document.fonts.ready)
  await page.waitForTimeout(1800)
  await page.screenshot({path:'docs/screenshots/home-dark.png'})

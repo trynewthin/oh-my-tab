@@ -2,6 +2,8 @@ import { useState } from "react"
 import {
   SquaresFour,
   Plus,
+  BookmarkSimple,
+  FolderPlus,
   Checks,
   Sun,
   Moon,
@@ -13,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import ComponentConfiguration from "@/components/tab-grid/component-configuration"
 import GridItemDialog from "@/components/tab-grid/grid-item-dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
@@ -24,7 +27,9 @@ const themes = {
 }
 export default function MoreActions() {
   const [open, setOpen] = useState(false)
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState<"tab" | "folder" | "component" | null>(
+    null
+  )
   const selecting = useGridSelectionStore((state) => state.active)
   const toggleSelection = useGridSelectionStore((state) => state.toggleMode)
   const theme = useThemeStore((state) => state.theme)
@@ -48,12 +53,31 @@ export default function MoreActions() {
           aria-label="更多操作菜单"
           className="w-56 gap-1 p-2"
         >
+          {(
+            [
+              { kind: "tab", label: "添加标签", icon: BookmarkSimple },
+              { kind: "folder", label: "添加文件夹", icon: FolderPlus },
+            ] as const
+          ).map((entry) => (
+            <Button
+              key={entry.kind}
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => {
+                setOpen(false)
+                setAdding(entry.kind)
+              }}
+            >
+              <entry.icon />
+              {entry.label}
+            </Button>
+          ))}
           <Button
             variant="ghost"
             className="w-full justify-start"
             onClick={() => {
               setOpen(false)
-              setAdding(true)
+              setAdding("component")
             }}
           >
             <Plus />
@@ -90,7 +114,17 @@ export default function MoreActions() {
           </Button>
         </PopoverContent>
       </Popover>
-      {adding && <GridItemDialog onClose={() => setAdding(false)} />}
+      {adding === "component" ? (
+        <GridItemDialog onClose={() => setAdding(null)} />
+      ) : (
+        adding && (
+          <ComponentConfiguration
+            initialKind={adding}
+            onClose={() => setAdding(null)}
+            onSaved={() => setAdding(null)}
+          />
+        )
+      )}
     </div>
   )
 }

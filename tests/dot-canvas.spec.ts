@@ -12,7 +12,9 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "添加点阵画布" }).click()
-  const dialog = page.getByRole("dialog", { name: "配置点阵画布" })
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await page.getByRole("button", { name: "编辑点阵画布 点阵画布" }).click()
+  const dialog = page.getByRole("dialog", { name: "编辑点阵画布" })
   const art = dialog.getByRole("img", { name: "点阵画布" })
   await expect(art.locator("rect")).toHaveCount(576)
   const box = (await art.boundingBox())!
@@ -71,7 +73,7 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   ).toHaveAttribute("aria-pressed", "true")
   await expect(art.locator('rect[fill="#ff0000"]')).toHaveCount(576)
 
-  await dialog.getByRole("button", { name: "确认添加" }).click()
+  await dialog.getByRole("button", { name: "保存" }).click()
   const tile = page.getByRole("button", { name: "编辑点阵画布 点阵画布" })
   await expect(tile).toBeVisible()
   const article = tile.locator("..")

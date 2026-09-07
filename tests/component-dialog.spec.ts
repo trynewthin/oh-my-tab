@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/")
 })
 
-test("empty grid context menu opens component picker and saves a bookmark", async ({
+test("component picker lists widgets and more menu creates editable bookmarks", async ({
   page,
 }) => {
   await page
@@ -23,44 +23,66 @@ test("empty grid context menu opens component picker and saves a bookmark", asyn
     .poll(async () => Math.round((await catalog.boundingBox())!.width))
     .toBe(768)
   await expect(catalog.getByLabel("名称", { exact: true })).toHaveCount(0)
-  await catalog.getByRole("button", { name: "添加标签", exact: true }).click()
-  const dialog = page.getByRole("dialog", { name: "配置标签", exact: true })
-  await dialog.getByLabel("名称", { exact: true }).fill("文档")
-  await dialog
+  await expect(
+    catalog.getByRole("button", { name: "添加标签", exact: true })
+  ).toHaveCount(0)
+  await expect(
+    catalog.getByRole("button", { name: "添加文件夹", exact: true })
+  ).toHaveCount(0)
+  await expect(
+    catalog.getByRole("button", { name: "添加点阵画布" })
+  ).toBeVisible()
+  await expect(
+    catalog.getByRole("button", { name: "添加像素花盆" })
+  ).toBeVisible()
+  await page.keyboard.press("Escape")
+  await page.getByRole("button", { name: "更多操作", exact: true }).click()
+  await page.getByRole("button", { name: "添加标签", exact: true }).click()
+  const creation = page.getByRole("dialog", { name: "配置标签", exact: true })
+  await creation.getByLabel("名称", { exact: true }).fill("我的书签")
+  await creation
     .getByLabel("网址", { exact: true })
-    .fill("https://example.com/docs")
-  await dialog.getByRole("button", { name: "确认添加", exact: true }).click()
-  const bookmark = page.getByRole("link", { name: "文档", exact: true })
+    .fill("https://example.com/")
+  await creation.getByRole("button", { name: "确认添加", exact: true }).click()
+  const bookmark = page.getByRole("link", { name: "我的书签", exact: true })
   await expect(bookmark).toBeVisible()
   await bookmark.click({ button: "right" })
   await expect(
     page.getByRole("menuitem", { name: "添加组件", exact: true })
   ).toHaveCount(0)
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click()
+  const editor = page.getByRole("dialog", { name: "编辑标签", exact: true })
+  await expect(editor.getByLabel("名称", { exact: true })).toHaveValue(
+    "我的书签"
+  )
+  await editor.getByLabel("名称", { exact: true }).fill("文档")
+  await editor
+    .getByLabel("网址", { exact: true })
+    .fill("https://example.com/docs")
+  await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await page.reload()
   await expect(
-    page
-      .getByRole("dialog", { name: "编辑标签", exact: true })
-      .getByLabel("名称", { exact: true })
-  ).toHaveValue("文档")
+    page.getByRole("link", { name: "文档", exact: true })
+  ).toHaveAttribute("href", "https://example.com/docs")
 })
 
-test("more menu opens the picker and folder creation works on mobile", async ({
-  page,
-}) => {
+test("more menu creates folders on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.getByRole("button", { name: "更多操作", exact: true }).click()
-  await page.getByRole("button", { name: "添加组件", exact: true }).click()
-  const catalog = page.getByRole("dialog", { name: "组件", exact: true })
-  await catalog.getByRole("button", { name: "添加文件夹", exact: true }).click()
-  const dialog = page.getByRole("dialog", { name: "配置文件夹", exact: true })
-  await dialog.getByRole("button", { name: "取消", exact: true }).click()
-  await expect(catalog).toBeVisible()
-  await catalog.getByRole("button", { name: "添加文件夹", exact: true }).click()
-  await dialog.getByLabel("名称", { exact: true }).fill("收藏")
-  await expect(dialog.getByLabel("网址", { exact: true })).toHaveCount(0)
-  await dialog.getByRole("button", { name: "确认添加", exact: true }).click()
+  await page.getByRole("button", { name: "添加文件夹", exact: true }).click()
+  const creation = page.getByRole("dialog", { name: "配置文件夹", exact: true })
+  await creation.getByRole("button", { name: "取消", exact: true }).click()
+  await page.getByRole("button", { name: "更多操作", exact: true }).click()
+  await page.getByRole("button", { name: "添加文件夹", exact: true }).click()
+  await creation.getByLabel("名称", { exact: true }).fill("文件夹")
+  await creation.getByRole("button", { name: "确认添加", exact: true }).click()
+  await expect(page.getByRole("dialog")).toHaveCount(0)
   await expect(
-    page.getByRole("button", { name: "收藏", exact: true })
+    page.getByRole("button", { name: "文件夹", exact: true })
+  ).toBeVisible()
+  await page.reload()
+  await expect(
+    page.getByRole("button", { name: "文件夹", exact: true })
   ).toBeVisible()
 })
 

@@ -20,6 +20,53 @@ function flowingNoise(seed: number, x: number, y: number) {
   )
 }
 
+function burningRow(
+  color: string,
+  seed: number,
+  y: number,
+  columns: number,
+  time?: number,
+  visibility = 1,
+  amplitude = 1
+) {
+  if (visibility <= 0) return () => "transparent"
+  const moving = time !== undefined && amplitude > 0
+  const phase = moving ? time * 1.5 : 0
+  const edgeNoise = moving
+    ? flowingNoise(seed, 0, y + phase * 0.45)
+    : randomAt(seed, 0, y)
+  const baseEdge = moving
+    ? columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude)
+    : Math.floor(columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude))
+  const recession = 1 - visibility
+  const edge =
+    baseEdge +
+    recession * (columns + 5 - baseEdge) +
+    recession * Math.sin(y * 0.7 + phase) * 2
+  return (x: number) => {
+    const distance = x - edge
+    if (distance < -3) return "transparent"
+    const noise = moving
+      ? flowingNoise(seed, x + 11, y + 7 + phase)
+      : randomAt(seed, x + 11, y + 7)
+    const ember = distance < 0 && distance >= -3 && noise > 0.78
+    const visible = distance >= 0 ? distance > 2 || noise > 0.18 : ember
+    if (!visible) return "transparent"
+    const coverage = moving
+      ? ember
+        ? Math.min(1, (noise - 0.78) / 0.15)
+        : Math.min(1, Math.max(0, distance + 0.5))
+      : 1
+    const strength =
+      (ember
+        ? 12 + noise * 15
+        : 12 + (x / Math.max(1, columns - 1)) * 24 + noise * 12) *
+      coverage *
+      (0.25 + visibility * 0.75)
+    return `color-mix(in srgb, ${color} ${strength}%, transparent)`
+  }
+}
+
 export function burningCell(
   color: string,
   seed: number,
@@ -30,37 +77,40 @@ export function burningCell(
   visibility = 1,
   amplitude = 1
 ) {
-  if (visibility <= 0) return "transparent"
-  const moving = time !== undefined && amplitude > 0
-  const phase = moving ? time * 1.5 : 0
-  const edgeNoise = moving
-    ? flowingNoise(seed, 0, y + phase * 0.45)
-    : randomAt(seed, 0, y)
-  const baseEdge = moving
-    ? columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude)
-    : Math.floor(columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude))
-  const noise = moving
-    ? flowingNoise(seed, x + 11, y + 7 + phase)
-    : randomAt(seed, x + 11, y + 7)
-  const recession = 1 - visibility
-  const edge =
-    baseEdge +
-    recession * (columns + 5 - baseEdge) +
-    recession * Math.sin(y * 0.7 + phase) * 2
-  const distance = x - edge
-  const ember = distance < 0 && distance >= -3 && noise > 0.78
-  const visible = distance >= 0 ? distance > 2 || noise > 0.18 : ember
-  if (!visible) return "transparent"
-  const coverage = moving
-    ? ember
-      ? Math.min(1, (noise - 0.78) / 0.15)
-      : Math.min(1, Math.max(0, distance + 0.5))
-    : 1
-  const strength =
-    (ember
-      ? 12 + noise * 15
-      : 12 + (x / Math.max(1, columns - 1)) * 24 + noise * 12) *
-    coverage *
-    (0.25 + visibility * 0.75)
-  return `color-mix(in srgb, ${color} ${strength}%, transparent)`
+  return burningRow(color, seed, y, columns, time, visibility, amplitude)(x)
+}
+
+export function createBurningTexture(
+  color: string,
+  seed: number,
+  columns: number
+) {
+  const rows = new Map<number, (x: number) => string>()
+  let previousTime: number | undefined
+  let previousVisibility: number | undefined
+  let previousAmplitude: number | undefined
+  return (
+    x: number,
+    y: number,
+    time: number | undefined,
+    visibility: number,
+    amplitude: number
+  ) => {
+    if (
+      time !== previousTime ||
+      visibility !== previousVisibility ||
+      amplitude !== previousAmplitude
+    ) {
+      rows.clear()
+      previousTime = time
+      previousVisibility = visibility
+      previousAmplitude = amplitude
+    }
+    let row = rows.get(y)
+    if (!row) {
+      row = burningRow(color, seed, y, columns, time, visibility, amplitude)
+      rows.set(y, row)
+    }
+    return row(x)
+  }
 }

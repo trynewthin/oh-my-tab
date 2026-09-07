@@ -1,30 +1,39 @@
 import gsap from "gsap"
 
 type FrameListener = (time: number | undefined) => void
-const listeners = new Set<FrameListener>()
+type FrameSubscription = { paint: FrameListener; prepare?: () => void }
+const listeners = new Set<FrameSubscription>()
 let lastFrame = -Infinity
 let motion: MediaQueryList | null = null
 
 function tick(time: number) {
   if (document.hidden || motion?.matches || time - lastFrame < 1 / 30) return
   lastFrame = time
-  listeners.forEach((listener) => listener(time))
+  paintFrame(time)
+}
+function paintFrame(time: number | undefined) {
+  // Read every surface's bounds before any surface writes animated styles.
+  listeners.forEach((listener) => listener.prepare?.())
+  listeners.forEach((listener) => listener.paint(time))
 }
 function updateMotion() {
-  listeners.forEach((listener) =>
-    listener(motion?.matches ? undefined : gsap.ticker.time)
-  )
+  paintFrame(motion?.matches ? undefined : gsap.ticker.time)
 }
 
-export function subscribeBurningFrame(listener: FrameListener) {
+export function subscribeBurningFrame(
+  paint: FrameListener,
+  prepare?: () => void
+) {
   if (!listeners.size) {
     motion = window.matchMedia("(prefers-reduced-motion: reduce)")
     motion.addEventListener("change", updateMotion)
     lastFrame = -Infinity
     gsap.ticker.add(tick)
   }
+  const listener = { paint, prepare }
   listeners.add(listener)
-  listener(motion?.matches ? undefined : gsap.ticker.time)
+  prepare?.()
+  paint(motion?.matches ? undefined : gsap.ticker.time)
   return () => {
     listeners.delete(listener)
     if (!listeners.size) {

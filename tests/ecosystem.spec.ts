@@ -13,6 +13,8 @@ test("plant care, naming, time accumulation and album persist", async ({
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "添加像素花盆" }).click()
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await page.getByRole("button", { name: "编辑像素花盆" }).click()
   let panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
   await panel.getByRole("button", { name: "播种", exact: true }).click()
   await expect(
@@ -127,6 +129,8 @@ test("daily check-in grants 100 points once and survives reload", async ({
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "添加像素花盆" }).click()
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await page.getByRole("button", { name: "编辑像素花盆" }).click()
   const panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
   await panel.getByRole("button", { name: "每日签到", exact: true }).click()
   await expect(panel.getByText("点数 106", { exact: true })).toBeVisible()

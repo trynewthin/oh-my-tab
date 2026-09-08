@@ -21,7 +21,7 @@ export default function HomeSettings() {
 
   return (
     <section className="space-y-6" aria-labelledby="home-settings-title">
-      <h2 id="home-settings-title" className="text-base font-medium">
+      <h2 id="home-settings-title" className="text-base leading-6 font-medium">
         主页设置
       </h2>
       <div className="space-y-5">

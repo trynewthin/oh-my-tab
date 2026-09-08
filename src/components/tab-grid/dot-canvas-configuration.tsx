@@ -30,7 +30,9 @@ export default function DotCanvasConfiguration({
   const [pixels, setPixels] = useState(() =>
     item ? displayDots(item.pixels) : blankDots()
   )
-  const { columns, rows } = dotDimensions(pixels)
+  const pixelColumns = item?.pixelColumns ?? 24
+  const { columns, rows } = dotDimensions(pixels, pixelColumns)
+  const size = item?.size ?? "large"
   const [color, setColor] = useState(item?.color ?? "#3291ff")
   const [tool, setTool] = useState<"draw" | "erase" | "pick">("draw")
   const [history, setHistory] = useState<string[][]>([])
@@ -116,11 +118,12 @@ export default function DotCanvasConfiguration({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex h-[min(720px,90svh)] flex-col overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{item ? "编辑" : "配置"}点阵画布</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-[5rem_minmax(0,1fr)] items-start gap-3 sm:gap-5">
+
+        <div className="grid min-h-0 flex-1 grid-cols-[5rem_minmax(0,1fr)] gap-3 sm:gap-5">
           <div
             role="toolbar"
             aria-label="点阵绘制工具"
@@ -196,26 +199,32 @@ export default function DotCanvasConfiguration({
               }}
             />
           </div>
-          <div
-            className="w-full min-w-0 rounded-2xl"
-            style={{ aspectRatio: `${columns} / ${rows}` }}
-            onPointerDown={(e) => {
-              if (importing) e.stopPropagation()
-            }}
-          >
-            <DotArt
-              pixels={pixels}
+          <div className="[container-type:size] flex min-h-0 min-w-0 items-center justify-center">
+            <div
+              className="shrink-0 rounded-2xl"
+              style={{
+                aspectRatio: `${columns} / ${rows}`,
+                width: `min(100cqw, ${(100 * columns) / rows}cqh)`,
+              }}
               onPointerDown={(e) => {
-                if (!importing) paint(e, true)
+                if (importing) e.stopPropagation()
               }}
-              onPointerMove={(e) => paint(e)}
-              onPointerUp={() => {
-                stroke.current = null
-              }}
-            />
+            >
+              <DotArt
+                pixels={pixels}
+                pixelColumns={pixelColumns}
+                onPointerDown={(e) => {
+                  if (!importing) paint(e, true)
+                }}
+                onPointerMove={(e) => paint(e)}
+                onPointerUp={() => {
+                  stroke.current = null
+                }}
+              />
+            </div>
           </div>
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex shrink-0 justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
             取消
           </Button>
@@ -226,9 +235,10 @@ export default function DotCanvasConfiguration({
                 id: item?.id ?? crypto.randomUUID(),
                 kind: "dot-canvas",
                 name: item?.name ?? "点阵画布",
-                size: "large",
+                size,
                 color,
                 pixels,
+                pixelColumns,
               })
               onSaved()
             }}

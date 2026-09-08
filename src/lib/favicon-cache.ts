@@ -1,3 +1,4 @@
+import { networkAllowed } from "../stores/privacy-store"
 const DATABASE = "oh-my-tab-icons"
 const STORE = "favicons"
 const RETRY_DELAY = 15 * 60 * 1000
@@ -117,7 +118,7 @@ async function imageUrl(blob: Blob): Promise<string> {
 }
 
 type IconSource = "origin" | "favicon-im" | "duckduckgo"
-const SOURCES: IconSource[] = ["origin", "favicon-im", "duckduckgo"]
+const SOURCES: IconSource[] = ["favicon-im", "duckduckgo"]
 const SOURCES_VERSION = 5
 
 async function downloadIcon(
@@ -179,108 +180,7 @@ async function fetchBlob(
   })
 }
 
-function pageEndpoint(url: string, kind: "page" | "icon") {
-  return ["chrome-extension:", "moz-extension:"].includes(
-    window.location.protocol
-  )
-    ? url
-    : `/__favicon?url=${encodeURIComponent(url)}&kind=${kind}`
-}
-
-async function livePageIcon(pageUrl: string): Promise<string | null> {
-  const api = (
-    globalThis as typeof globalThis & {
-      chrome?: {
-        tabs?: {
-          query: (
-            query: Record<string, never>
-          ) => Promise<Array<{ url?: string; favIconUrl?: string }>>
-        }
-      }
-    }
-  ).chrome
-  if (!api?.tabs) return null
-  try {
-    const target = new URL(pageUrl)
-    target.hash = ""
-    const tabs = await api.tabs.query({})
-    for (const tab of tabs) {
-      if (!tab.url || !tab.favIconUrl) continue
-      const candidate = new URL(tab.url)
-      candidate.hash = ""
-      if (candidate.href !== target.href) continue
-      const icon = new URL(tab.favIconUrl)
-      if (["https:", "http:", "data:"].includes(icon.protocol)) return icon.href
-    }
-  } catch {
-    /* Static discovery remains available. */
-  }
-  return null
-}
-
-async function declaredIcons(
-  pageUrl: string,
-  fresh: boolean
-): Promise<string[]> {
-  let resolvedPage = pageUrl
-  const html = await (
-    await fetchBlob(
-      pageEndpoint(pageUrl, "page"),
-      fresh,
-      (response) => {
-        resolvedPage =
-          response.headers.get("X-Favicon-Page-Url") || response.url || pageUrl
-      },
-      8 * 1024 * 1024
-    )
-  ).text()
-  const doc = new DOMParser().parseFromString(html, "text/html")
-  let base = resolvedPage
-  try {
-    base = new URL(
-      doc.querySelector("base[href]")?.getAttribute("href") || resolvedPage,
-      resolvedPage
-    ).href
-  } catch {
-    /* Use page URL. */
-  }
-  const links = [...doc.querySelectorAll<HTMLLinkElement>("link[rel][href]")]
-    .filter((link) =>
-      link.rel
-        .toLowerCase()
-        .split(/\s+/)
-        .some((rel) =>
-          ["icon", "apple-touch-icon", "apple-touch-icon-precomposed"].includes(
-            rel
-          )
-        )
-    )
-    .sort(
-      (a, b) =>
-        Number(b.rel.toLowerCase().split(/\s+/).includes("icon")) -
-        Number(a.rel.toLowerCase().split(/\s+/).includes("icon"))
-    )
-  return [
-    ...new Set(
-      links.flatMap((link) => {
-        try {
-          const icon = new URL(link.getAttribute("href")!, base)
-          return ["http:", "https:", "data:"].includes(icon.protocol)
-            ? [icon.href]
-            : []
-        } catch {
-          return []
-        }
-      })
-    ),
-  ].slice(0, 12)
-}
-
-async function loadIcon(
-  url: string,
-  pageUrl: string,
-  fresh = false
-): Promise<string | null> {
+async function loadIcon(url: string, fresh = false): Promise<string | null> {
   const record = await readIcon(url)
   if (
     !fresh &&
@@ -301,35 +201,9 @@ async function loadIcon(
     record.retryAfter > Date.now()
   )
     return null
-  const liveIcon = await livePageIcon(pageUrl)
-  if (liveIcon) {
-    try {
-      const blob = await fetchBlob(liveIcon, fresh)
-      const src = await imageUrl(blob)
-      await writeIcon({ url, blob, version: SOURCES_VERSION })
-      return src
-    } catch {
-      /* Continue with the page declarations. */
-    }
-  }
-  try {
-    for (const icon of await declaredIcons(pageUrl, fresh)) {
-      try {
-        const blob = await fetchBlob(
-          icon.startsWith("data:") ? icon : pageEndpoint(icon, "icon"),
-          fresh
-        )
-        const src = await imageUrl(blob)
-        await writeIcon({ url, blob, version: SOURCES_VERSION })
-        return src
-      } catch {
-        /* Try the next declared icon. */
-      }
-    }
-  } catch {
-    /* Fall back when the page cannot be read. */
-  }
+  if (!(await networkAllowed("icons"))) return null
   for (const source of SOURCES) {
+    if (!(await networkAllowed("icons"))) return null
     try {
       const blob = await downloadIcon(url, source, fresh)
       const src = await imageUrl(blob)
@@ -362,9 +236,9 @@ export function getCachedFavicon(
   entry.promise = (
     navigator.locks
       ? navigator.locks.request(`omt-favicon:${key}`, () =>
-          loadIcon(key, url, fresh)
+          loadIcon(key, fresh)
         )
-      : loadIcon(key, url, fresh)
+      : loadIcon(key, fresh)
   )
     .catch(() => null)
     .then((src) => {
@@ -409,4 +283,10 @@ export async function refreshFavicon(url: string) {
   } catch {
     /* Local refresh still works. */
   }
+}
+
+export function reloadVisibleFavicons() {
+  const keys = [...memory.keys()]
+  memory.clear()
+  for (const key of keys) listeners.forEach((listener) => listener(key))
 }

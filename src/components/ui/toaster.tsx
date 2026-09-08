@@ -16,7 +16,7 @@ function ToastCard({ item }: { item: ToastMessage }) {
     if (hovered || focused || item.dismissed) return
     const timer = window.setTimeout(
       () => dismiss(item.id),
-      item.action || item.kind === "error" ? 12000 : 6000
+      item.action || item.kind === "error" ? 6000 : 3000
     )
     return () => window.clearTimeout(timer)
   }, [

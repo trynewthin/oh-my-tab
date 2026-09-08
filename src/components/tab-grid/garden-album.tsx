@@ -137,7 +137,7 @@ export default function GardenAlbum({
                   className={`min-w-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${selected.includes(keyOf(plant)) ? "ring-2 ring-primary ring-inset" : ""}`}
                 >
                   <div className="aspect-square">
-                    <Ecosystem item={{ ...value, plants: [plant] }} preview />
+                    <Ecosystem item={{ ...value, plants: [plant] }} preview animated={false} />
                   </div>
                   <span className="block truncate pb-2 text-sm">
                     {plantName(plant)}

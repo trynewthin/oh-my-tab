@@ -1,3 +1,8 @@
+import {
+  canvasDimensions,
+  resizeDots,
+  displayDots,
+} from "@/components/tab-grid/dot-canvas-data"
 import { initializeGarden } from "./garden-store"
 import { validGardenPlant } from "@/lib/garden"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
@@ -23,7 +28,22 @@ import {
   MOCK_DATA_VERSION,
 } from "@/components/tab-grid/mock-data"
 
-const initialItems = import.meta.env.DEV ? mockGridItems : []
+function normalizeFolderSize(item: GridItem): GridItem {
+  if (item.kind === "dot-canvas" && !item.pixelColumns) {
+    const { columns, rows } = canvasDimensions(item.size)
+    return {
+      ...item,
+      pixelColumns: columns,
+      pixels: resizeDots(displayDots(item.pixels), 24, columns, rows),
+    }
+  }
+  return item.kind === "folder" && item.size === "small"
+    ? { ...item, size: "large" }
+    : item
+}
+const initialItems = import.meta.env.DEV
+  ? mockGridItems.map(normalizeFolderSize)
+  : []
 
 import type { GridPositions } from "@/components/tab-grid/grid-layout"
 
@@ -107,9 +127,9 @@ export function validItem(value: unknown): value is GridItem {
     )
   if (item.kind === "dot-canvas")
     return (
-      item.size === "large" &&
+      ["large", "tall", "wide", "wide-tall"].includes(item.size) &&
       Array.isArray(item.pixels) &&
-      [384, 576, 1024].includes(item.pixels.length) &&
+      [384, 576, 1024, 1152, 2304].includes(item.pixels.length) &&
       item.pixels.every(
         (pixel) =>
           typeof pixel === "string" &&
@@ -119,7 +139,7 @@ export function validItem(value: unknown): value is GridItem {
   return item.kind === "tab"
     ? validEntry(item) && ["small", "medium"].includes(item.size)
     : item.kind === "folder" &&
-        ["small", "large", "tall"].includes(item.size) &&
+        ["small", "large", "tall", "wide", "wide-tall"].includes(item.size) &&
         (item.dynamicEffect === undefined ||
           typeof item.dynamicEffect === "boolean") &&
         Array.isArray(item.tabs) &&
@@ -176,13 +196,15 @@ export const useTabGridStore = create<TabGridState>()(
       setItemDynamicEffect: (id, enabled) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id ? { ...item, dynamicEffect: enabled } : item
+            item.id === id && (item.kind === "tab" || item.kind === "folder")
+              ? { ...item, dynamicEffect: enabled }
+              : item
           ),
         })),
       randomizeItemColor: (id) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id
+            item.id === id && (item.kind === "tab" || item.kind === "folder")
               ? { ...item, color: randomFolderColor(item.color) }
               : item
           ),
@@ -195,9 +217,13 @@ export const useTabGridStore = create<TabGridState>()(
               return { ...item, size }
             if (
               item.kind === "folder" &&
-              (size === "small" || size === "large" || size === "tall")
+              (size === "small" ||
+                size === "large" ||
+                size === "tall" ||
+                size === "wide" ||
+                size === "wide-tall")
             )
-              return { ...item, size }
+              return { ...item, size: size === "small" ? "large" : size }
             return item
           }),
         })),
@@ -295,9 +321,9 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: state.items.some((existing) => existing.id === item.id)
             ? state.items.map((existing) =>
-                existing.id === item.id ? item : existing
+                existing.id === item.id ? normalizeFolderSize(item) : existing
               )
-            : [...state.items, item],
+            : [...state.items, normalizeFolderSize(item)],
         })),
       updateFolderTab: (folderId, tabId, changes) =>
         set((state) => ({
@@ -388,12 +414,11 @@ export const useTabGridStore = create<TabGridState>()(
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION
             : savedMockVersion,
-          items: restoredItems,
+          items: restoredItems.map(normalizeFolderSize),
         }
       },
     }
   )
 )
-
 
 initializeGarden(useTabGridStore.getState().items)

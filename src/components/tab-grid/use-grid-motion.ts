@@ -40,7 +40,7 @@ export function useGridMotion(
       gsap.fromTo(
         element,
         { x: startX, y: startY },
-        { x: 0, y: 0, duration: 0.24, ease: "power3.out", overwrite: true }
+        { x: 0, y: 0, duration: 0.3, ease: "power2.inOut", overwrite: true }
       )
     } else if (dragging || last?.dragging || reducedMotion) {
       gsap.killTweensOf(element)

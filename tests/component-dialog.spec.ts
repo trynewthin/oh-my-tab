@@ -30,10 +30,10 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
     catalog.getByRole("button", { name: "添加文件夹", exact: true })
   ).toHaveCount(0)
   await expect(
-    catalog.getByRole("button", { name: "添加点阵画布" })
+    catalog.getByRole("button", { name: "选择点阵画布" })
   ).toBeVisible()
   await expect(
-    catalog.getByRole("button", { name: "添加像素花盆" })
+    catalog.getByRole("button", { name: "选择像素花盆" })
   ).toBeVisible()
   await page.keyboard.press("Escape")
   await page.getByRole("button", { name: "更多操作", exact: true }).click()
@@ -92,7 +92,7 @@ test("dot canvas catalog preview keeps square proportions", async ({
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   const preview = page
-    .getByRole("button", { name: "添加点阵画布" })
+    .getByRole("button", { name: "选择点阵画布" })
     .getByRole("img", { name: "点阵画布" })
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 969 })

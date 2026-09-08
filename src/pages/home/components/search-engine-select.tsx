@@ -1,5 +1,6 @@
+import { canSelectBrowserSearch, usePrivacyStore } from "@/stores/privacy-store"
 import { useState } from "react"
-import { CaretDown, Check, Plus } from "@phosphor-icons/react"
+import { CaretDown, Check, Plus, Globe } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,12 +13,17 @@ import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useSettingsStore } from "@/stores/settings-store"
 
 export default function SearchEngineSelect() {
+  const available = canSelectBrowserSearch()
+  const browserSearch =
+    usePrivacyStore((state) => state.browserSearch) && available
   const [open, setOpen] = useState(false)
   const searchEngines = useSearchEngineStore((state) => state.engines)
   const searchEngine = useSearchEngineStore((state) => state.selectedId)
   const setSearchEngine = useSearchEngineStore((state) => state.selectEngine)
   const openSettings = useSettingsStore((state) => state.openSettings)
-  const selected = searchEngines.find((engine) => engine.id === searchEngine)!
+  const selected = browserSearch
+    ? { name: "浏览器默认", icon: undefined }
+    : searchEngines.find((engine) => engine.id === searchEngine)!
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -44,18 +50,35 @@ export default function SearchEngineSelect() {
             key={engine.id}
             variant="ghost"
             className="w-full justify-start"
-            aria-pressed={engine.id === searchEngine}
+            aria-pressed={!browserSearch && engine.id === searchEngine}
             onClick={() => {
+              usePrivacyStore.getState().setBrowserSearch(false)
               setSearchEngine(engine.id)
               setOpen(false)
             }}
           >
             <EngineIcon icon={engine.icon} />
             {engine.name}
-            {engine.id === searchEngine && <Check className="ml-auto" />}
+            {!browserSearch && engine.id === searchEngine && (
+              <Check className="ml-auto" />
+            )}
           </Button>
         ))}
         <div className="my-1 border-t" />
+        {available && (
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            aria-pressed={browserSearch}
+            onClick={() => {
+              usePrivacyStore.getState().setBrowserSearch(true)
+              setOpen(false)
+            }}
+          >
+            <Globe />
+            浏览器默认{browserSearch && <Check className="ml-auto" />}
+          </Button>
+        )}
         <Button
           variant="ghost"
           className="w-full justify-start"

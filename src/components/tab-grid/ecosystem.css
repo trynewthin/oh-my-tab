@@ -21,3 +21,11 @@
 @media (prefers-reduced-motion: reduce) {
   .ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom { animation: none; }
 }
+
+[data-garden-paused="true"] :is(.ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom) {
+  animation-play-state: paused;
+}
+
+[data-pixi-source] :is(.ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom) { animation: none; }
+
+[data-garden-static] :is(.ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom) { animation: none; }

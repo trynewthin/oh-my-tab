@@ -30,6 +30,7 @@ import GridItemDialog from "./grid-item-dialog"
 import FolderExpansion from "./folder-expansion"
 import {
   itemHeight,
+  itemWidth,
   placeItems,
   type GridPosition,
   type GridPositions,
@@ -101,7 +102,7 @@ export default function TabGrid() {
   const [dialogSuspended, setDialogSuspended] = useState(false)
   const [heldLayout, setHeldLayout] = useState<GridPositions | null>(null)
   const columns = dragging?.columns ?? columnsForWidth(width)
-  const columnStep = (width + 12) / columns
+  const columnStep = (width + 16) / columns
   const rowStep = columnStep
   const positions =
     heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
@@ -109,13 +110,41 @@ export default function TabGrid() {
     dragging && intent.kind === "grid"
       ? { id: dragging.item.id, position: intent.position }
       : undefined
+  const [settledTarget, setSettledTarget] = useState<
+    | {
+        id: string
+        position: { x: number; y: number }
+      }
+    | undefined
+  >(undefined)
+  const targetId = gridTarget?.id
+  const targetX = gridTarget?.position.x
+  const targetY = gridTarget?.position.y
+  const holdPreview = intent.kind !== "grid" || !!intent.holdLayout
+  useEffect(() => {
+    if (
+      !targetId ||
+      targetX === undefined ||
+      targetY === undefined ||
+      holdPreview
+    ) {
+      const timer = setTimeout(() => setSettledTarget(undefined), 0)
+      return () => clearTimeout(timer)
+    }
+    const timer = setTimeout(() => {
+      setSettledTarget({ id: targetId, position: { x: targetX, y: targetY } })
+    }, 320)
+    return () => clearTimeout(timer)
+  }, [targetId, targetX, targetY, holdPreview])
   const previewItems =
     dragging?.sourceFolderId && gridTarget ? [...items, dragging.item] : items
   const placements = placeItems(
     previewItems,
     columns,
     positions,
-    intent.kind === "grid" && !intent.holdLayout ? gridTarget : undefined
+    dragging && intent.kind === "grid" && !intent.holdLayout
+      ? settledTarget
+      : undefined
   )
 
   useEffect(() => {
@@ -179,7 +208,7 @@ export default function TabGrid() {
     }
   }
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: keyboardCoordinates })
   )
 
@@ -429,7 +458,7 @@ export default function TabGrid() {
       x: Math.max(
         0,
         Math.min(
-          columns - 4,
+          columns - itemWidth(session.item, columns),
           Math.round((point.x - session.grabOffset.x - grid.left) / columnStep)
         )
       ),
@@ -482,7 +511,7 @@ export default function TabGrid() {
           x: Math.max(
             0,
             Math.min(
-              columns - 4,
+              columns - itemWidth(session.item, columns),
               Math.round(
                 (point.x - session.grabOffset.x - grid.left) / columnStep
               )
@@ -564,7 +593,7 @@ export default function TabGrid() {
         render={<section />}
         data-tour="grid"
         aria-label="标签网格"
-        className="mx-auto mt-6 min-h-0 w-full max-w-[1340px] flex-1"
+        className="mx-auto mt-6 min-h-0 w-full max-w-[1280px] flex-1"
       >
         <DndContext
           sensors={sensors}
@@ -575,6 +604,7 @@ export default function TabGrid() {
         >
           <div
             ref={scrollRef}
+            data-grid-scroll
             tabIndex={0}
             aria-label="滚动标签网格"
             className={`h-full min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain ${selecting ? "pb-28" : "pb-4"} outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden`}
@@ -592,10 +622,10 @@ export default function TabGrid() {
           >
             <div
               ref={gridRef}
-              className="relative grid min-h-11 gap-3"
+              className="relative grid min-h-11 gap-4"
               style={{
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                gridAutoRows: Math.max(1, rowStep - 12),
+                gridAutoRows: Math.max(1, rowStep - 16),
               }}
             >
               {(width > 0 && layouts[columns] ? items : []).map((item) =>
@@ -608,7 +638,7 @@ export default function TabGrid() {
                       boxShadow: selectedIds.includes(item.id)
                         ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
                         : undefined,
-                      gridColumn: `${placements[item.id].x + 1} / span 4`,
+                      gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
                       gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
                     }}
                   >
@@ -640,7 +670,11 @@ export default function TabGrid() {
                     item={item}
                     placement={
                       !dragging?.sourceFolderId && dragging?.item.id === item.id
-                        ? { ...dragging.origin, height: itemHeight(item) }
+                        ? {
+                            ...dragging.origin,
+                            height: itemHeight(item),
+                            width: itemWidth(item, columns),
+                          }
                         : placements[item.id]
                     }
                     dropState={
@@ -662,10 +696,10 @@ export default function TabGrid() {
               {dragging && intent.kind === "grid" && (
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-200 ease-out motion-reduce:transition-none"
+                  className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-300 ease-[cubic-bezier(0.45,0,0.55,1)] motion-reduce:transition-none"
                   style={{
-                    width: columnStep * 4 - 12,
-                    height: itemHeight(dragging.item) * rowStep - 12,
+                    width: columnStep * itemWidth(dragging.item, columns) - 16,
+                    height: itemHeight(dragging.item) * rowStep - 16,
                     transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * rowStep}px, 0)`,
                   }}
                 />
@@ -681,7 +715,7 @@ export default function TabGrid() {
                 window.matchMedia("(prefers-reduced-motion: reduce)").matches
                   ? null
                   : {
-                      duration: 240,
+                      duration: 280,
                       easing: "cubic-bezier(0.22, 1, 0.36, 1)",
                       sideEffects: defaultDropAnimationSideEffects({
                         styles: { active: { opacity: "0" } },

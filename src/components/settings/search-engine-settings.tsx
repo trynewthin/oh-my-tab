@@ -1,3 +1,4 @@
+import { canSelectBrowserSearch, usePrivacyStore } from "@/stores/privacy-store"
 import { useState } from "react"
 import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
 
@@ -17,6 +18,9 @@ import AddSearchEngineDialog from "@/components/settings/add-search-engine-dialo
 import DeleteSearchEngineDialog from "@/components/settings/delete-search-engine-dialog"
 
 export default function SearchEngineSettings() {
+  const available = canSelectBrowserSearch()
+  const browserSearch =
+    usePrivacyStore((state) => state.browserSearch) && available
   const engines = useSearchEngineStore((state) => state.engines)
   const selectedId = useSearchEngineStore((state) => state.selectedId)
   const selectEngine = useSearchEngineStore((state) => state.selectEngine)
@@ -29,7 +33,10 @@ export default function SearchEngineSettings() {
     <section className="space-y-5" aria-labelledby="search-settings-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="search-settings-title" className="text-base font-medium">
+          <h2
+            id="search-settings-title"
+            className="text-base leading-6 font-medium"
+          >
             搜索引擎
           </h2>
         </div>
@@ -52,10 +59,14 @@ export default function SearchEngineSettings() {
             </span>
             <div className="flex shrink-0 items-center gap-1">
               <Button
-                variant={selectedId === engine.id ? "secondary" : "ghost"}
+                variant={
+                  !browserSearch && selectedId === engine.id
+                    ? "secondary"
+                    : "ghost"
+                }
                 size="icon-sm"
                 aria-label={`使用 ${engine.name}`}
-                aria-pressed={selectedId === engine.id}
+                aria-pressed={!browserSearch && selectedId === engine.id}
                 onClick={() => selectEngine(engine.id)}
               >
                 <Check />

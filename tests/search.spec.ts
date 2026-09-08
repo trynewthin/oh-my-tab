@@ -3,6 +3,13 @@ import { expect, test } from "@playwright/test"
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem(
+      "omt.privacy",
+      JSON.stringify({
+        state: { suggestions: true, icons: false, browserSearch: false },
+        version: 1,
+      })
+    )
+    localStorage.setItem(
       "omt.onboarding",
       JSON.stringify({ state: { seen: true }, version: 0 })
     )
@@ -184,12 +191,12 @@ test("outdated responses stay hidden and an unavailable provider leaves search u
     } else await route.fulfill({ status: 503, body: "" })
   })
   const input = page.getByRole("combobox", { name: "对话输入" })
-  const request = page.waitForRequest("**/__suggestions?q=old")
+  const request = page.waitForRequest("**/__suggestions?q=old&engine=*")
   await input.fill("old")
   await request
   await input.fill("new")
   release()
-  await page.waitForResponse("**/__suggestions?q=new")
+  await page.waitForResponse("**/__suggestions?q=new&engine=*")
   await expect(page.getByRole("listbox")).toHaveCount(0)
   await input.press("Enter")
   await expect
@@ -197,4 +204,24 @@ test("outdated responses stay hidden and an unavailable provider leaves search u
       page.evaluate(() => (window as unknown as { opened: string[] }).opened[0])
     )
     .toBe("https://www.google.com/search?q=new")
+})
+
+
+test("suggestions follow the selected engine without retaining the previous results", async ({ page }) => {
+  const providers: string[] = []
+  await page.route("**/__suggestions?**", (route) => {
+    const engine = new URL(route.request().url()).searchParams.get("engine")!
+    providers.push(engine)
+    return route.fulfill({ json: ["hello", [engine + " suggestion"]] })
+  })
+  const input = page.getByRole("combobox", { name: "对话输入" })
+  await input.fill("hello")
+  await expect(page.getByText("google suggestion", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "搜索引擎：Google", exact: true }).click()
+  await page.getByRole("button", { name: "Bing", exact: true }).click()
+  await input.focus()
+  await expect(page.getByText("bing suggestion", { exact: true })).toBeVisible()
+  await expect(page.getByText("google suggestion", { exact: true })).toHaveCount(0)
+  expect(providers).toContain("google")
+  expect(providers.at(-1)).toBe("bing")
 })

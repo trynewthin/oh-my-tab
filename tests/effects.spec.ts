@@ -90,15 +90,11 @@ test("particle style switches globally, responds to pointer and persists", async
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await dialog.getByRole("button", { name: "个性化", exact: true }).click()
   await dialog.getByLabel("粒子效果", { exact: true }).click()
-  await page.getByRole("option", { name: "浮游粒子", exact: true }).click()
+  await page.getByRole("option", { name: "呼吸粒子", exact: true }).click()
   const surface = dialog.locator('[data-effect-style="particles"]')
   await expect(surface).toHaveAttribute("data-effect-phase", "visible")
-  const pixels = () =>
-    surface
-      .locator("[data-burn-cell]")
-      .evaluateAll((nodes) =>
-        nodes.map((node) => (node as HTMLElement).style.transform)
-      )
+  await expect(surface.locator("canvas[data-particle-canvas]")).toBeAttached()
+  const pixels = () => surface.locator("canvas").evaluate((node) => (node as HTMLCanvasElement).toDataURL())
   const before = await pixels()
   const box = (await surface.boundingBox())!
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.6)
@@ -112,7 +108,7 @@ test("particle style switches globally, responds to pointer and persists", async
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   await dialog.getByRole("button", { name: "个性化", exact: true }).click()
   await expect(dialog.getByLabel("粒子效果", { exact: true })).toContainText(
-    "浮游粒子"
+    "呼吸粒子"
   )
   await expect(dialog.getByRole("slider", { name: "粒子幅度" })).toHaveValue(
     "0"

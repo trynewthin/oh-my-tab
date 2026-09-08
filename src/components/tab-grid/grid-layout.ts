@@ -9,8 +9,18 @@ export function columnsForWidth(width: number): number {
 }
 
 export type GridPosition = { x: number; y: number }
-export type GridPlacement = GridPosition & { height: number }
+export type GridPlacement = GridPosition & { height: number; width?: number }
 export type GridPositions = Record<string, GridPosition>
+
+export function itemWidth(item: GridItem, columns = 24) {
+  return Math.min(
+    columns,
+    (item.kind === "folder" || item.kind === "dot-canvas") &&
+      (item.size === "wide" || item.size === "wide-tall")
+      ? 8
+      : 4
+  )
+}
 
 export function itemHeight(item: GridItem) {
   return item.kind === "tab"
@@ -19,15 +29,15 @@ export function itemHeight(item: GridItem) {
       : 2
     : item.size === "small"
       ? 2
-      : item.size === "tall"
+      : item.size === "tall" || item.size === "wide-tall"
         ? 8
         : 4
 }
 
 function overlaps(a: GridPlacement, b: GridPlacement) {
   return (
-    a.x < b.x + 4 &&
-    a.x + 4 > b.x &&
+    a.x < b.x + (b.width ?? 4) &&
+    a.x + (a.width ?? 4) > b.x &&
     a.y < b.y + b.height &&
     a.y + a.height > b.y
   )
@@ -36,16 +46,17 @@ function overlaps(a: GridPlacement, b: GridPlacement) {
 export function findVacancy(
   placed: GridPlacement[],
   columns: number,
-  height = 1
+  height = 1,
+  width = 4
 ): GridPlacement {
   const end = Math.max(0, ...placed.map((item) => item.y + item.height))
   for (let y = 0; y <= end; y++) {
-    for (let x = 0; x <= columns - 4; x++) {
-      const candidate = { x, y, height }
+    for (let x = 0; x <= columns - width; x++) {
+      const candidate = { x, y, height, width }
       if (!placed.some((item) => overlaps(candidate, item))) return candidate
     }
   }
-  return { x: 0, y: end, height }
+  return { x: 0, y: end, height, width }
 }
 
 export function placeItems(
@@ -63,14 +74,21 @@ export function placeItems(
   for (const item of ordered) {
     const saved = item.id === target?.id ? target.position : positions[item.id]
     const height = itemHeight(item)
+    const width = itemWidth(item, columns)
     if (!saved) {
-      result[item.id] = findVacancy(Object.values(result), columns, height)
+      result[item.id] = findVacancy(
+        Object.values(result),
+        columns,
+        height,
+        width
+      )
       continue
     }
     const candidate = {
-      x: Math.max(0, Math.min(columns - 4, Math.round(saved.x))),
+      x: Math.max(0, Math.min(columns - width, Math.round(saved.x))),
       y: Math.max(0, Math.round(saved.y)),
       height,
+      width,
     }
     let collision = Object.values(result).find((placed) =>
       overlaps(candidate, placed)

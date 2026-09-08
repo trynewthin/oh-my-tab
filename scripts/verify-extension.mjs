@@ -28,6 +28,10 @@ try {
   })
   await page.goto("chrome://newtab/")
   await page.getByRole("combobox", { name: "对话输入" }).waitFor()
+  if (!await page.evaluate(() => typeof globalThis.chrome?.search?.query === "function"))
+    throw new Error("Browser default search API unavailable in extension")
+  await page.getByRole("button", { name: "搜索引擎：浏览器默认", exact: true }).waitFor()
+  await page.locator("[data-pixi-matrix] canvas").waitFor()
   await page.screenshot({
     path: "artifacts/newtab-extension.png",
     fullPage: true,

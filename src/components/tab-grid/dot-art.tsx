@@ -4,17 +4,19 @@ import { useLayoutEffect, useRef, useState, type PointerEvent } from "react"
 
 export default function DotArt({
   pixels,
+  pixelColumns,
   onPointerDown,
   onPointerMove,
   onPointerUp,
 }: {
   pixels: string[]
+  pixelColumns?: number
   onPointerDown?: (event: PointerEvent<SVGSVGElement>) => void
   onPointerMove?: (event: PointerEvent<SVGSVGElement>) => void
   onPointerUp?: (event: PointerEvent<SVGSVGElement>) => void
 }) {
   const dots = displayDots(pixels)
-  const { columns, rows } = dotDimensions(dots)
+  const { columns, rows } = dotDimensions(dots, pixelColumns)
   const ref = useRef<SVGSVGElement>(null)
   const [size, setSize] = useState({ width: 240, height: 160 })
   useLayoutEffect(() => {

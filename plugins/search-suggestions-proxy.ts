@@ -1,3 +1,4 @@
+import { suggestionUrl } from "../src/lib/search-suggestions.ts"
 import type { Plugin, Connect } from "vite"
 
 const handle: Connect.NextHandleFunction = async (request, response) => {
@@ -6,18 +7,20 @@ const handle: Connect.NextHandleFunction = async (request, response) => {
     response.writeHead(405).end()
     return
   }
-  const query = new URL(request.url ?? "", "http://localhost").searchParams
-    .get("q")
-    ?.trim()
-  if (!query || query.length > 200) {
+  const params = new URL(request.url ?? "", "http://localhost").searchParams
+  const query = params.get("q")?.trim()
+  const endpoint = suggestionUrl(params.get("engine") ?? "", query ?? "")
+  if (!endpoint || !query || query.length > 200) {
     response.writeHead(400).end()
     return
   }
   try {
-    const upstream = await fetch(
-      `https://www.bing.com/osjson.aspx?query=${encodeURIComponent(query)}`,
-      { signal: AbortSignal.timeout(3000) }
-    )
+    const upstream = await fetch(endpoint, {
+      signal: AbortSignal.timeout(3000),
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      redirect: "error",
+    })
     if (!upstream.ok) throw new Error("Suggestions unavailable")
     const data: unknown = await upstream.json()
     response.writeHead(200, {

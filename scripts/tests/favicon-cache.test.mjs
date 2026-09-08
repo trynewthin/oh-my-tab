@@ -5,7 +5,7 @@ import { indexedDB } from 'fake-indexeddb'
 import ts from 'typescript'
 
 const source = await readFile(new URL('../../src/lib/favicon-cache.ts', import.meta.url), 'utf8')
-const { outputText } = ts.transpileModule(source, {
+const { outputText } = ts.transpileModule(source.replace(/import .*privacy-store.*\n/, "const networkAllowed = async () => globalThis.iconConsent !== false\n"), {
   compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
 })
 let instance = 0
@@ -47,6 +47,11 @@ test('favicon downloads persist across page instances and coalesce requests', as
       : new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/x-icon' } })
   }
 
+  globalThis.iconConsent = false
+  const blocked = await freshCache()
+  assert.equal(await blocked.getCachedFavicon('https://blocked.example'), null)
+  assert.equal(requests.length, 0)
+  globalThis.iconConsent = true
   const first = await freshCache()
   assert.equal(first.faviconKey('https://example.com/path?q=1'), 'https://example.com/favicon.ico')
   assert.equal(await first.getCachedFavicon('javascript:alert(1)'), null)
@@ -75,20 +80,20 @@ test('favicon downloads persist across page instances and coalesce requests', as
   assert.equal(await first.getCachedFavicon('https://missing.example'), null)
   const afterFailure = await freshCache()
   assert.equal(await afterFailure.getCachedFavicon('https://missing.example'), null)
-  assert.equal(requests.length, 5, 'all three sources fail once, then cooldown persists')
+  assert.equal(requests.length, 4, 'both services fail once, then cooldown persists')
   const start = requests.length
   assert.match(await first.getCachedFavicon('https://fallback.example'), /^blob:/)
   assert.deepEqual(requests.slice(start).map(r => new URL(r.url).hostname), [
-    'fallback.example', 'a.favicon.im', 'icons.duckduckgo.com',
+    'a.favicon.im', 'icons.duckduckgo.com',
   ])
   const reloaded = await freshCache()
   assert.match(await reloaded.getCachedFavicon('https://fallback.example'), /^blob:/)
-  assert.equal(requests.length, start + 3, 'fallback success is persisted')
+  assert.equal(requests.length, start + 2, 'fallback success is persisted')
   assert.match(await first.getCachedFavicon('https://second.example'), /^blob:/)
-  assert.equal(requests.length, start + 5, 'stop immediately after second source succeeds')
+  assert.equal(requests.length, start + 3, 'stop after first service succeeds')
   assert.ok(requests.at(-1).url.includes('throw-error-on-404=true'))
   assert.match(await first.getCachedFavicon('https://declared.example/app'), /^blob:/)
-  assert.equal(requests.at(-1).url, 'https://declared.example/custom-favicon.svg')
+  assert.equal(requests.at(-1).url, 'https://a.favicon.im/declared.example?larger=true&throw-error-on-404=true')
   const beforeRefresh = requests.length
   await first.getCachedFavicon('https://declared.example/app', true)
   assert.equal(requests.length, beforeRefresh + 1)
@@ -99,7 +104,7 @@ test('favicon downloads persist across page instances and coalesce requests', as
 
   globalThis.chrome = { tabs: { query: async () => [{ url: 'https://live.example/app#one', favIconUrl: 'https://live.example/runtime-favicon.png' }] } }
   await first.getCachedFavicon('https://live.example/app#two')
-  assert.equal(requests.at(-1).url, 'https://live.example/runtime-favicon.png')
+  assert.equal(requests.at(-1).url, 'https://a.favicon.im/live.example?larger=true&throw-error-on-404=true')
   delete globalThis.chrome
 
 })

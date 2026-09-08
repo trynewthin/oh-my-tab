@@ -1,3 +1,7 @@
+import { applyNetworkChoices, usePrivacyStore } from "@/stores/privacy-store"
+import { reloadVisibleFavicons } from "@/lib/favicon-cache"
+import { toast } from "@/stores/toast-store"
+import PrivacySettings from "@/components/settings/privacy-settings"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
@@ -12,9 +16,13 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 
 const steps = [
   {
+    title: "欢迎使用 Oh My Tab",
+    text: "勾选需要的联网服务，点击「我同意」后启用。点击「不同意」将关闭两项联网服务并继续教程。可随时在「设置 → 关于」中修改。",
+  },
+  {
     target: "search",
     title: "搜索与打开结果",
-    text: "输入关键词后，上方显示匹配书签，下方显示实时联想。点击书签直接打开网站，点击联想词使用当前搜索引擎搜索。直接按 Enter 或点击向上箭头搜索输入内容，提交后自动清空。",
+    text: "输入关键词后显示本地匹配书签。可在关于中授权启用搜索联想，启用后输入关键词会发送给所选引擎的联想服务。默认搜索使用浏览器设置，也可自行选择搜索引擎。点击书签直接打开网站，点击联想词使用当前搜索引擎搜索。直接按 Enter 或点击向上箭头搜索输入内容，提交后自动清空。",
   },
   {
     target: "more",
@@ -24,7 +32,7 @@ const steps = [
   {
     target: "more",
     title: "组件：预览与添加",
-    text: "在更多菜单中选择「添加组件」，或右键网格空白处打开组件窗口。点击组件预览即可添加到主页，随后可通过右键「编辑」修改内容。",
+    text: "在更多菜单中选择「添加组件」，或右键网格空白处打开组件窗口。选择组件预览和大小，再次点击确认添加到主页，随后可通过右键「编辑」修改内容。",
   },
   {
     target: "more",
@@ -49,12 +57,12 @@ const steps = [
   {
     target: "grid",
     title: "右键管理与删除撤销",
-    text: "右键组件可调整尺寸、编辑内容、随机颜色和切换动态效果，标签还可刷新图标。删除需要再次确认；删除后顶部通知提供「撤销」，可恢复标签或整个文件夹，批量删除也能一次恢复。",
+    text: "右键可编辑组件内容；标签和文件夹还支持调整尺寸、随机颜色和切换动态效果，标签可刷新图标。删除需要再次确认；删除后顶部通知提供「撤销」，可恢复标签或整个文件夹，批量删除也能一次恢复。",
   },
   {
     target: "settings",
     title: "设置：按分类管理",
-    text: "点击齿轮进入设置，左侧可选择常规设置、主页设置、个性化和搜索引擎。设置会自动保存，点击「关闭」回到主页。",
+    text: "点击齿轮进入设置，左侧可选择常规设置、主页设置、个性化、搜索引擎和关于。设置会自动保存，点击「关闭」回到主页。",
   },
   {
     target: "settings",
@@ -93,6 +101,30 @@ const steps = [
 
 function Tour() {
   const [step, setStep] = useState(0)
+  const [busy, setBusy] = useState(false)
+  const [choices, setChoices] = useState(() => {
+    const { suggestions, icons } = usePrivacyStore.getState()
+    return { suggestions, icons }
+  })
+  async function consent(agree: boolean) {
+    setBusy(true)
+    try {
+      const selected = agree ? choices : { suggestions: false, icons: false }
+      const granted = await applyNetworkChoices(selected)
+      reloadVisibleFavicons()
+      if (!granted) {
+        setChoices({ suggestions: false, icons: false })
+        toast("未获得网站访问授权，联网服务保持关闭", "error")
+        return
+      }
+      setChoices(selected)
+      setStep(1)
+    } catch {
+      toast("权限更新失败，请重试", "error")
+    } finally {
+      setBusy(false)
+    }
+  }
   const [rect, setRect] = useState<DOMRect | null>(null)
   const finish = useOnboardingStore((state) => state.finish)
   const current = steps[step]
@@ -135,7 +167,7 @@ function Tour() {
       <Dialog
         open
         onOpenChange={(open) => {
-          if (!open) finish()
+          if (!open && !busy) finish()
         }}
       >
         <DialogContent
@@ -145,13 +177,17 @@ function Tour() {
               ? "bg-transparent supports-backdrop-filter:backdrop-blur-none"
               : "bg-black/45 supports-backdrop-filter:backdrop-blur-none"
           }
-          className="top-auto bottom-4 z-[60] max-h-[45svh] -translate-y-0 gap-4 overflow-y-auto sm:bottom-6"
+          className={
+            step === 0
+              ? "z-[60] max-h-[90svh] gap-4 overflow-y-auto"
+              : "top-auto bottom-4 z-[60] max-h-[45svh] -translate-y-0 gap-4 overflow-y-auto sm:bottom-6"
+          }
         >
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs text-muted-foreground" aria-live="polite">
               新手教程 · {step + 1} / {steps.length}
             </span>
-            <Button variant="ghost" size="sm" onClick={finish}>
+            <Button variant="ghost" size="sm" disabled={busy} onClick={finish}>
               跳过教程
             </Button>
           </div>
@@ -161,22 +197,46 @@ function Tour() {
               {current.text}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-between gap-3">
-            <Button
-              variant="outline"
-              disabled={step === 0}
-              onClick={() => setStep(step - 1)}
-            >
-              上一步
-            </Button>
-            <Button
-              onClick={() =>
-                step === steps.length - 1 ? finish() : setStep(step + 1)
+          {step === 0 && (
+            <PrivacySettings
+              choices={choices}
+              disabled={busy}
+              onChange={(feature, enabled) =>
+                setChoices((current) => ({ ...current, [feature]: enabled }))
               }
-            >
-              {step === steps.length - 1 ? "开始使用" : "下一步"}
-            </Button>
-          </div>
+            />
+          )}
+          {step === 0 ? (
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => void consent(false)}
+              >
+                不同意
+              </Button>
+              <Button disabled={busy} onClick={() => void consent(true)}>
+                我同意
+              </Button>
+            </div>
+          ) : (
+            <div className="flex justify-between gap-3">
+              <Button
+                variant="outline"
+                disabled={step === 0}
+                onClick={() => setStep(step - 1)}
+              >
+                上一步
+              </Button>
+              <Button
+                onClick={() =>
+                  step === steps.length - 1 ? finish() : setStep(step + 1)
+                }
+              >
+                {step === steps.length - 1 ? "开始使用" : "下一步"}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

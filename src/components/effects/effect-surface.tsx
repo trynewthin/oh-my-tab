@@ -1,5 +1,5 @@
+import { createPixiEffect } from "./pixi-effect"
 import { createParticleCell, particleCell } from "./particle-texture"
-import { trackEffectPointer, effectPointer } from "./pointer-tracker"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useVisualTransition } from "./use-visual-transition"
 import { useEffect, useRef, useState } from "react"
@@ -9,7 +9,6 @@ import {
   createBurningTexture,
 } from "./burning-texture"
 import { subscribeBurningFrame } from "./burning-clock"
-import { createBurningCanvas } from "./burning-canvas"
 
 const CELL_SIZE = 8
 const GAP = 1
@@ -68,8 +67,7 @@ export default function EffectSurface({
 
   useEffect(() => {
     if (
-      ((!animated || amplitude === 0 || phase === "hidden") &&
-        !transitioning) ||
+      (phase === "hidden" && !transitioning) ||
       !grid.columns ||
       !region.current
     )
@@ -94,39 +92,23 @@ export default function EffectSurface({
       }
     )
     const burning = createBurningTexture(color, seed, grid.columns)
-    const canvas =
-      effectStyle === "burning"
-        ? createBurningCanvas(
-            element,
-            color,
-            seed,
-            grid.columns,
-            grid.rows + (shiftY ? 1 : 0),
-            offsetY,
-            () => grid
-          )
-        : null
-    const releasePointer =
-      effectStyle === "particles" ? trackEffectPointer() : () => {}
-    let pointer: { x: number; y: number } | null = null
+    const canvas = createPixiEffect(
+      element,
+      color,
+      seed,
+      grid.columns,
+      grid.rows + (shiftY ? 1 : 0),
+      offsetY,
+      grid,
+      effectStyle
+    )
+    const pointer = null
     const prepare = () => {
       canvas?.prepare()
-      const position = effectPointer()
-      const bounds =
-        effectStyle === "particles" && position
-          ? element.getBoundingClientRect()
-          : null
-      pointer =
-        position && bounds
-          ? {
-              x: position.x - bounds.left,
-              y: position.y - bounds.top + offsetY,
-            }
-          : null
     }
     const paint = (time?: number) => {
       if (canvas) {
-        canvas.paint(time, reveal.current.value, amplitude)
+        canvas.paint(time, reveal.current.value, amplitude, pointer)
         return
       }
       paintCells(time)
@@ -158,6 +140,11 @@ export default function EffectSurface({
     }
     let unsubscribe: (() => void) | undefined
     const resume = () => {
+      if ((!animated || amplitude === 0) && !transitioning) {
+        prepare()
+        paint()
+        return
+      }
       unsubscribe ??= subscribeBurningFrame(paint, prepare)
     }
     const pause = () => {
@@ -177,7 +164,6 @@ export default function EffectSurface({
     return () => {
       observer.disconnect()
       pause()
-      releasePointer()
       canvas?.dispose()
       paintCells()
     }
@@ -203,7 +189,7 @@ export default function EffectSurface({
       data-burning-entrance={entering ? "running" : undefined}
       data-effect-phase={phase}
       data-effect-style={effectStyle}
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] bg-card"
+      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] bg-card [contain:layout_paint_style]"
     >
       <div
         ref={region}

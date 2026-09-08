@@ -1,6 +1,10 @@
+import { useTabGridStore } from "@/stores/tab-grid-store"
+import { placeItems, positionsOnly } from "@/components/tab-grid/grid-layout"
+import { toast } from "@/stores/toast-store"
 import { useState } from "react"
 import {
   SquaresFour,
+  GridFour,
   Plus,
   BookmarkSimple,
   FolderPlus,
@@ -82,6 +86,34 @@ export default function MoreActions() {
           >
             <Plus />
             添加组件
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              setOpen(false)
+              const state = useTabGridStore.getState()
+              const columns = state.lastLayoutColumns
+              if (!columns || !state.items.length) return
+              const previous = state.layouts[columns] ?? {}
+              const ordered = [...state.items].sort((a, b) => {
+                const left = previous[a.id] ?? { x: 0, y: 0 }
+                const right = previous[b.id] ?? { x: 0, y: 0 }
+                return left.y - right.y || left.x - right.x
+              })
+              state.setLayout(
+                columns,
+                positionsOnly(placeItems(ordered, columns, {}))
+              )
+              toast("已整理网格", "success", {
+                label: "撤销",
+                run: () =>
+                  useTabGridStore.getState().setLayout(columns, previous),
+              })
+            }}
+          >
+            <GridFour />
+            一键整理
           </Button>
           <Button
             variant="ghost"

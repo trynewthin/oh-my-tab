@@ -56,7 +56,7 @@ export default function DraggableGridItem({
         aria-label={`拖动 ${item.name} 放置`}
         className={`group relative isolate col-span-4 min-w-0 cursor-grab rounded-2xl ${item.kind === "dot-canvas" || item.kind === "ecosystem" ? "" : "border"} outline-none focus-visible:ring-2 focus-visible:ring-ring ${dropState === "ready" ? "ring-2 ring-primary" : dropState === "pending" ? "ring-2 ring-primary/30" : ""}`}
         style={{
-          gridColumn: `${placement.x + 1} / span 4`,
+          gridColumn: `${placement.x + 1} / span ${placement.width ?? 4}`,
           gridRow: `${placement.y + 1} / span ${placement.height}`,
           opacity: isDragging ? 0 : 1,
         }}
@@ -80,15 +80,16 @@ export default function DraggableGridItem({
       <ContextMenuContent>
         {(item.kind === "tab" || item.kind === "folder") && (
           <div
-            className="mb-1 flex gap-3 px-1 py-2"
+            className="mb-1 grid grid-cols-2 gap-2 px-1 py-2"
             role="group"
             aria-label={item.kind === "folder" ? "文件夹大小" : "标签大小"}
           >
-            {(item.kind === "folder"
+            {(item.kind !== "tab"
               ? ([
-                  { value: "small", label: "小 · 4×2" },
                   { value: "large", label: "大 · 4×4" },
                   { value: "tall", label: "高 · 4×8" },
+                  { value: "wide", label: "宽 · 8×4" },
+                  { value: "wide-tall", label: "宽高 · 8×8" },
                 ] as const)
               : ([
                   { value: "small", label: "小 · 4×1" },

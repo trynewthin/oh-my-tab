@@ -17,20 +17,52 @@ export default function FolderTabStack({
   surface?: "preview" | "dialog"
   draggable?: boolean
 }) {
+  const wide =
+    surface === "preview" &&
+    (folder.size === "wide" || folder.size === "wide-tall")
+  const [innerColumns, setInnerColumns] = useState(1)
   const [rowHeight, setRowHeight] = useState(44)
-  const rowGap = surface === "preview" && folder.size !== "small" ? 4 : 8
+  const rowGap = 8
   const rowStep = rowHeight + rowGap
   const viewportRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
     const update = () => {
-      const count = folder.size === "tall" ? 8 : folder.size === "large" ? 4 : 2
+      setInnerColumns(wide && viewport.clientWidth >= 400 ? 2 : 1)
+      const count =
+        folder.size === "tall" || folder.size === "wide-tall"
+          ? 8
+          : folder.size === "small"
+            ? 1
+            : 4
+      const parentStyle = viewport.parentElement
+        ? getComputedStyle(viewport.parentElement)
+        : null
+      const padding = parentStyle
+        ? parseFloat(parentStyle.paddingTop) +
+          parseFloat(parentStyle.paddingBottom)
+        : 24
+      const grid = viewport
+        .closest<HTMLElement>("[data-tour=grid]")
+        ?.querySelector<HTMLElement>(".grid")
+      const outerGap = grid
+        ? parseFloat(getComputedStyle(grid).rowGap) || 16
+        : 16
+      // Eight-row folders use the same row height as four-row folders at this grid width.
+      const heightAdjustment =
+        count === 8 ? topBleed + padding + outerGap - rowGap : 0
+      const availableHeight = viewport.clientHeight - topBleed
+      const commonHeight =
+        (availableHeight * 2 + topBleed + padding + outerGap - 3 * rowGap) / 4
       setRowHeight(
         surface === "preview"
           ? Math.max(
               1,
-              (viewport.clientHeight - topBleed - (count - 1) * rowGap) / count
+              count === 1
+                ? Math.min(availableHeight, commonHeight)
+                : (availableHeight - (count - 1) * rowGap - heightAdjustment) /
+                    count
             )
           : 44
       )
@@ -39,7 +71,7 @@ export default function FolderTabStack({
     const observer = new ResizeObserver(update)
     observer.observe(viewport)
     return () => observer.disconnect()
-  }, [folder.size, surface, topBleed, rowGap])
+  }, [folder.size, surface, topBleed, rowGap, wide])
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current
@@ -53,13 +85,17 @@ export default function FolderTabStack({
 
     function draw() {
       if (!viewport) return
-      const height = viewport.clientHeight - topBleed
+      const height =
+        surface === "preview" && folder.size === "small"
+          ? rowHeight
+          : viewport.clientHeight - topBleed
       const progress = Math.min(1, viewport.scrollTop / rowStep)
       const folding = progress * progress * (3 - 2 * progress)
       const focusLine = Math.max(0, height - 64)
       const spread = Math.max(12, height - rowHeight - focusLine)
       rows.forEach((row, index) => {
-        const position = index * rowStep - viewport.scrollTop
+        const position =
+          Math.floor(index / innerColumns) * rowStep - viewport.scrollTop
         const depth = Math.max(0, (position - focusLine) / rowStep)
         const projected =
           position <= focusLine
@@ -71,7 +107,8 @@ export default function FolderTabStack({
         const bottomLimit = Math.max(0, height - rowHeight * scale - 1)
         const animatedPosition = position + (projected - position) * folding
         const boundedPosition = Math.min(animatedPosition, bottomLimit)
-        const initiallyBelow = index * rowStep + rowHeight > height
+        const initiallyBelow =
+          Math.floor(index / innerColumns) * rowStep + rowHeight > height
         const reveal = initiallyBelow ? folding : 1
         const opacity =
           (position < 0
@@ -84,7 +121,8 @@ export default function FolderTabStack({
         gsap.set(row, {
           y: motion.matches ? 0 : boundedPosition - position,
           scale,
-          autoAlpha: hidden ? 0 : motion.matches ? 1 : opacity,
+          autoAlpha: hidden ? 0 : motion.matches || position >= 0 ? 1 : opacity,
+          "--stack-shade": motion.matches || position < 0 ? 0 : 1 - opacity,
           zIndex: rows.length - index,
           transformOrigin: "center top",
         })
@@ -100,7 +138,10 @@ export default function FolderTabStack({
         "--stack-bottom",
         `${Math.max(0, viewport.clientHeight - topBleed - rowHeight)}px`
       )
-      const maxScroll = Math.max(0, (rows.length - 1) * rowStep)
+      const maxScroll = Math.max(
+        0,
+        (Math.ceil(rows.length / innerColumns) - 1) * rowStep
+      )
       viewport.scrollTop = Math.min(viewport.scrollTop, maxScroll)
       wheelTarget = viewport.scrollTop
       draw()
@@ -160,10 +201,21 @@ export default function FolderTabStack({
         gsap.set(row, {
           clearProps: "transform,transformOrigin,opacity,visibility,zIndex",
         })
+        row.style.removeProperty("--stack-shade")
         row.inert = false
       })
     }
-  }, [folder.id, folder.tabs, topBleed, rowStep, rowHeight])
+  }, [
+    folder.id,
+    folder.size,
+    folder.tabs,
+    surface,
+    topBleed,
+    rowStep,
+    rowHeight,
+    rowGap,
+    innerColumns,
+  ])
 
   return (
     <div
@@ -205,8 +257,12 @@ export default function FolderTabStack({
     >
       <div
         role="list"
-        className="relative"
-        style={{ paddingBottom: "var(--stack-bottom, 0px)" }}
+        className="relative grid"
+        style={{
+          gridTemplateColumns: `repeat(${innerColumns}, minmax(0, 1fr))`,
+          columnGap: rowGap,
+          paddingBottom: "var(--stack-bottom, 0px)",
+        }}
       >
         {folder.tabs.map((tab, index) => (
           <div
@@ -214,7 +270,7 @@ export default function FolderTabStack({
             data-stack-row
             data-tab-id={tab.id}
             role="listitem"
-            className="relative will-change-transform"
+            className="relative rounded-2xl bg-card after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:bg-card after:opacity-[var(--stack-shade,0)]"
             style={{
               height: rowHeight,
               marginBottom: index < folder.tabs.length - 1 ? rowGap : 0,

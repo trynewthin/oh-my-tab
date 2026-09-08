@@ -1,7 +1,7 @@
 import { create } from "zustand"
 
 export type SettingsSection =
-  "general" | "search-engines" | "home" | "personalization"
+  "about" | "general" | "search-engines" | "home" | "personalization"
 
 type SettingsState = {
   open: boolean

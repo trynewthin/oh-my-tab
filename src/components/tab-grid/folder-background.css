@@ -4,8 +4,6 @@
     color-mix(in srgb, var(--card) 98%, transparent),
     color-mix(in srgb, var(--card) 92%, transparent)
   );
-  backdrop-filter: blur(16px) saturate(125%);
-  -webkit-backdrop-filter: blur(16px) saturate(125%);
   box-shadow: 0 6px 20px rgb(0 0 0 / 3%);
 }
 
@@ -67,11 +65,9 @@
 
 @keyframes folder-color-flow {
   from {
-    background-position: 0% 0%;
     opacity: 0.65;
   }
   to {
-    background-position: 100% 100%;
     opacity: 1;
   }
 }
@@ -82,3 +78,5 @@
     background-size: auto;
   }
 }
+
+.folder-glass[data-pixi-folder-ready]::before { display: none; animation: none; }

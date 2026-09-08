@@ -1,3 +1,4 @@
+import { canvasDimensions, resizeDots, displayDots } from "./dot-canvas-data"
 import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
 import TabBackground from "./tab-background"
@@ -26,7 +27,7 @@ export default function GridTileContent({
         className="flex h-full w-full flex-col rounded-[inherit] bg-transparent text-left"
       >
         <div className="min-h-0 w-full flex-1">
-          <DotArt pixels={item.pixels} />
+          <DotArt pixels={resizeDots(displayDots(item.pixels), item.pixelColumns ?? 24, canvasDimensions(item.size).columns, canvasDimensions(item.size).rows)} pixelColumns={canvasDimensions(item.size).columns} />
         </div>
       </button>
     )

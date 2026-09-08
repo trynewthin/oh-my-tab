@@ -14,7 +14,7 @@ for (const [width, columns, format] of [
         JSON.stringify({ state: { seen: true }, version: 0 })
       )
     )
-    await page.goto("/")
+    await page.goto("/?matrixRenderer=dom")
     const matrix = page.locator("[data-matrix-columns]")
     await expect(matrix).toHaveAttribute("data-matrix-columns", String(columns))
     await expect(matrix).toHaveAttribute("data-time-format", format)
@@ -52,7 +52,7 @@ test("long text scrolls and fits after widening", async ({ page }) => {
       })
     )
   })
-  await page.goto("/")
+  await page.goto("/?matrixRenderer=dom")
   const matrix = page.getByRole("img", { name: "OH MY TAB", exact: true })
   await expect(matrix).toHaveAttribute("data-matrix-columns", "22")
   const snapshot = () =>
@@ -98,7 +98,7 @@ for (const content of ["pet", "breathing"] as const) {
       },
       { content }
     )
-    await page.goto("/")
+    await page.goto("/?matrixRenderer=dom")
     const matrix = page.locator("[data-matrix-columns]")
     await expect(matrix.locator("span")).toHaveCount(18 * 7)
     await page.setViewportSize({ width: 480, height: 800 })
@@ -137,7 +137,7 @@ for (const [pet, frames] of [
       },
       { pet }
     )
-    await page.goto("/")
+    await page.goto("/?matrixRenderer=dom")
     const matrix = page.getByRole("img", { name: /颜文字宠物/ })
     await expect(matrix.locator("span")).toHaveCount(126)
     const snapshot = () =>

@@ -1,7 +1,15 @@
+import AboutSettings from "./about-settings"
 import EffectSurface from "@/components/effects/effect-surface"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import PersonalizationSettings from "./personalization-settings"
-import { MagnifyingGlass, X, House, Gear, Palette } from "@phosphor-icons/react"
+import {
+  MagnifyingGlass,
+  X,
+  House,
+  Gear,
+  Palette,
+  Info,
+} from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +31,7 @@ const sections = [
   { id: "home", label: "主页设置", icon: House },
   { id: "personalization", label: "个性化", icon: Palette },
   { id: "search-engines", label: "搜索引擎", icon: MagnifyingGlass },
+  { id: "about", label: "关于", icon: Info },
 ] satisfies {
   id: SettingsSection
   label: string
@@ -56,7 +65,7 @@ export default function SettingsDialog() {
         <div className="relative z-10 flex h-[min(560px,80svh)] min-h-0 min-w-0">
           <aside className="flex w-28 shrink-0 flex-col overflow-y-auto p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
             <DialogHeader className="px-2 pb-6 text-left">
-              <DialogTitle>设置</DialogTitle>
+              <DialogTitle className="leading-6">设置</DialogTitle>
               <DialogDescription className="sr-only">
                 选择左侧分类，管理对应设置。
               </DialogDescription>
@@ -88,7 +97,9 @@ export default function SettingsDialog() {
             </div>
           </aside>
           <div className="min-w-0 flex-1 overflow-y-auto px-3 py-6 sm:p-6">
-            {section === "general" ? (
+            {section === "about" ? (
+              <AboutSettings />
+            ) : section === "general" ? (
               <GeneralSettings />
             ) : section === "search-engines" ? (
               <SearchEngineSettings />

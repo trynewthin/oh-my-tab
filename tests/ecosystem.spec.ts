@@ -12,7 +12,9 @@ test("plant care, naming, time accumulation and album persist", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
-  await page.getByRole("button", { name: "添加像素花盆" }).click()
+  await page.getByRole("button", { name: "选择像素花盆" }).click()
+  await page.getByRole("button", { name: "4×4", exact: true }).click()
+  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   let panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
@@ -103,17 +105,20 @@ test("plant families animate without pointer interaction", async ({ page }) => {
       )
     ).size
   ).toBe(6)
-  const first = plants.first()
-  const transform = await first.evaluate(
-    (node) => getComputedStyle(node).transform
-  )
-  await expect
-    .poll(() => first.evaluate((node) => getComputedStyle(node).transform))
-    .not.toBe(transform)
+  const canvases = page.locator("canvas[data-pixi-garden]")
+  await expect(canvases).toHaveCount(6)
+  const first = canvases.first()
+  const image = () =>
+    first.evaluate((node) => (node as HTMLCanvasElement).toDataURL())
+  const before = await image()
+  await expect.poll(image).not.toBe(before)
+  await expect(plants.first()).toHaveCSS("animation-name", "none")
+  await page.screenshot({ path: "artifacts/pixi-garden.png" })
   await page.emulateMedia({ reducedMotion: "reduce" })
-  await expect
-    .poll(() => first.evaluate((node) => getComputedStyle(node).animationName))
-    .toBe("none")
+  await page.waitForTimeout(100)
+  const count = await first.getAttribute("data-render-count")
+  await page.waitForTimeout(300)
+  await expect(first).toHaveAttribute("data-render-count", count!)
 })
 
 test("daily check-in grants 100 points once and survives reload", async ({
@@ -128,7 +133,9 @@ test("daily check-in grants 100 points once and survives reload", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
-  await page.getByRole("button", { name: "添加像素花盆" }).click()
+  await page.getByRole("button", { name: "选择像素花盆" }).click()
+  await page.getByRole("button", { name: "4×4", exact: true }).click()
+  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   const panel = page.getByRole("dialog", { name: "像素花盆", exact: true })

@@ -1,3 +1,5 @@
+import PixiMatrix from "./pixi-matrix"
+import { useMatrixRendererStore } from "@/stores/matrix-renderer-store"
 import { fitBitmap, textBitmap } from "./bitmap-font"
 import { matrixPets } from "./pet-catalog"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -12,6 +14,9 @@ import {
 } from "./responsive-layout"
 
 function MatrixContent({ columns }: { columns: number }) {
+  const renderer = useMatrixRendererStore((state) => state.renderer)
+  const [failed, setFailed] = useState(false)
+  const usePixi = renderer === "pixi" && !failed
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const color = useHomeSettingsStore((state) => state.color)
@@ -21,6 +26,7 @@ function MatrixContent({ columns }: { columns: number }) {
   const textPixels = useMemo(() => textBitmap(text), [text])
 
   useEffect(() => {
+    if (content === "text" && (textPixels[0]?.length ?? 0) <= columns) return
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
     const timer = window.setInterval(
       () => {
@@ -37,7 +43,7 @@ function MatrixContent({ columns }: { columns: number }) {
             : 80
     )
     return () => window.clearInterval(timer)
-  }, [content])
+  }, [content, columns, textPixels])
 
   const time = clock.toLocaleTimeString("en-GB", { hour12: false })
   const clockDisplay = clockBitmap(time, columns)
@@ -63,31 +69,43 @@ function MatrixContent({ columns }: { columns: number }) {
         role="img"
         aria-label={label}
         data-matrix-columns={columns}
+        data-matrix-renderer={usePixi ? "pixi" : "dom"}
         data-time-format={content === "time" ? clockDisplay.format : undefined}
-        className="mx-auto grid w-fit"
+        className="mx-auto grid w-fit [contain:layout_paint_style]"
         style={{
-          gridTemplateColumns: `repeat(${columns}, ${CELL_SIZE}px)`,
+          gridTemplateColumns: usePixi
+            ? undefined
+            : `repeat(${columns}, ${CELL_SIZE}px)`,
           gap: CELL_GAP,
         }}
       >
-        {pixels.flatMap((row, y) =>
-          row.map((value, x) => (
-            <span
-              key={`${x}-${y}`}
-              aria-hidden="true"
-              className="rounded-[25%]"
-              style={{
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-                backgroundColor:
-                  content === "breathing"
-                    ? oceanCellColor(value, color)
-                    : value
-                      ? color
-                      : "var(--muted)",
-              }}
-            />
-          ))
+        {usePixi ? (
+          <PixiMatrix
+            pixels={pixels}
+            color={color}
+            ocean={content === "breathing"}
+            onFailure={() => setFailed(true)}
+          />
+        ) : (
+          pixels.flatMap((row, y) =>
+            row.map((value, x) => (
+              <span
+                key={`${x}-${y}`}
+                aria-hidden="true"
+                className="rounded-[25%]"
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  backgroundColor:
+                    content === "breathing"
+                      ? oceanCellColor(value, color)
+                      : value
+                        ? color
+                        : "var(--muted)",
+                }}
+              />
+            ))
+          )
         )}
       </div>
     </div>

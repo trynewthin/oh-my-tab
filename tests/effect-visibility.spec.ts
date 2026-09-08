@@ -77,12 +77,26 @@ for (const effectStyle of ["burning", "particles"] as const) {
     await expect(last.locator("[data-burn-cell]").first()).toBeAttached()
     await expect.poll(() => changes(first)).toBeGreaterThan(0)
     await expect.poll(() => changes(last)).toBe(0)
+    await page.waitForTimeout(1700)
+    const frames = await first.locator("canvas").evaluate((node) => new Promise<number>((resolve) => {
+      const context = (node as HTMLCanvasElement).getContext("2d")!
+      const original = context.clearRect
+      let count = 0
+      context.clearRect = function (...args) { count++; original.apply(this, args) }
+      setTimeout(() => { context.clearRect = original; resolve(count) }, 1000)
+    }))
+    expect(frames).toBeGreaterThan(0)
+    expect(frames).toBeLessThanOrEqual(9)
     await last.scrollIntoViewIfNeeded()
     await expect.poll(() => changes(last)).toBeGreaterThan(0)
     await expect.poll(() => changes(first)).toBe(0)
     await first.scrollIntoViewIfNeeded()
     await expect.poll(() => changes(first)).toBeGreaterThan(0)
     await expect.poll(() => changes(last)).toBe(0)
+    await page.getByRole("button", { name: "打开设置", exact: true }).click()
+    await expect.poll(() => changes(first)).toBeGreaterThan(0)
+    await page.getByRole("button", { name: "关闭", exact: true }).click()
+    await expect.poll(() => changes(first)).toBeGreaterThan(0)
     await page.emulateMedia({ reducedMotion: "reduce" })
     await expect.poll(() => changes(first)).toBe(0)
     await page.emulateMedia({ reducedMotion: "no-preference" })

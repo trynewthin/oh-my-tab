@@ -34,8 +34,14 @@ export default function ComponentConfiguration({
   const kind = item?.kind ?? initialKind
   const [name, setName] = useState(item?.name ?? "")
   const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
-  const [size, setSize] = useState<"small" | "medium" | "large" | "tall">(
-    item?.size ?? "small"
+  const [size, setSize] = useState<
+    "small" | "medium" | "large" | "tall" | "wide" | "wide-tall"
+  >(
+    item?.kind === "folder"
+      ? item.size === "small"
+        ? "large"
+        : item.size
+      : (item?.size ?? (kind === "folder" ? "large" : "small"))
   )
   const [color, setColor] = useState(item?.color ?? "#6c8bd4")
   const saveItem = useTabGridStore((state) => state.saveItem)
@@ -62,7 +68,7 @@ export default function ComponentConfiguration({
         id,
         kind,
         name: name.trim(),
-        size: size === "large" || size === "tall" ? size : "small",
+        size: size === "tall" || size === "wide" || size === "wide-tall" ? size : "large",
         color,
         tabs: item?.kind === "folder" ? item.tabs : [],
         dynamicEffect: item?.kind === "folder" ? item.dynamicEffect : false,
@@ -102,33 +108,39 @@ export default function ComponentConfiguration({
               value === "small" ||
               value === "medium" ||
               value === "large" ||
-              value === "tall"
+              value === "tall" ||
+              value === "wide" ||
+              value === "wide-tall"
             )
               setSize(value)
           }}
         >
           <SelectTrigger id="grid-size" className="w-full">
             <SelectValue>
-              {size === "small"
-                ? kind === "tab"
+              {kind === "tab"
+                ? size === "small"
                   ? "小 · 4×1"
-                  : "小 · 4×2"
-                : kind === "tab"
-                  ? "中 · 4×2"
-                  : size === "tall"
-                    ? "高 · 4×8"
-                    : "大 · 4×4"}
+                  : "中 · 4×2"
+                : size === "wide"
+                  ? "宽 · 8×4"
+                  : size === "wide-tall"
+                    ? "宽高 · 8×8"
+                    : size === "tall"
+                      ? "高 · 4×8"
+                      : "大 · 4×4"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="small">
-              {kind === "tab" ? "小 · 4×1" : "小 · 4×2"}
-            </SelectItem>
+            {kind === "tab" && <SelectItem value="small">小 · 4×1</SelectItem>}
             <SelectItem value={kind === "tab" ? "medium" : "large"}>
               {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
             </SelectItem>
             {kind === "folder" && (
-              <SelectItem value="tall">高 · 4×8</SelectItem>
+              <>
+                <SelectItem value="tall">高 · 4×8</SelectItem>
+                <SelectItem value="wide">宽 · 8×4</SelectItem>
+                <SelectItem value="wide-tall">宽高 · 8×8</SelectItem>
+              </>
             )}
           </SelectContent>
         </Select>

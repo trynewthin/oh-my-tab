@@ -1,3 +1,4 @@
+import { usePrivacyStore } from "./privacy-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -24,12 +25,14 @@ export const useSearchEngineStore = create<SearchEngineState>()(
         ["google", "bing", "bingcn"].includes(engine.id)
       ),
       selectedId: "google",
-      selectEngine: (id) =>
+      selectEngine: (id) => {
+        usePrivacyStore.getState().setBrowserSearch(false)
         set((state) =>
           state.engines.some((engine) => engine.id === id)
             ? { selectedId: id }
             : state
-        ),
+        )
+      },
       addPreset: (id) =>
         set((state) => {
           const preset = defaultSearchEngines.find((engine) => engine.id === id)

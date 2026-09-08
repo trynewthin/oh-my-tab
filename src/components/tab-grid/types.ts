@@ -17,7 +17,7 @@ export type FolderItem = {
   id: string
   kind: "folder"
   name: string
-  size: "small" | "large" | "tall"
+  size: "small" | "large" | "tall" | "wide" | "wide-tall"
   color: string
   tabs: TabEntry[]
   dynamicEffect?: boolean
@@ -25,9 +25,10 @@ export type FolderItem = {
 
 export type DotCanvasItem = {
   id: string
+  pixelColumns?: number
   kind: "dot-canvas"
   name: string
-  size: "large"
+  size: "large" | "tall" | "wide" | "wide-tall"
   color: string
   pixels: string[]
   dynamicEffect?: boolean

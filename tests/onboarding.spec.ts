@@ -6,25 +6,34 @@ test("first visit tour completes and can be replayed from settings", async ({
   await page.goto("/")
   const tour = page.getByRole("dialog")
   await expect(
-    tour.getByRole("heading", { name: "搜索与打开结果" })
+    tour.getByRole("heading", { name: "欢迎使用 Oh My Tab" })
   ).toBeVisible()
-  await expect(tour.getByRole("button", { name: "上一步" })).toBeDisabled()
-  await tour.getByRole("button", { name: "下一步" }).click()
   await expect(
-    tour.getByRole("heading", { name: "四宫格：更多操作" })
+    tour.getByRole("checkbox", { name: /启用搜索联想/ })
+  ).not.toBeChecked()
+  await expect(
+    tour.getByRole("checkbox", { name: /下载网站图标/ })
+  ).not.toBeChecked()
+  await page.screenshot({ path: "artifacts/onboarding-privacy.png" })
+  await expect(
+    tour.getByRole("button", { name: "不同意", exact: true })
+  ).toBeVisible()
+  await tour.getByRole("button", { name: "我同意", exact: true }).click()
+  await expect(
+    tour.getByRole("heading", { name: "搜索与打开结果" })
   ).toBeVisible()
   await tour.getByRole("button", { name: "上一步" }).click()
   await expect(
-    tour.getByRole("heading", { name: "搜索与打开结果" })
+    tour.getByRole("heading", { name: "欢迎使用 Oh My Tab" })
   ).toBeVisible()
   const titles: string[] = []
   for (let i = 0; i < 20; i++) {
-    titles.push(await tour.getByRole("heading").innerText())
-    const next = tour.getByRole("button", { name: "下一步" })
+    titles.push(await tour.getByRole("heading", { level: 2 }).innerText())
+    const next = tour.getByRole("button", { name: /^(下一步|我同意)$/ })
     if (!(await next.count())) break
     await next.click()
   }
-  expect(titles).toContain("组件：预览、配置与添加")
+  expect(titles).toContain("组件：预览与添加")
   expect(titles).toContain("批量操作：成组与删除")
   expect(titles).toContain("个性化：主题色与燃烧")
   expect(titles.at(-1)).toBe("随时重看教程")
@@ -36,7 +45,7 @@ test("first visit tour completes and can be replayed from settings", async ({
   await page.getByRole("button", { name: "常规设置", exact: true }).click()
   await page.getByRole("button", { name: "重新开始教程" }).click()
   await expect(
-    tour.getByRole("heading", { name: "搜索与打开结果" })
+    tour.getByRole("heading", { name: "欢迎使用 Oh My Tab" })
   ).toBeVisible()
   await expect(
     page.getByRole("dialog", { name: "设置", exact: true })
@@ -52,7 +61,7 @@ test("skip persists on a narrow screen without changing user content", async ({
 }) => {
   await page.setViewportSize({ width: 375, height: 667 })
   await page.goto("/")
-  const next = page.getByRole("button", { name: "下一步" })
+  const next = page.getByRole("button", { name: "我同意", exact: true })
   await expect(next).toBeInViewport()
   await page.getByRole("button", { name: "跳过教程" }).click()
   await page.reload()
@@ -60,4 +69,30 @@ test("skip persists on a narrow screen without changing user content", async ({
   await expect(
     page.getByRole("button", { name: "更多操作", exact: true })
   ).toBeVisible()
+})
+
+test("onboarding applies choices only after agreement and rejection disables services", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.assign(window, { grants: [] })
+    Object.assign(window, { chrome: { permissions: {
+      request: async (value: unknown) => { (window as unknown as { grants: unknown[] }).grants.push(value); return true },
+      remove: async () => true,
+      contains: async () => true,
+    } } })
+  })
+  await page.goto("/")
+  const tour = page.getByRole("dialog")
+  await tour.getByRole("checkbox", { name: /启用搜索联想/ }).check()
+  await tour.getByRole("checkbox", { name: /下载网站图标/ }).check()
+  expect(await page.evaluate(() => (window as unknown as { grants: unknown[] }).grants)).toEqual([])
+  await tour.getByRole("button", { name: "我同意", exact: true }).click()
+  await expect(tour.getByRole("heading", { name: "搜索与打开结果" })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("omt.privacy")!).state.icons)).toBe(true)
+  expect(await page.evaluate(() => (window as unknown as { grants: unknown[] }).grants)).toHaveLength(1)
+  await tour.getByRole("button", { name: "上一步" }).click()
+  await tour.getByRole("button", { name: "不同意", exact: true }).click()
+  await expect(tour.getByRole("heading", { name: "搜索与打开结果" })).toBeVisible()
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("omt.privacy")!).state)
+  expect(saved.suggestions).toBe(false)
+  expect(saved.icons).toBe(false)
 })

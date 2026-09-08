@@ -24,46 +24,31 @@ export function createParticleCell(
   const period = 3.8 + random(seed, x + 47, y + 73) * 4.4
   const breathPhase = random(seed, x + 131, y + 211) * Math.PI * 2
   const breathDepth = 0.65 + random(seed, x + 307, y + 419) * 0.35
-  const phase = scatter * 40 + x * 0.4 + y * 0.7
   return (
     time: number | undefined,
     visibility: number,
     amplitude: number,
-    pointer: Point | null
+    _pointer: Point | null
   ) => {
+    void _pointer
     if (visibility <= 0) return hidden
     const moving = time !== undefined && amplitude > 0
     const breath = moving
       ? (1 - Math.cos((time * Math.PI * 2) / period + breathPhase)) / 2
       : 0.5
-    let dx = moving ? Math.sin(time * 0.45 + phase) * 3 * amplitude : 0
-    let dy = moving ? Math.cos(time * 0.35 + phase) * 4 * amplitude : 0
-    let proximity = 0
-    if (moving && pointer) {
-      const px = x * 9 + 4 - pointer.x
-      const py = y * 9 + 4 - pointer.y
-      const distance = Math.hypot(px, py)
-      proximity = Math.max(0, 1 - distance / 85)
-      const push = proximity * proximity * 18 * amplitude
-      dx += (px / Math.max(1, distance)) * push
-      dy += (py / Math.max(1, distance)) * push
-    }
     const reveal = Math.min(
       1,
       Math.max(0, (visibility - scatter) / (1 - scatter))
     )
-    const size =
-      (0.36 + (scatter / 0.78) * 0.22 + proximity * 0.18) *
-      (1 + (breath - 0.5) * 0.4 * breathDepth) *
-      reveal
+    const size = (0.36 + (scatter / 0.78) * 0.22) * reveal
     const strength =
-      (24 + (40 * x) / Math.max(1, columns) + proximity * 25) *
-      (0.9 + (breath - 0.5) * 0.7 * breathDepth) *
+      (24 + (40 * x) / Math.max(1, columns)) *
+      (0.9 + (breath - 0.5) * 0.7 * breathDepth * amplitude) *
       reveal *
       (0.65 + edgeDensity * 0.35)
     return {
       backgroundColor: `color-mix(in srgb, ${color} ${strength}%, transparent)`,
-      transform: `translate(${dx}px, ${dy}px) scale(${size})`,
+      transform: `translate(0px, 0px) scale(${size})`,
     }
   }
 }

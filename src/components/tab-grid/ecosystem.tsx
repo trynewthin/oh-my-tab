@@ -1,23 +1,57 @@
+import { mountPixiGarden } from "./pixi-garden"
 import GardenPlantArt from "./garden-plant-art"
-import { useEffect, useState, type CSSProperties } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { EcosystemItem } from "./types"
 import "./ecosystem.css"
 
 export default function Ecosystem({
   item,
   preview = false,
+  animated = true,
   onEdit,
 }: {
   item: EcosystemItem
   preview?: boolean
+  animated?: boolean
   onEdit?: () => void
 }) {
   const [now, setNow] = useState(() => Date.now())
-  const [wind, setWind] = useState(0)
+  const container = useRef<HTMLDivElement>(null)
+  const visible = useRef(true)
+  const plantsKey = JSON.stringify(item.plants)
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 60000)
+    const svg = container.current?.querySelector("svg")
+    if (svg) return mountPixiGarden(svg, animated)
+  }, [plantsKey, now, animated])
+  useEffect(() => {
+    if (!animated) return
+    const element = container.current
+    if (!element) return
+    let intersects = true
+    const update = () => {
+      visible.current = intersects && !document.hidden
+      element.dataset.gardenPaused = String(!visible.current)
+      if (visible.current) setNow(Date.now())
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      intersects = entry.isIntersecting
+      update()
+    })
+    observer.observe(element)
+    document.addEventListener("visibilitychange", update)
+    update()
+    return () => {
+      observer.disconnect()
+      document.removeEventListener("visibilitychange", update)
+    }
+  }, [animated])
+  useEffect(() => {
+    if (!animated) return
+    const timer = window.setInterval(() => {
+      if (visible.current) setNow(Date.now())
+    }, 60000)
     return () => clearInterval(timer)
-  }, [])
+  }, [animated])
   const art = (
     <svg
       viewBox="0 0 64 64"
@@ -35,14 +69,7 @@ export default function Ecosystem({
         <path d="M18 40H46V42H18Z" fill="#ce8059" />
         <path d="M20 35H44V38H20Z" fill="#593c32" />
         <path d="M23 35H29V36H23ZM34 36H38V37H34Z" fill="#856046" />
-        <g
-          style={
-            {
-              transformOrigin: "32px 36px",
-              transform: `rotate(${wind * 3}deg)`,
-            } as CSSProperties
-          }
-        >
+        <g>
           {item.plants.slice(0, 1).map((plant) => (
             <GardenPlantArt
               key={plant.seed ?? plant.plantedAt}
@@ -55,16 +82,9 @@ export default function Ecosystem({
     </svg>
   )
   return (
-    <div
-      className="relative h-full w-full p-3"
-      onPointerMove={(event) => {
-        const bounds = event.currentTarget.getBoundingClientRect()
-        setWind(((event.clientX - bounds.left) / bounds.width) * 2 - 1)
-      }}
-      onPointerLeave={() => setWind(0)}
-    >
+    <div ref={container} data-garden-static={!animated || undefined} className="relative h-full w-full p-3">
       {preview ? (
-        art
+        <div className="relative h-full w-full">{art}</div>
       ) : (
         <button
           type="button"

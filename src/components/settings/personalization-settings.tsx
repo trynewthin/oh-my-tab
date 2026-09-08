@@ -27,7 +27,10 @@ export default function PersonalizationSettings() {
       aria-labelledby="personalization-title"
       className="relative isolate min-h-full"
     >
-      <h2 id="personalization-title" className="text-base font-medium">
+      <h2
+        id="personalization-title"
+        className="text-base leading-6 font-medium"
+      >
         个性化
       </h2>
       <div className="mt-6 grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
@@ -50,18 +53,18 @@ export default function PersonalizationSettings() {
             className="w-full border-border bg-popover dark:bg-popover"
           >
             <SelectValue>
-              {effectStyle === "burning" ? "方格燃烧" : "浮游粒子"}
+              {effectStyle === "burning" ? "方格燃烧" : "呼吸粒子"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="burning">方格燃烧</SelectItem>
-            <SelectItem value="particles">浮游粒子</SelectItem>
+            <SelectItem value="particles">呼吸粒子</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="mt-5 grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <label htmlFor="burning-amplitude" className="text-sm">
-          {effectStyle === "burning" ? "燃烧幅度" : "粒子幅度"}
+          {effectStyle === "burning" ? "燃烧幅度" : "呼吸幅度"}
         </label>
         <div className="flex h-8 min-w-0 items-center gap-2 rounded-2xl border border-border bg-popover px-3">
           <input

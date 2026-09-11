@@ -5,6 +5,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+[data-home-palette] {
+  --home-background: var(--home-background-light);
+}
+
+.dark [data-home-palette] {
+  --home-background: var(--home-background-dark);
+}
+
+[data-background-swatch] {
+  background-color: var(--background-swatch-light);
+}
+
+.dark [data-background-swatch] {
+  background-color: var(--background-swatch-dark);
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: "Inter Variable", sans-serif;

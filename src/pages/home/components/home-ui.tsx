@@ -3,7 +3,10 @@ import {
   canSelectBrowserSearch,
   usePrivacyStore,
 } from "@/stores/privacy-store"
-import { useAppearanceStore } from "@/stores/appearance-store"
+import {
+  backgroundPaletteStyle,
+  getBackgroundPalette,
+} from "@/lib/background-palettes"
 import { toast } from "@/stores/toast-store"
 import Toaster from "@/components/ui/toaster"
 import OnboardingTour from "@/components/onboarding/onboarding-tour"
@@ -21,9 +24,8 @@ import TabGrid from "@/components/tab-grid/tab-grid"
 
 export default function HomeUI() {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
-  const backgroundColor = useAppearanceStore((state) => state.backgroundColor)
-  const resolvedBackground =
-    backgroundColor === "#ffffff" ? "var(--background)" : backgroundColor
+  const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
+  const palette = getBackgroundPalette(paletteId)
   function search(query: string) {
     if (usePrivacyStore.getState().browserSearch && canSelectBrowserSearch()) {
       const api = extensionApi()
@@ -42,7 +44,11 @@ export default function HomeUI() {
   }
 
   return (
-    <div className="relative z-10 h-dvh overflow-hidden">
+    <div
+      data-home-palette={palette.id}
+      className="relative z-10 h-dvh overflow-hidden"
+      style={backgroundPaletteStyle(paletteId)}
+    >
       <div
         data-grid-scroll
         tabIndex={0}
@@ -56,7 +62,8 @@ export default function HomeUI() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 top-0 -bottom-8 -z-10"
             style={{
-              background: `linear-gradient(to bottom, ${resolvedBackground}, ${resolvedBackground} calc(100% - 96px), transparent)`,
+              background:
+                "linear-gradient(to bottom, var(--home-background), var(--home-background) calc(100% - 96px), transparent)",
             }}
           />
           {topComponent === "dot-matrix" && (

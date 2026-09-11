@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useId } from "react"
 import { Check } from "@phosphor-icons/react"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 const presets = [
   { color: "#3478f6", name: "蓝色" },
@@ -22,10 +23,12 @@ export default function ColorPicker({
   value,
   onChange,
   label,
+  className,
 }: {
   value: string
   onChange: (value: string) => void
   label: string
+  className?: string
 }) {
   const id = useId()
   return (
@@ -34,24 +37,27 @@ export default function ColorPicker({
         render={
           <Button
             variant="outline"
-            className="w-full min-w-0 justify-between bg-popover dark:bg-popover dark:hover:bg-muted"
+            className={cn(
+              "w-full min-w-0 justify-between bg-popover pr-3 pl-2 dark:bg-popover dark:hover:bg-muted",
+              className
+            )}
           />
         }
         aria-label={`选择${label}`}
       >
         <span
-          className="size-4 shrink-0 rounded-md"
+          className="h-4 w-7 shrink-0 rounded-full"
           style={{ backgroundColor: value }}
         />
         <span className="truncate font-mono text-xs">
           {value.toUpperCase()}
         </span>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 space-y-4 p-4">
+      <PopoverContent align="end" className="w-64 gap-4 p-4">
         <div
           role="group"
           aria-label={`${label}预设`}
-          className="grid grid-cols-4 gap-3"
+          className="grid grid-cols-4 place-items-center gap-3"
         >
           {presets.map((preset) => (
             <button
@@ -59,7 +65,7 @@ export default function ColorPicker({
               type="button"
               aria-label={preset.name}
               aria-pressed={value.toLowerCase() === preset.color}
-              className="flex size-9 items-center justify-center rounded-xl border border-black/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex size-8 items-center justify-center rounded-full border border-black/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               style={{ backgroundColor: preset.color }}
               onClick={() => onChange(preset.color)}
             >
@@ -69,7 +75,7 @@ export default function ColorPicker({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-4 items-center gap-3">
           <label htmlFor={id} className="sr-only">
             {label}
           </label>
@@ -78,7 +84,7 @@ export default function ColorPicker({
             type="color"
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            className="h-9 w-12 shrink-0 cursor-pointer rounded-lg border bg-transparent p-1"
+            className="size-8 shrink-0 cursor-pointer justify-self-center overflow-hidden rounded-full border border-black/10 bg-transparent p-0 [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
           />
           <Input
             key={value}
@@ -86,7 +92,7 @@ export default function ColorPicker({
             defaultValue={value}
             maxLength={7}
             spellCheck={false}
-            className="ml-auto max-w-32 font-mono text-sm"
+            className="col-span-3 font-mono text-sm"
             onBlur={(event) => {
               const next = event.currentTarget.value.trim()
               if (/^#[0-9a-f]{6}$/i.test(next)) onChange(next.toLowerCase())

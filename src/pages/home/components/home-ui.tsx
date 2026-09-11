@@ -57,7 +57,7 @@ export default function HomeUI() {
         aria-label="滚动标签网格"
         className="h-full [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
       >
-        <div className="sticky top-0 isolate z-40 px-6 pt-6 pb-6 sm:px-10 xl:px-12">
+        <div className="sticky top-0 isolate z-40 px-6 pt-6 pb-3 sm:px-10 xl:px-12">
           {backgroundType === "solid" && (
             <div
               aria-hidden="true"

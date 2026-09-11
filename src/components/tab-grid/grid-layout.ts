@@ -65,6 +65,105 @@ export function placeItems(
   positions: GridPositions,
   target?: { id: string; position: GridPosition }
 ): Record<string, GridPlacement> {
+  if (target) {
+    const targetItem = items.find((item) => item.id === target.id)
+    if (targetItem) {
+      const width = itemWidth(targetItem, columns)
+      const candidate = {
+        x: Math.max(
+          0,
+          Math.min(columns - width, Math.round(target.position.x))
+        ),
+        y: Math.max(0, Math.round(target.position.y)),
+        width,
+        height: itemHeight(targetItem),
+      }
+      const positioned = items
+        .filter((item) => positions[item.id])
+        .sort((a, b) => {
+          const left = positions[a.id]
+          const right = positions[b.id]
+          return left.y - right.y || left.x - right.x
+        })
+      const current = Object.fromEntries(
+        positioned.map((item) => [
+          item.id,
+          {
+            ...positions[item.id],
+            width: itemWidth(item, columns),
+            height: itemHeight(item),
+          },
+        ])
+      ) as Record<string, GridPlacement>
+      const collisions = positioned.filter(
+        (item) => item.id !== target.id && overlaps(candidate, current[item.id])
+      )
+
+      if (!collisions.length) {
+        current[target.id] = candidate
+        for (const item of items) {
+          if (current[item.id]) continue
+          current[item.id] = findVacancy(
+            Object.values(current),
+            columns,
+            itemHeight(item),
+            itemWidth(item, columns)
+          )
+        }
+        return current
+      }
+
+      const originIndex = positioned.findIndex((item) => item.id === target.id)
+      if (originIndex >= 0) {
+        const destination = collisions.reduce((best, item) => {
+          const placement = current[item.id]
+          const bestPlacement = current[best.id]
+          const area =
+            Math.min(
+              candidate.x + candidate.width,
+              placement.x + placement.width!
+            ) - Math.max(candidate.x, placement.x)
+          const height =
+            Math.min(
+              candidate.y + candidate.height,
+              placement.y + placement.height
+            ) - Math.max(candidate.y, placement.y)
+          const bestArea =
+            Math.min(
+              candidate.x + candidate.width,
+              bestPlacement.x + bestPlacement.width!
+            ) - Math.max(candidate.x, bestPlacement.x)
+          const bestHeight =
+            Math.min(
+              candidate.y + candidate.height,
+              bestPlacement.y + bestPlacement.height
+            ) - Math.max(candidate.y, bestPlacement.y)
+          return area * height > bestArea * bestHeight ? item : best
+        })
+        const destinationIndex = positioned.findIndex(
+          (item) => item.id === destination.id
+        )
+        const reordered = positioned.filter((item) => item.id !== target.id)
+        reordered.splice(destinationIndex, 0, targetItem)
+        const first = Math.min(originIndex, destinationIndex)
+        const last = Math.max(originIndex, destinationIndex)
+        for (let index = first; index <= last; index++) {
+          const item = reordered[index]
+          current[item.id] = {
+            ...positions[positioned[index].id],
+            width: itemWidth(item, columns),
+            height: itemHeight(item),
+          }
+        }
+        const values = Object.values(current)
+        const valid = values.every((placement, index) =>
+          values.slice(index + 1).every((other) => !overlaps(placement, other))
+        )
+        if (valid) return current
+      }
+    }
+  }
+
   const result: Record<string, GridPlacement> = {}
   const ordered = [
     ...items.filter((item) => item.id === target?.id),

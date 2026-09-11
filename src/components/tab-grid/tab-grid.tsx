@@ -667,7 +667,7 @@ export default function TabGrid() {
                   style={{
                     width: columnStep * itemWidth(dragging.item, columns) - 16,
                     height: itemHeight(dragging.item) * rowStep - 16,
-                    transform: `translate3d(${intent.position.x * columnStep}px, ${intent.position.y * rowStep}px, 0)`,
+                    transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
                   }}
                 />
               )}

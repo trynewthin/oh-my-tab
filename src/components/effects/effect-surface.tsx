@@ -200,12 +200,12 @@ export default function EffectSurface({
       data-effect-style={effectStyle}
       className={`pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] [contain:layout_paint_style] ${glass ? "bg-card/55 backdrop-blur-xl" : "bg-card"}`}
     >
-      {effectStyle !== "none" && (
-        <div
-          ref={region}
-          className="absolute inset-y-0 right-0 overflow-hidden"
-          style={{ width: `${coverage}%` }}
-        >
+      <div
+        ref={region}
+        className="absolute inset-y-0 right-0 overflow-hidden"
+        style={{ width: `${coverage}%` }}
+      >
+        {effectStyle !== "none" && (
           <div
             className="absolute top-0 right-0 grid"
             style={{
@@ -255,8 +255,8 @@ export default function EffectSurface({
               }
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

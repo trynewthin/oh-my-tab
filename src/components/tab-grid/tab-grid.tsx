@@ -101,7 +101,9 @@ export default function TabGrid() {
   const [dialogSuspended, setDialogSuspended] = useState(false)
   const [heldLayout, setHeldLayout] = useState<GridPositions | null>(null)
   const columns = dragging?.columns ?? columnsForWidth(width)
-  const columnStep = (width + 16) / columns
+  const compactGrid = width > 0 && width < 640
+  const gridGap = compactGrid ? 12 : 16
+  const columnStep = (width + gridGap) / columns
   const rowStep = columnStep
   const positions =
     heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
@@ -584,15 +586,15 @@ export default function TabGrid() {
             className={`${selecting ? "pb-28" : "pb-4"} px-5`}
             style={{
               margin: "0 -20px",
-              paddingTop: 20,
+              paddingTop: compactGrid ? 12 : 20,
             }}
           >
             <div
               ref={gridRef}
-              className="relative grid min-h-11 gap-4"
+              className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
               style={{
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                gridAutoRows: Math.max(1, rowStep - 16),
+                gridAutoRows: Math.max(1, rowStep - gridGap),
               }}
             >
               {(width > 0 && layouts[columns] ? items : []).map((item) =>
@@ -665,8 +667,9 @@ export default function TabGrid() {
                   aria-hidden="true"
                   className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-300 ease-[cubic-bezier(0.45,0,0.55,1)] motion-reduce:transition-none"
                   style={{
-                    width: columnStep * itemWidth(dragging.item, columns) - 16,
-                    height: itemHeight(dragging.item) * rowStep - 16,
+                    width:
+                      columnStep * itemWidth(dragging.item, columns) - gridGap,
+                    height: itemHeight(dragging.item) * rowStep - gridGap,
                     transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
                   }}
                 />

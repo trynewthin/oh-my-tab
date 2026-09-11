@@ -59,7 +59,11 @@
 }
 
 .folder-glass[data-animated="true"] .folder-noise-gradient {
-  animation: folder-noise-drift 12s ease-in-out infinite alternate;
+  animation: folder-noise-drift 7s ease-in-out infinite alternate;
+}
+
+.folder-glass[data-animated="true"] .folder-noise-texture {
+  animation: folder-noise-shimmer 4s steps(3, end) infinite alternate;
 }
 
 .folder-glass--classic {
@@ -118,16 +122,18 @@
 }
 
 .folder-glass--classic[data-animated="true"]::before {
-  background-size: 150% 150%;
-  animation: folder-color-flow 8s ease-in-out infinite alternate;
+  background-size: 165% 165%;
+  animation: folder-color-flow 6s ease-in-out infinite alternate;
 }
 
 @keyframes folder-color-flow {
   from {
-    opacity: 0.65;
+    opacity: 0.68;
+    transform: translate3d(-4%, -3%, 0) scale(1.04);
   }
   to {
     opacity: 1;
+    transform: translate3d(4%, 3%, 0) scale(1.12);
   }
 }
 
@@ -149,15 +155,30 @@
 
 @keyframes folder-noise-drift {
   from {
-    transform: translate3d(-2%, -1%, 0) scale(1.06);
+    opacity: 0.62;
+    transform: translate3d(-6%, -4%, 0) scale(1.08);
   }
   to {
-    transform: translate3d(2%, 1%, 0) scale(1.12);
+    opacity: 0.88;
+    transform: translate3d(6%, 4%, 0) scale(1.2);
+  }
+}
+
+@keyframes folder-noise-shimmer {
+  from {
+    transform: translate3d(-1%, 0, 0) scale(1.02);
+  }
+  to {
+    transform: translate3d(1%, -1%, 0) scale(1.06);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .folder-glass[data-animated="true"] .folder-noise-gradient {
+    animation: none;
+  }
+
+  .folder-glass[data-animated="true"] .folder-noise-texture {
     animation: none;
   }
 

@@ -11,10 +11,14 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function HomeSettings() {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const pet = useHomeSettingsStore((state) => state.pet)
   const setTopComponent = useHomeSettingsStore((state) => state.setTopComponent)
+  const setSearchBoxStyle = useHomeSettingsStore(
+    (state) => state.setSearchBoxStyle
+  )
   const setContent = useHomeSettingsStore((state) => state.setContent)
   const setText = useHomeSettingsStore((state) => state.setText)
   const setPet = useHomeSettingsStore((state) => state.setPet)
@@ -25,6 +29,28 @@ export default function HomeSettings() {
         主页设置
       </h2>
       <div className="space-y-5">
+        <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
+          <label htmlFor="search-box-style" className="text-sm">
+            搜索框样式
+          </label>
+          <Select
+            value={searchBoxStyle}
+            onValueChange={(value) => {
+              if (value === "full" || value === "minimal")
+                setSearchBoxStyle(value)
+            }}
+          >
+            <SelectTrigger id="search-box-style" className="w-full min-w-0">
+              <SelectValue>
+                {searchBoxStyle === "minimal" ? "简约" : "完整"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full">完整</SelectItem>
+              <SelectItem value="minimal">简约</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
           <label htmlFor="home-top-component" className="text-sm">
             顶部显示的组件

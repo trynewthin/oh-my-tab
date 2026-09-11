@@ -36,6 +36,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
   const items = useTabGridStore((state) => state.items)
   const themeColor = useHomeSettingsStore((state) => state.color)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
   const root = useRef<HTMLDivElement>(null)
   const listId = useId()
   const [focused, setFocused] = useState(false)
@@ -103,7 +104,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
       )
         return
       event.preventDefault()
-      root.current?.querySelector("textarea")?.focus()
+      root.current?.querySelector<HTMLElement>("textarea, input")?.focus()
     }
     window.addEventListener("keydown", shortcut)
     return () => window.removeEventListener("keydown", shortcut)
@@ -154,94 +155,184 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
       ref={root}
       className="relative isolate z-20 mx-auto mt-6 w-full max-w-3xl shrink-0"
     >
-      <PromptInput
-        className={
-          backgroundType === "solid"
-            ? "relative isolate overflow-hidden dark:bg-card"
-            : "relative isolate overflow-hidden bg-background/55 backdrop-blur-xl dark:bg-card/55"
-        }
-        value={draft}
-        onValueChange={(value) => {
-          setDraft(value)
-          setActive(-1)
-          setDismissed(false)
-          setSubmitted(false)
-        }}
-        onSubmit={() => (selected >= 0 ? choose(selected) : search())}
-        data-tour="search"
-      >
-        <PromptInputTextarea
-          aria-label="对话输入"
-          placeholder="搜索点什么…"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-haspopup="listbox"
-          aria-expanded={expanded}
-          aria-controls={expanded ? listId : undefined}
-          aria-activedescendant={
-            selected >= 0 ? `${listId}-${selected}` : undefined
-          }
-          onCompositionStart={() => setComposing(true)}
-          onCompositionEnd={() => {
-            setComposing(false)
-            setActive(-1)
-          }}
-          onFocus={() => {
-            setFocused(true)
-            setDismissed(false)
-          }}
-          onBlur={() => {
-            setFocused(false)
-            setActive(-1)
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              event.preventDefault()
-              setDismissed(true)
-              setActive(-1)
-            } else if (
-              optionCount > 0 &&
-              (event.key === "ArrowDown" || event.key === "ArrowUp")
-            ) {
-              event.preventDefault()
-              setDismissed(false)
-              const count = optionCount
-              setActive(
-                event.key === "ArrowDown"
-                  ? (selected + 1) % count
-                  : selected < 0
-                    ? count - 1
-                    : (selected + count - 1) % count
-              )
-            }
-          }}
-        />
-        <PromptInputActions className="justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2">
-          <MoreActions />
-          <div className="mr-auto">
-            <SettingsButton />
+      {searchBoxStyle === "minimal" ? (
+        <div className="flex h-10 w-full items-center gap-2" data-tour="search">
+          <div className="flex shrink-0 items-center gap-2">
+            <MoreActions compact />
+            <SettingsButton compact />
+            <SearchEngineSelect compact />
           </div>
-          <SearchEngineSelect />
-          <Button
-            type="button"
-            size="icon"
-            aria-label="搜索"
-            title="在新标签页搜索"
-            disabled={!query || !onSubmit}
-            className="transition-[filter,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:brightness-110 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
-            style={{
-              backgroundColor: themeColor,
-              color: readableForeground(themeColor),
-            }}
-            onClick={(event) => {
-              event.stopPropagation()
-              search()
-            }}
+          <div
+            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-input shadow-xs ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           >
-            {submitted ? <Check /> : <ArrowUp />}
-          </Button>
-        </PromptInputActions>
-      </PromptInput>
+            <input
+              value={draft}
+              type="text"
+              inputMode="search"
+              autoComplete="off"
+              aria-label="搜索"
+              placeholder="搜索点什么…"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-haspopup="listbox"
+              aria-expanded={expanded}
+              aria-controls={expanded ? listId : undefined}
+              aria-activedescendant={
+                selected >= 0 ? `${listId}-${selected}` : undefined
+              }
+              className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground"
+              onChange={(event) => {
+                setDraft(event.target.value)
+                setActive(-1)
+                setDismissed(false)
+                setSubmitted(false)
+              }}
+              onCompositionStart={() => setComposing(true)}
+              onCompositionEnd={() => {
+                setComposing(false)
+                setActive(-1)
+              }}
+              onFocus={() => {
+                setFocused(true)
+                setDismissed(false)
+              }}
+              onBlur={() => {
+                setFocused(false)
+                setActive(-1)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                  event.preventDefault()
+                  if (selected >= 0) choose(selected)
+                  else search()
+                } else if (event.key === "Escape") {
+                  event.preventDefault()
+                  setDismissed(true)
+                  setActive(-1)
+                } else if (
+                  optionCount > 0 &&
+                  (event.key === "ArrowDown" || event.key === "ArrowUp")
+                ) {
+                  event.preventDefault()
+                  setDismissed(false)
+                  const count = optionCount
+                  setActive(
+                    event.key === "ArrowDown"
+                      ? (selected + 1) % count
+                      : selected < 0
+                        ? count - 1
+                        : (selected + count - 1) % count
+                  )
+                }
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="搜索"
+              title="在新标签页搜索"
+              disabled={!query || !onSubmit}
+              className="mr-1 rounded-full text-muted-foreground transition-[color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:text-foreground enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
+              onClick={(event) => {
+                event.stopPropagation()
+                search()
+              }}
+            >
+              <MagnifyingGlass />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <PromptInput
+          className={
+            backgroundType === "solid"
+              ? "relative isolate overflow-hidden dark:bg-card"
+              : "relative isolate overflow-hidden bg-background/55 backdrop-blur-xl dark:bg-card/55"
+          }
+          value={draft}
+          onValueChange={(value) => {
+            setDraft(value)
+            setActive(-1)
+            setDismissed(false)
+            setSubmitted(false)
+          }}
+          onSubmit={() => (selected >= 0 ? choose(selected) : search())}
+          data-tour="search"
+        >
+          <PromptInputTextarea
+            aria-label="对话输入"
+            placeholder="搜索点什么…"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            aria-expanded={expanded}
+            aria-controls={expanded ? listId : undefined}
+            aria-activedescendant={
+              selected >= 0 ? `${listId}-${selected}` : undefined
+            }
+            onCompositionStart={() => setComposing(true)}
+            onCompositionEnd={() => {
+              setComposing(false)
+              setActive(-1)
+            }}
+            onFocus={() => {
+              setFocused(true)
+              setDismissed(false)
+            }}
+            onBlur={() => {
+              setFocused(false)
+              setActive(-1)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault()
+                setDismissed(true)
+                setActive(-1)
+              } else if (
+                optionCount > 0 &&
+                (event.key === "ArrowDown" || event.key === "ArrowUp")
+              ) {
+                event.preventDefault()
+                setDismissed(false)
+                const count = optionCount
+                setActive(
+                  event.key === "ArrowDown"
+                    ? (selected + 1) % count
+                    : selected < 0
+                      ? count - 1
+                      : (selected + count - 1) % count
+                )
+              }
+            }}
+          />
+          <PromptInputActions className="justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2">
+            <MoreActions />
+            <div className="mr-auto">
+              <SettingsButton />
+            </div>
+            <SearchEngineSelect />
+            <Button
+              type="button"
+              size="icon"
+              aria-label="搜索"
+              title="在新标签页搜索"
+              disabled={!query || !onSubmit}
+              className="transition-[filter,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:brightness-110 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
+              style={{
+                backgroundColor: themeColor,
+                color: readableForeground(themeColor),
+              }}
+              onClick={(event) => {
+                event.stopPropagation()
+                search()
+              }}
+            >
+              {submitted ? <Check /> : <ArrowUp />}
+            </Button>
+          </PromptInputActions>
+        </PromptInput>
+      )}
       <span role="status" className="sr-only">
         {submitted ? "已在新标签页打开" : ""}
       </span>

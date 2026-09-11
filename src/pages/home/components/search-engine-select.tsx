@@ -12,7 +12,11 @@ import EngineIcon from "@/components/search/engine-icon"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useSettingsStore } from "@/stores/settings-store"
 
-export default function SearchEngineSelect() {
+export default function SearchEngineSelect({
+  compact = false,
+}: {
+  compact?: boolean
+}) {
   const available = canSelectBrowserSearch()
   const browserSearch =
     usePrivacyStore((state) => state.browserSearch) && available
@@ -29,15 +33,29 @@ export default function SearchEngineSelect() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         data-tour="engine"
-        render={<Button variant="ghost" />}
+        render={
+          <Button
+            variant="ghost"
+            size={compact ? "icon" : "default"}
+            className={
+              compact
+                ? "size-10 rounded-full border-border/60 bg-card/70 shadow-xs backdrop-blur-xl"
+                : undefined
+            }
+          />
+        }
         aria-label={`搜索引擎：${selected.name}`}
         onClick={(event) => event.stopPropagation()}
       >
         <EngineIcon icon={selected.icon} />
-        <span className="hidden max-w-32 truncate sm:inline">
-          {selected.name}
-        </span>
-        <CaretDown className="size-3 text-muted-foreground" />
+        {!compact && (
+          <>
+            <span className="hidden max-w-32 truncate sm:inline">
+              {selected.name}
+            </span>
+            <CaretDown className="size-3 text-muted-foreground" />
+          </>
+        )}
       </PopoverTrigger>
       <PopoverContent
         aria-label="选择搜索引擎"

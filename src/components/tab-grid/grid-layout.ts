@@ -5,7 +5,7 @@ export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
 export function columnsForWidth(width: number): number {
   if (width >= 1260) return 20
   if (width >= 1000) return 16
-  return width >= 640 ? 12 : width >= 420 ? 8 : 4
+  return width >= 640 ? 12 : width > 0 ? 8 : 4
 }
 
 export type GridPosition = { x: number; y: number }

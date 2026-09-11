@@ -11,7 +11,7 @@ export default function FolderUI({
   preview?: boolean
 }) {
   return (
-    <div className="relative z-10 flex h-full w-full flex-col gap-2 overflow-hidden rounded-[inherit] p-3 text-left">
+    <div className="relative z-10 flex h-full w-full flex-col gap-1.5 overflow-hidden rounded-[inherit] p-2.5 text-left sm:gap-2 sm:p-3">
       <button
         type="button"
         onClick={onOpen}
@@ -21,9 +21,11 @@ export default function FolderUI({
       <button
         type="button"
         onClick={onOpen}
-        className="relative z-20 flex h-5 w-full min-w-0 shrink-0 items-center gap-2 pr-5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="relative z-20 flex h-5 w-full min-w-0 shrink-0 items-center gap-2 pr-2 pl-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring sm:pr-5 sm:pl-1"
       >
-        <span className="truncate text-sm font-medium">{item.name}</span>
+        <span className="truncate text-[13px] font-medium sm:text-sm">
+          {item.name}
+        </span>
       </button>
       {item.tabs.length > 0 && (
         <FolderTabStack

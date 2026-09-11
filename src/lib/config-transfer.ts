@@ -25,6 +25,7 @@ function snapshot() {
       backgroundType: home.backgroundType,
       backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
+      searchBoxStyle: home.searchBoxStyle,
       folderStyle: home.folderStyle,
       topComponent: home.topComponent,
       content: home.content,
@@ -71,6 +72,8 @@ export async function parseConfig(text: string): Promise<Config> {
         ))) ||
     (home.backgroundPalette !== undefined &&
       !isBackgroundPaletteId(home.backgroundPalette)) ||
+    (home.searchBoxStyle !== undefined &&
+      !["full", "minimal"].includes(home.searchBoxStyle)) ||
     (home.folderStyle !== undefined &&
       !["classic", "noise", "none"].includes(home.folderStyle)) ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
@@ -139,6 +142,7 @@ export async function parseConfig(text: string): Promise<Config> {
     home.backgroundType = "solid"
   home.backgroundImage ??= null
   home.backgroundPalette ??= "gray"
+  home.searchBoxStyle ??= "full"
   home.folderStyle ??= "noise"
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=

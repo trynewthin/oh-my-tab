@@ -15,11 +15,13 @@ export type MatrixContent = "time" | "text" | "pet" | "breathing"
 export type EffectStyle = "none" | "burning" | "particles"
 export type FolderStyle = "classic" | "noise" | "none"
 export type BackgroundType = "solid" | "image"
+export type SearchBoxStyle = "full" | "minimal"
 
 type HomeSettings = {
   backgroundType: BackgroundType
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
+  searchBoxStyle: SearchBoxStyle
   folderStyle: FolderStyle
   topComponent: TopComponent
   content: MatrixContent
@@ -34,6 +36,7 @@ type HomeSettingsStore = HomeSettings & {
   setBackgroundType: (value: BackgroundType) => void
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
+  setSearchBoxStyle: (value: SearchBoxStyle) => void
   setFolderStyle: (value: FolderStyle) => void
   setTopComponent: (value: TopComponent) => void
   setContent: (value: MatrixContent) => void
@@ -51,6 +54,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       backgroundType: "solid",
       backgroundImage: null,
       backgroundPalette: "gray",
+      searchBoxStyle: "full",
       folderStyle: "noise",
       topComponent: "dot-matrix",
       content: "time",
@@ -64,6 +68,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
+      setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
@@ -86,6 +91,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         backgroundType,
         backgroundImage,
         backgroundPalette,
+        searchBoxStyle,
         folderStyle,
         topComponent,
         content,
@@ -99,6 +105,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         backgroundType,
         backgroundImage,
         backgroundPalette,
+        searchBoxStyle,
         folderStyle,
         topComponent,
         content,
@@ -121,6 +128,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
           backgroundPalette: isBackgroundPaletteId(saved?.backgroundPalette)
             ? saved.backgroundPalette
             : "gray",
+          searchBoxStyle:
+            saved?.searchBoxStyle === "minimal" ? "minimal" : "full",
           folderStyle:
             saved?.folderStyle === "classic" || saved?.folderStyle === "none"
               ? saved.folderStyle

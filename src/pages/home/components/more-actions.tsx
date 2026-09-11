@@ -14,6 +14,7 @@ import {
   Desktop,
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   Popover,
   PopoverContent,
@@ -24,12 +25,16 @@ import GridItemDialog from "@/components/tab-grid/grid-item-dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
 
-const themes = {
-  light: { label: "浅色", icon: Sun },
-  dark: { label: "深色", icon: Moon },
-  system: { label: "跟随系统", icon: Desktop },
-}
-export default function MoreActions() {
+const themeOptions = [
+  { value: "light", label: "浅色", icon: Sun },
+  { value: "dark", label: "深色", icon: Moon },
+  { value: "system", label: "系统", ariaLabel: "跟随系统", icon: Desktop },
+] as const
+export default function MoreActions({
+  compact = false,
+}: {
+  compact?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [adding, setAdding] = useState<"tab" | "folder" | "component" | null>(
     null
@@ -37,8 +42,7 @@ export default function MoreActions() {
   const selecting = useGridSelectionStore((state) => state.active)
   const toggleSelection = useGridSelectionStore((state) => state.toggleMode)
   const theme = useThemeStore((state) => state.theme)
-  const cycleTheme = useThemeStore((state) => state.cycleTheme)
-  const current = themes[theme]
+  const setTheme = useThemeStore((state) => state.setTheme)
   return (
     <div onClick={(event) => event.stopPropagation()}>
       <Popover open={open} onOpenChange={setOpen}>
@@ -47,7 +51,15 @@ export default function MoreActions() {
           aria-label="更多操作"
           title="更多操作"
           render={
-            <Button variant={selecting ? "secondary" : "ghost"} size="icon" />
+            <Button
+              variant={selecting ? "secondary" : "ghost"}
+              size="icon"
+              className={
+                compact
+                  ? "size-10 rounded-full border-border/60 bg-card/70 shadow-xs backdrop-blur-xl"
+                  : undefined
+              }
+            />
           }
         >
           <SquaresFour className="size-5" />
@@ -57,6 +69,33 @@ export default function MoreActions() {
           aria-label="更多操作菜单"
           className="w-56 gap-1 p-2"
         >
+          <div className="mb-1 pb-1">
+            <ToggleGroup
+              aria-label="深浅色模式"
+              value={[theme]}
+              onValueChange={(values) => {
+                const value = values[0]
+                if (value === "light" || value === "dark" || value === "system")
+                  setTheme(value)
+              }}
+            >
+              {themeOptions.map((option) => (
+                <ToggleGroupItem
+                  key={option.value}
+                  value={option.value}
+                  aria-label={
+                    "ariaLabel" in option ? option.ariaLabel : option.label
+                  }
+                  title={
+                    "ariaLabel" in option ? option.ariaLabel : option.label
+                  }
+                >
+                  <option.icon />
+                  <span>{option.label}</span>
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
           {(
             [
               { kind: "tab", label: "添加标签", icon: BookmarkSimple },
@@ -131,18 +170,6 @@ export default function MoreActions() {
                 已开启
               </span>
             )}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            aria-label="深浅色模式"
-            onClick={cycleTheme}
-          >
-            <current.icon />
-            深浅色模式
-            <span className="ml-auto text-xs text-muted-foreground">
-              {current.label}
-            </span>
           </Button>
         </PopoverContent>
       </Popover>

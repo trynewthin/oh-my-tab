@@ -27,12 +27,16 @@ export default function TabBackground({
         glass={backgroundType !== "solid"}
       />
       {showIcon && (
-        <div className="pointer-events-none absolute inset-y-0 right-5 z-10 flex items-center opacity-90">
+        <div className="pointer-events-none absolute inset-y-0 right-3 z-10 flex items-center opacity-90 sm:right-5">
           <TabIcon
             key={item.url}
             url={item.url}
             className={
-              compact ? "size-5" : item.size === "small" ? "size-7" : "size-12"
+              compact
+                ? "size-5"
+                : item.size === "small"
+                  ? "size-6 sm:size-7"
+                  : "size-8 sm:size-12"
             }
           />
         </div>

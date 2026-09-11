@@ -41,8 +41,8 @@ export function mountPixiFolder(
         ctx.fillRect(-4, -4, 8, 8)
         ctx.restore()
       }
-      ellipse(0.65, 1.15, 1.1, 0.45, 0.08, 0.75)
-      ellipse(1.05, 0, 0.95, 0.65, 0.16, 0.72)
+      ellipse(0.65, 1.15, 1.1, 0.45, 0.14, 0.75)
+      ellipse(1.05, 0, 0.95, 0.65, 0.26, 0.72)
       const texture = Texture.from(source)
       const stage = new Container(),
         sprite = new Sprite(texture)
@@ -52,12 +52,17 @@ export function mountPixiFolder(
         height = element.clientHeight
       let unsubscribe: (() => void) | undefined
       const paint = (time?: number) => {
-        sprite.width = width
-        sprite.height = height
-        sprite.alpha =
-          time === undefined || !animated
-            ? 1
-            : 0.65 + (0.35 * (1 - Math.cos((time * Math.PI) / 8))) / 2
+        const moving = time !== undefined && animated
+        const scale = moving ? 1.16 : 1
+        sprite.width = width * scale
+        sprite.height = height * scale
+        sprite.x = moving
+          ? (width - sprite.width) / 2 + Math.sin(time * 0.72) * width * 0.06
+          : 0
+        sprite.y = moving
+          ? (height - sprite.height) / 2 + Math.cos(time * 0.58) * height * 0.06
+          : 0
+        sprite.alpha = moving ? 0.74 + Math.sin(time * 0.9) * 0.18 : 1
         presentPixi(renderer, stage, canvas, width, height)
       }
       const resize = new ResizeObserver(() => {

@@ -23,6 +23,7 @@ export default function EffectSurface({
   animated = false,
   visible = true,
   entrance = false,
+  glass = false,
 }: {
   color: string
   textureId: string
@@ -32,6 +33,7 @@ export default function EffectSurface({
   animated?: boolean
   visible?: boolean
   entrance?: boolean
+  glass?: boolean
 }) {
   const configuredEffectStyle = useHomeSettingsStore(
     (state) => state.effectStyle
@@ -196,7 +198,7 @@ export default function EffectSurface({
       data-burning-entrance={entering ? "running" : undefined}
       data-effect-phase={phase}
       data-effect-style={effectStyle}
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] bg-card [contain:layout_paint_style]"
+      className={`pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] [contain:layout_paint_style] ${glass ? "bg-card/55 backdrop-blur-xl" : "bg-card"}`}
     >
       {effectStyle !== "none" && (
         <div

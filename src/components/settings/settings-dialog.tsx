@@ -13,10 +13,16 @@ import {
 
 import { Button } from "@/components/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import SearchEngineSettings from "@/components/settings/search-engine-settings"
@@ -44,13 +50,19 @@ export default function SettingsDialog() {
   const setOpen = useSettingsStore((state) => state.setOpen)
   const section = useSettingsStore((state) => state.section)
   const setSection = useSettingsStore((state) => state.setSection)
+  const currentSection =
+    sections.find((item) => item.id === section) ?? sections[0]
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showCloseButton={false}
-        className="gap-0 overflow-hidden p-0 sm:max-w-3xl"
+        className="h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-none gap-0 overflow-hidden p-0 sm:h-auto sm:w-full sm:max-w-3xl"
       >
+        <DialogTitle className="sr-only">设置</DialogTitle>
+        <DialogDescription className="sr-only">
+          选择分类，管理对应设置。
+        </DialogDescription>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] opacity-40"
@@ -62,20 +74,60 @@ export default function SettingsDialog() {
             visible={section === "personalization"}
           />
         </div>
-        <div className="relative z-10 flex h-[min(560px,80svh)] min-h-0 min-w-0">
-          <aside className="flex w-28 shrink-0 flex-col overflow-y-auto p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
-            <DialogHeader className="px-2 pb-6 text-left">
-              <DialogTitle className="leading-6">设置</DialogTitle>
-              <DialogDescription className="sr-only">
-                选择左侧分类，管理对应设置。
-              </DialogDescription>
-            </DialogHeader>
+        <div className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row">
+          <div className="flex shrink-0 items-center justify-between px-4 pt-4 pb-2 sm:hidden">
+            <span className="text-base font-medium">设置</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="关闭设置"
+              onClick={() => setOpen(false)}
+            >
+              <X />
+            </Button>
+          </div>
+          <div className="shrink-0 px-4 pb-3 sm:hidden">
+            <Select
+              value={section}
+              onValueChange={(value) => {
+                const next = sections.find((item) => item.id === value)
+                if (next) setSection(next.id)
+              }}
+            >
+              <SelectTrigger
+                aria-label="设置分类"
+                className="w-full border-border bg-muted"
+              >
+                <SelectValue>
+                  <currentSection.icon />
+                  {currentSection.label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent
+                side="bottom"
+                align="start"
+                alignItemWithTrigger={false}
+              >
+                {sections.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    <item.icon />
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <aside className="hidden w-44 shrink-0 flex-col overflow-y-auto p-4 pt-6 sm:flex">
+            <div className="px-2 pb-6 text-left text-base leading-6 font-medium">
+              设置
+            </div>
             <nav aria-label="设置分类" className="space-y-1">
               {sections.map((item) => (
                 <Button
                   key={item.id}
                   variant={section === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start px-2 text-xs sm:text-sm"
+                  className="w-full justify-start px-2 text-sm"
                   aria-current={section === item.id ? "page" : undefined}
                   onClick={() => setSection(item.id)}
                 >
@@ -88,7 +140,7 @@ export default function SettingsDialog() {
               <Button
                 type="button"
                 variant="ghost"
-                className="w-full justify-start px-2 text-xs sm:text-sm"
+                className="w-full justify-start px-2 text-sm"
                 onClick={() => setOpen(false)}
               >
                 <X />
@@ -96,7 +148,10 @@ export default function SettingsDialog() {
               </Button>
             </div>
           </aside>
-          <div className="min-w-0 flex-1 overflow-y-auto px-3 py-6 sm:p-6">
+          <div
+            data-settings-content
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
+          >
             {section === "about" ? (
               <AboutSettings />
             ) : section === "general" ? (

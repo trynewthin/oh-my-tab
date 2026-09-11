@@ -13,9 +13,14 @@ import {
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
 export type EffectStyle = "none" | "burning" | "particles"
+export type FolderStyle = "classic" | "noise" | "none"
+export type BackgroundType = "solid" | "image"
 
 type HomeSettings = {
+  backgroundType: BackgroundType
+  backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
+  folderStyle: FolderStyle
   topComponent: TopComponent
   content: MatrixContent
   text: string
@@ -26,7 +31,10 @@ type HomeSettings = {
   transitionsEnabled: boolean
 }
 type HomeSettingsStore = HomeSettings & {
+  setBackgroundType: (value: BackgroundType) => void
+  setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
+  setFolderStyle: (value: FolderStyle) => void
   setTopComponent: (value: TopComponent) => void
   setContent: (value: MatrixContent) => void
   setText: (value: string) => void
@@ -40,7 +48,10 @@ type HomeSettingsStore = HomeSettings & {
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
+      backgroundType: "solid",
+      backgroundImage: null,
       backgroundPalette: "gray",
+      folderStyle: "noise",
       topComponent: "dot-matrix",
       content: "time",
       text: "HELLO WORLD",
@@ -50,8 +61,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setEffectStyle: (effectStyle) => set({ effectStyle }),
       burningAmplitude: 1,
       transitionsEnabled: false,
-      setBackgroundPalette: (backgroundPalette) =>
-        set({ backgroundPalette }),
+      setBackgroundType: (backgroundType) => set({ backgroundType }),
+      setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
+      setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
+      setFolderStyle: (folderStyle) => set({ folderStyle }),
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
           set({ burningAmplitude: Math.min(2, Math.max(0, value)) })
@@ -70,7 +83,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
     {
       name: "omt.home-settings",
       partialize: ({
+        backgroundType,
+        backgroundImage,
         backgroundPalette,
+        folderStyle,
         topComponent,
         content,
         text,
@@ -80,7 +96,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         transitionsEnabled,
         effectStyle,
       }) => ({
+        backgroundType,
+        backgroundImage,
         backgroundPalette,
+        folderStyle,
         topComponent,
         content,
         text,
@@ -94,9 +113,18 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         const saved = persisted as Partial<HomeSettings> | null
         return {
           ...current,
+          backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
+          backgroundImage:
+            typeof saved?.backgroundImage === "string"
+              ? saved.backgroundImage
+              : null,
           backgroundPalette: isBackgroundPaletteId(saved?.backgroundPalette)
             ? saved.backgroundPalette
             : "gray",
+          folderStyle:
+            saved?.folderStyle === "classic" || saved?.folderStyle === "none"
+              ? saved.folderStyle
+              : "noise",
           effectStyle:
             saved?.effectStyle === "none" || saved?.effectStyle === "particles"
               ? saved.effectStyle

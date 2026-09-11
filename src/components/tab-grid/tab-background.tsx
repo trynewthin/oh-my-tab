@@ -2,6 +2,7 @@ import EffectSurface from "@/components/effects/effect-surface"
 import TabIcon from "./tab-icon"
 import type { TabItem } from "./types"
 import type { ComponentProps } from "react"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function TabBackground({
   item,
@@ -15,9 +16,16 @@ export default function TabBackground({
   compact?: boolean
   textureId?: string
 }) {
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+
   return (
     <>
-      <EffectSurface color={item.color} textureId={textureId} {...effects} />
+      <EffectSurface
+        color={item.color}
+        textureId={textureId}
+        {...effects}
+        glass={backgroundType !== "solid"}
+      />
       {showIcon && (
         <div className="pointer-events-none absolute inset-y-0 right-5 z-10 flex items-center opacity-90">
           <TabIcon

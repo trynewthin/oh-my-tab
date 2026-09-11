@@ -29,8 +29,8 @@ import GeneralSettings from "./general-settings"
 const sections = [
   { id: "general", label: "常规设置", icon: Gear },
   { id: "home", label: "主页设置", icon: House },
-  { id: "personalization", label: "个性化", icon: Palette },
   { id: "search-engines", label: "搜索引擎", icon: MagnifyingGlass },
+  { id: "personalization", label: "个性化", icon: Palette },
   { id: "about", label: "关于", icon: Info },
 ] satisfies {
   id: SettingsSection

@@ -5,27 +5,34 @@ import {
 export type { MatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import {
+  isBackgroundPaletteId,
+  type BackgroundPaletteId,
+} from "@/lib/background-palettes"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
+export type EffectStyle = "none" | "burning" | "particles"
 
 type HomeSettings = {
+  backgroundPalette: BackgroundPaletteId
   topComponent: TopComponent
   content: MatrixContent
   text: string
   pet: MatrixPet
   color: string
-  effectStyle: "burning" | "particles"
+  effectStyle: EffectStyle
   burningAmplitude: number
   transitionsEnabled: boolean
 }
 type HomeSettingsStore = HomeSettings & {
+  setBackgroundPalette: (value: BackgroundPaletteId) => void
   setTopComponent: (value: TopComponent) => void
   setContent: (value: MatrixContent) => void
   setText: (value: string) => void
   setPet: (value: MatrixPet) => void
   setColor: (value: string) => void
-  setEffectStyle: (value: "burning" | "particles") => void
+  setEffectStyle: (value: EffectStyle) => void
   setBurningAmplitude: (value: number) => void
   setTransitionsEnabled: (value: boolean) => void
 }
@@ -33,6 +40,7 @@ type HomeSettingsStore = HomeSettings & {
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
+      backgroundPalette: "gray",
       topComponent: "dot-matrix",
       content: "time",
       text: "HELLO WORLD",
@@ -42,6 +50,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setEffectStyle: (effectStyle) => set({ effectStyle }),
       burningAmplitude: 1,
       transitionsEnabled: false,
+      setBackgroundPalette: (backgroundPalette) =>
+        set({ backgroundPalette }),
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
           set({ burningAmplitude: Math.min(2, Math.max(0, value)) })
@@ -60,6 +70,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
     {
       name: "omt.home-settings",
       partialize: ({
+        backgroundPalette,
         topComponent,
         content,
         text,
@@ -69,6 +80,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         transitionsEnabled,
         effectStyle,
       }) => ({
+        backgroundPalette,
         topComponent,
         content,
         text,
@@ -82,8 +94,13 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         const saved = persisted as Partial<HomeSettings> | null
         return {
           ...current,
+          backgroundPalette: isBackgroundPaletteId(saved?.backgroundPalette)
+            ? saved.backgroundPalette
+            : "gray",
           effectStyle:
-            saved?.effectStyle === "particles" ? "particles" : "burning",
+            saved?.effectStyle === "none" || saved?.effectStyle === "particles"
+              ? saved.effectStyle
+              : "burning",
           burningAmplitude:
             typeof saved?.burningAmplitude === "number" &&
             Number.isFinite(saved.burningAmplitude)

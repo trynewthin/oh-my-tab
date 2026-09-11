@@ -9,6 +9,7 @@ import {
   createBurningTexture,
 } from "./burning-texture"
 import { subscribeBurningFrame } from "./burning-clock"
+import type { EffectStyle } from "@/stores/home-settings-store"
 
 const CELL_SIZE = 8
 const GAP = 1
@@ -16,6 +17,7 @@ const GAP = 1
 export default function EffectSurface({
   color,
   textureId,
+  effectStyle: effectStyleOverride,
   offsetY = 0,
   coverage = 65,
   animated = false,
@@ -24,13 +26,17 @@ export default function EffectSurface({
 }: {
   color: string
   textureId: string
+  effectStyle?: EffectStyle
   offsetY?: number
   coverage?: number
   animated?: boolean
   visible?: boolean
   entrance?: boolean
 }) {
-  const effectStyle = useHomeSettingsStore((state) => state.effectStyle)
+  const configuredEffectStyle = useHomeSettingsStore(
+    (state) => state.effectStyle
+  )
+  const effectStyle = effectStyleOverride ?? configuredEffectStyle
   const amplitude = useHomeSettingsStore((state) => state.burningAmplitude)
   const {
     progress: reveal,
@@ -67,6 +73,7 @@ export default function EffectSurface({
 
   useEffect(() => {
     if (
+      effectStyle === "none" ||
       (phase === "hidden" && !transitioning) ||
       !grid.columns ||
       !region.current
@@ -191,61 +198,63 @@ export default function EffectSurface({
       data-effect-style={effectStyle}
       className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] bg-card [contain:layout_paint_style]"
     >
-      <div
-        ref={region}
-        className="absolute inset-y-0 right-0 overflow-hidden"
-        style={{ width: `${coverage}%` }}
-      >
+      {effectStyle !== "none" && (
         <div
-          className="absolute top-0 right-0 grid"
-          style={{
-            gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${CELL_SIZE}px)`,
-            gridAutoRows: `${CELL_SIZE}px`,
-            gap: GAP,
-            top: -shiftY,
-          }}
+          ref={region}
+          className="absolute inset-y-0 right-0 overflow-hidden"
+          style={{ width: `${coverage}%` }}
         >
-          {Array.from(
-            { length: grid.columns * (grid.rows + (shiftY ? 1 : 0)) },
-            (_, index) => {
-              const x = index % grid.columns
-              const y = firstRow + Math.floor(index / grid.columns)
-              return (
-                <span
-                  key={index}
-                  data-burn-cell
-                  style={{
-                    ...(effectStyle === "particles"
-                      ? particleCell(
-                          color,
-                          seed,
-                          x,
-                          y,
-                          grid.columns,
-                          undefined,
-                          initialVisibility,
-                          amplitude,
-                          null
-                        )
-                      : {
-                          backgroundColor: burningCell(
+          <div
+            className="absolute top-0 right-0 grid"
+            style={{
+              gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${CELL_SIZE}px)`,
+              gridAutoRows: `${CELL_SIZE}px`,
+              gap: GAP,
+              top: -shiftY,
+            }}
+          >
+            {Array.from(
+              { length: grid.columns * (grid.rows + (shiftY ? 1 : 0)) },
+              (_, index) => {
+                const x = index % grid.columns
+                const y = firstRow + Math.floor(index / grid.columns)
+                return (
+                  <span
+                    key={index}
+                    data-burn-cell
+                    style={{
+                      ...(effectStyle === "particles"
+                        ? particleCell(
                             color,
                             seed,
                             x,
                             y,
                             grid.columns,
                             undefined,
-                            initialVisibility
-                          ),
-                          transform: "none",
-                        }),
-                  }}
-                />
-              )
-            }
-          )}
+                            initialVisibility,
+                            amplitude,
+                            null
+                          )
+                        : {
+                            backgroundColor: burningCell(
+                              color,
+                              seed,
+                              x,
+                              y,
+                              grid.columns,
+                              undefined,
+                              initialVisibility
+                            ),
+                            transform: "none",
+                          }),
+                    }}
+                  />
+                )
+              }
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

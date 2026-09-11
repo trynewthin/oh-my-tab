@@ -12,6 +12,7 @@ import { useTabGridStore, validItem } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-data"
 import { encodeConfig, decodeConfig } from "./config-codec"
+import { isBackgroundPaletteId } from "./background-palettes"
 
 function snapshot() {
   const home = useHomeSettingsStore.getState()
@@ -21,6 +22,7 @@ function snapshot() {
     version: 1,
     garden: useGardenStore.getState(),
     home: {
+      backgroundPalette: home.backgroundPalette,
       topComponent: home.topComponent,
       content: home.content,
       text: home.text,
@@ -55,13 +57,15 @@ export async function parseConfig(text: string): Promise<Config> {
     !theme ||
     !search ||
     !grid ||
+    (home.backgroundPalette !== undefined &&
+      !isBackgroundPaletteId(home.backgroundPalette)) ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
     !["time", "text", "pet", "breathing"].includes(home.content) ||
     typeof home.text !== "string" ||
     home.text.length > 80 ||
     !hex(home.color) ||
     (home.effectStyle !== undefined &&
-      !["burning", "particles"].includes(home.effectStyle)) ||
+      !["none", "burning", "particles"].includes(home.effectStyle)) ||
     (home.burningAmplitude !== undefined &&
       (!Number.isFinite(home.burningAmplitude) ||
         home.burningAmplitude < 0 ||
@@ -116,6 +120,7 @@ export async function parseConfig(text: string): Promise<Config> {
       throw new Error("网格布局无效")
   }
   home.effectStyle ??= "burning"
+  home.backgroundPalette ??= "gray"
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=
     (home as { burningEntrance?: unknown }).burningEntrance === true

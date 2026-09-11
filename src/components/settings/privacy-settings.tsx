@@ -6,6 +6,7 @@ import {
   type NetworkFeature,
 } from "@/stores/privacy-store"
 import { toast } from "@/stores/toast-store"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export type NetworkChoices = { suggestions: boolean; icons: boolean }
 
@@ -42,11 +43,11 @@ export default function PrivacySettings({
     <div className="space-y-3 rounded-2xl border p-4">
       <h3 className="text-sm font-medium">隐私与联网服务</h3>
       <label className="flex items-start gap-3 text-sm">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={choices?.suggestions ?? settings.suggestions}
           disabled={busy || disabled}
-          onChange={(event) => void toggle("suggestions", event.target.checked)}
+          className="mt-0.5"
+          onCheckedChange={(checked) => void toggle("suggestions", checked)}
         />
         <span>
           启用搜索联想
@@ -58,11 +59,11 @@ export default function PrivacySettings({
         </span>
       </label>
       <label className="flex items-start gap-3 text-sm">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={choices?.icons ?? settings.icons}
           disabled={busy || disabled}
-          onChange={(event) => void toggle("icons", event.target.checked)}
+          className="mt-0.5"
+          onCheckedChange={(checked) => void toggle("icons", checked)}
         />
         <span>
           下载网站图标

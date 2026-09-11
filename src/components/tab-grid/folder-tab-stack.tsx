@@ -3,6 +3,7 @@ import gsap from "gsap"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
 import type { FolderItem } from "./types"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function FolderTabStack({
   folder,
@@ -17,6 +18,8 @@ export default function FolderTabStack({
   surface?: "preview" | "dialog"
   draggable?: boolean
 }) {
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const glass = backgroundType !== "solid"
   const wide =
     surface === "preview" &&
     (folder.size === "wide" || folder.size === "wide-tall")
@@ -270,7 +273,7 @@ export default function FolderTabStack({
             data-stack-row
             data-tab-id={tab.id}
             role="listitem"
-            className="relative rounded-2xl bg-card after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:bg-card after:opacity-[var(--stack-shade,0)]"
+            className={`relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${glass ? "bg-transparent after:bg-card/55" : "bg-card after:bg-card"}`}
             style={{
               height: rowHeight,
               marginBottom: index < folder.tabs.length - 1 ? rowGap : 0,

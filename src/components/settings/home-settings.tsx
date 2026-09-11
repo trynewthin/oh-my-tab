@@ -20,8 +20,8 @@ export default function HomeSettings() {
   const setPet = useHomeSettingsStore((state) => state.setPet)
 
   return (
-    <section aria-labelledby="home-settings-title">
-      <h2 id="home-settings-title" className="sr-only">
+    <section className="space-y-6" aria-labelledby="home-settings-title">
+      <h2 id="home-settings-title" className="text-base leading-6 font-medium">
         主页设置
       </h2>
       <div className="space-y-5">

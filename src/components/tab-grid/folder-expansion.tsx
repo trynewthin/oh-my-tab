@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import FolderBackground from "./folder-background"
 import FolderExpandedGrid from "./folder-expanded-grid"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 function expandedBounds() {
   const width = Math.min(
@@ -31,6 +32,7 @@ export default function FolderExpansion({
   onClose: () => void
   suspended?: boolean
 }) {
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const folder = useTabGridStore((state) =>
     state.items.find((item) => item.id === folderId)
   )
@@ -184,7 +186,7 @@ export default function FolderExpansion({
       aria-labelledby={titleId}
       tabIndex={-1}
       data-expanded-folder={folder.id}
-      className="folder-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border bg-card shadow-xl outline-none"
+      className={`folder-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border shadow-xl outline-none ${backgroundType === "solid" ? "bg-card" : "bg-transparent"}`}
     >
       <FolderBackground
         color={folder.color}

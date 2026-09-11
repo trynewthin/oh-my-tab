@@ -1,4 +1,68 @@
 .folder-glass {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.folder-glass--none {
+  background: var(--card);
+}
+
+.folder-glass--noise {
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 3%);
+}
+
+.folder-noise-gradient {
+  position: absolute;
+  inset: -24%;
+  background:
+    radial-gradient(
+      circle at 18% 22%,
+      color-mix(in srgb, var(--folder-color) 24%, transparent),
+      transparent 54%
+    ),
+    radial-gradient(
+      circle at 82% 72%,
+      color-mix(in srgb, var(--folder-color) 18%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      circle at 74% 14%,
+      color-mix(in srgb, var(--folder-color) 12%, transparent),
+      transparent 48%
+    );
+  filter: blur(28px);
+  opacity: 0.72;
+  transform: scale(1.06);
+}
+
+.folder-noise-texture {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.1;
+  mix-blend-mode: soft-light;
+}
+
+.dark .folder-glass--noise {
+  background: color-mix(in srgb, var(--card) 98%, black 2%);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
+}
+
+.dark .folder-noise-gradient {
+  opacity: 0.58;
+}
+
+.dark .folder-noise-texture {
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+}
+
+.folder-glass[data-animated="true"] .folder-noise-gradient {
+  animation: folder-noise-drift 12s ease-in-out infinite alternate;
+}
+
+.folder-glass--classic {
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--card) 98%, transparent),
@@ -7,8 +71,8 @@
   box-shadow: 0 6px 20px rgb(0 0 0 / 3%);
 }
 
-.folder-glass::before,
-.folder-glass::after {
+.folder-glass--classic::before,
+.folder-glass--classic::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -16,7 +80,7 @@
   pointer-events: none;
 }
 
-.folder-glass::before {
+.folder-glass--classic::before {
   background:
     radial-gradient(
       ellipse 95% 65% at 105% 0%,
@@ -30,14 +94,14 @@
     );
 }
 
-.folder-glass::after {
+.folder-glass--classic::after {
   background: linear-gradient(135deg, rgb(255 255 255 / 10%), transparent 42%);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 35%),
     inset 0 -1px 0 rgb(0 0 0 / 4%);
 }
 
-.dark .folder-glass {
+.dark .folder-glass--classic {
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--card) 98%, transparent),
@@ -46,19 +110,14 @@
   box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
 }
 
-.dark .folder-glass::after {
+.dark .folder-glass--classic::after {
   background: linear-gradient(135deg, rgb(255 255 255 / 5%), transparent 42%);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 4%),
     inset 0 -1px 0 rgb(0 0 0 / 8%);
 }
 
-.folder-expansion .folder-glass {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.folder-glass[data-animated="true"]::before {
+.folder-glass--classic[data-animated="true"]::before {
   background-size: 150% 150%;
   animation: folder-color-flow 8s ease-in-out infinite alternate;
 }
@@ -72,11 +131,38 @@
   }
 }
 
+.folder-glass--classic[data-pixi-folder-ready]::before {
+  display: none;
+  animation: none;
+}
+
+.folder-glass.folder-glass--blur {
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 8%);
+}
+
+.dark .folder-glass.folder-glass--blur {
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+}
+
+@keyframes folder-noise-drift {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(2%, 1%, 0) scale(1.12);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .folder-glass[data-animated="true"]::before {
+  .folder-glass[data-animated="true"] .folder-noise-gradient {
+    animation: none;
+  }
+
+  .folder-glass--classic[data-animated="true"]::before {
     animation: none;
     background-size: auto;
   }
 }
-
-.folder-glass[data-pixi-folder-ready]::before { display: none; animation: none; }

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/prompt-input"
 import { usePromptStore } from "@/stores/prompt-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import TabBackground from "@/components/tab-grid/tab-background"
 import type { TabItem } from "@/components/tab-grid/types"
 import SearchEngineSelect from "@/pages/home/components/search-engine-select"
@@ -17,10 +18,24 @@ import SettingsButton from "@/pages/home/components/settings-button"
 
 type HomePromptInputProps = { onSubmit?: (message: string) => void }
 
+function readableForeground(hex: string) {
+  const channels = [1, 3, 5].map((start) => {
+    const value = Number.parseInt(hex.slice(start, start + 2), 16) / 255
+    return value <= 0.04045
+      ? value / 12.92
+      : Math.pow((value + 0.055) / 1.055, 2.4)
+  })
+  const luminance =
+    channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+  return luminance > 0.179 ? "#18181b" : "#ffffff"
+}
+
 export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
   const draft = usePromptStore((state) => state.draft)
   const setDraft = usePromptStore((state) => state.setDraft)
   const items = useTabGridStore((state) => state.items)
+  const themeColor = useHomeSettingsStore((state) => state.color)
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const root = useRef<HTMLDivElement>(null)
   const listId = useId()
   const [focused, setFocused] = useState(false)
@@ -137,10 +152,14 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
   return (
     <div
       ref={root}
-      className="relative z-20 mx-auto mt-6 w-full max-w-3xl shrink-0"
+      className="relative isolate z-20 mx-auto mt-6 w-full max-w-3xl shrink-0"
     >
       <PromptInput
-        className="dark:bg-card"
+        className={
+          backgroundType === "solid"
+            ? "relative isolate overflow-hidden dark:bg-card"
+            : "relative isolate overflow-hidden bg-background/55 backdrop-blur-xl dark:bg-card/55"
+        }
         value={draft}
         onValueChange={(value) => {
           setDraft(value)
@@ -209,7 +228,11 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
             aria-label="搜索"
             title="在新标签页搜索"
             disabled={!query || !onSubmit}
-            className="transition-[background-color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
+            className="transition-[filter,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:brightness-110 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
+            style={{
+              backgroundColor: themeColor,
+              color: readableForeground(themeColor),
+            }}
             onClick={(event) => {
               event.stopPropagation()
               search()

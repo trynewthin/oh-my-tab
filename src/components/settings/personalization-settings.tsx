@@ -1,10 +1,17 @@
 import ColorPicker from "@/components/ui/color-picker"
 import EffectStylePicker from "@/components/settings/effect-style-picker"
+import BackgroundSettings from "@/components/settings/background-settings"
 import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useThemeStore } from "@/stores/theme-store"
-import { backgroundPalettes } from "@/lib/background-palettes"
 import { Desktop, Moon, Sun } from "@phosphor-icons/react"
 
 const themeOptions = [
@@ -16,12 +23,8 @@ const themeOptions = [
 export default function PersonalizationSettings() {
   const theme = useThemeStore((state) => state.theme)
   const setTheme = useThemeStore((state) => state.setTheme)
-  const backgroundPalette = useHomeSettingsStore(
-    (state) => state.backgroundPalette
-  )
-  const setBackgroundPalette = useHomeSettingsStore(
-    (state) => state.setBackgroundPalette
-  )
+  const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
+  const setFolderStyle = useHomeSettingsStore((state) => state.setFolderStyle)
   const color = useHomeSettingsStore((state) => state.color)
   const setColor = useHomeSettingsStore((state) => state.setColor)
   const effectStyle = useHomeSettingsStore((state) => state.effectStyle)
@@ -53,7 +56,7 @@ export default function PersonalizationSettings() {
               className="h-4 w-1 rounded-full"
               style={{ backgroundColor: color }}
             />
-            色彩
+            外观
           </h3>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
             <span className="text-sm">主题色</span>
@@ -95,41 +98,58 @@ export default function PersonalizationSettings() {
             </ToggleGroup>
           </div>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <span id="background-color-label" className="text-sm">
-              背景色
-            </span>
-            <ToggleGroup
-              aria-labelledby="background-color-label"
-              className="justify-between gap-1 border border-border/60 bg-muted p-1 shadow-inner"
-              value={[backgroundPalette]}
-              onValueChange={(values) => {
-                const value = values[0]
-                const palette = backgroundPalettes.find(
-                  (option) => option.id === value
+            <label htmlFor="folder-style" className="text-sm">
+              文件夹样式
+            </label>
+            <Select
+              value={folderStyle}
+              onValueChange={(value) => {
+                if (
+                  value === "classic" ||
+                  value === "noise" ||
+                  value === "none"
                 )
-                if (palette) setBackgroundPalette(palette.id)
+                  setFolderStyle(value)
               }}
             >
-              {backgroundPalettes.map((palette) => (
-                <ToggleGroupItem
-                  key={palette.id}
-                  value={palette.id}
-                  aria-label={palette.label}
-                  title={palette.label}
-                  data-background-swatch
-                  className="size-6 flex-none rounded-full border-2 border-foreground/10 p-0 shadow-sm aria-pressed:border-foreground"
-                  style={
+              <SelectTrigger
+                id="folder-style"
+                className="w-full border-border bg-muted dark:bg-muted"
+              >
+                <SelectValue>
+                  {
                     {
-                      "--background-swatch-light": palette.light,
-                      "--background-swatch-dark": palette.dark,
-                    } as React.CSSProperties
+                      classic: "经典光晕",
+                      noise: "噪点渐变",
+                      none: "无效果",
+                    }[folderStyle]
                   }
-                >
-                  <span className="sr-only">{palette.label}</span>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="classic">经典光晕</SelectItem>
+                <SelectItem value="noise">噪点渐变</SelectItem>
+                <SelectItem value="none">无效果</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+        </section>
+        <section
+          className="space-y-5"
+          aria-labelledby="background-settings-title"
+        >
+          <h3
+            id="background-settings-title"
+            className="flex items-center gap-2 text-sm font-medium"
+          >
+            <span
+              aria-hidden="true"
+              className="h-4 w-1 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+            背景
+          </h3>
+          <BackgroundSettings />
         </section>
         <section className="space-y-5" aria-labelledby="motion-settings-title">
           <h3
@@ -144,9 +164,7 @@ export default function PersonalizationSettings() {
             动效
           </h3>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <span className="text-sm">
-              粒子效果
-            </span>
+            <span className="text-sm">粒子效果</span>
             <EffectStylePicker
               value={effectStyle}
               color={color}

@@ -24,6 +24,7 @@ import TabGrid from "@/components/tab-grid/tab-grid"
 
 export default function HomeUI() {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
   const palette = getBackgroundPalette(paletteId)
   function search(query: string) {
@@ -46,6 +47,7 @@ export default function HomeUI() {
   return (
     <div
       data-home-palette={palette.id}
+      data-home-background-type={backgroundType}
       className="relative z-10 h-dvh overflow-hidden"
       style={backgroundPaletteStyle(paletteId)}
     >
@@ -53,19 +55,19 @@ export default function HomeUI() {
         data-grid-scroll
         tabIndex={0}
         aria-label="滚动标签网格"
-        className="h-full overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-width:none] outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
+        className="h-full [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
       >
-        <div
-          className="sticky top-0 z-40 isolate px-6 pt-6 pb-6 sm:px-10 xl:px-12"
-        >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 -bottom-8 -z-10"
-            style={{
-              background:
-                "linear-gradient(to bottom, var(--home-background), var(--home-background) calc(100% - 96px), transparent)",
-            }}
-          />
+        <div className="sticky top-0 isolate z-40 px-6 pt-6 pb-6 sm:px-10 xl:px-12">
+          {backgroundType === "solid" && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 -bottom-8 -z-10"
+              style={{
+                background:
+                  "linear-gradient(to bottom, var(--home-background), var(--home-background) calc(100% - 96px), transparent)",
+              }}
+            />
+          )}
           {topComponent === "dot-matrix" && (
             <HomeContentContainer>
               <DotMatrix />

@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react"
 
 export const backgroundPalettes = [
-  { id: "gray", label: "中性灰", light: "#f9f9f9", dark: "#191919" },
-  { id: "mauve", label: "柔紫灰", light: "#faf9fb", dark: "#1a191b" },
+  { id: "gray", label: "黑白", light: "#ffffff", dark: "#000000" },
+  { id: "neutral", label: "中性灰", light: "#f9f9f9", dark: "#191919" },
   { id: "slate", label: "静谧蓝灰", light: "#f9f9fb", dark: "#18191b" },
-  { id: "sage", label: "自然绿灰", light: "#f7f9f8", dark: "#171918" },
+  { id: "mauve", label: "柔紫灰", light: "#faf9fb", dark: "#1a191b" },
+  { id: "rose", label: "柔粉灰", light: "#fff7f8", dark: "#1b1113" },
   { id: "sand", label: "温暖砂灰", light: "#f9f9f8", dark: "#191918" },
 ] as const
 

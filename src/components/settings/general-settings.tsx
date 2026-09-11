@@ -31,8 +31,11 @@ export default function GeneralSettings() {
     }
   }
   return (
-    <section aria-labelledby="general-settings-title">
-      <h2 id="general-settings-title" className="sr-only">
+    <section className="space-y-6" aria-labelledby="general-settings-title">
+      <h2
+        id="general-settings-title"
+        className="text-base leading-6 font-medium"
+      >
         常规设置
       </h2>
       <div className="space-y-5">

@@ -22,7 +22,10 @@ function snapshot() {
     version: 1,
     garden: useGardenStore.getState(),
     home: {
+      backgroundType: home.backgroundType,
+      backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
+      folderStyle: home.folderStyle,
       topComponent: home.topComponent,
       content: home.content,
       text: home.text,
@@ -57,8 +60,19 @@ export async function parseConfig(text: string): Promise<Config> {
     !theme ||
     !search ||
     !grid ||
+    (home.backgroundType !== undefined &&
+      !["solid", "image", "explore"].includes(home.backgroundType)) ||
+    (home.backgroundImage !== undefined &&
+      home.backgroundImage !== null &&
+      (typeof home.backgroundImage !== "string" ||
+        home.backgroundImage.length > 2_000_000 ||
+        !/^data:image\/(?:png|jpeg|webp);base64,/i.test(
+          home.backgroundImage
+        ))) ||
     (home.backgroundPalette !== undefined &&
       !isBackgroundPaletteId(home.backgroundPalette)) ||
+    (home.folderStyle !== undefined &&
+      !["classic", "noise", "none"].includes(home.folderStyle)) ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
     !["time", "text", "pet", "breathing"].includes(home.content) ||
     typeof home.text !== "string" ||
@@ -120,7 +134,12 @@ export async function parseConfig(text: string): Promise<Config> {
       throw new Error("网格布局无效")
   }
   home.effectStyle ??= "burning"
+  home.backgroundType ??= "solid"
+  if ((home as { backgroundType?: string }).backgroundType === "explore")
+    home.backgroundType = "solid"
+  home.backgroundImage ??= null
   home.backgroundPalette ??= "gray"
+  home.folderStyle ??= "noise"
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=
     (home as { burningEntrance?: unknown }).burningEntrance === true

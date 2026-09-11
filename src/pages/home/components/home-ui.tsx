@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react"
 import {
   extensionApi,
   canSelectBrowserSearch,
   usePrivacyStore,
 } from "@/stores/privacy-store"
+import { useAppearanceStore } from "@/stores/appearance-store"
 import { toast } from "@/stores/toast-store"
 import Toaster from "@/components/ui/toaster"
 import OnboardingTour from "@/components/onboarding/onboarding-tour"
@@ -20,51 +20,10 @@ import { buildSearchUrl } from "@/lib/search-engines"
 import TabGrid from "@/components/tab-grid/tab-grid"
 
 export default function HomeUI() {
-  const rootRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const onWheel = (event: WheelEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.ctrlKey ||
-        Math.abs(event.deltaX) > Math.abs(event.deltaY)
-      )
-        return
-      const target = event.target
-      if (
-        !(target instanceof Element) ||
-        target.closest('[role="dialog"], [role="menu"], [role="listbox"]')
-      )
-        return
-      const grid = root.querySelector<HTMLElement>("[data-grid-scroll]")
-      if (!grid || grid.contains(target)) return
-      for (
-        let node: Element | null = target;
-        node && node !== root;
-        node = node.parentElement
-      ) {
-        if (
-          node instanceof HTMLElement &&
-          /auto|scroll/.test(getComputedStyle(node).overflowY) &&
-          node.scrollHeight > node.clientHeight
-        )
-          return
-      }
-      if (grid.scrollHeight <= grid.clientHeight) return
-      event.preventDefault()
-      grid.scrollTop +=
-        event.deltaY *
-        (event.deltaMode === 1
-          ? 16
-          : event.deltaMode === 2
-            ? grid.clientHeight
-            : 1)
-    }
-    root.addEventListener("wheel", onWheel, { passive: false })
-    return () => root.removeEventListener("wheel", onWheel)
-  }, [])
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const backgroundColor = useAppearanceStore((state) => state.backgroundColor)
+  const resolvedBackground =
+    backgroundColor === "#ffffff" ? "var(--background)" : backgroundColor
   function search(query: string) {
     if (usePrivacyStore.getState().browserSearch && canSelectBrowserSearch()) {
       const api = extensionApi()
@@ -83,15 +42,34 @@ export default function HomeUI() {
   }
 
   return (
-    <div
-      ref={rootRef}
-      className="relative z-10 flex h-dvh flex-col overflow-hidden px-6 pt-6 sm:px-10 xl:px-12"
-    >
-      <HomeContentContainer>
-        {topComponent === "dot-matrix" && <DotMatrix />}
-      </HomeContentContainer>
-      <HomePromptInput onSubmit={search} />
-      <TabGrid />
+    <div className="relative z-10 h-dvh overflow-hidden">
+      <div
+        data-grid-scroll
+        tabIndex={0}
+        aria-label="滚动标签网格"
+        className="h-full overflow-x-hidden overflow-y-auto overscroll-contain [scrollbar-width:none] outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <div
+          className="sticky top-0 z-40 isolate px-6 pt-6 pb-6 sm:px-10 xl:px-12"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 -bottom-8 -z-10"
+            style={{
+              background: `linear-gradient(to bottom, ${resolvedBackground}, ${resolvedBackground} calc(100% - 96px), transparent)`,
+            }}
+          />
+          {topComponent === "dot-matrix" && (
+            <HomeContentContainer>
+              <DotMatrix />
+            </HomeContentContainer>
+          )}
+          <HomePromptInput onSubmit={search} />
+        </div>
+        <div className="px-6 sm:px-10 xl:px-12">
+          <TabGrid />
+        </div>
+      </div>
       <OnboardingTour />
       <Toaster />
     </div>

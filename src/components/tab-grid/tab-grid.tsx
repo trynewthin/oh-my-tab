@@ -83,7 +83,6 @@ export default function TabGrid() {
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const transferTab = useTabGridStore((state) => state.transferTab)
   const gridRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
   const pointer = useRef<Point | null>(null)
   const [width, setWidth] = useState(0)
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
@@ -154,37 +153,16 @@ export default function TabGrid() {
   useLayoutEffect(() => {
     const element = gridRef.current
     if (!element) return
-    const viewport = scrollRef.current
-    function updateFade() {
-      if (!viewport) return
-      const remaining = Math.max(
-        0,
-        viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop
-      )
-      viewport.style.setProperty(
-        "--grid-fade-top",
-        `${Math.min(24, Math.max(0, viewport.scrollTop))}px`
-      )
-      viewport.style.setProperty(
-        "--grid-fade-bottom",
-        `${Math.min(24, remaining)}px`
-      )
-    }
     const observer = new ResizeObserver(() => {
       setWidth(element!.getBoundingClientRect().width)
-      updateFade()
     })
     const trackPointer = (event: MouseEvent) => {
       pointer.current = { x: event.clientX, y: event.clientY }
     }
     observer.observe(element)
-    if (viewport) observer.observe(viewport)
-    viewport?.addEventListener("scroll", updateFade, { passive: true })
-    updateFade()
     document.addEventListener("mousemove", trackPointer, { passive: true })
     return () => {
       observer.disconnect()
-      viewport?.removeEventListener("scroll", updateFade)
       document.removeEventListener("mousemove", trackPointer)
       if (hover.current) clearTimeout(hover.current.timer)
     }
@@ -593,7 +571,7 @@ export default function TabGrid() {
         render={<section />}
         data-tour="grid"
         aria-label="标签网格"
-        className="mx-auto mt-6 min-h-0 w-full max-w-[1280px] flex-1"
+        className="mx-auto min-h-0 w-full max-w-[1280px]"
       >
         <DndContext
           sensors={sensors}
@@ -603,21 +581,10 @@ export default function TabGrid() {
           onDragCancel={resetDrag}
         >
           <div
-            ref={scrollRef}
-            data-grid-scroll
-            tabIndex={0}
-            aria-label="滚动标签网格"
-            className={`h-full min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain ${selecting ? "pb-28" : "pb-4"} outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden`}
+            className={`${selecting ? "pb-28" : "pb-4"} px-5`}
             style={{
-              margin: "-20px -20px 0",
+              margin: "0 -20px",
               paddingTop: 20,
-              paddingLeft: 20,
-              paddingRight: 20,
-              height: "calc(100% + 20px)",
-              maskImage:
-                "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, transparent, black var(--grid-fade-top, 0px), black calc(100% - var(--grid-fade-bottom, 0px)), transparent)",
             }}
           >
             <div

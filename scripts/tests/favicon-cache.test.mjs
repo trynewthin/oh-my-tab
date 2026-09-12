@@ -1,11 +1,19 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
-import { indexedDB } from 'fake-indexeddb'
 import ts from 'typescript'
 
 const source = await readFile(new URL('../../src/lib/favicon-cache.ts', import.meta.url), 'utf8')
-const { outputText } = ts.transpileModule(source.replace(/import .*privacy-store.*\n/, "const networkAllowed = async () => globalThis.iconConsent !== false\n"), {
+const records = new Map()
+globalThis.testIconStorage = {
+  readEntries: async keys => Object.fromEntries(keys.map(key => [key, records.get(key)])),
+  writeEntries: async entries => Object.entries(entries).forEach(([key, value]) => records.set(key, value)),
+  chromeStorage: () => undefined,
+  subscribeStorage: () => () => {},
+}
+const code = source.replace(/import [\s\S]*?from "\.\/storage"\n/, 'const { readEntries, writeEntries, chromeStorage, subscribeStorage } = globalThis.testIconStorage\n')
+  .replace(/import .*privacy-store.*\n/, "const networkAllowed = async () => globalThis.iconConsent !== false\n")
+const { outputText } = ts.transpileModule(code, {
   compilerOptions: { target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext },
 })
 let instance = 0
@@ -13,7 +21,6 @@ const freshCache = () => import(`data:text/javascript;base64,${Buffer.from(outpu
 
 test('favicon downloads persist across page instances and coalesce requests', async () => {
   const locks = new Map()
-  Object.defineProperty(globalThis, 'indexedDB', { configurable: true, value: indexedDB })
   Object.defineProperty(globalThis, 'window', { configurable: true, value: { location: { protocol: 'chrome-extension:' } } })
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
     locks: { request(key, callback) {
@@ -68,7 +75,7 @@ test('favicon downloads persist across page instances and coalesce requests', as
 
   const nextPage = await freshCache()
   assert.match(await nextPage.getCachedFavicon('https://example.com/another'), /^blob:/)
-  assert.equal(requests.length, 1, 'page reload reads IndexedDB without downloading')
+  assert.equal(requests.length, 1, 'page reload reads stored cache without downloading')
 
   const anotherPage = await freshCache()
   await Promise.all([

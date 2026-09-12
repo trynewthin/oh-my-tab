@@ -1,3 +1,4 @@
+import { settingsControlClassName } from "./control-styles"
 import { CaretDown, Check } from "@phosphor-icons/react"
 import EffectSurface from "@/components/effects/effect-surface"
 import { Button } from "@/components/ui/button"
@@ -51,7 +52,7 @@ export default function EffectStylePicker({
         render={
           <Button
             variant="outline"
-            className="w-full min-w-0 justify-between bg-muted dark:bg-muted dark:hover:bg-muted/80"
+            className={`w-full min-w-0 justify-between ${settingsControlClassName}`}
           />
         }
       >

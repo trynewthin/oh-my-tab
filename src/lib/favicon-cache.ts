@@ -1,6 +1,12 @@
+import {
+  readEntries,
+  writeEntries,
+  chromeStorage,
+  blobToDataUrl,
+  dataUrlToBlob,
+  subscribeStorage,
+} from "./storage"
 import { networkAllowed } from "../stores/privacy-store"
-const DATABASE = "oh-my-tab-icons"
-const STORE = "favicons"
 const RETRY_DELAY = 15 * 60 * 1000
 const MAX_BYTES = 2 * 1024 * 1024
 
@@ -13,7 +19,6 @@ type IconRecord = {
 }
 type MemoryEntry = { promise: Promise<string | null>; expires: number }
 const memory = new Map<string, MemoryEntry>()
-let database: Promise<IDBDatabase | null> | null = null
 
 export function faviconKey(url: string): string | null {
   try {
@@ -25,64 +30,30 @@ export function faviconKey(url: string): string | null {
   }
 }
 
-function openDatabase() {
-  if (!database)
-    database = new Promise<IDBDatabase | null>((resolve) => {
-      try {
-        const request = indexedDB.open(DATABASE, 1)
-        request.onupgradeneeded = () => {
-          if (!request.result.objectStoreNames.contains(STORE))
-            request.result.createObjectStore(STORE, { keyPath: "url" })
-        }
-        request.onsuccess = () => {
-          const db = request.result
-          db.onversionchange = () => {
-            db.close()
-            database = null
-          }
-          resolve(db)
-        }
-        request.onerror = () => resolve(null)
-        request.onblocked = () => resolve(null)
-      } catch {
-        resolve(null)
-      }
-    })
-  return database
-}
-
+const cacheKey = (url: string) => `cache:favicon:${url}`
 async function readIcon(url: string): Promise<IconRecord | undefined> {
-  const db = await openDatabase()
-  if (!db) return undefined
-  return new Promise((resolve) => {
-    try {
-      const request = db
-        .transaction(STORE, "readonly")
-        .objectStore(STORE)
-        .get(url)
-      request.onsuccess = () =>
-        resolve(request.result as IconRecord | undefined)
-      request.onerror = () => resolve(undefined)
-    } catch {
-      resolve(undefined)
+  try {
+    const value = (await readEntries([cacheKey(url)]))[cacheKey(url)] as
+      (Omit<IconRecord, "blob"> & { blob?: Blob | string }) | undefined
+    if (!value) return undefined
+    return {
+      ...value,
+      blob:
+        typeof value.blob === "string" ? dataUrlToBlob(value.blob) : value.blob,
     }
-  })
+  } catch {
+    return undefined
+  }
 }
-
 async function writeIcon(record: IconRecord) {
-  const db = await openDatabase()
-  if (!db) return
-  await new Promise<void>((resolve) => {
-    try {
-      const transaction = db.transaction(STORE, "readwrite")
-      transaction.objectStore(STORE).put(record)
-      transaction.oncomplete = () => resolve()
-      transaction.onerror = () => resolve()
-      transaction.onabort = () => resolve()
-    } catch {
-      resolve()
-    }
-  })
+  const value = {
+    ...record,
+    blob:
+      record.blob && chromeStorage()
+        ? await blobToDataUrl(record.blob)
+        : (record.blob ?? null),
+  }
+  await writeEntries({ [cacheKey(record.url)]: value }).catch(() => {})
 }
 
 async function imageUrl(blob: Blob): Promise<string> {
@@ -252,37 +223,25 @@ export function getCachedFavicon(
 const listeners = new Set<(key: string) => void>()
 export function subscribeFavicon(listener: (key: string) => void) {
   listeners.add(listener)
-  const onStorage = (event: StorageEvent) => {
-    if (event.key !== "omt.favicon-update" || !event.newValue) return
-    try {
-      const { key } = JSON.parse(event.newValue)
-      if (typeof key === "string") {
-        memory.delete(key)
-        listener(key)
-      }
-    } catch {
-      /* Ignore unrelated data. */
+  const unsubscribe = subscribeStorage((keys) => {
+    for (const key of keys) {
+      if (!key.startsWith("cache:favicon:")) continue
+      const url = key.slice("cache:favicon:".length)
+      memory.delete(url)
+      listener(url)
     }
-  }
-  window.addEventListener("storage", onStorage)
+  })
   return () => {
     listeners.delete(listener)
-    window.removeEventListener("storage", onStorage)
+    unsubscribe()
   }
 }
+
 export async function refreshFavicon(url: string) {
   const key = faviconKey(url)
   if (!key) return
   await getCachedFavicon(url, true)
   listeners.forEach((listener) => listener(key))
-  try {
-    localStorage.setItem(
-      "omt.favicon-update",
-      JSON.stringify({ key, nonce: crypto.randomUUID() })
-    )
-  } catch {
-    /* Local refresh still works. */
-  }
 }
 
 export function reloadVisibleFavicons() {

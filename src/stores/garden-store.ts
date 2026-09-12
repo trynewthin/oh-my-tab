@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { GardenPlant, GridItem } from "@/components/tab-grid/types"
@@ -56,6 +57,7 @@ export const useGardenStore = create<SharedGarden>()(
       initialized: false,
     }),
     {
+      ...storageOptions<SharedGarden>(),
       name: "omt.garden",
       merge: (persisted, current) =>
         validSharedGarden(persisted) ? persisted : current,

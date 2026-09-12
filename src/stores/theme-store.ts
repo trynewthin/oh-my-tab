@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -20,6 +21,7 @@ export const useThemeStore = create<ThemeState>()(
         })),
     }),
     {
+      ...storageOptions(),
       name: "omt.theme-mode",
       partialize: ({ theme }) => ({ theme }),
       merge: (persisted, current) => {

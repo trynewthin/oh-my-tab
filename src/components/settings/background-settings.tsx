@@ -1,3 +1,9 @@
+import {
+  settingsControlClassName,
+  settingsControlSurface,
+} from "./control-styles"
+import { putAsset } from "@/lib/storage"
+import { useImageAsset } from "@/lib/use-image-asset"
 import { useState } from "react"
 import { ImageSquare } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -15,30 +21,18 @@ const backgroundTypes = [
 ] as const
 
 async function prepareImage(file: File) {
-  if (!file.type.startsWith("image/")) throw new Error("请选择图片文件")
+  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type))
+    throw new Error("请选择 PNG、JPEG 或 WebP 图片")
+  if (file.size > 50 * 1024 * 1024)
+    throw new Error("图片超过 50 MB，请选择更小的文件")
   const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, 1920 / bitmap.width, 1080 / bitmap.height)
-  const canvas = document.createElement("canvas")
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale))
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale))
-  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", 0.82)
-  )
-  if (!blob) throw new Error("图片处理失败")
-  const data = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(new Error("图片读取失败"))
-    reader.readAsDataURL(blob)
-  })
-  if (data.length > 2_000_000) throw new Error("图片过大，请选择更小的图片")
-  return data
+  return putAsset(file)
 }
 
 function ImageBackgroundPicker() {
   const image = useHomeSettingsStore((state) => state.backgroundImage)
+  const imageUrl = useImageAsset(image)
   const setImage = useHomeSettingsStore((state) => state.setBackgroundImage)
   const [busy, setBusy] = useState(false)
 
@@ -46,14 +40,14 @@ function ImageBackgroundPicker() {
     <Button
       variant="outline"
       render={<label />}
-      className="relative w-full cursor-pointer justify-between overflow-hidden bg-muted dark:bg-muted"
+      className={`relative w-full cursor-pointer justify-between overflow-hidden ${settingsControlClassName}`}
       aria-disabled={busy}
     >
       {image ? (
         <span
           aria-hidden="true"
           className="absolute inset-0 bg-cover bg-center opacity-35"
-          style={{ backgroundImage: `url(${image})` }}
+          style={{ backgroundImage: `url(${imageUrl})` }}
         />
       ) : (
         <ImageSquare className="size-4" />
@@ -106,6 +100,7 @@ export default function BackgroundSettings() {
         </span>
         <ToggleGroup
           aria-labelledby="background-type-label"
+          className={settingsControlSurface}
           value={[backgroundType]}
           onValueChange={(values) => {
             const value = values[0] as BackgroundType | undefined
@@ -127,7 +122,7 @@ export default function BackgroundSettings() {
           </span>
           <ToggleGroup
             aria-labelledby="background-color-label"
-            className="justify-between gap-1 border border-border/60 bg-muted p-1 shadow-inner"
+            className={`justify-between gap-1 p-1 ${settingsControlSurface}`}
             value={[backgroundPalette]}
             onValueChange={(values) => {
               const value = values[0]

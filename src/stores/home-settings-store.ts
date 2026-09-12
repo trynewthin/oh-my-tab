@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import {
   isMatrixPet,
   type MatrixPet,
@@ -86,6 +87,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       },
     }),
     {
+      ...storageOptions(),
       name: "omt.home-settings",
       partialize: ({
         backgroundType,

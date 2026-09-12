@@ -1,45 +1,6 @@
 import type { GridItem, TabItem } from "@/components/tab-grid/types"
 
 export type ImportedBookmark = { name: string; url: string; folder: string }
-export function parseBookmarkHtml(html: string) {
-  const doc = new DOMParser().parseFromString(html, "text/html")
-  if (!doc.querySelector("dl"))
-    throw new Error("请选择浏览器导出的书签 HTML 文件")
-  const bookmarks: ImportedBookmark[] = []
-  let invalid = 0
-  for (const anchor of doc.querySelectorAll("dl a")) {
-    let url: URL
-    try {
-      url = new URL(anchor.getAttribute("href") ?? "")
-      if (!["http:", "https:"].includes(url.protocol))
-        throw new Error("Unsupported URL")
-    } catch {
-      invalid++
-      continue
-    }
-    const path: string[] = []
-    let list = anchor.closest("dl")
-    while (list) {
-      const parent = list.parentElement
-      const heading =
-        parent?.tagName === "DT"
-          ? Array.from(parent.children).find((child) => child.tagName === "H3")
-          : list.previousElementSibling?.tagName === "H3"
-            ? list.previousElementSibling
-            : null
-      if (heading?.textContent?.trim()) path.unshift(heading.textContent.trim())
-      list = parent?.closest("dl") ?? null
-    }
-    bookmarks.push({
-      name: anchor.textContent?.trim() || url.hostname,
-      url: url.href,
-      folder: path.join(" / "),
-    })
-  }
-  if (!bookmarks.length && !invalid) throw new Error("文件中没有找到书签")
-  return { bookmarks, invalid }
-}
-
 export function mergeBookmarks(
   existing: GridItem[],
   bookmarks: ImportedBookmark[]

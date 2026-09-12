@@ -1,3 +1,7 @@
+import {
+  settingsControlClassName,
+  settingsControlSurface,
+} from "./control-styles"
 import ColorPicker from "@/components/ui/color-picker"
 import EffectStylePicker from "@/components/settings/effect-style-picker"
 import BackgroundSettings from "@/components/settings/background-settings"
@@ -64,7 +68,7 @@ export default function PersonalizationSettings() {
               label="主题色"
               value={color}
               onChange={setColor}
-              className="bg-muted dark:bg-muted"
+              className={settingsControlClassName}
             />
           </div>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
@@ -73,6 +77,7 @@ export default function PersonalizationSettings() {
             </span>
             <ToggleGroup
               aria-labelledby="theme-mode-label"
+              className={settingsControlSurface}
               value={[theme]}
               onValueChange={(values) => {
                 const value = values[0]
@@ -114,7 +119,7 @@ export default function PersonalizationSettings() {
             >
               <SelectTrigger
                 id="folder-style"
-                className="w-full border-border bg-muted dark:bg-muted"
+                className={`w-full ${settingsControlClassName}`}
               >
                 <SelectValue>
                   {
@@ -176,7 +181,9 @@ export default function PersonalizationSettings() {
               <label htmlFor="burning-amplitude" className="text-sm">
                 {effectStyle === "burning" ? "燃烧幅度" : "呼吸幅度"}
               </label>
-              <div className="flex h-8 min-w-0 items-center gap-2 rounded-2xl border border-border bg-muted px-3">
+              <div
+                className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
+              >
                 <input
                   id="burning-amplitude"
                   type="range"
@@ -202,7 +209,7 @@ export default function PersonalizationSettings() {
             <Switch
               aria-label="过渡效果"
               checked={entrance}
-              className="justify-self-end"
+              className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
               style={{ backgroundColor: entrance ? color : undefined }}
               onCheckedChange={setEntrance}
             />

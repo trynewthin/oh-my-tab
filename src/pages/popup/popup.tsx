@@ -1,3 +1,4 @@
+import { flushStorage } from "@/lib/storage"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import PopupBackground from "./popup-background"
 import { useEffect, useState, type ReactNode, type FormEvent } from "react"
@@ -94,6 +95,7 @@ export default function Popup() {
     try {
       await useTabGridStore.persist.rehydrate()
       useTabGridStore.getState().upsertBookmark(name, address)
+      await flushStorage()
       setSuccess(true)
     } catch {
       setError("保存失败，请重试")

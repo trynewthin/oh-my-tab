@@ -1,9 +1,9 @@
+import { storageOptions } from "@/lib/storage"
 import {
   canvasDimensions,
   resizeDots,
   displayDots,
 } from "@/components/tab-grid/dot-canvas-data"
-import { initializeGarden } from "./garden-store"
 import { validGardenPlant } from "@/lib/garden"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { groupComponents } from "@/lib/grid-operations"
@@ -348,6 +348,7 @@ export const useTabGridStore = create<TabGridState>()(
         })),
     }),
     {
+      ...storageOptions(),
       name: "omt.tab-grid",
       partialize: ({ items, layouts, mockDataVersion, lastLayoutColumns }) => ({
         lastLayoutColumns,
@@ -420,5 +421,3 @@ export const useTabGridStore = create<TabGridState>()(
     }
   )
 )
-
-initializeGarden(useTabGridStore.getState().items)

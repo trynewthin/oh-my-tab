@@ -6,20 +6,21 @@ import App from "./App.tsx"
 
 import { startThemeSync } from "@/lib/theme"
 
-import { useTabGridStore } from "@/stores/tab-grid-store"
-const syncGrid = (event: StorageEvent) => {
-  if (event.key === "omt.tab-grid" || event.key === null)
-    void useTabGridStore.persist.rehydrate()
+import { prepareData } from "@/lib/hydrate"
+
+async function start() {
+  const stopData = await prepareData()
+  if (import.meta.hot) import.meta.hot.dispose(stopData)
+  const stopThemeSync = startThemeSync()
+  if (import.meta.hot) import.meta.hot.dispose(stopThemeSync)
+
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
 }
-window.addEventListener("storage", syncGrid)
-if (import.meta.hot)
-  import.meta.hot.dispose(() => window.removeEventListener("storage", syncGrid))
-
-const stopThemeSync = startThemeSync()
-if (import.meta.hot) import.meta.hot.dispose(stopThemeSync)
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-)
+void start().catch(() => {
+  document.getElementById("root")!.textContent =
+    "数据读取失败，请检查浏览器存储权限后刷新页面。"
+})

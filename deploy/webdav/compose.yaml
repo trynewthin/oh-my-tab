@@ -1,0 +1,28 @@
+services:
+  webdav:
+    image: httpd:2.4
+    restart: unless-stopped
+    command: ["sh", "-c", "mkdir -p /data /usr/local/apache2/var && chown daemon:daemon /data /usr/local/apache2/var && exec httpd-foreground"]
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./auth:/auth:ro
+      - webdav-data:/data
+  https:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      DAV_DOMAIN: ${DAV_DOMAIN:?Set DAV_DOMAIN in .env}
+      DEV_ORIGIN: ${DEV_ORIGIN:-http://localhost:5173}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - webdav
+volumes:
+  webdav-data:
+  caddy-data:
+  caddy-config:

@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -15,6 +16,7 @@ export const useOnboardingStore = create<{
       finish: () => set({ seen: true, replay: false }),
     }),
     {
+      ...storageOptions(),
       name: "omt.onboarding",
       partialize: ({ seen }) => ({ seen }),
     }

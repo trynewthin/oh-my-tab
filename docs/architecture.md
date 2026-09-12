@@ -25,7 +25,7 @@
 - `tab-grid-store.ts` 是主页组件数据的操作入口。保存、删除、批量删除、成组、书签导入都通过其 action 执行。
 - 单项删除委托批量删除 action，共用局部撤销。撤销仅恢复被删组件和对应坐标，不回滚后续其他操作。
 - `grid-layout.ts` 负责布局推导、碰撞处理及布局补全；已有列数直接恢复，新列数参考最近布局的视觉顺序。
-- `grid-operations.ts` 负责成组的数据转换；`bookmark-import.ts` 负责 HTML 解析和增量去重，不直接写入持久化状态。
+- `grid-operations.ts` 负责成组的数据转换；`browser-bookmarks.ts` 负责授权与浏览器书签树解析，`bookmark-import.ts` 负责增量去重，不直接写入持久化状态。
 - `grid-selection-store.ts` 只保存选择模式与组件 ID。浮层退出动画属于视觉层。
 - `toast-store.ts` 保存消息与关闭意图；`MotionPresence` 完成退出后调用 remove。消息阅读时长属于 Toaster 的通知逻辑，与动画时长分离。
 
@@ -38,7 +38,11 @@
 
 ## 配置兼容
 
-主题色、燃烧幅度和过渡开关仍写入 `omt.home-settings`，由 `config-transfer.ts` 统一校验、导入导出。沿用此存储位置可直接读取现有用户配置，避免并存两套主题色来源。
+设置通过 `storage.ts` 统一持久化：扩展端使用 `chrome.storage.local`，开发网页使用 IndexedDB。启动时迁移旧版 localStorage 数据，完成恢复后再显示界面；跨页面写入带版本检查。
+
+`backup-codec.ts` 处理 ZIP 清单与 SHA-256 完整性校验，`backup.ts` 组织原图与状态快照，`config-transfer.ts` 校验状态并批量恢复。支持导入旧版 OMT1 文本。WebDAV 使用用户指定的 HTTPS 目录手动上传、下载，通过条件请求保护远端版本；连接信息与同步方案保存在当前设备，密码仅保留在面板内存。
+
+`storage-usage.ts` 统计分类用量，`storage-management.ts` 生成选择性清理计划。原图独立保存，清理背景时解除引用，清理闲置图片时保护最近一天写入的资源。
 
 历史 `burningEntrance` 字段映射到 `transitionsEnabled`；缺失燃烧幅度时使用 100%。历史布局记录继续可读取，当前可见网格最多五列。更改持久化字段时必须同时更新恢复逻辑、配置校验和兼容测试。
 

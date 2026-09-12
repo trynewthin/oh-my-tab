@@ -68,7 +68,7 @@ try {
  await page.getByRole('button',{name:'关闭文件夹'}).click()
  await page.waitForTimeout(350)
  await page.getByRole('button',{name:'打开设置',exact:true}).click()
- await page.getByRole('button',{name:'主页设置',exact:true}).click()
+ await page.getByRole('button',{name:'主页',exact:true}).click()
  await page.mouse.move(20,20)
  await page.waitForTimeout(350)
  await page.screenshot({path:'docs/screenshots/settings.png'})

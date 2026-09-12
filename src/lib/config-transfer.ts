@@ -1,3 +1,5 @@
+import { replaceData, flushStorage } from "./storage"
+import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
   useGardenStore,
   validSharedGarden,
@@ -11,15 +13,16 @@ import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useTabGridStore, validItem } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-data"
-import { encodeConfig, decodeConfig } from "./config-codec"
+import { decodeConfig } from "./config-codec"
 import { isBackgroundPaletteId } from "./background-palettes"
 
-function snapshot() {
+export function snapshot() {
   const home = useHomeSettingsStore.getState()
   const search = useSearchEngineStore.getState()
   const grid = useTabGridStore.getState()
   return {
     version: 1,
+    onboarding: { seen: useOnboardingStore.getState().seen },
     garden: useGardenStore.getState(),
     home: {
       backgroundType: home.backgroundType,
@@ -46,16 +49,20 @@ function snapshot() {
   }
 }
 export type Config = ReturnType<typeof snapshot>
-export const exportConfig = () => encodeConfig(snapshot())
 
 export async function parseConfig(text: string): Promise<Config> {
-  const value = await decodeConfig(text)
-  if (!value || typeof value !== "object") throw new Error("配置内容无效")
+  return validateConfig(await decodeConfig(text))
+}
+
+export function validateConfig(value: unknown): Config {
+  if (!value || typeof value !== "object") throw new Error("数据内容无效")
   const config = value as Config
   const { home, theme, search, grid } = config
   const hex = (v: unknown) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)
   if (
     config.version !== 1 ||
+    (config.onboarding !== undefined &&
+      (!config.onboarding || typeof config.onboarding.seen !== "boolean")) ||
     (config.garden !== undefined && !validSharedGarden(config.garden)) ||
     !home ||
     !theme ||
@@ -111,7 +118,7 @@ export async function parseConfig(text: string): Promise<Config> {
     typeof grid.layouts !== "object" ||
     Array.isArray(grid.layouts)
   )
-    throw new Error("配置内容无效或缺少必要设置")
+    throw new Error("数据内容无效或缺少必要设置")
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]
@@ -152,10 +159,14 @@ export async function parseConfig(text: string): Promise<Config> {
   return config
 }
 
-export function importConfig(config: Config) {
+export async function importConfig(
+  config: Config,
+  revision: string | undefined
+) {
   const entries = [
     ["omt.home-settings", config.home],
     ["omt.theme-mode", config.theme],
+    ["omt.onboarding", config.onboarding ?? { seen: true }],
     ["omt.search-engines", config.search],
     ["omt.tab-grid", config.grid],
     [
@@ -163,17 +174,14 @@ export function importConfig(config: Config) {
       config.garden ?? migrateGarden(config.grid.items, Date.now()),
     ],
   ] as const
-  const previous = entries.map(
-    ([key]) => [key, localStorage.getItem(key)] as const
+  await flushStorage()
+  await replaceData(
+    Object.fromEntries(
+      entries.map(([key, state]) => [
+        key,
+        JSON.stringify({ state, version: 0 }),
+      ])
+    ),
+    revision
   )
-  try {
-    for (const [key, state] of entries)
-      localStorage.setItem(key, JSON.stringify({ state, version: 0 }))
-  } catch {
-    for (const [key, value] of previous) {
-      if (value === null) localStorage.removeItem(key)
-      else localStorage.setItem(key, value)
-    }
-    throw new Error("保存失败，请检查浏览器存储空间")
-  }
 }

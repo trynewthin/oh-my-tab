@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Oh My Tab · 新标签页",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "description": "自定义浏览器新标签页：拖拽书签网格、文件夹与多选整理、实时搜索联想、电子点阵和粒子效果。",
   "chrome_url_overrides": {
     "newtab": "index.html"
@@ -16,7 +16,9 @@
   },
   "permissions": [
     "activeTab",
-    "search"
+    "search",
+    "storage",
+    "unlimitedStorage"
   ],
   "action": {
     "default_title": "快速添加到 Oh My Tab",
@@ -28,15 +30,9 @@
     }
   },
   "optional_host_permissions": [
-    "https://suggestqueries.google.com/*",
-    "https://www.bing.com/*",
-    "https://cn.bing.com/*",
-    "https://duckduckgo.com/*",
-    "https://search.yahoo.com/*",
-    "https://search.brave.com/*",
-    "https://ac.ecosia.org/*",
-    "https://suggest.yandex.com/*",
-    "https://a.favicon.im/*",
-    "https://icons.duckduckgo.com/*"
+    "https://*/*"
+  ],
+  "optional_permissions": [
+    "bookmarks"
   ]
 }

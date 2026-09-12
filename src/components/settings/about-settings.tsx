@@ -1,5 +1,6 @@
 import { GithubLogo } from "@phosphor-icons/react"
 import PrivacySettings from "./privacy-settings"
+import ProjectSupport from "./project-support"
 
 export default function AboutSettings() {
   return (
@@ -8,6 +9,8 @@ export default function AboutSettings() {
         关于
       </h2>
       <div className="space-y-5">
+        <ProjectSupport />
+        <PrivacySettings />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex min-w-0 items-center gap-4 p-4">
             <img
@@ -31,7 +34,6 @@ export default function AboutSettings() {
             </a>
           </div>
         </div>
-        <PrivacySettings />
       </div>
     </section>
   )

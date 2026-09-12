@@ -17,7 +17,7 @@ export default function SettingsButton({
       size="icon"
       className={
         compact
-          ? "size-10 rounded-full border-border/60 bg-card/70 shadow-xs backdrop-blur-xl"
+          ? "size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
           : undefined
       }
       data-tour="settings"

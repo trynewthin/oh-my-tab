@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import { suggestionOrigins } from "@/lib/search-suggestions"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
@@ -41,6 +42,7 @@ export const usePrivacyStore = create<PrivacyState>()(
       setBrowserSearch: (browserSearch) => set({ browserSearch }),
     }),
     {
+      ...storageOptions(),
       name: "omt.privacy",
       version: 1,
       migrate: (persisted) => {

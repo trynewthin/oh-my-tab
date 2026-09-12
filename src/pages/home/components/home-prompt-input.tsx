@@ -153,17 +153,18 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
   return (
     <div
       ref={root}
-      className="relative isolate z-20 mx-auto mt-6 w-full max-w-3xl shrink-0"
+      className={`relative isolate z-20 mx-auto mt-6 w-full max-w-3xl shrink-0 ${searchBoxStyle === "minimal" ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : ""}`}
+      data-tour={searchBoxStyle === "minimal" ? "search" : undefined}
     >
       {searchBoxStyle === "minimal" ? (
-        <div className="flex h-10 w-full items-center gap-2" data-tour="search">
+        <div className="contents">
           <div className="flex shrink-0 items-center gap-2">
             <MoreActions compact />
             <SettingsButton compact />
             <SearchEngineSelect compact />
           </div>
           <div
-            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-input shadow-xs ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
+            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           >
             <input
               value={draft}
@@ -341,7 +342,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
           id={listId}
           role="listbox"
           aria-label="搜索建议"
-          className="absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg"
+          className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" ? "col-start-2 col-end-3" : ""}`}
           onMouseDown={(event) => event.preventDefault()}
         >
           {matches.length > 0 && (

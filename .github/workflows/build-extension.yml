@@ -87,6 +87,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: oh-my-tab-*
@@ -98,12 +99,16 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          if [ -f "docs/releases/${RELEASE_TAG}.md" ]; then
+            cp "docs/releases/${RELEASE_TAG}.md" release-notes.md
+          else
           cat > release-notes.md <<'NOTES'
           浏览器新标签页扩展，支持电子点阵、可拖拽标签网格和快捷搜索。
 
           下载 ZIP，解压后在 Chrome / Edge 扩展管理页开启开发者模式，选择「加载已解压的扩展程序」。
           CRX 使用固定密钥签名；浏览器可能限制商店外 CRX 安装。
           NOTES
+          fi
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" packages/* --clobber
           else

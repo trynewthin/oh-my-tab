@@ -1,3 +1,4 @@
+import { storageOptions } from "@/lib/storage"
 import { usePrivacyStore } from "./privacy-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
@@ -62,6 +63,7 @@ export const useSearchEngineStore = create<SearchEngineState>()(
         }),
     }),
     {
+      ...storageOptions(),
       name: "omt.search-engines",
       partialize: ({ engines, selectedId }) => ({ engines, selectedId }),
       merge: (persisted, current) => {

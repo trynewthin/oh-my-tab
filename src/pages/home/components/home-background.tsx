@@ -1,3 +1,4 @@
+import { useImageAsset } from "@/lib/use-image-asset"
 import {
   backgroundPaletteStyle,
   getBackgroundPalette,
@@ -40,6 +41,7 @@ export default function HomeBackground() {
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
   const image = useHomeSettingsStore((state) => state.backgroundImage)
 
-  if (backgroundType === "image") return <ImageBackground image={image} />
+  const imageUrl = useImageAsset(image)
+  if (backgroundType === "image") return <ImageBackground image={imageUrl} />
   return <SolidBackground paletteId={paletteId} />
 }

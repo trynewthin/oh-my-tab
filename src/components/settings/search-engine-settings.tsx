@@ -37,7 +37,7 @@ export default function SearchEngineSettings() {
             id="search-settings-title"
             className="text-base leading-6 font-medium"
           >
-            搜索引擎
+            搜索
           </h2>
         </div>
         <Button

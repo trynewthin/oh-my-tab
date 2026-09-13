@@ -1,85 +1,113 @@
-import homeImage from "../../../docs/store-assets/01-home.png"
-import organizeImage from "../../../docs/store-assets/04-organize.png"
-import playImage from "../../../docs/store-assets/05-play.png"
-import { releaseUrl } from "./site-frame"
+import { useState } from "react"
+import { chromeStoreUrl, releaseUrl } from "./site-frame"
 
-const features = [
+const details = [
   {
-    number: "01",
-    title: "常用网站，各有位置",
-    text: "自由拖动标签，用文件夹收好相关网站。多选、成组和撤销让整理更轻松。",
+    title: "颜色，藏在细节里。",
+    text: "柔和底色、细密点阵，给每组收藏一点自己的辨识度。",
+    image: "home-dark",
+    view: "28 270 290 300",
+    tone: "lilac",
   },
   {
-    number: "02",
-    title: "搜索从熟悉的地方开始",
-    text: "先找到主页和文件夹里的书签，再用你选择的搜索引擎继续搜索网页。",
+    title: "把今天，轻轻勾掉。",
+    text: "待办也有圆润的轮廓。完成一项，就留下一枚小小的对勾。",
+    image: "widgets",
+    view: "310 100 300 310",
+    tone: "blue",
   },
   {
-    number: "03",
-    title: "实用，也保留一点趣味",
-    text: "把日历、待办、点阵画布和像素花盆放进每天都会打开的新标签页。",
+    title: "日子有自己的颜色。",
+    text: "月份、日期、今天的位置，安安静静地排好。",
+    image: "widgets",
+    view: "24 100 300 310",
+    tone: "rose",
   },
   {
-    number: "04",
-    title: "页面跟着习惯变化",
-    text: "浅色、深色、主题色、背景和动态效果都可以独立调整。",
+    title: "养朵花，画朵花。",
+    text: "一盆像素植物，一张点阵画布。忙完了，也可以玩一会儿。",
+    image: "widgets",
+    view: "608 90 570 320",
+    tone: "green",
   },
 ]
 
-function Arrow() {
-  return <span aria-hidden="true">↗</span>
-}
-
 export function LandingContent() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark")
+
   return (
     <main className="landing">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">Chrome / Edge 新标签页</p>
           <h1>
-            每天打开的那一页，
-            <span>认真布置一下。</span>
+            打开新的一页，
+            <span>回到自己的节奏。</span>
           </h1>
-          <p className="hero-intro">
-            把搜索、常用网站和小组件放在一起。Oh My Tab
-            给你一个安静、顺手，也真正属于自己的浏览器起点。
-          </p>
           <div className="hero-actions">
-            <a className="button button--primary" href={releaseUrl}>
-              下载最新版本 <Arrow />
+            <a className="button button--primary" href={chromeStoreUrl}>
+              前往 Chrome 商店
             </a>
-            <a className="button button--quiet" href="#showcase">
-              看看界面
+            <a className="button button--quiet" href={releaseUrl}>
+              下载最新版本
             </a>
           </div>
-          <ul className="hero-notes" aria-label="产品特点">
-            <li>本地保存</li>
-            <li>按需联网</li>
-            <li>自由布局</li>
-          </ul>
         </div>
-        <div className="hero-visual">
+        <div className="preview-toolbar">
+          <div className="theme-switch" role="group" aria-label="预览主题">
+            <button
+              type="button"
+              aria-pressed={theme === "dark"}
+              onClick={() => setTheme("dark")}
+            >
+              ☾ 深色
+            </button>
+            <button
+              type="button"
+              aria-pressed={theme === "light"}
+              onClick={() => setTheme("light")}
+            >
+              ☼ 浅色
+            </button>
+          </div>
+        </div>
+        <div className={`hero-visual hero-visual--${theme}`}>
           <div className="browser-bar" aria-hidden="true">
             <i />
             <i />
             <i />
-            <span>新标签页</span>
           </div>
-          <img src={homeImage} alt="Oh My Tab 深色与浅色主页预览" />
+          <img
+            width="2400"
+            height="1840"
+            src={`/showcase/home-${theme}.webp`}
+            alt={`Oh My Tab ${theme === "dark" ? "深色" : "浅色"}主题，包含书签文件夹、日历和像素组件`}
+          />
         </div>
       </section>
 
       <section className="feature-section" id="features">
         <div className="section-heading">
-          <p className="eyebrow">做得更顺手</p>
-          <h2>功能不必抢镜，刚好在需要时出现。</h2>
+          <h2>凑近一点看。</h2>
         </div>
-        <div className="feature-grid">
-          {features.map((feature) => (
-            <article className="feature-card" key={feature.number}>
-              <span>{feature.number}</span>
-              <h3>{feature.title}</h3>
-              <p>{feature.text}</p>
+        <div className="detail-grid">
+          {details.map((detail) => (
+            <article
+              className={`detail-card detail-card--${detail.tone}`}
+              key={detail.title}
+            >
+              <div className="detail-art">
+                <svg viewBox={detail.view} role="img" aria-label={detail.title}>
+                  <image
+                    href={`/showcase/${detail.image}.webp`}
+                    width="1200"
+                    height={detail.image === "home-dark" ? 920 : 460}
+                  />
+                </svg>
+              </div>
+              <div className="detail-copy">
+                <h3>{detail.title}</h3>
+                <p>{detail.text}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -88,33 +116,41 @@ export function LandingContent() {
       <section className="showcase-section" id="showcase">
         <div className="section-heading section-heading--split">
           <div>
-            <p className="eyebrow">真实界面</p>
-            <h2>从整理到放松，都在同一张画布上。</h2>
+            <h2>井井有条，也有一点可爱。</h2>
           </div>
-          <p>每张截图都来自实际产品界面与公开示例数据。</p>
         </div>
-        <div className="showcase-grid">
-          <figure className="showcase-card showcase-card--wide">
-            <img src={organizeImage} alt="使用多选和文件夹整理常用网站" />
-            <figcaption>把常用网站收拾得清清楚楚。</figcaption>
-          </figure>
-          <figure className="showcase-card">
-            <img src={playImage} alt="日历、点阵画布与像素花盆组件" />
-            <figcaption>也给每天留一点小爱好。</figcaption>
-          </figure>
+        <div className="showcase-list">
+          <article className="showcase-item">
+            <div className="showcase-copy">
+              <h3>常用网站，各有位置</h3>
+              <p>用文件夹收起一组站点，展开后依然可以直接浏览和打开。</p>
+            </div>
+            <div className="showcase-shot">
+              <img
+                loading="lazy"
+                width="2400"
+                height="920"
+                src="/showcase/organize.webp"
+                alt="展开文件夹浏览常用网站的产品界面"
+              />
+            </div>
+          </article>
+          <article className="showcase-item showcase-item--reverse">
+            <div className="showcase-copy">
+              <h3>每天，也留一点小爱好</h3>
+              <p>日历、待办、像素花盆和点阵画布，共享同一张自由画布。</p>
+            </div>
+            <div className="showcase-shot">
+              <img
+                loading="lazy"
+                width="2400"
+                height="920"
+                src="/showcase/widgets.webp"
+                alt="日历、待办、像素花盆和点阵画布组件"
+              />
+            </div>
+          </article>
         </div>
-      </section>
-
-      <section className="privacy-callout">
-        <p className="eyebrow">数据由你掌握</p>
-        <h2>没有广告，也不靠分析你的使用习惯来运转。</h2>
-        <p>
-          书签、布局和图片默认保存在当前设备。搜索联想、网站图标和 WebDAV
-          都由你主动开启。
-        </p>
-        <a href="/privacy">
-          查看隐私政策 <Arrow />
-        </a>
       </section>
     </main>
   )

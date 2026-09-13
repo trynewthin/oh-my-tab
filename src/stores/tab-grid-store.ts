@@ -1,9 +1,4 @@
 import { storageOptions } from "@/lib/storage"
-import {
-  canvasDimensions,
-  resizeDots,
-  displayDots,
-} from "@/components/tab-grid/dot-canvas-data"
 import { validGardenPlant } from "@/lib/garden"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { groupComponents } from "@/lib/grid-operations"
@@ -12,6 +7,7 @@ import {
   GRID_COLUMNS,
   reconcileLayouts,
   deriveLayout,
+  itemWidth,
 } from "@/components/tab-grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
@@ -20,30 +16,15 @@ import {
   normalizeTabUrl,
   type GridItem,
   type TabEntry,
+  type TodoTask,
 } from "@/components/tab-grid/types"
 
 import {
   mockGridItems,
-  additionalMockGridItems,
   MOCK_DATA_VERSION,
 } from "@/components/tab-grid/mock-data"
 
-function normalizeFolderSize(item: GridItem): GridItem {
-  if (item.kind === "dot-canvas" && !item.pixelColumns) {
-    const { columns, rows } = canvasDimensions(item.size)
-    return {
-      ...item,
-      pixelColumns: columns,
-      pixels: resizeDots(displayDots(item.pixels), 24, columns, rows),
-    }
-  }
-  return item.kind === "folder" && item.size === "small"
-    ? { ...item, size: "large" }
-    : item
-}
-const initialItems = import.meta.env.DEV
-  ? mockGridItems.map(normalizeFolderSize)
-  : []
+const initialItems = import.meta.env.DEV ? mockGridItems : []
 
 import type { GridPositions } from "@/components/tab-grid/grid-layout"
 
@@ -55,6 +36,10 @@ import {
 import { randomFolderColor } from "@/lib/folder-colors"
 
 type TabGridState = {
+  updateTodoTasks: (
+    id: string,
+    change: (tasks: TodoTask[]) => TodoTask[]
+  ) => void
   lastLayoutColumns?: number
   ensureLayout: (columns: number) => void
   mockDataVersion: number
@@ -107,6 +92,24 @@ export function validItem(value: unknown): value is GridItem {
     !/^#[0-9a-f]{6}$/i.test(item.color)
   )
     return false
+  if (item.kind === "todo")
+    return (
+      ["small", "medium", "large"].includes(item.size) &&
+      (item.dynamicEffect === undefined ||
+        typeof item.dynamicEffect === "boolean") &&
+      Array.isArray(item.tasks) &&
+      item.tasks.length <= 200 &&
+      item.tasks.every(
+        (t) =>
+          t &&
+          typeof t.id === "string" &&
+          typeof t.text === "string" &&
+          t.text.trim().length > 0 &&
+          t.text.length <= 200 &&
+          typeof t.done === "boolean"
+      ) &&
+      new Set(item.tasks.map((t) => t.id)).size === item.tasks.length
+    )
   if (item.kind === "calendar")
     return ["small", "medium", "large"].includes(item.size)
   if (item.kind === "ecosystem")
@@ -194,6 +197,14 @@ export const useTabGridStore = create<TabGridState>()(
           lastLayoutColumns: columns,
         })),
       items: initialItems,
+      updateTodoTasks: (id, change) =>
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id && item.kind === "todo"
+              ? { ...item, tasks: change(item.tasks) }
+              : item
+          ),
+        })),
       transferTab: (move) => set((state) => transferTab(state, move)),
       setItemDynamicEffect: (id, enabled) =>
         set((state) => ({
@@ -201,7 +212,8 @@ export const useTabGridStore = create<TabGridState>()(
             item.id === id &&
             (item.kind === "tab" ||
               item.kind === "folder" ||
-              item.kind === "calendar")
+              item.kind === "calendar" ||
+              item.kind === "todo")
               ? { ...item, dynamicEffect: enabled }
               : item
           ),
@@ -212,7 +224,8 @@ export const useTabGridStore = create<TabGridState>()(
             item.id === id &&
             (item.kind === "tab" ||
               item.kind === "folder" ||
-              item.kind === "calendar")
+              item.kind === "calendar" ||
+              item.kind === "todo")
               ? { ...item, color: randomFolderColor(item.color) }
               : item
           ),
@@ -222,7 +235,7 @@ export const useTabGridStore = create<TabGridState>()(
           items: state.items.map((item) => {
             if (item.id !== id) return item
             if (
-              item.kind === "calendar" &&
+              (item.kind === "calendar" || item.kind === "todo") &&
               (size === "small" || size === "medium" || size === "large")
             )
               return { ...item, size }
@@ -236,7 +249,7 @@ export const useTabGridStore = create<TabGridState>()(
                 size === "wide" ||
                 size === "wide-tall")
             )
-              return { ...item, size: size === "small" ? "large" : size }
+              return { ...item, size }
             return item
           }),
         })),
@@ -258,7 +271,7 @@ export const useTabGridStore = create<TabGridState>()(
         })
         toast(
           removed.length === 1
-            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : removed[0].kind === "calendar" ? "日历" : "标签"}「${removed[0].name}」`
+            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : removed[0].kind === "calendar" ? "日历" : removed[0].kind === "todo" ? "待办" : "标签"}「${removed[0].name}」`
             : `已删除 ${removed.length} 个组件`,
           "warning",
           {
@@ -334,9 +347,9 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: state.items.some((existing) => existing.id === item.id)
             ? state.items.map((existing) =>
-                existing.id === item.id ? normalizeFolderSize(item) : existing
+                existing.id === item.id ? item : existing
               )
-            : [...state.items, normalizeFolderSize(item)],
+            : [...state.items, item],
         })),
       updateFolderTab: (folderId, tabId, changes) =>
         set((state) => ({
@@ -371,7 +384,13 @@ export const useTabGridStore = create<TabGridState>()(
       }),
       merge: (persisted, current) => {
         const items = (persisted as { items?: unknown } | null)?.items
-        const storedItems = Array.isArray(items) ? items.filter(validItem) : []
+        if (
+          items !== undefined &&
+          (!Array.isArray(items) || !items.every(validItem))
+        ) {
+          throw new Error("组件数据无效，已停止加载以保留原始数据")
+        }
+        const storedItems: GridItem[] = Array.isArray(items) ? items : []
         const savedLayouts = (
           persisted as { layouts?: Record<string, unknown> } | null
         )?.layouts
@@ -381,12 +400,19 @@ export const useTabGridStore = create<TabGridState>()(
           if (!layout || typeof layout !== "object") continue
           layouts[columns] = Object.fromEntries(
             Object.entries(layout).filter(
-              ([, value]) =>
+              ([id, value]) =>
                 value &&
                 Number.isInteger(value.x) &&
                 Number.isInteger(value.y) &&
                 value.x >= 0 &&
-                value.x <= columns - 4 &&
+                value.x <=
+                  columns -
+                    (storedItems.find((item) => item.id === id)
+                      ? itemWidth(
+                          storedItems.find((item) => item.id === id)!,
+                          columns
+                        )
+                      : 4) &&
                 value.y >= 0 &&
                 value.y <= 500
             )
@@ -395,27 +421,7 @@ export const useTabGridStore = create<TabGridState>()(
         const savedMockVersion =
           (persisted as { mockDataVersion?: number } | null)?.mockDataVersion ??
           0
-        let restoredItems = Array.isArray(items) ? storedItems : initialItems
-        if (import.meta.env.DEV && savedMockVersion < MOCK_DATA_VERSION) {
-          const existingIds = new Set(
-            restoredItems.flatMap((item) =>
-              item.kind === "folder"
-                ? [item.id, ...item.tabs.map((tab) => tab.id)]
-                : [item.id]
-            )
-          )
-          const additions = additionalMockGridItems
-            .filter((item) => !existingIds.has(item.id))
-            .map((item) =>
-              item.kind === "folder"
-                ? {
-                    ...item,
-                    tabs: item.tabs.filter((tab) => !existingIds.has(tab.id)),
-                  }
-                : item
-            )
-          restoredItems = [...restoredItems, ...additions]
-        }
+        const restoredItems = Array.isArray(items) ? storedItems : initialItems
         return {
           ...current,
           lastLayoutColumns: GRID_COLUMNS.find(
@@ -428,7 +434,7 @@ export const useTabGridStore = create<TabGridState>()(
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION
             : savedMockVersion,
-          items: restoredItems.map(normalizeFolderSize),
+          items: restoredItems,
         }
       },
     }

@@ -25,6 +25,8 @@ export function itemWidth(item: GridItem, columns = 24) {
 }
 
 export function itemHeight(item: GridItem) {
+  if (item.kind === "todo")
+    return item.size === "small" ? 1 : item.size === "medium" ? 2 : 4
   if (item.kind === "calendar")
     return item.size === "small" ? 1 : item.size === "medium" ? 2 : 4
   return item.kind === "tab"

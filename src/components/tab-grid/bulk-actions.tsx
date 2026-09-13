@@ -85,7 +85,8 @@ export default function BulkActions() {
                   (item) =>
                     item.kind === "dot-canvas" ||
                     item.kind === "ecosystem" ||
-                    item.kind === "calendar"
+                    item.kind === "calendar" ||
+                    item.kind === "todo"
                 )
               }
               title={
@@ -93,7 +94,8 @@ export default function BulkActions() {
                   (item) =>
                     item.kind === "dot-canvas" ||
                     item.kind === "ecosystem" ||
-                    item.kind === "calendar"
+                    item.kind === "calendar" ||
+                    item.kind === "todo"
                 )
                   ? "文件夹仅支持收纳书签"
                   : undefined

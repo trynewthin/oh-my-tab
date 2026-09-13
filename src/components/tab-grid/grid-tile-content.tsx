@@ -1,3 +1,4 @@
+import Todo from "./todo"
 import Calendar from "./calendar"
 import { canvasDimensions, resizeDots, displayDots } from "./dot-canvas-data"
 import Ecosystem from "./ecosystem"
@@ -17,6 +18,7 @@ export default function GridTileContent({
   onOpen: () => void
   preview?: boolean
 }) {
+  if (item.kind === "todo") return <Todo item={item} preview={preview} />
   if (item.kind === "calendar")
     return <Calendar item={item} preview={preview} />
   if (item.kind === "ecosystem")

@@ -67,8 +67,18 @@ export type CalendarItem = {
   color: string
   dynamicEffect?: boolean
 }
+export type TodoTask = { id: string; text: string; done: boolean }
+export type TodoItem = {
+  id: string
+  kind: "todo"
+  name: string
+  size: "small" | "medium" | "large"
+  color: string
+  tasks: TodoTask[]
+  dynamicEffect?: boolean
+}
 export type GridItem =
-  TabItem | FolderItem | DotCanvasItem | EcosystemItem | CalendarItem
+  TabItem | FolderItem | DotCanvasItem | EcosystemItem | CalendarItem | TodoItem
 
 export function normalizeTabUrl(value: string): string | null {
   try {

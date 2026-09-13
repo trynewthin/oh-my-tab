@@ -24,9 +24,7 @@ dist-ssr
 *.sw?
 
 # Browser verification output
-test-results/
-playwright-report/
-artifacts/
+tests/results/
 
 # Private configuration and migration exports
 .env

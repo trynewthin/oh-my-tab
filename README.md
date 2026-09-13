@@ -1,156 +1,68 @@
+![Oh My Tab 浏览器新标签页](docs/store-assets/promo-marquee.png)
+
 # Oh My Tab
 
-**让新标签页成为你的书签工作台。**
+把常用网站、文件夹和小组件放进一个可以自由整理的新标签页。
 
-Oh My Tab 是一个可自定义的浏览器新标签页与书签管理工具，支持 Chrome / Edge 扩展和网页预览。用可拖拽网格整理常用网站，通过实时搜索联想快速查找，用电子点阵、方格燃烧和浮游粒子打造自己的起始页。
+[下载最新版本](https://github.com/trynewthin/oh-my-tab/releases/latest) · [查看隐私政策](public/privacy.html)
 
-[下载最新版本](https://github.com/trynewthin/oh-my-tab/releases/latest) · [架构说明](docs/architecture.md)
+## 用顺手的方式打开每一天
 
-![Oh My Tab 深色主页：电子点阵、搜索框与书签网格](docs/screenshots/home-dark.png)
+Oh My Tab 会替换 Chrome 或 Edge 的新标签页。你可以拖动卡片安排位置，把相关网站收进文件夹，也可以直接搜索主页和文件夹里的书签。
 
-## 动态演示
+- **整理常用网站**：添加标签和文件夹，自由拖动、排序与调整大小。
+- **快速搜索**：搜索已有书签，或使用你选择的搜索引擎继续搜索网页。
+- **实用小组件**：在主页放置日历、待办、点阵画布和像素花盆。
+- **个性化外观**：切换浅色、深色或跟随系统，搭配主题色、随机配色与动态效果。
+- **迁移现有书签**：按需导入 Chrome 或 Edge 书签，并自动处理重复网址和同名文件夹。
+- **备份自己的布局**：通过 ZIP 导入、导出完整数据，也可以手动连接 WebDAV 在设备间传递快照。
 
-### 主题色与粒子交互
+## 安装
 
-切换方格燃烧与浮游粒子，实时调整主题色。粒子独立呼吸，指针靠近时产生避让和提亮；幅度与过渡效果统一控制。
+1. 从 [Releases](https://github.com/trynewthin/oh-my-tab/releases) 下载最新的 ZIP 文件并解压。
+2. 在 Chrome 打开 `chrome://extensions/`，或在 Edge 打开 `edge://extensions/`。
+3. 开启「开发者模式」，选择「加载已解压的扩展程序」。
+4. 选择包含 `manifest.json` 的解压目录。
 
-![切换燃烧和浮游粒子并调整主题色](docs/demos/personalization.gif)
+安装后打开一个新标签页即可开始使用。将扩展固定到工具栏后，还可以把当前网页快速添加到主页。
 
-### 批量整理与文件夹
+## 开始使用
 
-进入多选，选中的组件通过动态效果和光晕反馈状态。将多个书签合入文件夹，展开后直接访问；批量删除可通过顶部通知撤销。
+1. 点击搜索框左侧的组件按钮，添加网站、文件夹或小组件。
+2. 拖动卡片调整位置；把相关网站拖进同一个文件夹。
+3. 右键点击卡片，编辑内容、调整大小或删除。
+4. 点击设置按钮，更换主题、搜索引擎、背景与动态效果。
 
-![多选书签、创建文件夹并展开](docs/demos/organize.gif)
+## 数据和隐私
 
-### 组件预览与搜索联想
+书签、布局、偏好和背景图片默认保存在当前设备。Oh My Tab 不包含广告或行为分析。
 
-先预览标签或文件夹，再配置添加。搜索时优先呈现匹配书签，并显示实时关键词联想。
+搜索联想、第三方网站图标、浏览器书签导入和 WebDAV 都需要你主动开启或操作。ZIP 备份未加密，请像保管普通备份文件一样妥善保存。权限用途和联网范围见[隐私政策](public/privacy.html)。
 
-![组件选择、配置弹窗与搜索建议](docs/demos/components-search.gif)
+<details>
+<summary>开发与贡献</summary>
 
-演示在独立浏览器环境录制，使用公开示例网站和 mock 数据；联想内容采用固定示例，便于复现。
-
-## 特色功能
-
-- **点阵画布**：24×24 像素绘制，支持橡皮、取色、撤销，以及图片裁剪后生成点阵。
-- **像素花盆**：六类随机株型，随时间生长并自然摆动。支持命名、浇水、施肥、成熟收纳；多个花盆共用点数、每日签到和植物图鉴。
-
-- **可恢复的自由布局**：拖拽排列并保留空位，宽屏最多五列。各列数分别保存排版，缩小窗口再放大即可恢复；新尺寸按最近布局的视觉顺序生成。
-- **组件与文件夹**：四宫格菜单或网格空白处右键添加组件。标签支持 4×1、4×2；文件夹支持 4×4、4×8、8×4、8×8，宽文件夹内部采用双列，可拖入、拖出和内部排序。
-- **多选与撤销**：全选、成组、批量删除。删除标签或整个文件夹后可通过顶部 Toast 恢复，不回滚后续其他操作。
-- **个性化视觉**：统一主题色，方格燃烧与浮游粒子两种效果，可调幅度和过渡。支持浅色、深色与跟随系统。
-- **自适应电子点阵**：固定颗粒、动态列数；时间自动适配宽度，长文字滚动显示，颜文字宠物拥有独立动作，另有海浪呼吸模式。
-- **快捷搜索**：匹配主页及文件夹内书签，可选启用 Bing 实时联想；结果使用当前选择的搜索引擎打开。支持自定义引擎和键盘选择。
-- **导入与备份**：点击导入并授权后直接读取 Chrome / Edge 书签，增量添加、网址去重、同名文件夹合并；多级目录以路径名称保留。开发网页版不读取浏览器书签。数据以 ZIP 文件备份，包含原始背景图片；兼容旧版文本备份，导入前校验并确认覆盖。
-- **本地存储**：扩展使用 Chrome 本地存储，开发网页版使用 IndexedDB，统一管理设置、原图和图标缓存。首次启动自动迁移旧数据，新手教程可从常规重新开启。
-- **扩展快捷收藏**：点击浏览器工具栏图标，读取当前网页标题与网址并添加到主页。
-
-## 本地安装
-
-需要 Node.js 22.12+ 和 npm。
+需要 Node.js 22.12 或更高版本。
 
 ```bash
 npm ci
-npm run build
+npm run dev
 ```
 
-1. 在 Chrome 打开 `chrome://extensions/`。
-2. 开启「开发者模式」，点击「加载未打包的扩展程序」。
-3. 选择项目的 `dist` 目录。
-4. 打开新标签页；将扩展固定到工具栏，便于快捷添加网站。
-
-源码更新后，重新构建并在扩展管理页重新加载。安装包初始网格为空；开发环境提供 mock 数据。开发预览和扩展的数据相互独立，可以通过 ZIP 备份迁移，或连接同一 WebDAV 目录手动同步。
-
-## 开发和验证
+提交修改前可以运行：
 
 ```bash
-npm run dev           # 开发预览
-npm run build         # 类型检查与扩展构建
+npm run build
 npm run lint
-npm test              # 页面和设置交互测试
-npm run test:unit     # 数据存储、备份与图标缓存测试
+npm run test:unit
+npm test
+npm run test:extension
 ```
 
-页面测试默认使用 macOS 上的 Google Chrome；其他环境可运行 `npx playwright install chromium`，或设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`。
+开发、测试、发布和部署资料见[项目文档](docs/README.md)。
 
-生成展示截图：
-
-```bash
-npm run build
-npm run preview -- --host 127.0.0.1 --port 4173
-# 在另一终端执行：
-npm run screenshots
-```
-
-截图脚本使用全新浏览器上下文和内置 mock 数据，不读取日常浏览器配置。`SHOWCASE_URL` 可以指定预览地址。
-
-录制功能 GIF（需已安装 FFmpeg，并启动 `npm run dev`）：
-
-```bash
-npm run demos
-```
-
-输出位于 `docs/demos/`；`SHOWCASE_URL` 可指定录制地址，录制使用独立浏览器数据。
-
-## 数据与权限
-
-- 默认使用浏览器搜索设置，也可主动选择搜索引擎。
-- 搜索联想和第三方图标下载默认关闭，可在关于查看说明并按需授权。
-- 联想启用后向当前选择的受支持搜索引擎发送输入关键词；图标下载向 Favicon.im、DuckDuckGo 发送网站域名。
-- 必需权限：`activeTab` 用于点击工具栏时读取当前网页标题和链接；`search` 用于浏览器默认搜索。
-- 可选网站权限仅限受支持的搜索联想与图标 HTTPS 服务，不申请全站访问，不扫描已打开标签页。
-- 书签、布局、偏好、原图和图标缓存保存在本地。ZIP 备份未加密，不包含图标缓存、隐私授权或 WebDAV 连接信息。
-- 完整说明见 [隐私政策](public/privacy.html)，商店提交准备见 [上架材料](docs/chrome-web-store.md)。
-
-模块职责和扩展约定见 [架构说明](docs/architecture.md)。
-
-## 项目结构
-
-```text
-src/pages/home/          主页背景和 UI
-src/pages/popup/         扩展快捷添加弹窗
-src/components/dot-matrix/  点阵字形与呼吸效果
-src/components/tab-grid/   标签、文件夹、网格和拖拽
-src/components/settings/   设置对话框
-src/components/ui/         shadcn 基础组件
-src/stores/             Zustand 状态与持久化
-src/lib/                统一存储、ZIP 备份、WebDAV、图标缓存等
-public/manifest.json    Manifest V3 扩展清单
-plugins/                开发预览的图标下载代理
-```
+</details>
 
 ## 致谢
 
-界面采用 [shadcn/ui](https://ui.shadcn.com/)，输入框基于 [Prompt Kit](https://www.prompt-kit.com/)。图标使用 [Phosphor](https://phosphoricons.com/) 与 [Simple Icons](https://simpleicons.org/)，动画使用 [GSAP](https://gsap.com/)，拖拽基于 [dnd kit](https://dndkit.com/)。网站标识属于各自权利人。
-
-## 发布与自动打包
-
-在 [Releases](https://github.com/trynewthin/oh-my-tab/releases) 下载正式版本的 ZIP 或 CRX。
-
-推送 `main`、推送 `v*` 标签或手动运行 **Build extension** 工作流，会生成 ZIP 和 CRX。PR 构建只生成 ZIP，不读取签名密钥。推送 `v*` 标签会在构建和校验通过后自动发布 GitHub Release，附带 ZIP 和 CRX。
-
-在仓库 **Actions → Build extension → 对应运行 → Artifacts** 下载构建产物，保留 30 天。解压 artifact 后包含：
-
-- `oh-my-tab-版本-提交.zip`：扩展安装目录，解压后可在 Chrome / Edge 加载；`manifest.json` 位于根目录。
-- `oh-my-tab-版本-提交.crx`：使用固定私钥签名的 CRX3 包。浏览器对商店外 CRX 安装存在限制，开发调试优先使用 ZIP。
-
-签名私钥由仓库 Secret `EXTENSION_SIGNING_KEY` 提供，值为完整 PEM 文本。自行 fork 时，需要生成 RSA 私钥并配置同名 Secret；请在仓库外保管密钥。保持同一私钥才能保持同一扩展 ID。本地按目录加载的扩展 ID 可能与签名 CRX 不同。
-
-
-## 数据存储与多端同步
-
-1. 扩展使用 `chrome.storage.local` 并声明 `storage`、`unlimitedStorage`；开发网页版使用 IndexedDB。界面载入前完成状态恢复，多个页面通过通知读取已保存的数据，冲突写入会拒绝并提示重试。
-2. 背景原图不缩放或转码，单张上限 50 MB。Chrome 存储中的图片使用无损 Base64 编码，开发端直接保存 Blob；ZIP 内保存原始二进制文件，整个包上限 64 MB。
-3. 在「常规 → 数据」手动导出、导入 ZIP。ZIP 包含书签、布局、主页与主题设置、搜索引擎、点阵、植物进度、教程状态和背景图片；不包含设备联网授权、WebDAV 连接信息或可重建的图标缓存。旧版 `OMT1:` 文本可保存为 `.txt` 后导入，已压缩的旧图片无法还原为原图。
-4. 各设备将「多端同步方案」选为「WebDAV」，在「WebDAV → 管理」中连接同一目录，手动上传或下载 `oh-my-tab.zip`。这是一份完整快照；下载恢复会覆盖本机数据，上传覆盖已有云端文件前会确认。多端数据不自动合并，也不会在后台定时同步。
-5. WebDAV 地址必须为 HTTPS，目录须已存在。密码只在当前设置面板的内存中使用，不持久保存；地址和用户名仅保存在当前设备。服务器需提供强 ETag 并执行条件写入；网页开发端额外需要 CORS。已校验的本机恢复会检查数据版本，云端覆盖使用条件请求，避免覆盖确认期间的新修改。
-6. 「缓存 → 管理」显示各类本地数据的估算用量，可勾选图标、闲置图片、背景、书签与布局、个性化与搜索设置、植物积分与图鉴、WebDAV 连接设置进行清除。清除需确认，仅处理所选类别；系统与授权记录保留，最近一天写入的闲置图片暂不清除。旧版 localStorage 数据保留作为迁移回退副本，不继续参与正常读写。
-
-自部署配置和操作步骤见 [WebDAV 部署说明](deploy/webdav/README.md)。ZIP 清单格式为 `oh-my-tab` 版本 2，图片通过 SHA-256 校验完整性。Chrome 同步配额不用于原图，多设备传输通过用户配置的 WebDAV 完成。
-
-
-### WebDAV 集成验证
-
-先运行 `npm run dev`，再运行 `npm run test:webdav`。需要 Docker 和 Playwright Chromium；可用 `WEBDAV_TEST_APP_URL` 指定开发页面地址。脚本创建临时 Apache WebDAV 与 Caddy HTTPS 服务，用两个独立网页会话和一个独立扩展配置目录验证连接、上传、下载恢复、原图字节一致性、取消、删除连接和 ETag 冲突保护，完成后自动删除测试容器、数据卷和浏览器目录。
-
-测试结果写入 `artifacts/webdav-verification.json`。测试 HTTPS 使用本地证书，浏览器测试上下文忽略其信任错误；扩展的临时副本预先授予本机测试服务器权限，不覆盖首次授权弹窗。测试不读取日常浏览器配置或用户的 WebDAV 连接。
+界面基于 React、shadcn/ui 和 Tailwind CSS，拖拽使用 dnd kit，动画使用 GSAP，图标使用 Phosphor Icons 与 Simple Icons。

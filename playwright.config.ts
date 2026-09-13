@@ -2,7 +2,8 @@ import { defineConfig } from "@playwright/test"
 import { existsSync } from "node:fs"
 const chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 export default defineConfig({
-  testDir: "./tests",
+  testDir: "./tests/e2e",
+  outputDir: "./tests/results/playwright",
   fullyParallel: true,
   use: {
     baseURL: "http://127.0.0.1:4173",

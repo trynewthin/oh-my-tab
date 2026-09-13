@@ -36,13 +36,7 @@ export default function ComponentConfiguration({
   const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
   const [size, setSize] = useState<
     "small" | "medium" | "large" | "tall" | "wide" | "wide-tall"
-  >(
-    item?.kind === "folder"
-      ? item.size === "small"
-        ? "large"
-        : item.size
-      : (item?.size ?? (kind === "folder" ? "large" : "small"))
-  )
+  >(item?.size ?? (kind === "folder" ? "large" : "small"))
   const [color, setColor] = useState(item?.color ?? "#6c8bd4")
   const saveItem = useTabGridStore((state) => state.saveItem)
 
@@ -63,6 +57,16 @@ export default function ComponentConfiguration({
         size: size === "medium" ? "medium" : "small",
         color,
       })
+    else if (kind === "todo")
+      saveItem({
+        id,
+        kind,
+        name: name.trim(),
+        size: size === "small" || size === "medium" ? size : "large",
+        color,
+        tasks: item?.kind === "todo" ? item.tasks : [],
+        dynamicEffect: item?.dynamicEffect ?? false,
+      })
     else if (kind === "calendar")
       saveItem({
         id,
@@ -78,7 +82,10 @@ export default function ComponentConfiguration({
         kind,
         name: name.trim(),
         size:
-          size === "tall" || size === "wide" || size === "wide-tall"
+          size === "small" ||
+          size === "tall" ||
+          size === "wide" ||
+          size === "wide-tall"
             ? size
             : "large",
         color,
@@ -113,64 +120,73 @@ export default function ComponentConfiguration({
           />
         </label>
       )}
-      <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-        <label htmlFor="grid-size">显示大小</label>
-        <Select
-          value={size}
-          onValueChange={(value) => {
-            if (
-              value === "small" ||
-              value === "medium" ||
-              value === "large" ||
-              value === "tall" ||
-              value === "wide" ||
-              value === "wide-tall"
-            )
-              setSize(value)
-          }}
-        >
-          <SelectTrigger id="grid-size" className="w-full">
-            <SelectValue>
-              {kind === "calendar"
-                ? size === "small"
-                  ? "周 · 4×1"
-                  : size === "medium"
-                    ? "日 · 2×2"
-                    : "月 · 4×4"
-                : kind === "tab"
+      {kind !== "todo" && (
+        <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
+          <label htmlFor="grid-size">显示大小</label>
+          <Select
+            value={size}
+            onValueChange={(value) => {
+              if (
+                value === "small" ||
+                value === "medium" ||
+                value === "large" ||
+                value === "tall" ||
+                value === "wide" ||
+                value === "wide-tall"
+              )
+                setSize(value)
+            }}
+          >
+            <SelectTrigger id="grid-size" className="w-full">
+              <SelectValue>
+                {kind === "calendar"
                   ? size === "small"
-                    ? "小 · 4×1"
-                    : "中 · 4×2"
-                  : size === "wide"
-                    ? "宽 · 8×4"
-                    : size === "wide-tall"
-                      ? "宽高 · 8×8"
-                      : size === "tall"
-                        ? "高 · 4×8"
-                        : "大 · 4×4"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {kind === "calendar" && (
-              <>
-                <SelectItem value="small">周 · 4×1</SelectItem>
-                <SelectItem value="medium">日 · 2×2</SelectItem>
-              </>
-            )}
-            {kind === "tab" && <SelectItem value="small">小 · 4×1</SelectItem>}
-            <SelectItem value={kind === "tab" ? "medium" : "large"}>
-              {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
-            </SelectItem>
-            {kind === "folder" && (
-              <>
-                <SelectItem value="tall">高 · 4×8</SelectItem>
-                <SelectItem value="wide">宽 · 8×4</SelectItem>
-                <SelectItem value="wide-tall">宽高 · 8×8</SelectItem>
-              </>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+                    ? "周 · 4×1"
+                    : size === "medium"
+                      ? "日 · 2×2"
+                      : "月 · 4×4"
+                  : kind === "tab"
+                    ? size === "small"
+                      ? "小 · 4×1"
+                      : "中 · 4×2"
+                    : size === "small"
+                      ? "小 · 4×2"
+                      : size === "wide"
+                        ? "宽 · 8×4"
+                        : size === "wide-tall"
+                          ? "宽高 · 8×8"
+                          : size === "tall"
+                            ? "高 · 4×8"
+                            : "大 · 4×4"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {kind === "folder" && item?.size === "small" && (
+                <SelectItem value="small">小 · 4×2</SelectItem>
+              )}
+              {kind === "calendar" && (
+                <>
+                  <SelectItem value="small">周 · 4×1</SelectItem>
+                  <SelectItem value="medium">日 · 2×2</SelectItem>
+                </>
+              )}
+              {kind === "tab" && (
+                <SelectItem value="small">小 · 4×1</SelectItem>
+              )}
+              <SelectItem value={kind === "tab" ? "medium" : "large"}>
+                {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
+              </SelectItem>
+              {kind === "folder" && (
+                <>
+                  <SelectItem value="tall">高 · 4×8</SelectItem>
+                  <SelectItem value="wide">宽 · 8×4</SelectItem>
+                  <SelectItem value="wide-tall">宽高 · 8×8</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
         {kind === "folder" ? "文件夹颜色" : "背景颜色"}
         <input
@@ -201,7 +217,13 @@ export default function ComponentConfiguration({
         <DialogHeader>
           <DialogTitle>
             {item ? "编辑" : "配置"}
-            {kind === "tab" ? "标签" : kind === "calendar" ? "日历" : "文件夹"}
+            {kind === "tab"
+              ? "标签"
+              : kind === "calendar"
+                ? "日历"
+                : kind === "todo"
+                  ? "待办"
+                  : "文件夹"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             {kind === "calendar"

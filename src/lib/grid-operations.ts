@@ -13,7 +13,8 @@ export function groupComponents(before: GridData, ids: string[], name: string) {
       (item) =>
         item.kind === "dot-canvas" ||
         item.kind === "ecosystem" ||
-        item.kind === "calendar"
+        item.kind === "calendar" ||
+        item.kind === "todo"
     )
   )
     return null

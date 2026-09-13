@@ -43,6 +43,29 @@ export default function DraggableGridItem({
     id: item.id,
   })
 
+  const sizeOptions: { value: GridItem["size"]; label: string }[] =
+    item.kind === "todo"
+      ? []
+      : item.kind === "calendar"
+        ? [
+            { value: "large", label: "4×4" },
+            { value: "medium", label: "2×2" },
+            { value: "small", label: "4×1" },
+          ]
+        : item.kind === "folder"
+          ? [
+              { value: "wide-tall", label: "8×8" },
+              { value: "wide", label: "8×4" },
+              { value: "tall", label: "4×8" },
+              { value: "large", label: "4×4" },
+            ]
+          : item.kind === "tab"
+            ? [
+                { value: "medium", label: "4×2" },
+                { value: "small", label: "4×1" },
+              ]
+            : []
+
   const motionRef = useGridMotion(placement, isDragging, setNodeRef)
 
   return (
@@ -78,59 +101,29 @@ export default function DraggableGridItem({
         )}
       </ContextMenuTrigger>
       <ContextMenuContent>
-        {item.kind === "calendar" && (
+        {sizeOptions.length > 0 && (
           <div
-            className="mb-1 grid grid-cols-3 gap-2 px-1 py-2"
+            className="mb-1 grid gap-2 px-1 py-2"
+            style={{
+              gridTemplateColumns: `repeat(${sizeOptions.length}, minmax(0, 1fr))`,
+            }}
             role="group"
-            aria-label="日历大小"
+            aria-label={
+              item.kind === "todo"
+                ? "待办大小"
+                : item.kind === "calendar"
+                  ? "日历大小"
+                  : item.kind === "folder"
+                    ? "文件夹大小"
+                    : "标签大小"
+            }
           >
-            {(
-              [
-                { value: "large", label: "4×4" },
-                { value: "medium", label: "2×2" },
-                { value: "small", label: "4×1" },
-              ] as const
-            ).map((option) => (
+            {sizeOptions.map((option) => (
               <ContextMenuItem
                 key={option.value}
                 role="menuitemradio"
                 aria-checked={item.size === option.value}
                 className="justify-center rounded-2xl p-0 focus:ring-2 focus:ring-ring"
-                onClick={() => resizeItem(item.id, option.value)}
-              >
-                <Badge
-                  variant={item.size === option.value ? "default" : "outline"}
-                  className="h-7 w-full justify-center px-3"
-                >
-                  {option.label}
-                </Badge>
-              </ContextMenuItem>
-            ))}
-          </div>
-        )}
-        {(item.kind === "tab" || item.kind === "folder") && (
-          <div
-            className="mb-1 grid grid-cols-2 gap-2 px-1 py-2"
-            role="group"
-            aria-label={item.kind === "folder" ? "文件夹大小" : "标签大小"}
-          >
-            {(item.kind !== "tab"
-              ? ([
-                  { value: "large", label: "大 · 4×4" },
-                  { value: "tall", label: "高 · 4×8" },
-                  { value: "wide", label: "宽 · 8×4" },
-                  { value: "wide-tall", label: "宽高 · 8×8" },
-                ] as const)
-              : ([
-                  { value: "small", label: "小 · 4×1" },
-                  { value: "medium", label: "中 · 4×2" },
-                ] as const)
-            ).map((option) => (
-              <ContextMenuItem
-                key={option.value}
-                role="menuitemradio"
-                aria-checked={item.size === option.value}
-                className="flex-1 justify-center rounded-2xl p-0 focus:ring-2 focus:ring-ring"
                 onClick={() => resizeItem(item.id, option.value)}
               >
                 <Badge
@@ -155,7 +148,8 @@ export default function DraggableGridItem({
         </ContextMenuItem>
         {(item.kind === "tab" ||
           item.kind === "folder" ||
-          item.kind === "calendar") && (
+          item.kind === "calendar" ||
+          item.kind === "todo") && (
           <>
             <ContextMenuItem onClick={() => randomizeItemColor(item.id)}>
               <Shuffle />

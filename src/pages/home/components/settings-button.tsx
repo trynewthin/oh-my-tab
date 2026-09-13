@@ -28,7 +28,7 @@ export default function SettingsButton({
         setOpen(true)
       }}
     >
-      <GearSix />
+      <GearSix className="size-5" />
     </Button>
   )
 }

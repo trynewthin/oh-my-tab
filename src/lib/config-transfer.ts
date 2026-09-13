@@ -5,7 +5,7 @@ import {
   validSharedGarden,
   migrateGarden,
 } from "@/stores/garden-store"
-import { GRID_COLUMNS } from "@/components/tab-grid/grid-layout"
+import { GRID_COLUMNS, itemWidth } from "@/components/tab-grid/grid-layout"
 import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
@@ -130,13 +130,20 @@ export function validateConfig(value: unknown): Config {
       !GRID_COLUMNS.some((value) => String(value) === columns) ||
       !positions ||
       typeof positions !== "object" ||
-      !Object.values(positions).every(
-        (p) =>
+      !Object.entries(positions).every(
+        ([id, p]) =>
           p &&
           Number.isInteger(p.x) &&
           Number.isInteger(p.y) &&
           p.x >= 0 &&
-          p.x <= Number(columns) - 4 &&
+          p.x <=
+            Number(columns) -
+              (grid.items.find((item) => item.id === id)
+                ? itemWidth(
+                    grid.items.find((item) => item.id === id)!,
+                    Number(columns)
+                  )
+                : 4) &&
           p.y >= 0 &&
           p.y <= 500
       )

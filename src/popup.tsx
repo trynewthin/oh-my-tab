@@ -1,3 +1,4 @@
+import { IconContext } from "@phosphor-icons/react"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
@@ -11,7 +12,16 @@ async function start() {
   if (import.meta.hot) import.meta.hot.dispose(stop)
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <Popup />
+      <IconContext.Provider
+        value={{
+          weight: "bold",
+          size: "1em",
+          color: "currentColor",
+          mirrored: false,
+        }}
+      >
+        <Popup />
+      </IconContext.Provider>
     </StrictMode>
   )
 }

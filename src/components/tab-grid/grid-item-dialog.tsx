@@ -1,3 +1,4 @@
+import Todo from "./todo"
 import Calendar from "./calendar"
 import { useState } from "react"
 import Ecosystem from "./ecosystem"
@@ -24,10 +25,31 @@ function PreviewContent({
   detail = false,
   size = "large",
 }: {
-  kind: "dot-canvas" | "ecosystem" | "calendar"
+  kind: "dot-canvas" | "ecosystem" | "calendar" | "todo"
   size?: "small" | "medium" | "large"
   detail?: boolean
 }) {
+  if (kind === "todo")
+    return (
+      <div
+        className={`mx-auto w-full max-w-60 overflow-hidden rounded-2xl border ${size === "small" ? "aspect-[4/1]" : size === "medium" ? "aspect-[2/1]" : "aspect-square"}`}
+      >
+        <Todo
+          preview
+          item={{
+            id: "todo-preview",
+            kind: "todo",
+            name: "待办",
+            size,
+            color: "#6c8bd4",
+            tasks: [
+              { id: "1", text: "整理今天的计划", done: true },
+              { id: "2", text: "读几页喜欢的书", done: false },
+            ],
+          }}
+        />
+      </div>
+    )
   if (kind === "calendar")
     return (
       <div
@@ -111,16 +133,26 @@ export default function GridItemDialog({
   onClose: () => void
 }) {
   const [selected, setSelected] = useState<
-    "dot-canvas" | "ecosystem" | "calendar" | null
+    "dot-canvas" | "ecosystem" | "calendar" | "todo" | null
   >(null)
   const [confirmSize, setConfirmSize] = useState<string | false>(false)
   const saveItem = useTabGridStore((state) => state.saveItem)
   function addComponent(
-    kind: "dot-canvas" | "ecosystem" | "calendar",
+    kind: "dot-canvas" | "ecosystem" | "calendar" | "todo",
     size: "small" | "medium" | "large" | "tall" | "wide" | "wide-tall" = "large"
   ) {
     const id = crypto.randomUUID()
     switch (kind) {
+      case "todo":
+        saveItem({
+          id,
+          kind,
+          name: "待办",
+          size: size === "small" || size === "medium" ? size : "large",
+          color: "#6c8bd4",
+          tasks: [],
+        })
+        break
       case "calendar":
         saveItem({
           id,
@@ -208,6 +240,11 @@ export default function GridItemDialog({
                     description: "绘制像素图案，或导入图片生成专属点阵装饰。",
                   },
                   {
+                    id: "todo",
+                    label: "待办",
+                    description: "记录事项，勾选完成。",
+                  },
+                  {
                     id: "calendar",
                     label: "日历",
                     description: "查看月历，切换月份，快速回到今天。",
@@ -254,7 +291,7 @@ export default function GridItemDialog({
                   }}
                 >
                   <DialogContent
-                    className={`grid grid-cols-1 items-center gap-6 p-6 ${selected === "calendar" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
+                    className={`grid grid-cols-1 items-center gap-6 p-6 ${selected === "calendar" || selected === "todo" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
                   >
                     <ComponentPreview
                       kind={selected}
@@ -267,71 +304,81 @@ export default function GridItemDialog({
                     />
                     <div className="min-w-0 space-y-3">
                       <DialogTitle className="font-semibold">
-                        {selected === "calendar"
-                          ? "日历"
-                          : selected === "ecosystem"
-                            ? "像素花盆"
-                            : "点阵画布"}
+                        {selected === "todo"
+                          ? "待办"
+                          : selected === "calendar"
+                            ? "日历"
+                            : selected === "ecosystem"
+                              ? "像素花盆"
+                              : "点阵画布"}
                       </DialogTitle>
                       <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                        {selected === "calendar"
-                          ? "查看月历，切换月份，快速回到今天。"
-                          : selected === "ecosystem"
-                            ? "播种、浇水并陪伴植物成长，收集到你的植物图鉴。"
-                            : "绘制像素图案，或导入图片生成专属点阵装饰。"}
+                        {selected === "todo"
+                          ? "记录事项，勾选完成。"
+                          : selected === "calendar"
+                            ? "查看月历，切换月份，快速回到今天。"
+                            : selected === "ecosystem"
+                              ? "播种、浇水并陪伴植物成长，收集到你的植物图鉴。"
+                              : "绘制像素图案，或导入图片生成专属点阵装饰。"}
                       </DialogDescription>
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          可选大小
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {(
-                            [
-                              { value: "large", label: "4×4" },
-                              ...(selected === "calendar"
-                                ? [
-                                    { value: "small", label: "4×1" },
-                                    { value: "medium", label: "2×2" },
-                                  ]
-                                : []),
-                              ...(selected === "dot-canvas"
-                                ? [
-                                    { value: "tall", label: "4×8" },
-                                    { value: "wide", label: "8×4" },
-                                    { value: "wide-tall", label: "8×8" },
-                                  ]
-                                : []),
-                            ] as {
-                              value:
-                                | "small"
-                                | "medium"
-                                | "large"
-                                | "tall"
-                                | "wide"
-                                | "wide-tall"
-                              label: string
-                            }[]
-                          ).map((option) => (
-                            <Button
-                              key={option.value}
-                              variant={
-                                confirmSize === option.value
-                                  ? "default"
-                                  : "outline"
-                              }
-                              onClick={() => {
-                                if (confirmSize === option.value)
-                                  addComponent(selected, option.value)
-                                else setConfirmSize(option.value)
-                              }}
-                            >
-                              {confirmSize === option.value
-                                ? `确认添加 · ${option.label}`
-                                : option.label}
-                            </Button>
-                          ))}
+                      {selected === "todo" ? (
+                        <Button onClick={() => addComponent("todo", "large")}>
+                          确认添加
+                        </Button>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            可选大小
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {(
+                              [
+                                { value: "large", label: "4×4" },
+                                ...(selected === "calendar"
+                                  ? [
+                                      { value: "small", label: "4×1" },
+                                      { value: "medium", label: "2×2" },
+                                    ]
+                                  : []),
+                                ...(selected === "dot-canvas"
+                                  ? [
+                                      { value: "tall", label: "4×8" },
+                                      { value: "wide", label: "8×4" },
+                                      { value: "wide-tall", label: "8×8" },
+                                    ]
+                                  : []),
+                              ] as {
+                                value:
+                                  | "small"
+                                  | "medium"
+                                  | "large"
+                                  | "tall"
+                                  | "wide"
+                                  | "wide-tall"
+                                label: string
+                              }[]
+                            ).map((option) => (
+                              <Button
+                                key={option.value}
+                                variant={
+                                  confirmSize === option.value
+                                    ? "default"
+                                    : "outline"
+                                }
+                                onClick={() => {
+                                  if (confirmSize === option.value)
+                                    addComponent(selected, option.value)
+                                  else setConfirmSize(option.value)
+                                }}
+                              >
+                                {confirmSize === option.value
+                                  ? `确认添加 · ${option.label}`
+                                  : option.label}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>

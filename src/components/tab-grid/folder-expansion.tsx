@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef } from "react"
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  type ReactNode,
+} from "react"
 import { createPortal } from "react-dom"
 import { useDndContext } from "@dnd-kit/core"
 import gsap from "gsap"
@@ -27,10 +34,14 @@ export default function FolderExpansion({
   folderId,
   onClose,
   suspended = false,
+  children,
+  headerActions,
 }: {
   folderId: string
   onClose: () => void
   suspended?: boolean
+  children?: ReactNode
+  headerActions?: ReactNode
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const folder = useTabGridStore((state) =>
@@ -83,7 +94,10 @@ export default function FolderExpansion({
         opacity: 1,
         duration: reduced ? 0 : 0.38,
         ease: "power3.inOut",
-        onComplete: () => panel.focus({ preventScroll: true }),
+        onComplete: () => {
+          if (!panel.contains(document.activeElement))
+            panel.focus({ preventScroll: true })
+        },
       }
     )
     function resize() {
@@ -176,7 +190,8 @@ export default function FolderExpansion({
     }
   }, [active, suspended, close])
 
-  if (!folder || folder.kind !== "folder") return null
+  if (!folder || (folder.kind !== "folder" && folder.kind !== "todo"))
+    return null
 
   return createPortal(
     <section
@@ -193,20 +208,29 @@ export default function FolderExpansion({
         animated={!!folder.dynamicEffect}
       />
       <div className="relative z-10 flex h-full min-h-0 [scrollbar-width:none] flex-col gap-4 overflow-y-auto p-5 [&::-webkit-scrollbar]:hidden">
-        <header className="flex shrink-0 items-center justify-between gap-3">
-          <h2 id={titleId} className="min-w-0 truncate text-base font-medium">
+        <header className="-mx-1 -mt-2 flex h-8 shrink-0 items-center justify-between gap-3">
+          <h2
+            id={titleId}
+            className="min-w-0 truncate text-base leading-6 font-medium"
+          >
             {folder.name}
           </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="关闭文件夹"
-            onClick={close}
-          >
-            <X />
-          </Button>
+          <div className="flex h-8 shrink-0 items-center gap-1">
+            {headerActions}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={folder.kind === "folder" ? "关闭文件夹" : "关闭待办"}
+              onClick={close}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
         </header>
-        {folder.tabs.length > 0 && <FolderExpandedGrid folder={folder} />}
+        {children ??
+          (folder.kind === "folder" && folder.tabs.length > 0 && (
+            <FolderExpandedGrid folder={folder} />
+          ))}
       </div>
     </section>,
     document.body

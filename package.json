@@ -22,7 +22,8 @@
     "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs",
     "website:dev": "npm run dev --workspace @oh-my-tab/website",
     "website:build": "npm run build --workspace @oh-my-tab/website",
-    "website:preview": "npm run preview --workspace @oh-my-tab/website"
+    "website:preview": "npm run preview --workspace @oh-my-tab/website",
+    "website:assets": "node scripts/assets/capture-website.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

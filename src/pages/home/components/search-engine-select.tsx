@@ -47,7 +47,7 @@ export default function SearchEngineSelect({
         aria-label={`搜索引擎：${selected.name}`}
         onClick={(event) => event.stopPropagation()}
       >
-        <EngineIcon icon={selected.icon} />
+        <EngineIcon icon={selected.icon} size={compact ? 20 : 16} />
         {!compact && (
           <>
             <span className="hidden max-w-32 truncate sm:inline">

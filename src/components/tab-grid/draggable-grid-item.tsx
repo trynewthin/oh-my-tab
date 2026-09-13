@@ -78,6 +78,36 @@ export default function DraggableGridItem({
         )}
       </ContextMenuTrigger>
       <ContextMenuContent>
+        {item.kind === "calendar" && (
+          <div
+            className="mb-1 grid grid-cols-3 gap-2 px-1 py-2"
+            role="group"
+            aria-label="日历大小"
+          >
+            {(
+              [
+                { value: "large", label: "4×4" },
+                { value: "medium", label: "2×2" },
+                { value: "small", label: "4×1" },
+              ] as const
+            ).map((option) => (
+              <ContextMenuItem
+                key={option.value}
+                role="menuitemradio"
+                aria-checked={item.size === option.value}
+                className="justify-center rounded-2xl p-0 focus:ring-2 focus:ring-ring"
+                onClick={() => resizeItem(item.id, option.value)}
+              >
+                <Badge
+                  variant={item.size === option.value ? "default" : "outline"}
+                  className="h-7 w-full justify-center px-3"
+                >
+                  {option.label}
+                </Badge>
+              </ContextMenuItem>
+            ))}
+          </div>
+        )}
         {(item.kind === "tab" || item.kind === "folder") && (
           <div
             className="mb-1 grid grid-cols-2 gap-2 px-1 py-2"
@@ -123,7 +153,9 @@ export default function DraggableGridItem({
           <PencilSimple />
           编辑
         </ContextMenuItem>
-        {(item.kind === "tab" || item.kind === "folder") && (
+        {(item.kind === "tab" ||
+          item.kind === "folder" ||
+          item.kind === "calendar") && (
           <>
             <ContextMenuItem onClick={() => randomizeItemColor(item.id)}>
               <Shuffle />

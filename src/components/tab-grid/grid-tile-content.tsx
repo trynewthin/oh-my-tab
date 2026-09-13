@@ -1,3 +1,4 @@
+import Calendar from "./calendar"
 import { canvasDimensions, resizeDots, displayDots } from "./dot-canvas-data"
 import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
@@ -16,6 +17,8 @@ export default function GridTileContent({
   onOpen: () => void
   preview?: boolean
 }) {
+  if (item.kind === "calendar")
+    return <Calendar item={item} preview={preview} />
   if (item.kind === "ecosystem")
     return <Ecosystem item={item} preview={preview} onEdit={onOpen} />
   if (item.kind === "dot-canvas")
@@ -27,7 +30,15 @@ export default function GridTileContent({
         className="flex h-full w-full flex-col rounded-[inherit] bg-transparent text-left"
       >
         <div className="min-h-0 w-full flex-1">
-          <DotArt pixels={resizeDots(displayDots(item.pixels), item.pixelColumns ?? 24, canvasDimensions(item.size).columns, canvasDimensions(item.size).rows)} pixelColumns={canvasDimensions(item.size).columns} />
+          <DotArt
+            pixels={resizeDots(
+              displayDots(item.pixels),
+              item.pixelColumns ?? 24,
+              canvasDimensions(item.size).columns,
+              canvasDimensions(item.size).rows
+            )}
+            pixelColumns={canvasDimensions(item.size).columns}
+          />
         </div>
       </button>
     )

@@ -63,12 +63,24 @@ export default function ComponentConfiguration({
         size: size === "medium" ? "medium" : "small",
         color,
       })
+    else if (kind === "calendar")
+      saveItem({
+        id,
+        kind,
+        name: name.trim(),
+        size: size === "small" || size === "medium" ? size : "large",
+        color,
+        dynamicEffect: item?.dynamicEffect ?? false,
+      })
     else
       saveItem({
         id,
         kind,
         name: name.trim(),
-        size: size === "tall" || size === "wide" || size === "wide-tall" ? size : "large",
+        size:
+          size === "tall" || size === "wide" || size === "wide-tall"
+            ? size
+            : "large",
         color,
         tabs: item?.kind === "folder" ? item.tabs : [],
         dynamicEffect: item?.kind === "folder" ? item.dynamicEffect : false,
@@ -78,16 +90,18 @@ export default function ComponentConfiguration({
 
   const form = (
     <form className="space-y-4" onSubmit={save}>
-      <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-        名称
-        <Input
-          autoFocus
-          required
-          maxLength={40}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </label>
+      {kind !== "calendar" && (
+        <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
+          名称
+          <Input
+            autoFocus
+            required
+            maxLength={40}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </label>
+      )}
       {kind === "tab" && (
         <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
           网址
@@ -117,20 +131,32 @@ export default function ComponentConfiguration({
         >
           <SelectTrigger id="grid-size" className="w-full">
             <SelectValue>
-              {kind === "tab"
+              {kind === "calendar"
                 ? size === "small"
-                  ? "小 · 4×1"
-                  : "中 · 4×2"
-                : size === "wide"
-                  ? "宽 · 8×4"
-                  : size === "wide-tall"
-                    ? "宽高 · 8×8"
-                    : size === "tall"
-                      ? "高 · 4×8"
-                      : "大 · 4×4"}
+                  ? "周 · 4×1"
+                  : size === "medium"
+                    ? "日 · 2×2"
+                    : "月 · 4×4"
+                : kind === "tab"
+                  ? size === "small"
+                    ? "小 · 4×1"
+                    : "中 · 4×2"
+                  : size === "wide"
+                    ? "宽 · 8×4"
+                    : size === "wide-tall"
+                      ? "宽高 · 8×8"
+                      : size === "tall"
+                        ? "高 · 4×8"
+                        : "大 · 4×4"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
+            {kind === "calendar" && (
+              <>
+                <SelectItem value="small">周 · 4×1</SelectItem>
+                <SelectItem value="medium">日 · 2×2</SelectItem>
+              </>
+            )}
             {kind === "tab" && <SelectItem value="small">小 · 4×1</SelectItem>}
             <SelectItem value={kind === "tab" ? "medium" : "large"}>
               {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
@@ -175,10 +201,12 @@ export default function ComponentConfiguration({
         <DialogHeader>
           <DialogTitle>
             {item ? "编辑" : "配置"}
-            {kind === "tab" ? "标签" : "文件夹"}
+            {kind === "tab" ? "标签" : kind === "calendar" ? "日历" : "文件夹"}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            填写名称、显示大小和颜色后确认。
+            {kind === "calendar"
+              ? "选择显示大小和颜色后确认。"
+              : "填写名称、显示大小和颜色后确认。"}
           </DialogDescription>
         </DialogHeader>
         {form}

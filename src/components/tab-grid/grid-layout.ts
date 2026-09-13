@@ -13,6 +13,8 @@ export type GridPlacement = GridPosition & { height: number; width?: number }
 export type GridPositions = Record<string, GridPosition>
 
 export function itemWidth(item: GridItem, columns = 24) {
+  if (item.kind === "calendar" && item.size === "medium")
+    return Math.min(columns, 2)
   return Math.min(
     columns,
     (item.kind === "folder" || item.kind === "dot-canvas") &&
@@ -23,6 +25,8 @@ export function itemWidth(item: GridItem, columns = 24) {
 }
 
 export function itemHeight(item: GridItem) {
+  if (item.kind === "calendar")
+    return item.size === "small" ? 1 : item.size === "medium" ? 2 : 4
   return item.kind === "tab"
     ? item.size === "small"
       ? 1

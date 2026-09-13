@@ -1,3 +1,4 @@
+import Calendar from "./calendar"
 import { useState } from "react"
 import Ecosystem from "./ecosystem"
 import EcosystemConfiguration from "./ecosystem-configuration"
@@ -20,18 +21,31 @@ import type { GridItem } from "./types"
 function ComponentPreview({
   kind,
   detail = false,
+  size = "large",
 }: {
-  kind: "dot-canvas" | "ecosystem"
+  kind: "dot-canvas" | "ecosystem" | "calendar"
+  size?: "small" | "medium" | "large"
   detail?: boolean
 }) {
+  if (kind === "calendar")
+    return (
+      <div
+        className={`mx-auto w-full overflow-hidden rounded-2xl border ${size === "small" ? "aspect-[4/1] max-w-60" : size === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
+      >
+        <Calendar
+          preview
+          item={{
+            id: "calendar-preview",
+            kind: "calendar",
+            name: "日历",
+            size,
+            color: "#3478f6",
+          }}
+        />
+      </div>
+    )
   return kind === "ecosystem" ? (
-    <div
-      className={
-        detail
-          ? "size-40 [&>div]:p-0"
-          : "mx-auto h-44 w-44"
-      }
-    >
+    <div className={detail ? "size-40 [&>div]:p-0" : "mx-auto h-44 w-44"}>
       <Ecosystem
         preview
         animated={false}
@@ -78,18 +92,28 @@ export default function GridItemDialog({
   item?: GridItem
   onClose: () => void
 }) {
-  const [selected, setSelected] = useState<"dot-canvas" | "ecosystem" | null>(
-    null
-  )
+  const [selected, setSelected] = useState<
+    "dot-canvas" | "ecosystem" | "calendar" | null
+  >(null)
   const [confirmSize, setConfirmSize] = useState<string | false>(false)
   const saveItem = useTabGridStore((state) => state.saveItem)
   function addComponent(
-    kind: "dot-canvas" | "ecosystem",
-    size: "large" | "tall" | "wide" | "wide-tall" = "large"
+    kind: "dot-canvas" | "ecosystem" | "calendar",
+    size: "small" | "medium" | "large" | "tall" | "wide" | "wide-tall" = "large"
   ) {
     const id = crypto.randomUUID()
     switch (kind) {
+      case "calendar":
+        saveItem({
+          id,
+          kind,
+          name: "日历",
+          size: size === "small" || size === "medium" ? size : "large",
+          color: "#3478f6",
+        })
+        break
       case "dot-canvas":
+        if (size === "small" || size === "medium") return
         saveItem({
           id,
           kind,
@@ -166,6 +190,11 @@ export default function GridItemDialog({
                     description: "绘制像素图案，或导入图片生成专属点阵装饰。",
                   },
                   {
+                    id: "calendar",
+                    label: "日历",
+                    description: "查看月历，切换月份，快速回到今天。",
+                  },
+                  {
                     id: "ecosystem",
                     label: "像素花盆",
                     description:
@@ -206,16 +235,32 @@ export default function GridItemDialog({
                     }
                   }}
                 >
-                  <DialogContent className="grid grid-cols-1 items-center gap-6 p-6 sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]">
-                    <ComponentPreview kind={selected} detail />
+                  <DialogContent
+                    className={`grid grid-cols-1 items-center gap-6 p-6 ${selected === "calendar" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
+                  >
+                    <ComponentPreview
+                      kind={selected}
+                      detail
+                      size={
+                        confirmSize === "small" || confirmSize === "medium"
+                          ? confirmSize
+                          : "large"
+                      }
+                    />
                     <div className="min-w-0 space-y-3">
                       <DialogTitle className="font-semibold">
-                        {selected === "ecosystem" ? "像素花盆" : "点阵画布"}
+                        {selected === "calendar"
+                          ? "日历"
+                          : selected === "ecosystem"
+                            ? "像素花盆"
+                            : "点阵画布"}
                       </DialogTitle>
                       <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                        {selected === "ecosystem"
-                          ? "播种、浇水并陪伴植物成长，收集到你的植物图鉴。"
-                          : "绘制像素图案，或导入图片生成专属点阵装饰。"}
+                        {selected === "calendar"
+                          ? "查看月历，切换月份，快速回到今天。"
+                          : selected === "ecosystem"
+                            ? "播种、浇水并陪伴植物成长，收集到你的植物图鉴。"
+                            : "绘制像素图案，或导入图片生成专属点阵装饰。"}
                       </DialogDescription>
                       <div className="space-y-2">
                         <p className="text-xs text-muted-foreground">
@@ -225,6 +270,12 @@ export default function GridItemDialog({
                           {(
                             [
                               { value: "large", label: "4×4" },
+                              ...(selected === "calendar"
+                                ? [
+                                    { value: "small", label: "4×1" },
+                                    { value: "medium", label: "2×2" },
+                                  ]
+                                : []),
                               ...(selected === "dot-canvas"
                                 ? [
                                     { value: "tall", label: "4×8" },
@@ -233,7 +284,13 @@ export default function GridItemDialog({
                                   ]
                                 : []),
                             ] as {
-                              value: "large" | "tall" | "wide" | "wide-tall"
+                              value:
+                                | "small"
+                                | "medium"
+                                | "large"
+                                | "tall"
+                                | "wide"
+                                | "wide-tall"
                               label: string
                             }[]
                           ).map((option) => (

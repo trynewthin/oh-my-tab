@@ -83,13 +83,17 @@ export default function BulkActions() {
                 selected.length < 2 ||
                 selected.some(
                   (item) =>
-                    item.kind === "dot-canvas" || item.kind === "ecosystem"
+                    item.kind === "dot-canvas" ||
+                    item.kind === "ecosystem" ||
+                    item.kind === "calendar"
                 )
               }
               title={
                 selected.some(
                   (item) =>
-                    item.kind === "dot-canvas" || item.kind === "ecosystem"
+                    item.kind === "dot-canvas" ||
+                    item.kind === "ecosystem" ||
+                    item.kind === "calendar"
                 )
                   ? "文件夹仅支持收纳书签"
                   : undefined

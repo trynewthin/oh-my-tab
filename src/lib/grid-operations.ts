@@ -10,7 +10,10 @@ export function groupComponents(before: GridData, ids: string[], name: string) {
   const selected = before.items.filter((item) => ids.includes(item.id))
   if (
     selected.some(
-      (item) => item.kind === "dot-canvas" || item.kind === "ecosystem"
+      (item) =>
+        item.kind === "dot-canvas" ||
+        item.kind === "ecosystem" ||
+        item.kind === "calendar"
     )
   )
     return null

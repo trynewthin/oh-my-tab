@@ -59,7 +59,16 @@ export type EcosystemItem = {
   dynamicEffect?: boolean
 }
 
-export type GridItem = TabItem | FolderItem | DotCanvasItem | EcosystemItem
+export type CalendarItem = {
+  id: string
+  kind: "calendar"
+  name: string
+  size: "large" | "small" | "medium"
+  color: string
+  dynamicEffect?: boolean
+}
+export type GridItem =
+  TabItem | FolderItem | DotCanvasItem | EcosystemItem | CalendarItem
 
 export function normalizeTabUrl(value: string): string | null {
   try {

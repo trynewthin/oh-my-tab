@@ -107,6 +107,8 @@ export function validItem(value: unknown): value is GridItem {
     !/^#[0-9a-f]{6}$/i.test(item.color)
   )
     return false
+  if (item.kind === "calendar")
+    return ["small", "medium", "large"].includes(item.size)
   if (item.kind === "ecosystem")
     return (
       item.size === "large" &&
@@ -196,7 +198,10 @@ export const useTabGridStore = create<TabGridState>()(
       setItemDynamicEffect: (id, enabled) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id && (item.kind === "tab" || item.kind === "folder")
+            item.id === id &&
+            (item.kind === "tab" ||
+              item.kind === "folder" ||
+              item.kind === "calendar")
               ? { ...item, dynamicEffect: enabled }
               : item
           ),
@@ -204,7 +209,10 @@ export const useTabGridStore = create<TabGridState>()(
       randomizeItemColor: (id) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id && (item.kind === "tab" || item.kind === "folder")
+            item.id === id &&
+            (item.kind === "tab" ||
+              item.kind === "folder" ||
+              item.kind === "calendar")
               ? { ...item, color: randomFolderColor(item.color) }
               : item
           ),
@@ -213,6 +221,11 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: state.items.map((item) => {
             if (item.id !== id) return item
+            if (
+              item.kind === "calendar" &&
+              (size === "small" || size === "medium" || size === "large")
+            )
+              return { ...item, size }
             if (item.kind === "tab" && (size === "small" || size === "medium"))
               return { ...item, size }
             if (
@@ -245,7 +258,7 @@ export const useTabGridStore = create<TabGridState>()(
         })
         toast(
           removed.length === 1
-            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : "标签"}「${removed[0].name}」`
+            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : removed[0].kind === "calendar" ? "日历" : "标签"}「${removed[0].name}」`
             : `已删除 ${removed.length} 个组件`,
           "warning",
           {

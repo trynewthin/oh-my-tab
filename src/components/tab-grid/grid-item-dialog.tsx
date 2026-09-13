@@ -16,9 +16,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import ComponentConfiguration from "./component-configuration"
+import type { ComponentProps } from "react"
 import type { GridItem } from "./types"
 
-function ComponentPreview({
+function PreviewContent({
   kind,
   detail = false,
   size = "large",
@@ -30,7 +31,7 @@ function ComponentPreview({
   if (kind === "calendar")
     return (
       <div
-        className={`mx-auto w-full overflow-hidden rounded-2xl border ${size === "small" ? "aspect-[4/1] max-w-60" : size === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
+        className={`mx-auto w-full overflow-hidden rounded-2xl border ${!detail ? "aspect-square max-w-60" : size === "small" ? "aspect-[4/1] max-w-60" : size === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
       >
         <Calendar
           preview
@@ -45,7 +46,13 @@ function ComponentPreview({
       </div>
     )
   return kind === "ecosystem" ? (
-    <div className={detail ? "size-40 [&>div]:p-0" : "mx-auto h-44 w-44"}>
+    <div
+      className={
+        detail
+          ? "size-40 [&>div]:p-0"
+          : "mx-auto aspect-square w-full max-w-60 [&>div]:p-0"
+      }
+    >
       <Ecosystem
         preview
         animated={false}
@@ -65,10 +72,10 @@ function ComponentPreview({
       className={
         detail
           ? "flex size-40 items-center justify-center"
-          : "flex h-44 items-center justify-center p-3"
+          : "mx-auto flex aspect-square w-full max-w-60 items-center justify-center"
       }
     >
-      <div className="aspect-square h-full max-w-full">
+      <div className="aspect-square w-full">
         <DotArt
           pixels={Array.from({ length: 576 }, (_, i) => {
             const x = i % 24
@@ -80,6 +87,17 @@ function ComponentPreview({
             return ""
           })}
         />
+      </div>
+    </div>
+  )
+}
+
+function ComponentPreview(props: ComponentProps<typeof PreviewContent>) {
+  if (props.detail) return <PreviewContent {...props} />
+  return (
+    <div className="[container-type:inline-size] mx-auto aspect-square w-full max-w-48">
+      <div className="size-60 origin-top-left [transform:scale(calc(100cqw/240px))]">
+        <PreviewContent {...props} />
       </div>
     </div>
   )

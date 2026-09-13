@@ -1,4 +1,4 @@
-import { useStackScroll } from "./use-stack-scroll"
+import { useStackScroll } from "./collection/use-stack-scroll"
 import { Checkbox } from "@/components/ui/checkbox"
 import EffectSurface from "@/components/effects/effect-surface"
 import {
@@ -9,9 +9,15 @@ import {
   type FormEvent,
 } from "react"
 import { Plus, ListChecks, Tray, Check, X, Trash } from "@phosphor-icons/react"
-import FolderBackground from "./folder-background"
+import ComponentBackground from "./shared/component-background"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import FolderExpansion from "./folder-expansion"
+import CollectionExpansion from "./collection/expansion"
+import { CollectionGrid, CollectionViewport } from "./collection/layout"
+import {
+  CollectionCardHeader,
+  CollectionHeaderAction,
+  CollectionTitleButton,
+} from "./collection/header"
 import type { TodoItem } from "./types"
 
 function focusDraft(node: HTMLInputElement | null) {
@@ -70,25 +76,24 @@ function TodoList({
   }
   return (
     <>
-      <div
+      <CollectionViewport
         ref={viewportRef}
+        expanded={showDelete}
+        label={showDelete ? `${item.name}列表` : undefined}
         style={
           cards ? { marginTop: -topBleed, paddingTop: topBleed } : undefined
         }
-        className="relative min-h-0 flex-1 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
+        className="relative"
       >
-        <div
+        <CollectionGrid
+          expanded={showDelete}
           style={
             cards && (item.tasks.length > 0 || draftRow)
               ? { paddingBottom: "var(--stack-bottom, 0px)" }
               : undefined
           }
           className={
-            item.tasks.length === 0 && !draftRow
-              ? "h-full"
-              : showDelete
-                ? "grid grid-cols-1 gap-3 lg:grid-cols-2"
-                : undefined
+            item.tasks.length === 0 && !draftRow ? "h-full" : undefined
           }
         >
           {item.tasks.length === 0 && !draftRow && (
@@ -102,6 +107,7 @@ function TodoList({
           )}
           {draftRow && (
             <div
+              role="listitem"
               data-stack-row={cards ? "" : undefined}
               style={{
                 height: cards ? rowHeight : 44,
@@ -115,6 +121,7 @@ function TodoList({
           {item.tasks.map((task) => (
             <div
               key={task.id}
+              role="listitem"
               data-stack-row={cards ? "" : undefined}
               className={`group/task relative isolate flex items-center gap-2 ${cards || showDelete ? `${showDelete ? "h-11 min-w-0" : "mb-2 min-h-11"} overflow-hidden rounded-2xl border border-border/60 px-3 py-2` : "py-1.5"}`}
               style={cards ? { height: rowHeight, minHeight: 0 } : undefined}
@@ -182,8 +189,8 @@ function TodoList({
               )}
             </div>
           ))}
-        </div>
-      </div>
+        </CollectionGrid>
+      </CollectionViewport>
       {showInput && (
         <form
           onSubmit={add}
@@ -289,7 +296,7 @@ export default function Todo({
   return (
     <>
       <div className="relative isolate h-full w-full overflow-hidden rounded-[inherit]">
-        <FolderBackground
+        <ComponentBackground
           color={item.color}
           animated={!preview && !!item.dynamicEffect}
         />
@@ -355,36 +362,33 @@ export default function Todo({
             </>
           ) : (
             <>
-              <header className="relative z-20 mb-1 flex shrink-0 items-center justify-between gap-2">
-                <button
-                  type="button"
+              <CollectionCardHeader className="mb-1">
+                <CollectionTitleButton
                   data-todo-drag-surface
                   disabled={preview}
                   onClick={() => setOpen(true)}
-                  className="truncate text-left text-sm font-semibold"
+                  className="font-semibold"
                   aria-label={`打开${item.name}`}
                 >
                   {item.name}
-                </button>
+                </CollectionTitleButton>
                 {item.size === "large" ? (
-                  <button
-                    type="button"
-                    aria-label="添加待办"
+                  <CollectionHeaderAction
+                    label="添加待办"
                     disabled={preview || item.tasks.length >= 200}
                     onClick={() => {
                       if (!adding) setDraft("")
                       setAdding(true)
                     }}
-                    className="shrink-0 rounded p-1 text-foreground hover:bg-muted disabled:opacity-40"
                   >
                     <Plus size={16} />
-                  </button>
+                  </CollectionHeaderAction>
                 ) : (
                   <span className="shrink-0 text-[10px] text-muted-foreground">
                     {remaining.length} 项待办
                   </span>
                 )}
-              </header>
+              </CollectionCardHeader>
               <TodoList
                 item={item}
                 preview={preview}
@@ -400,25 +404,24 @@ export default function Todo({
         </section>
       </div>
       {open && (
-        <FolderExpansion
-          folderId={item.id}
+        <CollectionExpansion
+          itemId={item.id}
           onClose={() => {
             setOpen(false)
             setAdding(false)
           }}
           headerActions={
-            <button
-              type="button"
-              aria-label="添加待办"
+            <CollectionHeaderAction
+              label="添加待办"
               disabled={preview || item.tasks.length >= 200}
               onClick={() => {
                 if (!adding) setDraft("")
                 setAdding(true)
               }}
-              className="flex size-8 items-center justify-center rounded-full text-foreground hover:bg-muted disabled:opacity-40"
+              className="size-8"
             >
               <Plus size={16} />
-            </button>
+            </CollectionHeaderAction>
           }
         >
           <div className="flex min-h-0 flex-1 flex-col">
@@ -430,7 +433,7 @@ export default function Todo({
               draftRow={draftRow}
             />
           </div>
-        </FolderExpansion>
+        </CollectionExpansion>
       )}
     </>
   )

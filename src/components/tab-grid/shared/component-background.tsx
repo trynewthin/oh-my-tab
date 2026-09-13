@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, type CSSProperties } from "react"
 import { mountPixiFolder } from "@/components/effects/pixi-folder"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import "./folder-background.css"
+import "./component-background.css"
 
-export default function FolderBackground({
+export default function ComponentBackground({
   color,
   animated = false,
 }: {

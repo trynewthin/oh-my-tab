@@ -1,9 +1,14 @@
-import type { GridItem, TabItem } from "@/components/tab-grid/types"
+import type { FolderItem, GridItem, TabItem } from "@/components/tab-grid/types"
 
 export type ImportedBookmark = { name: string; url: string; folder: string }
+export type BookmarkItemFactory = {
+  createTab: (input: { name: string; url: string }) => TabItem
+  createFolder: (input: { name: string; tabs: TabItem[] }) => FolderItem
+}
 export function mergeBookmarks(
   existing: GridItem[],
-  bookmarks: ImportedBookmark[]
+  bookmarks: ImportedBookmark[],
+  factory: BookmarkItemFactory
 ) {
   const items = [...existing]
   const seen = new Set(
@@ -25,14 +30,10 @@ export function mergeBookmarks(
       continue
     }
     seen.add(entry.url)
-    const tab: TabItem = {
-      id: crypto.randomUUID(),
-      kind: "tab",
+    const tab = factory.createTab({
       name: entry.name,
       url: entry.url,
-      size: "small",
-      color: "#6c8bd4",
-    }
+    })
     if (!entry.folder) items.push(tab)
     else {
       const index = items.findIndex(
@@ -42,14 +43,12 @@ export function mergeBookmarks(
       if (folder?.kind === "folder")
         items[index] = { ...folder, tabs: [...folder.tabs, tab] }
       else
-        items.push({
-          id: crypto.randomUUID(),
-          kind: "folder",
-          name: entry.folder,
-          color: "#6c8bd4",
-          size: "large",
-          tabs: [tab],
-        })
+        items.push(
+          factory.createFolder({
+            name: entry.folder,
+            tabs: [tab],
+          })
+        )
     }
     added++
   }

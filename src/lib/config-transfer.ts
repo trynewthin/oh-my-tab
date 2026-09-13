@@ -10,7 +10,8 @@ import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
-import { useTabGridStore, validItem } from "@/stores/tab-grid-store"
+import { validGridItem } from "@/components/tab-grid/model/validation"
+import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-data"
 import { decodeConfig } from "./config-codec"
@@ -113,7 +114,7 @@ export function validateConfig(value: unknown): Config {
     !search.engines.some((e) => e.id === search.selectedId) ||
     new Set(search.engines.map((e) => e.id)).size !== search.engines.length ||
     !Array.isArray(grid.items) ||
-    !grid.items.every(validItem) ||
+    !grid.items.every(validGridItem) ||
     !grid.layouts ||
     typeof grid.layouts !== "object" ||
     Array.isArray(grid.layouts)

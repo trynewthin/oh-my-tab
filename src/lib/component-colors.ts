@@ -29,7 +29,7 @@ function hslToHex(hue: number, saturation: number, lightness: number): string {
   return `#${channel(0)}${channel(8)}${channel(4)}`
 }
 
-export function randomFolderColor(current: string): string {
+export function randomComponentColor(current: string): string {
   const previousHue = currentHue(current)
   const hue =
     previousHue === null

@@ -27,7 +27,8 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import DraggableGridItem from "./draggable-grid-item"
 import GridTileContent from "./grid-tile-content"
 import GridItemDialog from "./grid-item-dialog"
-import FolderExpansion from "./folder-expansion"
+import CollectionExpansion from "./collection/expansion"
+import { getComponentDefinition } from "./model/registry"
 import {
   itemHeight,
   itemWidth,
@@ -262,7 +263,7 @@ export default function TabGrid() {
       sourceFolderId,
       sourceSurface: data?.type === "folder-tab" ? data.surface : undefined,
       dialogBounds: element
-        ?.closest("[data-expanded-folder]")
+        ?.closest("[data-expanded-collection]")
         ?.getBoundingClientRect(),
       dialogExited: false,
     }
@@ -602,7 +603,7 @@ export default function TabGrid() {
                   <div
                     key={item.id}
                     data-grid-item-id={item.id}
-                    className={`relative isolate min-w-0 rounded-2xl ${item.kind === "dot-canvas" || item.kind === "ecosystem" ? "" : "border"} transition-shadow duration-200 motion-reduce:transition-none`}
+                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""} transition-shadow duration-200 motion-reduce:transition-none`}
                     style={{
                       boxShadow: selectedIds.includes(item.id)
                         ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
@@ -653,11 +654,13 @@ export default function TabGrid() {
                           : "pending"
                         : undefined
                     }
-                    onOpen={() =>
-                      item.kind === "dot-canvas" || item.kind === "ecosystem"
-                        ? setEditor({ item })
-                        : setFolderId(item.id)
-                    }
+                    onOpen={() => {
+                      const action = getComponentDefinition(
+                        item.kind
+                      ).openAction
+                      if (action === "edit") setEditor({ item })
+                      if (action === "expand") setFolderId(item.id)
+                    }}
                     onEdit={() => setEditor({ item })}
                   />
                 )
@@ -724,8 +727,8 @@ export default function TabGrid() {
             />
           )}
           {folderId && (
-            <FolderExpansion
-              folderId={folderId}
+            <CollectionExpansion
+              itemId={folderId}
               suspended={dialogSuspended}
               onClose={() => setFolderId(null)}
             />

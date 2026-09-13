@@ -1,5 +1,4 @@
 import { storageOptions } from "@/lib/storage"
-import { validGardenPlant } from "@/lib/garden"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { groupComponents } from "@/lib/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
@@ -18,6 +17,16 @@ import {
   type TabEntry,
   type TodoTask,
 } from "@/components/tab-grid/types"
+import { validGridItem } from "@/components/tab-grid/model/validation"
+import {
+  bookmarkItemFactory,
+  createTabItem,
+} from "@/components/tab-grid/model/factory"
+import {
+  getComponentDefinition,
+  isComponentSize,
+  supportsComponentAction,
+} from "@/components/tab-grid/model/registry"
 
 import {
   mockGridItems,
@@ -33,7 +42,7 @@ import {
   type TabTransfer,
 } from "@/components/tab-grid/tab-transfer"
 
-import { randomFolderColor } from "@/lib/folder-colors"
+import { randomComponentColor } from "@/lib/component-colors"
 
 type TabGridState = {
   updateTodoTasks: (
@@ -66,89 +75,6 @@ type TabGridState = {
     changes: Pick<TabEntry, "name" | "url">
   ) => void
   addFolderTab: (folderId: string, tab: TabEntry) => void
-}
-
-function validEntry(value: unknown): value is TabEntry {
-  if (!value || typeof value !== "object") return false
-  const entry = value as TabEntry
-  return (
-    (entry.dynamicEffect === undefined ||
-      typeof entry.dynamicEffect === "boolean") &&
-    typeof entry.id === "string" &&
-    typeof entry.name === "string" &&
-    (entry.size === undefined || ["small", "medium"].includes(entry.size)) &&
-    (entry.color === undefined || /^#[0-9a-f]{6}$/i.test(entry.color)) &&
-    typeof entry.url === "string" &&
-    /^https?:\/\//i.test(entry.url) &&
-    normalizeTabUrl(entry.url) !== null
-  )
-}
-export function validItem(value: unknown): value is GridItem {
-  if (!value || typeof value !== "object") return false
-  const item = value as GridItem
-  if (
-    typeof item.id !== "string" ||
-    typeof item.name !== "string" ||
-    !/^#[0-9a-f]{6}$/i.test(item.color)
-  )
-    return false
-  if (item.kind === "todo")
-    return (
-      ["small", "medium", "large"].includes(item.size) &&
-      (item.dynamicEffect === undefined ||
-        typeof item.dynamicEffect === "boolean") &&
-      Array.isArray(item.tasks) &&
-      item.tasks.length <= 200 &&
-      item.tasks.every(
-        (t) =>
-          t &&
-          typeof t.id === "string" &&
-          typeof t.text === "string" &&
-          t.text.trim().length > 0 &&
-          t.text.length <= 200 &&
-          typeof t.done === "boolean"
-      ) &&
-      new Set(item.tasks.map((t) => t.id)).size === item.tasks.length
-    )
-  if (item.kind === "calendar")
-    return ["small", "medium", "large"].includes(item.size)
-  if (item.kind === "ecosystem")
-    return (
-      item.size === "large" &&
-      ["flowers", "ferns"].includes(item.species) &&
-      Array.isArray(item.plants) &&
-      item.plants.length <= 8 &&
-      new Set(item.plants.map((p) => p?.slot)).size === item.plants.length &&
-      item.plants.every(validGardenPlant) &&
-      (item.lastCheckIn === undefined ||
-        (typeof item.lastCheckIn === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(item.lastCheckIn))) &&
-      (item.pointsUpdatedAt === undefined ||
-        (Number.isFinite(item.pointsUpdatedAt) && item.pointsUpdatedAt >= 0)) &&
-      (item.points === undefined ||
-        (Number.isInteger(item.points) && item.points >= 0)) &&
-      (item.album === undefined ||
-        (Array.isArray(item.album) && item.album.every(validGardenPlant)))
-    )
-  if (item.kind === "dot-canvas")
-    return (
-      ["large", "tall", "wide", "wide-tall"].includes(item.size) &&
-      Array.isArray(item.pixels) &&
-      [384, 576, 1024, 1152, 2304].includes(item.pixels.length) &&
-      item.pixels.every(
-        (pixel) =>
-          typeof pixel === "string" &&
-          (pixel === "" || /^#[0-9a-f]{6}$/i.test(pixel))
-      )
-    )
-  return item.kind === "tab"
-    ? validEntry(item) && ["small", "medium"].includes(item.size)
-    : item.kind === "folder" &&
-        ["small", "large", "tall", "wide", "wide-tall"].includes(item.size) &&
-        (item.dynamicEffect === undefined ||
-          typeof item.dynamicEffect === "boolean") &&
-        Array.isArray(item.tabs) &&
-        item.tabs.every(validEntry)
 }
 
 export const useTabGridStore = create<TabGridState>()(
@@ -210,10 +136,7 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: state.items.map((item) =>
             item.id === id &&
-            (item.kind === "tab" ||
-              item.kind === "folder" ||
-              item.kind === "calendar" ||
-              item.kind === "todo")
+            supportsComponentAction(item.kind, "dynamicEffect")
               ? { ...item, dynamicEffect: enabled }
               : item
           ),
@@ -221,12 +144,8 @@ export const useTabGridStore = create<TabGridState>()(
       randomizeItemColor: (id) =>
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id &&
-            (item.kind === "tab" ||
-              item.kind === "folder" ||
-              item.kind === "calendar" ||
-              item.kind === "todo")
-              ? { ...item, color: randomFolderColor(item.color) }
+            item.id === id && supportsComponentAction(item.kind, "randomColor")
+              ? { ...item, color: randomComponentColor(item.color) }
               : item
           ),
         })),
@@ -234,23 +153,10 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: state.items.map((item) => {
             if (item.id !== id) return item
-            if (
-              (item.kind === "calendar" || item.kind === "todo") &&
-              (size === "small" || size === "medium" || size === "large")
-            )
-              return { ...item, size }
-            if (item.kind === "tab" && (size === "small" || size === "medium"))
-              return { ...item, size }
-            if (
-              item.kind === "folder" &&
-              (size === "small" ||
-                size === "large" ||
-                size === "tall" ||
-                size === "wide" ||
-                size === "wide-tall")
-            )
-              return { ...item, size }
-            return item
+            return supportsComponentAction(item.kind, "resize") &&
+              isComponentSize(item.kind, size)
+              ? ({ ...item, size } as GridItem)
+              : item
           }),
         })),
       removeItem: (id) => get().removeItems([id]),
@@ -271,7 +177,7 @@ export const useTabGridStore = create<TabGridState>()(
         })
         toast(
           removed.length === 1
-            ? `已删除${removed[0].kind === "folder" ? "文件夹" : removed[0].kind === "dot-canvas" ? "点阵画布" : removed[0].kind === "calendar" ? "日历" : removed[0].kind === "todo" ? "待办" : "标签"}「${removed[0].name}」`
+            ? `已删除${getComponentDefinition(removed[0].kind).label}「${removed[0].name}」`
             : `已删除 ${removed.length} 个组件`,
           "warning",
           {
@@ -315,7 +221,11 @@ export const useTabGridStore = create<TabGridState>()(
         return true
       },
       importBookmarks: (bookmarks) => {
-        const result = mergeBookmarks(get().items, bookmarks)
+        const result = mergeBookmarks(
+          get().items,
+          bookmarks,
+          bookmarkItemFactory
+        )
         if (result.added) set({ items: result.items })
         return { added: result.added, duplicates: result.duplicates }
       },
@@ -334,14 +244,12 @@ export const useTabGridStore = create<TabGridState>()(
           if (item?.kind === "tab")
             state.saveItem({ ...item, name: name.trim(), url: address })
         } else
-          state.saveItem({
-            id: crypto.randomUUID(),
-            kind: "tab",
-            name: name.trim(),
-            url: address,
-            size: "small",
-            color: "#3478f6",
-          })
+          state.saveItem(
+            createTabItem({
+              name: name.trim(),
+              url: address,
+            })
+          )
       },
       saveItem: (item) =>
         set((state) => ({
@@ -386,7 +294,7 @@ export const useTabGridStore = create<TabGridState>()(
         const items = (persisted as { items?: unknown } | null)?.items
         if (
           items !== undefined &&
-          (!Array.isArray(items) || !items.every(validItem))
+          (!Array.isArray(items) || !items.every(validGridItem))
         ) {
           throw new Error("组件数据无效，已停止加载以保留原始数据")
         }

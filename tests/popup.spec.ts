@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "./storage"
 
 for (const [theme, effectStyle] of [
   ["light", "burning"],
@@ -64,14 +65,17 @@ for (const [theme, effectStyle] of [
     await expect(
       page.getByRole("button", { name: "成功", exact: true })
     ).toBeVisible()
-    const items = await page.evaluate(
-      () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.items
-    )
-    expect(
-      items.some(
-        (item: { url: string }) => item.url === "https://example.com/page"
-      )
-    ).toBe(true)
+    await expect
+      .poll(async () => {
+        const state = await readStoredState<{ items: { url: string }[] }>(
+          page,
+          "omt.tab-grid"
+        )
+        return state.items.some(
+          (item) => item.url === "https://example.com/page"
+        )
+      })
+      .toBe(true)
   })
 }
 
@@ -137,9 +141,32 @@ for (const inFolder of [false, true]) {
     await expect(
       page.getByRole("button", { name: "成功", exact: true })
     ).toBeVisible()
-    const state = await page.evaluate(
-      () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state
-    )
+    await expect
+      .poll(async () => {
+        const state = await readStoredState<{
+          items: { name: string; tabs?: { name: string }[] }[]
+        }>(page, "omt.tab-grid")
+        const bookmark = inFolder ? state.items[0]?.tabs?.[0] : state.items[0]
+        return bookmark?.name
+      })
+      .toBe("更新后的名称")
+    const state = await readStoredState<{
+      items: {
+        name: string
+        tabs?: {
+          id: string
+          name: string
+          size: string
+          color: string
+          dynamicEffect: boolean
+        }[]
+        id?: string
+        size?: string
+        color?: string
+        dynamicEffect?: boolean
+      }[]
+      layouts: Record<number, Record<string, { x: number; y: number }>>
+    }>(page, "omt.tab-grid")
     expect(state.items).toHaveLength(1)
     const bookmark = inFolder ? state.items[0].tabs[0] : state.items[0]
     if (inFolder) expect(state.items[0].tabs).toHaveLength(1)

@@ -17,6 +17,7 @@ import type { EcosystemItem, GardenPlant } from "./types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { careForPlant, growth, settleGarden, plantSeed } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
+import { getComponentDefinition } from "./model/registry"
 
 export default function EcosystemConfiguration({
   item,
@@ -33,6 +34,7 @@ export default function EcosystemConfiguration({
   const [now, setNow] = useState(() => Date.now())
   const shared = useGardenStore()
   const [albumOpen, setAlbumOpen] = useState(false)
+  const definition = getComponentDefinition("ecosystem")
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
@@ -41,8 +43,8 @@ export default function EcosystemConfiguration({
     id,
     kind: "ecosystem",
     size: "large",
-    name: "像素花盆",
-    color: "#42b883",
+    name: definition.defaultName,
+    color: definition.defaultColor,
     species: "flowers",
     plants: [],
     points: 6,
@@ -128,7 +130,7 @@ export default function EcosystemConfiguration({
     >
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>像素花盆</DialogTitle>
+          <DialogTitle>{definition.label}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] items-start gap-4">
           <div className="min-w-0">

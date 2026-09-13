@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react"
-import { useStackScroll } from "./use-stack-scroll"
+import { useStackScroll } from "./collection/use-stack-scroll"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
 import type { FolderItem } from "./types"

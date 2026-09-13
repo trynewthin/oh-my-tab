@@ -1,4 +1,5 @@
 import type { GridItem } from "./types"
+import { getItemGridDimensions } from "./model/registry"
 
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
 
@@ -13,31 +14,11 @@ export type GridPlacement = GridPosition & { height: number; width?: number }
 export type GridPositions = Record<string, GridPosition>
 
 export function itemWidth(item: GridItem, columns = 24) {
-  if (item.kind === "calendar" && item.size === "medium")
-    return Math.min(columns, 2)
-  return Math.min(
-    columns,
-    (item.kind === "folder" || item.kind === "dot-canvas") &&
-      (item.size === "wide" || item.size === "wide-tall")
-      ? 8
-      : 4
-  )
+  return getItemGridDimensions(item, columns).width
 }
 
 export function itemHeight(item: GridItem) {
-  if (item.kind === "todo")
-    return item.size === "small" ? 1 : item.size === "medium" ? 2 : 4
-  if (item.kind === "calendar")
-    return item.size === "small" ? 1 : item.size === "medium" ? 2 : 4
-  return item.kind === "tab"
-    ? item.size === "small"
-      ? 1
-      : 2
-    : item.size === "small"
-      ? 2
-      : item.size === "tall" || item.size === "wide-tall"
-        ? 8
-        : 4
+  return getItemGridDimensions(item).height
 }
 
 function overlaps(a: GridPlacement, b: GridPlacement) {

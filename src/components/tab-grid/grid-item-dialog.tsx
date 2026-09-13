@@ -6,7 +6,6 @@ import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import DotArt from "./dot-art"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { blankDots, canvasDimensions } from "./dot-canvas-data"
 import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,14 +18,22 @@ import {
 import ComponentConfiguration from "./component-configuration"
 import type { ComponentProps } from "react"
 import type { GridItem } from "./types"
+import {
+  catalogComponentKinds,
+  getComponentDefinition,
+  getComponentSizeOptions,
+  type CatalogComponentKind,
+  type GridItemSize,
+} from "./model/registry"
+import { createCatalogComponent } from "./model/factory"
 
 function PreviewContent({
   kind,
   detail = false,
   size = "large",
 }: {
-  kind: "dot-canvas" | "ecosystem" | "calendar" | "todo"
-  size?: "small" | "medium" | "large"
+  kind: CatalogComponentKind
+  size?: GridItemSize
   detail?: boolean
 }) {
   if (kind === "todo")
@@ -39,9 +46,9 @@ function PreviewContent({
           item={{
             id: "todo-preview",
             kind: "todo",
-            name: "待办",
-            size,
-            color: "#6c8bd4",
+            name: getComponentDefinition(kind).defaultName,
+            size: size === "small" || size === "medium" ? size : "large",
+            color: getComponentDefinition(kind).defaultColor,
             tasks: [
               { id: "1", text: "整理今天的计划", done: true },
               { id: "2", text: "读几页喜欢的书", done: false },
@@ -60,9 +67,9 @@ function PreviewContent({
           item={{
             id: "calendar-preview",
             kind: "calendar",
-            name: "日历",
-            size,
-            color: "#3478f6",
+            name: getComponentDefinition(kind).defaultName,
+            size: size === "small" || size === "medium" ? size : "large",
+            color: getComponentDefinition(kind).defaultColor,
           }}
         />
       </div>
@@ -81,9 +88,9 @@ function PreviewContent({
         item={{
           id: "ecosystem-preview",
           kind: "ecosystem",
-          name: "像素花盆",
+          name: getComponentDefinition(kind).defaultName,
           size: "large",
-          color: "#42b883",
+          color: getComponentDefinition(kind).defaultColor,
           species: "flowers",
           plants: [],
         }}
@@ -132,63 +139,11 @@ export default function GridItemDialog({
   item?: GridItem
   onClose: () => void
 }) {
-  const [selected, setSelected] = useState<
-    "dot-canvas" | "ecosystem" | "calendar" | "todo" | null
-  >(null)
-  const [confirmSize, setConfirmSize] = useState<string | false>(false)
+  const [selected, setSelected] = useState<CatalogComponentKind | null>(null)
+  const [confirmSize, setConfirmSize] = useState<GridItemSize | false>(false)
   const saveItem = useTabGridStore((state) => state.saveItem)
-  function addComponent(
-    kind: "dot-canvas" | "ecosystem" | "calendar" | "todo",
-    size: "small" | "medium" | "large" | "tall" | "wide" | "wide-tall" = "large"
-  ) {
-    const id = crypto.randomUUID()
-    switch (kind) {
-      case "todo":
-        saveItem({
-          id,
-          kind,
-          name: "待办",
-          size: size === "small" || size === "medium" ? size : "large",
-          color: "#6c8bd4",
-          tasks: [],
-        })
-        break
-      case "calendar":
-        saveItem({
-          id,
-          kind,
-          name: "日历",
-          size: size === "small" || size === "medium" ? size : "large",
-          color: "#3478f6",
-        })
-        break
-      case "dot-canvas":
-        if (size === "small" || size === "medium") return
-        saveItem({
-          id,
-          kind,
-          name: "点阵画布",
-          pixels: blankDots(
-            canvasDimensions(size).columns,
-            canvasDimensions(size).rows
-          ),
-          pixelColumns: canvasDimensions(size).columns,
-          size,
-          color: "#3291ff",
-        })
-        break
-      case "ecosystem":
-        saveItem({
-          id,
-          kind,
-          name: "像素花盆",
-          species: "flowers",
-          plants: [],
-          size: "large",
-          color: "#42b883",
-        })
-        break
-    }
+  function addComponent(kind: CatalogComponentKind, size?: GridItemSize) {
+    saveItem(createCatalogComponent(kind, size))
     onClose()
   }
   if (item?.kind === "ecosystem")
@@ -232,54 +187,33 @@ export default function GridItemDialog({
           </aside>
           <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-3 pt-16 pb-6 sm:p-6 sm:pt-16">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {(
-                [
-                  {
-                    id: "dot-canvas",
-                    label: "点阵画布",
-                    description: "绘制像素图案，或导入图片生成专属点阵装饰。",
-                  },
-                  {
-                    id: "todo",
-                    label: "待办",
-                    description: "记录事项，勾选完成。",
-                  },
-                  {
-                    id: "calendar",
-                    label: "日历",
-                    description: "查看月历，切换月份，快速回到今天。",
-                  },
-                  {
-                    id: "ecosystem",
-                    label: "像素花盆",
-                    description:
-                      "播种、浇水并陪伴植物成长，收集到你的植物图鉴。",
-                  },
-                ] as const
-              ).map((entry) => (
-                <div key={entry.id} className="min-w-0">
-                  <button
-                    type="button"
-                    aria-label={`选择${entry.label}`}
-                    aria-haspopup="dialog"
-                    className="w-full min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => {
-                      if (selected !== entry.id) {
-                        setSelected(entry.id)
-                        setConfirmSize(false)
-                      } else {
-                        setSelected(null)
-                        setConfirmSize(false)
-                      }
-                    }}
-                  >
-                    <ComponentPreview kind={entry.id} />
-                    <span className="block px-4 pb-4 text-center text-sm font-medium">
-                      {entry.label}
-                    </span>
-                  </button>
-                </div>
-              ))}
+              {catalogComponentKinds.map((kind) => {
+                const entry = getComponentDefinition(kind)
+                return (
+                  <div key={kind} className="min-w-0">
+                    <button
+                      type="button"
+                      aria-label={`选择${entry.label}`}
+                      aria-haspopup="dialog"
+                      className="w-full min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => {
+                        if (selected !== kind) {
+                          setSelected(kind)
+                          setConfirmSize(false)
+                        } else {
+                          setSelected(null)
+                          setConfirmSize(false)
+                        }
+                      }}
+                    >
+                      <ComponentPreview kind={kind} />
+                      <span className="block px-4 pb-4 text-center text-sm font-medium">
+                        {entry.label}
+                      </span>
+                    </button>
+                  </div>
+                )
+              })}
               {selected && (
                 <Dialog
                   open
@@ -291,38 +225,25 @@ export default function GridItemDialog({
                   }}
                 >
                   <DialogContent
-                    className={`grid grid-cols-1 items-center gap-6 p-6 ${selected === "calendar" || selected === "todo" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
+                    className={`grid grid-cols-1 items-center gap-6 p-6 ${getComponentDefinition(selected).detailPreviewWidth === "wide" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
                   >
                     <ComponentPreview
                       kind={selected}
                       detail
                       size={
-                        confirmSize === "small" || confirmSize === "medium"
-                          ? confirmSize
-                          : "large"
+                        confirmSize ||
+                        getComponentDefinition(selected).defaultSize
                       }
                     />
                     <div className="min-w-0 space-y-3">
                       <DialogTitle className="font-semibold">
-                        {selected === "todo"
-                          ? "待办"
-                          : selected === "calendar"
-                            ? "日历"
-                            : selected === "ecosystem"
-                              ? "像素花盆"
-                              : "点阵画布"}
+                        {getComponentDefinition(selected).label}
                       </DialogTitle>
                       <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                        {selected === "todo"
-                          ? "记录事项，勾选完成。"
-                          : selected === "calendar"
-                            ? "查看月历，切换月份，快速回到今天。"
-                            : selected === "ecosystem"
-                              ? "播种、浇水并陪伴植物成长，收集到你的植物图鉴。"
-                              : "绘制像素图案，或导入图片生成专属点阵装饰。"}
+                        {getComponentDefinition(selected).description}
                       </DialogDescription>
-                      {selected === "todo" ? (
-                        <Button onClick={() => addComponent("todo", "large")}>
+                      {getComponentDefinition(selected).catalogDirectAdd ? (
+                        <Button onClick={() => addComponent(selected)}>
                           确认添加
                         </Button>
                       ) : (
@@ -331,51 +252,27 @@ export default function GridItemDialog({
                             可选大小
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {(
-                              [
-                                { value: "large", label: "4×4" },
-                                ...(selected === "calendar"
-                                  ? [
-                                      { value: "small", label: "4×1" },
-                                      { value: "medium", label: "2×2" },
-                                    ]
-                                  : []),
-                                ...(selected === "dot-canvas"
-                                  ? [
-                                      { value: "tall", label: "4×8" },
-                                      { value: "wide", label: "8×4" },
-                                      { value: "wide-tall", label: "8×8" },
-                                    ]
-                                  : []),
-                              ] as {
-                                value:
-                                  | "small"
-                                  | "medium"
-                                  | "large"
-                                  | "tall"
-                                  | "wide"
-                                  | "wide-tall"
-                                label: string
-                              }[]
-                            ).map((option) => (
-                              <Button
-                                key={option.value}
-                                variant={
-                                  confirmSize === option.value
-                                    ? "default"
-                                    : "outline"
-                                }
-                                onClick={() => {
-                                  if (confirmSize === option.value)
-                                    addComponent(selected, option.value)
-                                  else setConfirmSize(option.value)
-                                }}
-                              >
-                                {confirmSize === option.value
-                                  ? `确认添加 · ${option.label}`
-                                  : option.label}
-                              </Button>
-                            ))}
+                            {getComponentSizeOptions(selected, "catalog").map(
+                              (option) => (
+                                <Button
+                                  key={option.value}
+                                  variant={
+                                    confirmSize === option.value
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  onClick={() => {
+                                    if (confirmSize === option.value)
+                                      addComponent(selected, option.value)
+                                    else setConfirmSize(option.value)
+                                  }}
+                                >
+                                  {confirmSize === option.value
+                                    ? `确认添加 · ${option.menuLabel}`
+                                    : option.menuLabel}
+                                </Button>
+                              )
+                            )}
                           </div>
                         </div>
                       )}

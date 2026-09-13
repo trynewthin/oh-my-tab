@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "./storage"
+
+type Layouts = Record<number, Record<string, { x: number; y: number }>>
+
+const storedLayouts = async (page: Parameters<typeof readStoredState>[0]) =>
+  (await readStoredState<{ layouts: Layouts }>(page, "omt.tab-grid")).layouts
 
 test("wide grids adapt and keep drag positions after reload", async ({
   page,
@@ -56,25 +62,12 @@ test("wide grids adapt and keep drag positions after reload", async ({
   await page.mouse.move(box.x + 30, box.y + 140, { steps: 12 })
   await page.mouse.up()
   await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(localStorage.getItem("omt.tab-grid")!).state.layouts[20]?.[
-            "tab-0"
-          ]?.y
-      )
-    )
+    .poll(async () => (await storedLayouts(page))[20]?.["tab-0"]?.y)
     .toBeGreaterThan(0)
-  const saved = await page.evaluate(
-    () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.layouts[20]
-  )
+  const saved = (await storedLayouts(page))[20]
   await page.reload()
   await expect(cards).toHaveCount(6)
-  expect(
-    await page.evaluate(
-      () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.layouts[20]
-    )
-  ).toEqual(saved)
+  expect((await storedLayouts(page))[20]).toEqual(saved)
 })
 
 test("breakpoint layouts retain gaps and derive visual order only once", async ({
@@ -109,10 +102,7 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
     },
     { original }
   )
-  const layouts = () =>
-    page.evaluate(
-      () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.layouts
-    )
+  const layouts = () => storedLayouts(page)
   await page.setViewportSize({ width: 1920, height: 1000 })
   await page.goto("/")
   await expect(page.locator("[data-grid-item-id]")).toHaveCount(3)
@@ -130,16 +120,14 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
     )
     .toBe("17 / span 4")
   expect((await layouts())[20]).toEqual(original)
-  await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "常规设置", exact: true }).click()
-  await page.getByLabel("书签 HTML 文件").setInputFiles({
-    name: "bookmarks.html",
-    mimeType: "text/html",
-    buffer: Buffer.from('<DL><DT><A HREF="https://new.example/">新增</A></DL>'),
-  })
-  await expect(
-    page.getByRole("status").filter({ hasText: "新增 1 个书签" })
-  ).toBeVisible()
+  await page.getByRole("button", { name: "更多操作", exact: true }).click()
+  await page.getByRole("button", { name: "添加标签", exact: true }).click()
+  const creation = page.getByRole("dialog", { name: "配置标签", exact: true })
+  await creation.getByLabel("名称", { exact: true }).fill("新增")
+  await creation
+    .getByLabel("网址", { exact: true })
+    .fill("https://new.example/")
+  await creation.getByRole("button", { name: "确认添加", exact: true }).click()
   await expect
     .poll(async () => Object.keys((await layouts())[12]).length)
     .toBe(4)

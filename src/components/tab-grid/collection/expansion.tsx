@@ -12,9 +12,13 @@ import gsap from "gsap"
 import { X } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import FolderBackground from "./folder-background"
-import FolderExpandedGrid from "./folder-expanded-grid"
+import ComponentBackground from "../shared/component-background"
+import FolderExpandedGrid from "../folder-expanded-grid"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import {
+  getComponentDefinition,
+  supportsComponentAction,
+} from "../model/registry"
 
 function expandedBounds() {
   const width = Math.min(
@@ -30,22 +34,22 @@ function expandedBounds() {
   }
 }
 
-export default function FolderExpansion({
-  folderId,
+export default function CollectionExpansion({
+  itemId,
   onClose,
   suspended = false,
   children,
   headerActions,
 }: {
-  folderId: string
+  itemId: string
   onClose: () => void
   suspended?: boolean
   children?: ReactNode
   headerActions?: ReactNode
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
-  const folder = useTabGridStore((state) =>
-    state.items.find((item) => item.id === folderId)
+  const collection = useTabGridStore((state) =>
+    state.items.find((item) => item.id === itemId)
   )
   const { active } = useDndContext()
   const panelRef = useRef<HTMLElement | null>(null)
@@ -65,7 +69,7 @@ export default function FolderExpansion({
     const source =
       Array.from(
         document.querySelectorAll<HTMLElement>("[data-grid-item-id]")
-      ).find((node) => node.dataset.gridItemId === folderId) ?? null
+      ).find((node) => node.dataset.gridItemId === itemId) ?? null
     sourceRef.current = source
     sourceVisibility.current = source?.style.visibility ?? ""
     const origin = source?.getBoundingClientRect()
@@ -120,7 +124,7 @@ export default function FolderExpansion({
       )
         previousFocus.focus({ preventScroll: true })
     }
-  }, [folderId])
+  }, [itemId])
 
   useLayoutEffect(() => {
     const panel = panelRef.current
@@ -190,8 +194,9 @@ export default function FolderExpansion({
     }
   }, [active, suspended, close])
 
-  if (!folder || (folder.kind !== "folder" && folder.kind !== "todo"))
+  if (!collection || !supportsComponentAction(collection.kind, "expandable"))
     return null
+  const definition = getComponentDefinition(collection.kind)
 
   return createPortal(
     <section
@@ -200,12 +205,12 @@ export default function FolderExpansion({
       aria-modal="false"
       aria-labelledby={titleId}
       tabIndex={-1}
-      data-expanded-folder={folder.id}
-      className={`folder-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border shadow-xl outline-none ${backgroundType === "solid" ? "bg-card" : "bg-transparent"}`}
+      data-expanded-collection={collection.id}
+      className={`collection-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border shadow-xl outline-none ${backgroundType === "solid" ? "bg-card" : "bg-transparent"}`}
     >
-      <FolderBackground
-        color={folder.color}
-        animated={!!folder.dynamicEffect}
+      <ComponentBackground
+        color={collection.color}
+        animated={!!collection.dynamicEffect}
       />
       <div className="relative z-10 flex h-full min-h-0 [scrollbar-width:none] flex-col gap-4 overflow-y-auto p-5 [&::-webkit-scrollbar]:hidden">
         <header className="-mx-1 -mt-2 flex h-8 shrink-0 items-center justify-between gap-3">
@@ -213,14 +218,14 @@ export default function FolderExpansion({
             id={titleId}
             className="min-w-0 truncate text-base leading-6 font-medium"
           >
-            {folder.name}
+            {collection.name}
           </h2>
           <div className="flex h-8 shrink-0 items-center gap-1">
             {headerActions}
             <Button
               variant="ghost"
               size="icon"
-              aria-label={folder.kind === "folder" ? "关闭文件夹" : "关闭待办"}
+              aria-label={`关闭${definition.label}`}
               onClick={close}
             >
               <X className="size-4" />
@@ -228,8 +233,8 @@ export default function FolderExpansion({
           </div>
         </header>
         {children ??
-          (folder.kind === "folder" && folder.tabs.length > 0 && (
-            <FolderExpandedGrid folder={folder} />
+          (collection.kind === "folder" && collection.tabs.length > 0 && (
+            <FolderExpandedGrid folder={collection} />
           ))}
       </div>
     </section>,

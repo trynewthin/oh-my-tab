@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "./storage"
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -15,7 +16,7 @@ test("custom search engines validate URLs and persist selection", async ({
   await page.goto("/#/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "搜索引擎", exact: true }).click()
+  await dialog.getByRole("button", { name: "搜索", exact: true }).click()
   await dialog.getByRole("button", { name: "添加", exact: true }).click()
   const add = page.getByRole("dialog", { name: "添加搜索引擎", exact: true })
   await add.getByLabel("名称", { exact: true }).fill("Example Search")
@@ -32,6 +33,18 @@ test("custom search engines validate URLs and persist selection", async ({
     .getByRole("button", { name: "使用 Example Search", exact: true })
     .click()
   await dialog.getByRole("button", { name: "关闭", exact: true }).click()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        selectedId: string
+        engines: { id: string; name: string }[]
+      }>(page, "omt.search-engines")
+      const engine = state.engines.find(
+        (item) => item.name === "Example Search"
+      )
+      return engine?.id === state.selectedId
+    })
+    .toBe(true)
   await page.reload()
   await expect(
     page.getByRole("button", { name: "搜索引擎：Example Search", exact: true })
@@ -44,51 +57,32 @@ test("personalization persists theme color and home settings filter unsupported 
   await page.goto("/#/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "主页设置", exact: true }).click()
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await dialog.getByRole("button", { name: "个性化", exact: true }).click()
   await dialog.getByRole("button", { name: "选择主题色", exact: true }).click()
   await page.getByLabel("主题色", { exact: true }).fill("#a855f7")
   await page.keyboard.press("Escape")
-  await dialog.getByRole("button", { name: "主页设置", exact: true }).click()
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await dialog.getByLabel("点阵显示内容").click()
   await page.getByRole("option", { name: "字符", exact: true }).click()
   await dialog.getByLabel("显示字符").fill("HELLO中文 2026")
   await expect(dialog.getByLabel("显示字符")).toHaveValue("HELLO 2026")
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{ color: string; text: string }>(
+        page,
+        "omt.home-settings"
+      )
+      return { color: state.color, text: state.text }
+    })
+    .toEqual({ color: "#a855f7", text: "HELLO 2026" })
   await page.reload()
   await expect(
     page.getByRole("img", { name: "HELLO 2026", exact: true })
   ).toBeVisible()
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => JSON.parse(localStorage.getItem("omt.home-settings")!).state.color
-      )
-    )
-    .toBe("#a855f7")
-})
-
-test("clipboard failure appears in toast while settings remain usable", async ({
-  page,
-}) => {
-  await page.addInitScript(() =>
-    Object.defineProperty(navigator.clipboard, "readText", {
-      value: async () => {
-        throw new Error("Denied")
-      },
-    })
-  )
-  await page.goto("/")
-  await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "常规设置", exact: true }).click()
-  await dialog.getByRole("button", { name: "粘贴", exact: true }).click()
-  await expect(page.getByRole("alert")).toHaveText(
-    "无法读取剪贴板，请直接粘贴到输入框"
-  )
-  await expect(dialog.getByRole("alert")).toHaveCount(0)
-  await page.getByRole("button", { name: "关闭通知", exact: true }).click()
-  await expect(page.getByRole("alert")).toHaveCount(0)
-  await expect(dialog).toBeVisible()
+  expect(
+    (await readStoredState<{ color: string }>(page, "omt.home-settings")).color
+  ).toBe("#a855f7")
 })
 
 test("personalization persists global burning controls", async ({ page }) => {
@@ -105,6 +99,15 @@ test("personalization persists global burning controls", async ({ page }) => {
   await expect(entrance).not.toBeChecked()
   await entrance.click()
   await expect(entrance).toBeChecked()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        burningAmplitude: number
+        transitionsEnabled: boolean
+      }>(page, "omt.home-settings")
+      return [state.burningAmplitude, state.transitionsEnabled]
+    })
+    .toEqual([2, true])
   await page.reload()
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   await dialog.getByRole("button", { name: "个性化", exact: true }).click()

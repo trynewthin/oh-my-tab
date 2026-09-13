@@ -1,5 +1,9 @@
 import FolderTabStack from "./folder-tab-stack"
 import type { FolderItem } from "./types"
+import {
+  CollectionCardHeader,
+  CollectionTitleButton,
+} from "./collection/header"
 
 export default function FolderUI({
   item,
@@ -18,15 +22,11 @@ export default function FolderUI({
         className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         aria-label={`打开文件夹 ${item.name}`}
       />
-      <button
-        type="button"
-        onClick={onOpen}
-        className="relative z-20 flex h-5 w-full min-w-0 shrink-0 items-center gap-2 pr-2 pl-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring sm:pr-5 sm:pl-1"
-      >
-        <span className="truncate text-[13px] font-medium sm:text-sm">
+      <CollectionCardHeader className="pr-2 pl-0.5 sm:pr-5 sm:pl-1">
+        <CollectionTitleButton onClick={onOpen}>
           {item.name}
-        </span>
-      </button>
+        </CollectionTitleButton>
+      </CollectionCardHeader>
       {item.tabs.length > 0 && (
         <FolderTabStack
           draggable={!preview}

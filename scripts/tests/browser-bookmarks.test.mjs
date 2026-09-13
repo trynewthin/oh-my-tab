@@ -3,6 +3,10 @@ import test from 'node:test'
 import { loadModule } from './load-module.mjs'
 const { parseBookmarkTree, readBrowserBookmarks, supportsBrowserBookmarks } = await loadModule('browser-bookmarks.ts')
 const { mergeBookmarks } = await loadModule('bookmark-import.ts')
+const factory = {
+  createTab: ({ name, url }) => ({ id: crypto.randomUUID(), kind: 'tab', name, url, size: 'small', color: '#6c8bd4' }),
+  createFolder: ({ name, tabs }) => ({ id: crypto.randomUUID(), kind: 'folder', name, tabs, size: 'large', color: '#6c8bd4' }),
+}
 const tree = [{ id: '0', title: '', children: [
   { id: '1', title: '书签栏', children: [
     { id: '10', title: '工作', children: [
@@ -26,8 +30,8 @@ test('browser tree preserves folder paths and order while filtering unsupported 
 })
 test('repeated native imports deduplicate and merge into existing folders', () => {
   const parsed = parseBookmarkTree(tree)
-  const first = mergeBookmarks([], parsed.bookmarks)
-  const second = mergeBookmarks(first.items, [...parsed.bookmarks, { name: '新增', url: 'https://new.example/', folder: '书签栏 / 工作' }])
+  const first = mergeBookmarks([], parsed.bookmarks, factory)
+  const second = mergeBookmarks(first.items, [...parsed.bookmarks, { name: '新增', url: 'https://new.example/', folder: '书签栏 / 工作' }], factory)
   assert.equal(second.duplicates, 2)
   assert.equal(second.added, 1)
   assert.equal(second.items.length, 2)

@@ -1,7 +1,7 @@
 {
   "name": "oh-my-tab",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.5.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,13 +11,12 @@
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview",
     "test": "playwright test",
-    "icons": "node scripts/generate-icons.mjs",
-    "test:extension": "node scripts/verify-extension.mjs",
-    "test:icons": "node --test scripts/tests/favicon-cache.test.mjs",
-    "test:unit": "node --test scripts/tests/*.test.mjs",
-    "screenshots": "node scripts/capture-showcase.mjs",
-    "demos": "node scripts/capture-features.mjs",
-    "test:webdav": "npm run build && node scripts/verify-webdav.mjs"
+    "icons": "node scripts/assets/generate-icons.mjs",
+    "test:extension": "node scripts/verification/verify-extension.mjs",
+    "test:icons": "node --test tests/unit/favicon-cache.test.mjs",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "store-assets": "node scripts/assets/capture-store.mjs",
+    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

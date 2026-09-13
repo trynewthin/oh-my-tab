@@ -1,5 +1,7 @@
 # 自部署 WebDAV
 
+[返回文档中心](../../docs/README.md)
+
 本方案使用 Apache WebDAV 保存 ZIP，Caddy 提供 HTTPS。需要一台安装 Docker Compose 的服务器、指向该服务器的域名，以及可用的 80/443 端口。默认只公开 HTTPS 入口，Apache 仅在容器网络内访问。
 
 1. 在此目录复制 `.env.example` 为 `.env`，将 `DAV_DOMAIN` 改为自己的域名；如需网页开发端访问，将 `DEV_ORIGIN` 改为实际开发页面的来源（协议、主机和端口）。

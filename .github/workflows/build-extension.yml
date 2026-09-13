@@ -3,7 +3,7 @@ name: Build extension
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache: npm
       - name: Install dependencies
         run: npm ci
@@ -63,7 +63,7 @@ jobs:
           test -s dist.crx
           mv dist.crx "packages/${PACKAGE_NAME}.crx"
       - name: Verify packages
-        run: python3 scripts/verify-packages.py
+        run: python3 scripts/release/verify-packages.py
       - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
@@ -99,16 +99,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          if [ -f "docs/releases/${RELEASE_TAG}.md" ]; then
-            cp "docs/releases/${RELEASE_TAG}.md" release-notes.md
-          else
           cat > release-notes.md <<'NOTES'
-          浏览器新标签页扩展，支持电子点阵、可拖拽标签网格和快捷搜索。
+          可自由整理的新标签页，包含常用网站、文件夹、搜索和实用小组件。
 
           下载 ZIP，解压后在 Chrome / Edge 扩展管理页开启开发者模式，选择「加载已解压的扩展程序」。
           CRX 使用固定密钥签名；浏览器可能限制商店外 CRX 安装。
           NOTES
-          fi
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" packages/* --clobber
           else

@@ -39,3 +39,4 @@ packages/
 *.crx
 *.pem
 *.key
+.vercel/

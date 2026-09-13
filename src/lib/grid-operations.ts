@@ -1,5 +1,7 @@
 import type { GridItem } from "@/components/tab-grid/types"
 import type { GridPositions } from "@/components/tab-grid/grid-layout"
+import { supportsComponentAction } from "@/components/tab-grid/model/registry"
+import { createFolderItem } from "@/components/tab-grid/model/factory"
 type GridData = {
   items: GridItem[]
   layouts: Record<number, GridPositions>
@@ -8,15 +10,7 @@ type GridData = {
 
 export function groupComponents(before: GridData, ids: string[], name: string) {
   const selected = before.items.filter((item) => ids.includes(item.id))
-  if (
-    selected.some(
-      (item) =>
-        item.kind === "dot-canvas" ||
-        item.kind === "ecosystem" ||
-        item.kind === "calendar" ||
-        item.kind === "todo"
-    )
-  )
+  if (selected.some((item) => !supportsComponentAction(item.kind, "groupable")))
     return null
   if (selected.length < 2 || !name.trim()) return null
   const layout = before.layouts[before.lastLayoutColumns ?? 0] ?? {}
@@ -25,17 +19,13 @@ export function groupComponents(before: GridData, ids: string[], name: string) {
       (layout[a.id]?.y ?? 0) - (layout[b.id]?.y ?? 0) ||
       (layout[a.id]?.x ?? 0) - (layout[b.id]?.x ?? 0)
   )
-  const folder: GridItem = {
-    id: crypto.randomUUID(),
-    kind: "folder",
+  const folder = createFolderItem({
     name: name.trim(),
-    size: "large",
     color: selected[0].color,
     tabs: selected.flatMap((item) =>
       item.kind === "tab" ? [item] : item.kind === "folder" ? item.tabs : []
     ),
-    dynamicEffect: false,
-  }
+  })
   const items = before.items.filter((item) => !ids.includes(item.id))
   items.splice(
     Math.min(

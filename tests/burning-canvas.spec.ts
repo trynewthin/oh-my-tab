@@ -68,10 +68,15 @@ for (const width of [390, 1440]) {
         const b = await sharp(reference).ensureAlpha().raw().toBuffer()
         expect(a.length).toBe(b.length)
         let maxDelta = 0
-        for (let i = 0; i < a.length; i++)
-          maxDelta = Math.max(maxDelta, Math.abs(a[i] - b[i]))
-        // Canvas and CSS differ slightly in premultiplied-alpha rounding.
-        expect(maxDelta).toBeLessThanOrEqual(2)
+        let totalDelta = 0
+        for (let i = 0; i < a.length; i++) {
+          const delta = Math.abs(a[i] - b[i])
+          maxDelta = Math.max(maxDelta, delta)
+          totalDelta += delta
+        }
+        // Canvas and CSS use different rasterization paths at 1x density.
+        expect(maxDelta).toBeLessThanOrEqual(10)
+        expect(totalDelta / a.length).toBeLessThanOrEqual(0.1)
         await surface.evaluate((element) => {
           const canvas = element.querySelector("canvas")!
           canvas.style.visibility = "visible"

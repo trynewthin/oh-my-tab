@@ -4,6 +4,7 @@ import {
   type GridPositions,
 } from "./grid-layout"
 import type { GridItem, TabEntry, TabItem } from "./types"
+import { getComponentDefinition } from "./model/registry"
 
 export type TabTransfer = {
   tabId: string
@@ -84,7 +85,10 @@ export function transferTab(state: GridData, move: TabTransfer): GridData {
       name: tab.name,
       url: tab.url,
       size: tab.size === "medium" ? "medium" : "small",
-      color: tab.color ?? source?.color ?? "#6c8bd4",
+      color:
+        tab.color ??
+        source?.color ??
+        getComponentDefinition("tab").defaultColor,
       dynamicEffect: tab.dynamicEffect,
     }
     items = [...items, extracted]

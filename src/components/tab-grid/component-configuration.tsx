@@ -17,7 +17,18 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl, type GridItem } from "./types"
+import { normalizeTabUrl } from "./types"
+import {
+  getComponentDefinition,
+  getComponentSize,
+  getComponentSizeOptions,
+  isComponentSize,
+  type GridItemSize,
+} from "./model/registry"
+import {
+  configureComponent,
+  type ConfigurableItem,
+} from "./model/factory"
 
 export default function ComponentConfiguration({
   item,
@@ -25,79 +36,53 @@ export default function ComponentConfiguration({
   onClose,
   onSaved,
 }: {
-  item?: Exclude<GridItem, { kind: "dot-canvas" | "ecosystem" }>
+  item?: ConfigurableItem
   initialKind?: "tab" | "folder"
   onClose: () => void
   onSaved: () => void
 }) {
   const [id] = useState(() => item?.id ?? crypto.randomUUID())
   const kind = item?.kind ?? initialKind
+  const definition = getComponentDefinition(kind)
   const [name, setName] = useState(item?.name ?? "")
   const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
-  const [size, setSize] = useState<
-    "small" | "medium" | "large" | "tall" | "wide" | "wide-tall"
-  >(item?.size ?? (kind === "folder" ? "large" : "small"))
-  const [color, setColor] = useState(item?.color ?? "#6c8bd4")
+  const [size, setSize] = useState<GridItemSize>(
+    item?.size ?? definition.defaultSize
+  )
+  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
   const saveItem = useTabGridStore((state) => state.saveItem)
+  const sizeOptions = getComponentSizeOptions(kind, "editor", item?.size)
 
   function save(event: FormEvent) {
     event.preventDefault()
     const normalized = normalizeTabUrl(url)
-    if (!name.trim() || (kind === "tab" && !normalized)) {
+    const resolvedName = definition.showNameInEditor
+      ? name.trim()
+      : item?.name || definition.defaultName
+    const resolvedSize = isComponentSize(kind, size)
+      ? size
+      : definition.defaultSize
+    if (!resolvedName || (kind === "tab" && !normalized)) {
       toast("请输入名称和有效的 http / https 网址。", "error")
       return
     }
-    if (kind === "tab")
-      saveItem({
+    saveItem(
+      configureComponent({
+        existing: item,
         id,
         kind,
-        name: name.trim(),
-        url: normalized!,
-        dynamicEffect: item?.kind === "tab" ? item.dynamicEffect : false,
-        size: size === "medium" ? "medium" : "small",
+        name: resolvedName,
+        size: resolvedSize,
         color,
+        url: normalized ?? undefined,
       })
-    else if (kind === "todo")
-      saveItem({
-        id,
-        kind,
-        name: name.trim(),
-        size: size === "small" || size === "medium" ? size : "large",
-        color,
-        tasks: item?.kind === "todo" ? item.tasks : [],
-        dynamicEffect: item?.dynamicEffect ?? false,
-      })
-    else if (kind === "calendar")
-      saveItem({
-        id,
-        kind,
-        name: name.trim(),
-        size: size === "small" || size === "medium" ? size : "large",
-        color,
-        dynamicEffect: item?.dynamicEffect ?? false,
-      })
-    else
-      saveItem({
-        id,
-        kind,
-        name: name.trim(),
-        size:
-          size === "small" ||
-          size === "tall" ||
-          size === "wide" ||
-          size === "wide-tall"
-            ? size
-            : "large",
-        color,
-        tabs: item?.kind === "folder" ? item.tabs : [],
-        dynamicEffect: item?.kind === "folder" ? item.dynamicEffect : false,
-      })
+    )
     onSaved()
   }
 
   const form = (
     <form className="space-y-4" onSubmit={save}>
-      {kind !== "calendar" && (
+      {definition.showNameInEditor && (
         <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
           名称
           <Input
@@ -120,69 +105,24 @@ export default function ComponentConfiguration({
           />
         </label>
       )}
-      {kind !== "todo" && (
+      {sizeOptions.length > 0 && (
         <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
           <label htmlFor="grid-size">显示大小</label>
           <Select
             value={size}
             onValueChange={(value) => {
-              if (
-                value === "small" ||
-                value === "medium" ||
-                value === "large" ||
-                value === "tall" ||
-                value === "wide" ||
-                value === "wide-tall"
-              )
-                setSize(value)
+              if (isComponentSize(kind, value)) setSize(value)
             }}
           >
             <SelectTrigger id="grid-size" className="w-full">
-              <SelectValue>
-                {kind === "calendar"
-                  ? size === "small"
-                    ? "周 · 4×1"
-                    : size === "medium"
-                      ? "日 · 2×2"
-                      : "月 · 4×4"
-                  : kind === "tab"
-                    ? size === "small"
-                      ? "小 · 4×1"
-                      : "中 · 4×2"
-                    : size === "small"
-                      ? "小 · 4×2"
-                      : size === "wide"
-                        ? "宽 · 8×4"
-                        : size === "wide-tall"
-                          ? "宽高 · 8×8"
-                          : size === "tall"
-                            ? "高 · 4×8"
-                            : "大 · 4×4"}
-              </SelectValue>
+              <SelectValue>{getComponentSize(kind, size)?.label}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {kind === "folder" && item?.size === "small" && (
-                <SelectItem value="small">小 · 4×2</SelectItem>
-              )}
-              {kind === "calendar" && (
-                <>
-                  <SelectItem value="small">周 · 4×1</SelectItem>
-                  <SelectItem value="medium">日 · 2×2</SelectItem>
-                </>
-              )}
-              {kind === "tab" && (
-                <SelectItem value="small">小 · 4×1</SelectItem>
-              )}
-              <SelectItem value={kind === "tab" ? "medium" : "large"}>
-                {kind === "tab" ? "中 · 4×2" : "大 · 4×4"}
-              </SelectItem>
-              {kind === "folder" && (
-                <>
-                  <SelectItem value="tall">高 · 4×8</SelectItem>
-                  <SelectItem value="wide">宽 · 8×4</SelectItem>
-                  <SelectItem value="wide-tall">宽高 · 8×8</SelectItem>
-                </>
-              )}
+              {sizeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -217,18 +157,12 @@ export default function ComponentConfiguration({
         <DialogHeader>
           <DialogTitle>
             {item ? "编辑" : "配置"}
-            {kind === "tab"
-              ? "标签"
-              : kind === "calendar"
-                ? "日历"
-                : kind === "todo"
-                  ? "待办"
-                  : "文件夹"}
+            {definition.label}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {kind === "calendar"
-              ? "选择显示大小和颜色后确认。"
-              : "填写名称、显示大小和颜色后确认。"}
+            {definition.showNameInEditor
+              ? "填写名称和可用设置后确认。"
+              : "选择可用设置后确认。"}
           </DialogDescription>
         </DialogHeader>
         {form}

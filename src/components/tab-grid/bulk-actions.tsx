@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
+import { supportsComponentAction } from "./model/registry"
 
 export default function BulkActions() {
   const active = useGridSelectionStore((state) => state.active)
@@ -82,20 +83,12 @@ export default function BulkActions() {
               disabled={
                 selected.length < 2 ||
                 selected.some(
-                  (item) =>
-                    item.kind === "dot-canvas" ||
-                    item.kind === "ecosystem" ||
-                    item.kind === "calendar" ||
-                    item.kind === "todo"
+                  (item) => !supportsComponentAction(item.kind, "groupable")
                 )
               }
               title={
                 selected.some(
-                  (item) =>
-                    item.kind === "dot-canvas" ||
-                    item.kind === "ecosystem" ||
-                    item.kind === "calendar" ||
-                    item.kind === "todo"
+                  (item) => !supportsComponentAction(item.kind, "groupable")
                 )
                   ? "文件夹仅支持收纳书签"
                   : undefined

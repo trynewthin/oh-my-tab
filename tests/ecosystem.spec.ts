@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { readStoredState, writeStoredState } from "./storage"
 
 test("plant care, naming, time accumulation and album persist", async ({
   page,
@@ -14,7 +15,9 @@ test("plant care, naming, time accumulation and album persist", async ({
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
+  await page
+    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   let panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
@@ -26,23 +29,44 @@ test("plant care, naming, time accumulation and album persist", async ({
   await panel.getByLabel("植物名称").press("Enter")
   await panel.getByRole("button", { name: "浇水", exact: true }).click()
   await expect(panel.getByText("点数 5", { exact: true })).toBeVisible()
+  await expect
+    .poll(async () => {
+      const shared = await readStoredState<{ points: number }>(
+        page,
+        "omt.garden"
+      )
+      const grid = await readStoredState<{
+        items: { kind: string; plants?: { name?: string }[] }[]
+      }>(page, "omt.tab-grid")
+      return [
+        shared.points,
+        grid.items.find((item) => item.kind === "ecosystem")?.plants?.[0]?.name,
+      ]
+    })
+    .toEqual([5, "晚风"])
   await page.reload()
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
   await expect(panel.getByLabel("植物名称")).toHaveValue("晚风")
-  await page.evaluate(() => {
-    const data = JSON.parse(localStorage.getItem("omt.tab-grid")!)
-    const garden = data.state.items.find(
-      (item: { kind: string }) => item.kind === "ecosystem"
-    )
-    const shared = JSON.parse(localStorage.getItem("omt.garden")!)
-    if (garden.plants.length !== 1 || shared.state.points !== 5)
-      throw new Error("Care state mismatch")
-    garden.plants[0].plantedAt -= 6 * 86400000
-    shared.state.pointsUpdatedAt -= 2.5 * 3600000
-    localStorage.setItem("omt.garden", JSON.stringify(shared))
-    localStorage.setItem("omt.tab-grid", JSON.stringify(data))
-  })
+  await panel.getByRole("button", { name: "关闭", exact: true }).click()
+  const grid = await readStoredState<{
+    items: {
+      kind: string
+      plants: { plantedAt: number }[]
+    }[]
+    layouts: Record<number, unknown>
+  }>(page, "omt.tab-grid")
+  const garden = grid.items.find((item) => item.kind === "ecosystem")
+  const shared = await readStoredState<{
+    points: number
+    pointsUpdatedAt: number
+  }>(page, "omt.garden")
+  if (!garden || garden.plants.length !== 1 || shared.points !== 5)
+    throw new Error("Care state mismatch")
+  garden.plants[0].plantedAt -= 6 * 86400000
+  shared.pointsUpdatedAt -= 2.5 * 3600000
+  await writeStoredState(page, "omt.garden", shared)
+  await writeStoredState(page, "omt.tab-grid", grid)
   await page.reload()
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
@@ -135,13 +159,24 @@ test("daily check-in grants 100 points once and survives reload", async ({
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
+  await page
+    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   const panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
   await panel.getByRole("button", { name: "每日签到", exact: true }).click()
   await expect(panel.getByText("点数 106", { exact: true })).toBeVisible()
   await expect(panel.getByRole("button", { name: "今日已签到" })).toBeDisabled()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        points: number
+        lastCheckIn?: string
+      }>(page, "omt.garden")
+      return [state.points, typeof state.lastCheckIn]
+    })
+    .toEqual([106, "string"])
   await page.reload()
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   await expect(panel.getByRole("button", { name: "今日已签到" })).toBeDisabled()

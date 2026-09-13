@@ -1,4 +1,4 @@
-import FolderBackground from "./folder-background"
+import ComponentBackground from "./shared/component-background"
 import { useEffect, useState } from "react"
 import { CaretLeft, CaretRight } from "@phosphor-icons/react"
 import type { CalendarItem } from "./types"
@@ -175,7 +175,7 @@ export default function Calendar({
 }) {
   return (
     <div className="relative isolate h-full w-full overflow-hidden rounded-[inherit]">
-      <FolderBackground
+      <ComponentBackground
         color={item.color}
         animated={!preview && !!item.dynamicEffect}
       />

@@ -5,7 +5,7 @@ import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
-import FolderBackground from "./folder-background"
+import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import type { GridItem } from "./types"
 
@@ -55,7 +55,7 @@ export default function GridTileContent({
     </>
   ) : (
     <>
-      <FolderBackground color={item.color} animated={!!item.dynamicEffect} />
+      <ComponentBackground color={item.color} animated={!!item.dynamicEffect} />
       <FolderUI item={item} onOpen={onOpen} preview={preview} />
     </>
   )

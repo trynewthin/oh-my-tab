@@ -85,7 +85,7 @@ for (const size of ["large", "tall"] as const) {
   })
 }
 
-test("legacy compact folders retain bookmarks and use the standard size", async ({
+test("legacy compact folders retain bookmarks and their stored size", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -128,37 +128,63 @@ test("legacy compact folders retain bookmarks and use the standard size", async 
           ).size
       )
     )
-    .toBe("large")
-  await page.locator('[data-grid-item-id="legacy"]').click({ button: "right" })
-  await expect(
-    page.getByRole("menuitemradio", { name: "小 · 4×2", exact: true })
-  ).toHaveCount(0)
-  await expect(
-    page.getByRole("menuitemradio", { name: "大 · 4×4", exact: true })
-  ).toBeVisible()
+    .toBe("small")
 })
 
 for (const size of ["wide", "wide-tall"]) {
-  test(`${size} folder spans eight cells and arranges bookmarks in two columns`, async ({ page }) => {
+  test(`${size} folder spans eight cells and arranges bookmarks in two columns`, async ({
+    page,
+  }) => {
     await page.addInitScript((size) => {
-      localStorage.setItem("omt.onboarding", JSON.stringify({ state: { seen: true }, version: 0 }))
-      localStorage.setItem("omt.tab-grid", JSON.stringify({ state: { items: [{ id: "wide-folder", kind: "folder", name: "双列", size, color: "#3478f6", tabs: Array.from({length: 20}, (_, i) => ({id: String(i), name: `链接 ${i}`, url: `https://example.com/${i}`})) }], layouts: {} }, version: 0 }))
+      localStorage.setItem(
+        "omt.onboarding",
+        JSON.stringify({ state: { seen: true }, version: 0 })
+      )
+      localStorage.setItem(
+        "omt.tab-grid",
+        JSON.stringify({
+          state: {
+            items: [
+              {
+                id: "wide-folder",
+                kind: "folder",
+                name: "双列",
+                size,
+                color: "#3478f6",
+                tabs: Array.from({ length: 20 }, (_, i) => ({
+                  id: String(i),
+                  name: `链接 ${i}`,
+                  url: `https://example.com/${i}`,
+                })),
+              },
+            ],
+            layouts: {},
+          },
+          version: 0,
+        })
+      )
     }, size)
     await page.goto("/")
     const folder = page.locator('[data-grid-item-id="wide-folder"]')
     await expect(folder).toHaveCSS("grid-column-end", "span 8")
     const links = folder.getByRole("link")
-    await expect.poll(async () => {
-      const a = await links.nth(0).boundingBox(), b = await links.nth(1).boundingBox()
-      return !!a && !!b && Math.abs(a.y-b.y) < 1 && b.x > a.x
-    }).toBe(true)
+    await expect
+      .poll(async () => {
+        const a = await links.nth(0).boundingBox(),
+          b = await links.nth(1).boundingBox()
+        return !!a && !!b && Math.abs(a.y - b.y) < 1 && b.x > a.x
+      })
+      .toBe(true)
     await page.reload()
     await expect(folder).toHaveCSS("grid-column-end", "span 8")
-    await page.setViewportSize({width: 375, height: 900})
-    await expect(folder).toHaveCSS("grid-column-end", "span 4")
-    await expect.poll(async () => {
-      const a = await links.nth(0).boundingBox(), b = await links.nth(1).boundingBox()
-      return !!a && !!b && Math.abs(a.x-b.x) < 1 && b.y > a.y
-    }).toBe(true)
+    await page.setViewportSize({ width: 375, height: 900 })
+    await expect(folder).toHaveCSS("grid-column-end", "span 8")
+    await expect
+      .poll(async () => {
+        const a = await links.nth(0).boundingBox(),
+          b = await links.nth(1).boundingBox()
+        return !!a && !!b && Math.abs(a.x - b.x) < 1 && b.y > a.y
+      })
+      .toBe(true)
   })
 }

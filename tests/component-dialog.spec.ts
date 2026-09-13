@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "./storage"
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() =>
@@ -13,10 +14,8 @@ test.beforeEach(async ({ page }) => {
 test("component picker lists widgets and more menu creates editable bookmarks", async ({
   page,
 }) => {
-  await page
-    .getByRole("region", { name: "标签网格", exact: true })
-    .click({ button: "right", position: { x: 30, y: 100 } })
-  await page.getByRole("menuitem", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "更多操作", exact: true }).click()
+  await page.getByRole("button", { name: "添加组件", exact: true }).click()
   const catalog = page.getByRole("dialog", { name: "组件", exact: true })
   await expect(catalog).toBeVisible()
   await expect
@@ -60,6 +59,14 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
     .getByLabel("网址", { exact: true })
     .fill("https://example.com/docs")
   await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        items: { name: string; url?: string }[]
+      }>(page, "omt.tab-grid")
+      return state.items.find((item) => item.name === "文档")?.url
+    })
+    .toBe("https://example.com/docs")
   await page.reload()
   await expect(
     page.getByRole("link", { name: "文档", exact: true })

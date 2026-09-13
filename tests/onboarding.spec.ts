@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState, waitForStorageWrites } from "./storage"
 
 test("first visit tour completes and can be replayed from settings", async ({
   page,
@@ -39,10 +40,17 @@ test("first visit tour completes and can be replayed from settings", async ({
   expect(titles.at(-1)).toBe("随时重看教程")
   await tour.getByRole("button", { name: "开始使用" }).click()
   await expect(tour).toHaveCount(0)
+  await waitForStorageWrites(page)
+  await expect
+    .poll(
+      async () =>
+        (await readStoredState<{ seen: boolean }>(page, "omt.onboarding")).seen
+    )
+    .toBe(true)
   await page.reload()
   await expect(tour).toHaveCount(0)
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "常规设置", exact: true }).click()
+  await page.getByRole("button", { name: "常规", exact: true }).click()
   await page.getByRole("button", { name: "重新开始教程" }).click()
   await expect(
     tour.getByRole("heading", { name: "欢迎使用 Oh My Tab" })
@@ -52,6 +60,13 @@ test("first visit tour completes and can be replayed from settings", async ({
   ).toHaveCount(0)
   await page.keyboard.press("Escape")
   await expect(tour).toHaveCount(0)
+  await waitForStorageWrites(page)
+  await expect
+    .poll(
+      async () =>
+        (await readStoredState<{ seen: boolean }>(page, "omt.onboarding")).seen
+    )
+    .toBe(true)
   await page.reload()
   await expect(tour).toHaveCount(0)
 })
@@ -64,6 +79,13 @@ test("skip persists on a narrow screen without changing user content", async ({
   const next = page.getByRole("button", { name: "我同意", exact: true })
   await expect(next).toBeInViewport()
   await page.getByRole("button", { name: "跳过教程" }).click()
+  await waitForStorageWrites(page)
+  await expect
+    .poll(
+      async () =>
+        (await readStoredState<{ seen: boolean }>(page, "omt.onboarding")).seen
+    )
+    .toBe(true)
   await page.reload()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await expect(
@@ -71,28 +93,59 @@ test("skip persists on a narrow screen without changing user content", async ({
   ).toBeVisible()
 })
 
-test("onboarding applies choices only after agreement and rejection disables services", async ({ page }) => {
+test("onboarding applies choices only after agreement and rejection disables services", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     Object.assign(window, { grants: [] })
-    Object.assign(window, { chrome: { permissions: {
-      request: async (value: unknown) => { (window as unknown as { grants: unknown[] }).grants.push(value); return true },
-      remove: async () => true,
-      contains: async () => true,
-    } } })
+    Object.assign(window, {
+      chrome: {
+        permissions: {
+          request: async (value: unknown) => {
+            ;(window as unknown as { grants: unknown[] }).grants.push(value)
+            return true
+          },
+          remove: async () => true,
+          contains: async () => true,
+        },
+      },
+    })
   })
   await page.goto("/")
   const tour = page.getByRole("dialog")
   await tour.getByRole("checkbox", { name: /启用搜索联想/ }).check()
   await tour.getByRole("checkbox", { name: /下载网站图标/ }).check()
-  expect(await page.evaluate(() => (window as unknown as { grants: unknown[] }).grants)).toEqual([])
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { grants: unknown[] }).grants
+    )
+  ).toEqual([])
   await tour.getByRole("button", { name: "我同意", exact: true }).click()
-  await expect(tour.getByRole("heading", { name: "搜索与打开结果" })).toBeVisible()
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("omt.privacy")!).state.icons)).toBe(true)
-  expect(await page.evaluate(() => (window as unknown as { grants: unknown[] }).grants)).toHaveLength(1)
+  await expect(
+    tour.getByRole("heading", { name: "搜索与打开结果" })
+  ).toBeVisible()
+  await waitForStorageWrites(page)
+  await expect
+    .poll(
+      async () =>
+        (await readStoredState<{ icons: boolean }>(page, "omt.privacy")).icons
+    )
+    .toBe(true)
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { grants: unknown[] }).grants
+    )
+  ).toHaveLength(1)
   await tour.getByRole("button", { name: "上一步" }).click()
   await tour.getByRole("button", { name: "不同意", exact: true }).click()
-  await expect(tour.getByRole("heading", { name: "搜索与打开结果" })).toBeVisible()
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("omt.privacy")!).state)
+  await expect(
+    tour.getByRole("heading", { name: "搜索与打开结果" })
+  ).toBeVisible()
+  await waitForStorageWrites(page)
+  const saved = await readStoredState<{
+    suggestions: boolean
+    icons: boolean
+  }>(page, "omt.privacy")
   expect(saved.suggestions).toBe(false)
   expect(saved.icons).toBe(false)
 })

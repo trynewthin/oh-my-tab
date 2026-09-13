@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "./storage"
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -99,15 +100,20 @@ test("group selected components preserves folder bookmarks", async ({
   await expect(
     page.getByRole("link", { name: "乙", exact: true })
   ).toBeVisible()
-  const items = await page.evaluate(
-    () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.items
-  )
-  expect(items).toHaveLength(2)
-  expect(
-    items
-      .find((item: { name: string }) => item.name === "项目")
-      .tabs.map((tab: { id: string }) => tab.id)
-  ).toEqual(["a", "child"])
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        items: { name: string; tabs?: { id: string }[] }[]
+      }>(page, "omt.tab-grid")
+      return {
+        count: state.items.length,
+        tabIds:
+          state.items
+            .find((item) => item.name === "项目")
+            ?.tabs?.map((tab) => tab.id) ?? [],
+      }
+    })
+    .toEqual({ count: 2, tabIds: ["a", "child"] })
 })
 
 test("selection toolbar works on mobile and exits cleanly", async ({

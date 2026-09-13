@@ -17,6 +17,7 @@ import {
   isDotVisible,
 } from "./dot-canvas-data"
 import type { DotCanvasItem } from "./types"
+import { getComponentDefinition } from "./model/registry"
 
 export default function DotCanvasConfiguration({
   item,
@@ -32,8 +33,9 @@ export default function DotCanvasConfiguration({
   )
   const pixelColumns = item?.pixelColumns ?? 24
   const { columns, rows } = dotDimensions(pixels, pixelColumns)
+  const definition = getComponentDefinition("dot-canvas")
   const size = item?.size ?? "large"
-  const [color, setColor] = useState(item?.color ?? "#3291ff")
+  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
   const [tool, setTool] = useState<"draw" | "erase" | "pick">("draw")
   const [history, setHistory] = useState<string[][]>([])
   const [importing, setImporting] = useState(false)
@@ -120,7 +122,10 @@ export default function DotCanvasConfiguration({
     >
       <DialogContent className="flex h-[min(720px,90svh)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0">
-          <DialogTitle>{item ? "编辑" : "配置"}点阵画布</DialogTitle>
+          <DialogTitle>
+            {item ? "编辑" : "配置"}
+            {definition.label}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid min-h-0 flex-1 grid-cols-[5rem_minmax(0,1fr)] gap-3 sm:gap-5">
@@ -234,7 +239,7 @@ export default function DotCanvasConfiguration({
               useTabGridStore.getState().saveItem({
                 id: item?.id ?? crypto.randomUUID(),
                 kind: "dot-canvas",
-                name: item?.name ?? "点阵画布",
+                name: item?.name ?? definition.defaultName,
                 size,
                 color,
                 pixels,

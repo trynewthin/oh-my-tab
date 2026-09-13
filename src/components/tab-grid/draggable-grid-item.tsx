@@ -16,6 +16,11 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
 import type { GridItem } from "./types"
+import {
+  getComponentDefinition,
+  getComponentSizeOptions,
+  supportsComponentAction,
+} from "./model/registry"
 
 export default function DraggableGridItem({
   item,
@@ -43,28 +48,8 @@ export default function DraggableGridItem({
     id: item.id,
   })
 
-  const sizeOptions: { value: GridItem["size"]; label: string }[] =
-    item.kind === "todo"
-      ? []
-      : item.kind === "calendar"
-        ? [
-            { value: "large", label: "4×4" },
-            { value: "medium", label: "2×2" },
-            { value: "small", label: "4×1" },
-          ]
-        : item.kind === "folder"
-          ? [
-              { value: "wide-tall", label: "8×8" },
-              { value: "wide", label: "8×4" },
-              { value: "tall", label: "4×8" },
-              { value: "large", label: "4×4" },
-            ]
-          : item.kind === "tab"
-            ? [
-                { value: "medium", label: "4×2" },
-                { value: "small", label: "4×1" },
-              ]
-            : []
+  const definition = getComponentDefinition(item.kind)
+  const sizeOptions = getComponentSizeOptions(item.kind, "menu")
 
   const motionRef = useGridMotion(placement, isDragging, setNodeRef)
 
@@ -77,7 +62,7 @@ export default function DraggableGridItem({
         {...attributes}
         role="group"
         aria-label={`拖动 ${item.name} 放置`}
-        className={`group relative isolate col-span-4 min-w-0 cursor-grab rounded-2xl ${item.kind === "dot-canvas" || item.kind === "ecosystem" ? "" : "border"} outline-none focus-visible:ring-2 focus-visible:ring-ring ${dropState === "ready" ? "ring-2 ring-primary" : dropState === "pending" ? "ring-2 ring-primary/30" : ""}`}
+        className={`group relative isolate col-span-4 min-w-0 cursor-grab rounded-2xl ${definition.tileBorder ? "border" : ""} outline-none focus-visible:ring-2 focus-visible:ring-ring ${dropState === "ready" ? "ring-2 ring-primary" : dropState === "pending" ? "ring-2 ring-primary/30" : ""}`}
         style={{
           gridColumn: `${placement.x + 1} / span ${placement.width ?? 4}`,
           gridRow: `${placement.y + 1} / span ${placement.height}`,
@@ -108,15 +93,7 @@ export default function DraggableGridItem({
               gridTemplateColumns: `repeat(${sizeOptions.length}, minmax(0, 1fr))`,
             }}
             role="group"
-            aria-label={
-              item.kind === "todo"
-                ? "待办大小"
-                : item.kind === "calendar"
-                  ? "日历大小"
-                  : item.kind === "folder"
-                    ? "文件夹大小"
-                    : "标签大小"
-            }
+            aria-label={`${definition.label}大小`}
           >
             {sizeOptions.map((option) => (
               <ContextMenuItem
@@ -130,7 +107,7 @@ export default function DraggableGridItem({
                   variant={item.size === option.value ? "default" : "outline"}
                   className="h-7 w-full justify-center px-3"
                 >
-                  {option.label}
+                  {option.menuLabel}
                 </Badge>
               </ContextMenuItem>
             ))}
@@ -146,24 +123,26 @@ export default function DraggableGridItem({
           <PencilSimple />
           编辑
         </ContextMenuItem>
-        {(item.kind === "tab" ||
-          item.kind === "folder" ||
-          item.kind === "calendar" ||
-          item.kind === "todo") && (
+        {(supportsComponentAction(item.kind, "randomColor") ||
+          supportsComponentAction(item.kind, "dynamicEffect")) && (
           <>
-            <ContextMenuItem onClick={() => randomizeItemColor(item.id)}>
-              <Shuffle />
-              随机颜色
-            </ContextMenuItem>
-            <ContextMenuCheckboxItem
-              checked={!!item.dynamicEffect}
-              onCheckedChange={(checked) =>
-                setItemDynamicEffect(item.id, checked)
-              }
-            >
-              <Fire />
-              动态效果
-            </ContextMenuCheckboxItem>
+            {supportsComponentAction(item.kind, "randomColor") && (
+              <ContextMenuItem onClick={() => randomizeItemColor(item.id)}>
+                <Shuffle />
+                随机颜色
+              </ContextMenuItem>
+            )}
+            {supportsComponentAction(item.kind, "dynamicEffect") && (
+              <ContextMenuCheckboxItem
+                checked={!!item.dynamicEffect}
+                onCheckedChange={(checked) =>
+                  setItemDynamicEffect(item.id, checked)
+                }
+              >
+                <Fire />
+                动态效果
+              </ContextMenuCheckboxItem>
+            )}
           </>
         )}
         <ContextMenuItem

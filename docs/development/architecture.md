@@ -28,6 +28,7 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 | `src/lib/`                            | 存储、备份、同步、导入和领域计算             |
 | `scripts/`                            | 素材生成、发布校验和集成验证脚本             |
 | `tests/`                              | 端到端测试、单元测试、辅助代码和测试产物     |
+| `website/`                            | 产品官网与隐私政策独立前端                   |
 
 ## 依赖规则
 
@@ -82,4 +83,3 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 - [测试指南](testing.md)
 - [Chrome Web Store 发布](../publishing/chrome-web-store.md)
-- [WebDAV 部署](../../deploy/webdav/README.md)

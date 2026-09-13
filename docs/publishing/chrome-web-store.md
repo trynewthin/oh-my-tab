@@ -11,7 +11,7 @@
 | 完整商品说明     | `docs/store-assets/description.txt`       |
 | 功能截图与宣传图 | `docs/store-assets/`                      |
 | 扩展图标源文件   | `docs/brand/oh-my-tab-icon.png`           |
-| 隐私政策         | `public/privacy.html`                     |
+| 隐私政策         | `website/src/content/privacy.ts`          |
 | 扩展清单与权限   | `public/manifest.json`                    |
 | 待上传扩展包     | `packages/` 中当前版本的 Chrome Store ZIP |
 
@@ -55,7 +55,7 @@
 
 1. 运行构建、Lint、单元测试、端到端测试和真实扩展验证。
 2. 确认扩展 ZIP 根目录直接包含 `manifest.json`。
-3. 将托管隐私页面更新为 `public/privacy.html` 的当前内容，并核对后台数据声明。
+3. 确认 `https://ohmytab.vercel.app/privacy` 已发布当前政策，并核对后台数据声明。
 4. 上传 `docs/store-assets/description.txt`、五张功能截图和两张宣传图。
 5. 根据 `public/manifest.json` 核对权限理由，不沿用旧版本的权限列表。
 6. 在后台完成账号验证、两步验证和隐私声明后提交审核。

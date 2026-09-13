@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.5.1",
   "type": "module",
+  "workspaces": [
+    "website"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -16,7 +19,10 @@
     "test:icons": "node --test tests/unit/favicon-cache.test.mjs",
     "test:unit": "node --test tests/unit/*.test.mjs",
     "store-assets": "node scripts/assets/capture-store.mjs",
-    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs"
+    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs",
+    "website:dev": "npm run dev --workspace @oh-my-tab/website",
+    "website:build": "npm run build --workspace @oh-my-tab/website",
+    "website:preview": "npm run preview --workspace @oh-my-tab/website"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

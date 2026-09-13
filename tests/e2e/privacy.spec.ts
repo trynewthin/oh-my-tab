@@ -48,7 +48,7 @@ test("network features require consent and browser search is the default", async
   await page.getByRole("button", { name: "关于", exact: true }).click()
   await expect(
     page.getByRole("link", { name: "隐私政策与数据删除说明" })
-  ).toHaveAttribute("href", "https://oh-my-tab-privacy.vercel.app/")
+  ).toHaveAttribute("href", "https://ohmytab.vercel.app/privacy")
   const toggle = page.getByRole("checkbox", { name: /启用搜索联想/ })
   await expect(toggle).not.toBeChecked()
   await toggle.check()
@@ -56,7 +56,9 @@ test("network features require consent and browser search is the default", async
   await input.fill("hello")
   await page.waitForTimeout(400)
   expect(requests).toBe(0)
-  await page.getByRole("button", { name: "搜索引擎：浏览器默认", exact: true }).click()
+  await page
+    .getByRole("button", { name: "搜索引擎：浏览器默认", exact: true })
+    .click()
   await page.getByRole("button", { name: "Google", exact: true }).click()
   await input.focus()
   await expect.poll(() => requests).toBeGreaterThan(0)

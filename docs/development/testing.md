@@ -23,6 +23,8 @@
 | `npm test`               | 基于已有构建运行 Playwright 端到端测试 |
 | `npm run test:extension` | 在真实扩展环境验证新标签页入口和 CSP   |
 | `npm run test:webdav`    | 验证 WebDAV 连接、上传、恢复和并发保护 |
+| `npm run website:dev`    | 启动产品官网开发服务器                 |
+| `npm run website:build`  | 类型检查并构建产品官网                 |
 
 提交前至少运行与改动直接相关的测试。修改共享组件、持久化或构建入口时，再运行完整的 `build`、`lint`、单元测试和端到端测试。
 

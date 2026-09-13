@@ -20,11 +20,76 @@ const resultDir = "tests/results/webdav"
 const project = `omt-dav-test-${randomUUID().slice(0, 8)}`
 const appUrl = process.env.WEBDAV_TEST_APP_URL || "http://localhost:5173/"
 const password = randomUUID()
-const env = {
-  ...process.env,
-  DAV_DOMAIN: "localhost",
-  DEV_ORIGIN: new URL(appUrl).origin,
+const env = { ...process.env }
+const httpdConfig = `ServerRoot "/usr/local/apache2"
+Listen 80
+ServerName webdav
+LoadModule mpm_event_module modules/mod_mpm_event.so
+LoadModule unixd_module modules/mod_unixd.so
+LoadModule authn_core_module modules/mod_authn_core.so
+LoadModule authn_file_module modules/mod_authn_file.so
+LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule dav_module modules/mod_dav.so
+LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule log_config_module modules/mod_log_config.so
+User daemon
+Group daemon
+ErrorLog /proc/self/fd/2
+LogLevel warn
+DocumentRoot "/data"
+DavLockDB "/usr/local/apache2/var/DavLock"
+<Directory "/">
+  AllowOverride None
+  Require all denied
+</Directory>
+<Directory "/data">
+  Dav On
+  AuthType Basic
+  AuthName "Oh My Tab Test"
+  AuthUserFile "/auth/users"
+  Require valid-user
+  LimitRequestBody 67108864
+</Directory>
+`
+const caddyConfig = `localhost {
+  tls internal
+  header {
+    Access-Control-Allow-Origin "${new URL(appUrl).origin}"
+    Access-Control-Allow-Methods "GET, PUT, PROPFIND, OPTIONS"
+    Access-Control-Allow-Headers "Authorization, Content-Type, Depth, If-Match, If-None-Match"
+    Access-Control-Expose-Headers "ETag"
+    Vary "Origin"
+  }
+  @preflight method OPTIONS
+  respond @preflight 204
+  reverse_proxy webdav:80
 }
+`
+const composeConfig = `services:
+  webdav:
+    image: httpd:2.4
+    command: ["sh", "-c", "mkdir -p /data /usr/local/apache2/var && chown daemon:daemon /data /usr/local/apache2/var && exec httpd-foreground"]
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./auth:/auth:ro
+      - webdav-data:/data
+  https:
+    image: caddy:2
+    ports:
+      - "127.0.0.1::443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - webdav
+volumes:
+  webdav-data:
+  caddy-data:
+  caddy-config:
+`
 const command = (args, options = {}) => {
   const result = spawnSync("docker", args, {
     encoding: "utf8",
@@ -68,20 +133,9 @@ try {
     { input: password + "\n" }
   )
   await writeFile(path.join(dir, "auth/users"), auth + "\n")
-  await writeFile(
-    path.join(dir, "httpd.conf"),
-    await readFile("deploy/webdav/httpd.conf", "utf8")
-  )
-  const caddy = (await readFile("deploy/webdav/Caddyfile", "utf8")).replace(
-    "{$DAV_DOMAIN} {",
-    "{$DAV_DOMAIN} {\n  tls internal"
-  )
-  await writeFile(path.join(dir, "Caddyfile"), caddy)
-  const yaml = (await readFile("deploy/webdav/compose.yaml", "utf8")).replace(
-    '      - "80:80"\n      - "443:443"',
-    '      - "127.0.0.1::443"'
-  )
-  await writeFile(path.join(dir, "compose.yaml"), yaml)
+  await writeFile(path.join(dir, "httpd.conf"), httpdConfig)
+  await writeFile(path.join(dir, "Caddyfile"), caddyConfig)
+  await writeFile(path.join(dir, "compose.yaml"), composeConfig)
   compose("up", "-d")
   const port = compose("port", "https", "443").split(":").at(-1)
   const serverUrl = `https://localhost:${port}/`

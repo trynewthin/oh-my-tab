@@ -4,7 +4,7 @@
 
 把常用网站、文件夹和小组件放进一个可以自由整理的新标签页。
 
-[下载最新版本](https://github.com/trynewthin/oh-my-tab/releases/latest) · [查看隐私政策](public/privacy.html)
+[下载最新版本](https://github.com/trynewthin/oh-my-tab/releases/latest) · [官方网站](https://ohmytab.vercel.app/) · [查看隐私政策](https://ohmytab.vercel.app/privacy)
 
 ## 用顺手的方式打开每一天
 
@@ -37,7 +37,7 @@ Oh My Tab 会替换 Chrome 或 Edge 的新标签页。你可以拖动卡片安�
 
 书签、布局、偏好和背景图片默认保存在当前设备。Oh My Tab 不包含广告或行为分析。
 
-搜索联想、第三方网站图标、浏览器书签导入和 WebDAV 都需要你主动开启或操作。ZIP 备份未加密，请像保管普通备份文件一样妥善保存。权限用途和联网范围见[隐私政策](public/privacy.html)。
+搜索联想、第三方网站图标、浏览器书签导入和 WebDAV 都需要你主动开启或操作。ZIP 备份未加密，请像保管普通备份文件一样妥善保存。权限用途和联网范围见[隐私政策](https://ohmytab.vercel.app/privacy)。
 
 <details>
 <summary>开发与贡献</summary>
@@ -59,7 +59,7 @@ npm test
 npm run test:extension
 ```
 
-开发、测试、发布和部署资料见[项目文档](docs/README.md)。
+开发、测试和发布资料见[项目文档](docs/README.md)。
 
 </details>
 

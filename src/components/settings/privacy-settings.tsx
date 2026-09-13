@@ -75,7 +75,7 @@ export default function PrivacySettings({
       </label>
       <a
         className="block text-right text-sm underline"
-        href="https://oh-my-tab-privacy.vercel.app/"
+        href="https://ohmytab.vercel.app/privacy"
         target="_blank"
         rel="noreferrer"
       >

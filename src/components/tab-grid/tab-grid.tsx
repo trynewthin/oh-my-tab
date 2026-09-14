@@ -50,6 +50,7 @@ import {
 const emptyPositions: GridPositions = {}
 
 const FOLDER_GAP_ID = "__folder-gap__"
+const FOLDER_DROP_INSET = 0.08
 
 function previewFolderTabs(
   tabs: TabEntry[],
@@ -100,6 +101,7 @@ type DragSession = {
   mouse: boolean
   positions: GridPositions
   sourceFolderId?: string
+  sourceFolderIndex?: number
   sourceFolderColor?: string
   sourceSurface?: "preview" | "dialog"
   dialogBounds?: Bounds
@@ -113,15 +115,23 @@ type Intent =
       holdLayout: boolean
       releaseProgress: number
       ready: boolean
+      compactSize?: { width: number; height: number }
     }
   | {
       kind: "folder"
       folderId: string
       ready: boolean
       progress: number
+      releaseProgress: number
       color: string
+      compactSize: { width: number; height: number }
     }
-  | { kind: "reorder"; folderId: string; index: number }
+  | {
+      kind: "reorder"
+      folderId: string
+      index: number
+      releaseProgress: number
+    }
 
 function contains(point: Point, rect: Bounds, insetX = 0, insetY = 0) {
   return (
@@ -155,7 +165,12 @@ export default function TabGrid() {
     startedAt: number
     frame: number
   } | null>(null)
-  const release = useRef<{ startedAt: number; frame: number } | null>(null)
+  const release = useRef<{
+    startedAt: number
+    frame: number
+    from: number
+    target: 0 | 1
+  } | null>(null)
   const [dialogSuspended, setDialogSuspended] = useState(false)
   const [heldLayout, setHeldLayout] = useState<GridPositions | null>(null)
   const columns = dragging?.columns ?? columnsForWidth(width)
@@ -204,7 +219,8 @@ export default function TabGrid() {
     positions,
     dragging && intent.kind === "grid" && !intent.holdLayout
       ? settledTarget
-      : undefined
+      : undefined,
+    dragging?.sourceFolderId ? [dragging.sourceFolderId] : []
   )
 
   useEffect(() => {
@@ -280,6 +296,7 @@ export default function TabGrid() {
     let item: GridItem | undefined
     let element: Element | null | undefined
     let sourceFolderId: string | undefined
+    let sourceFolderIndex: number | undefined
     let sourceFolderColor: string | undefined
     if (data?.type === "folder-tab") {
       const folder = items.find((item) => item.id === data.folderId)
@@ -295,6 +312,7 @@ export default function TabGrid() {
         color: tab.color ?? folder.color,
       } as TabItem
       sourceFolderId = folder.id
+      sourceFolderIndex = folder.tabs.findIndex((tab) => tab.id === data.tabId)
       sourceFolderColor = folder.color
       element = data.getElement()
     } else {
@@ -326,6 +344,7 @@ export default function TabGrid() {
         Object.entries(placements).map(([id, { x, y }]) => [id, { x, y }])
       ),
       sourceFolderId,
+      sourceFolderIndex,
       sourceFolderColor,
       sourceSurface: data?.type === "folder-tab" ? data.surface : undefined,
       dialogBounds: element
@@ -341,6 +360,21 @@ export default function TabGrid() {
       (node) => node.getAttribute("data-grid-item-id") === id
     )
     return element?.getBoundingClientRect() ?? null
+  }
+  function folderTabSize(id: string) {
+    const surface = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-folder-surface]")
+    ).find(
+      (node) =>
+        node.dataset.folderId === id && node.dataset.folderSurface === "preview"
+    )
+    if (!surface) return { width: 0, height: 44 }
+    const bounds = surface.getBoundingClientRect()
+    const columns = Number(surface.dataset.folderColumns) || 1
+    return {
+      width: (bounds.width - (columns - 1) * 8) / columns,
+      height: Number(surface.dataset.folderRowHeight) || 44,
+    }
   }
   function insertionIndex(id: string, point: Point, session: DragSession) {
     const folder = items.find((item) => item.id === id)
@@ -393,6 +427,38 @@ export default function TabGrid() {
       ? remaining.findIndex((tab) => tab.id === last.dataset.tabId) + 1
       : remaining.length
   }
+  function animateRelease(target: 0 | 1, delta: Point) {
+    const currentIntent = intentRef.current
+    const current =
+      currentIntent.kind === "grid" ||
+      currentIntent.kind === "folder" ||
+      currentIntent.kind === "reorder"
+        ? currentIntent.releaseProgress
+        : sessionRef.current?.sourceFolderId
+          ? 0
+          : 1
+    if (!release.current || release.current.target !== target) {
+      clearRelease()
+      release.current = {
+        startedAt: performance.now(),
+        frame: 0,
+        from: current,
+        target,
+      }
+    }
+    const transition = release.current
+    const duration =
+      FOLDER_RELEASE_DURATION * Math.abs(transition.target - transition.from)
+    const elapsed = performance.now() - transition.startedAt
+    const amount = duration === 0 ? 1 : Math.min(1, elapsed / duration)
+    const progress =
+      transition.from + (transition.target - transition.from) * amount
+    cancelAnimationFrame(transition.frame)
+    if (amount < 1)
+      transition.frame = requestAnimationFrame(() => updateIntent(delta))
+    else release.current = null
+    return progress
+  }
   function updateIntent(delta: Point) {
     const session = sessionRef.current
     const grid = gridRef.current?.getBoundingClientRect()
@@ -407,11 +473,11 @@ export default function TabGrid() {
     if (session.dialogBounds && !session.dialogExited) {
       if (contains(point, session.dialogBounds)) {
         clearHover()
-        clearRelease()
         publish({
           kind: "reorder",
           folderId: session.sourceFolderId!,
           index: insertionIndex(session.sourceFolderId!, point, session),
+          releaseProgress: animateRelease(0, delta),
         })
         return
       }
@@ -422,11 +488,11 @@ export default function TabGrid() {
       const sourceBounds = folderBounds(session.sourceFolderId)
       if (sourceBounds && contains(point, sourceBounds)) {
         clearHover()
-        clearRelease()
         publish({
           kind: "reorder",
           folderId: session.sourceFolderId,
           index: insertionIndex(session.sourceFolderId, point, session),
+          releaseProgress: animateRelease(0, delta),
         })
         return
       }
@@ -443,12 +509,15 @@ export default function TabGrid() {
         const rect = folderBounds(folder.id)
         if (!rect) continue
         const ratio = overlapRatio(overlay, rect)
-        if (!confirmedFolderDrop(ratio)) continue
+        if (
+          !contains(point, rect, FOLDER_DROP_INSET, FOLDER_DROP_INSET) ||
+          !confirmedFolderDrop(ratio)
+        )
+          continue
         if (!best || ratio > best.ratio)
           best = { folderId: folder.id, color: folder.color, ratio }
       }
       if (best) {
-        clearRelease()
         if (hover.current?.folderId !== best.folderId) {
           if (hover.current) cancelAnimationFrame(hover.current.frame)
           hover.current = {
@@ -479,7 +548,9 @@ export default function TabGrid() {
           folderId: best.folderId,
           ready,
           progress,
+          releaseProgress: animateRelease(0, delta),
           color: best.color,
+          compactSize: folderTabSize(best.folderId),
         })
         return
       }
@@ -510,34 +581,18 @@ export default function TabGrid() {
         )
       ),
     }
-    if (session.sourceFolderId) {
-      if (!release.current)
-        release.current = { startedAt: performance.now(), frame: 0 }
-      const progress = Math.min(
-        1,
-        (performance.now() - release.current.startedAt) /
-          FOLDER_RELEASE_DURATION
-      )
-      const ready = progress >= 1
-      cancelAnimationFrame(release.current.frame)
-      if (!ready)
-        release.current.frame = requestAnimationFrame(() => updateIntent(delta))
-      publish({
-        kind: "grid",
-        position,
-        holdLayout: false,
-        releaseProgress: progress,
-        ready,
-      })
-      return
-    }
-    clearRelease()
+    const progress = animateRelease(1, delta)
+    const previousIntent = intentRef.current
     publish({
       kind: "grid",
       position,
       holdLayout: false,
-      releaseProgress: 1,
-      ready: true,
+      releaseProgress: progress,
+      ready: session.sourceFolderId ? progress >= 1 : true,
+      compactSize:
+        previousIntent.kind === "folder" || previousIntent.kind === "grid"
+          ? previousIntent.compactSize
+          : undefined,
     })
   }
   function finishDrag(event: DragEndEvent) {
@@ -546,48 +601,12 @@ export default function TabGrid() {
       resetDrag()
       return
     }
+    const visibleAction = intentRef.current
     updateIntent(event.delta)
     let action = intentRef.current
-    if (action.kind === "folder" && !action.ready) {
-      const source = sessionRef.current
-      const grid = gridRef.current?.getBoundingClientRect()
-      const point =
-        source?.mouse && pointer.current
-          ? pointer.current
-          : {
-              x: (source?.pointerOrigin.x ?? 0) + event.delta.x,
-              y: (source?.pointerOrigin.y ?? 0) + event.delta.y,
-            }
+    if (action.kind === "folder" && !action.ready)
       action =
-        source && grid
-          ? {
-              kind: "grid",
-              holdLayout: true,
-              releaseProgress: 1,
-              ready: true,
-              position: {
-                x: Math.max(
-                  0,
-                  Math.min(
-                    columns - itemWidth(source.item, columns),
-                    Math.round(
-                      (point.x - source.grabOffset.x - grid.left) / columnStep
-                    )
-                  )
-                ),
-                y: Math.max(
-                  0,
-                  Math.min(
-                    500,
-                    Math.round(
-                      (point.y - source.grabOffset.y - grid.top) / rowStep
-                    )
-                  )
-                ),
-              },
-            }
-          : { kind: "none" }
-    }
+        visibleAction.kind === "folder" ? { kind: "none" } : visibleAction
     if (action.kind === "grid" && session.sourceFolderId && !action.ready)
       action = { kind: "none" }
     let committed = false
@@ -640,47 +659,58 @@ export default function TabGrid() {
     resetDrag()
   }
   const releaseProgress =
-    dragging?.sourceFolderId && intent.kind === "grid"
+    dragging &&
+    (intent.kind === "grid" ||
+      intent.kind === "folder" ||
+      intent.kind === "reorder")
       ? intent.releaseProgress
       : dragging?.sourceFolderId
         ? 0
         : 1
   const overlayItem = !dragging
     ? undefined
-    : dragging.sourceFolderId &&
-        dragging.sourceFolderColor &&
-        dragging.item.kind === "tab"
+    : intent.kind === "folder" && dragging.item.kind === "tab"
       ? {
           ...dragging.item,
           color: mixHexColor(
-            dragging.sourceFolderColor,
             dragging.item.color,
-            releaseProgress
+            intent.color,
+            1 - releaseProgress
           ),
         }
-      : dragging && intent.kind === "folder" && dragging.item.kind === "tab"
+      : dragging.sourceFolderId &&
+          dragging.sourceFolderColor &&
+          dragging.item.kind === "tab"
         ? {
             ...dragging.item,
             color: mixHexColor(
+              dragging.sourceFolderColor,
               dragging.item.color,
-              intent.color,
-              intent.progress
+              releaseProgress
             ),
           }
         : dragging.item
+  const compactSize =
+    intent.kind === "folder"
+      ? intent.compactSize
+      : intent.kind === "grid" && intent.compactSize
+        ? intent.compactSize
+        : dragging?.sourceFolderId
+          ? { width: dragging.width, height: dragging.height }
+          : undefined
+  const fullWidth = dragging
+    ? columnStep * itemWidth(dragging.item, columns) - gridGap
+    : undefined
+  const fullHeight = dragging
+    ? itemHeight(dragging.item) * rowStep - gridGap
+    : undefined
   const overlayWidth =
-    dragging && dragging.sourceFolderId
-      ? dragging.width +
-        (columnStep * itemWidth(dragging.item, columns) -
-          gridGap -
-          dragging.width) *
-          releaseProgress
+    dragging && compactSize && fullWidth !== undefined
+      ? compactSize.width + (fullWidth - compactSize.width) * releaseProgress
       : dragging?.width
   const overlayHeight =
-    dragging && dragging.sourceFolderId
-      ? dragging.height +
-        (itemHeight(dragging.item) * rowStep - gridGap - dragging.height) *
-          releaseProgress
+    dragging && compactSize && fullHeight !== undefined
+      ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
 
   return (
@@ -768,15 +798,30 @@ export default function TabGrid() {
                         : undefined
                     }
                     folderTabs={
-                      item.kind === "folder" &&
-                      intent.kind === "reorder" &&
-                      intent.folderId === item.id
-                        ? previewFolderTabs(
-                            item.tabs,
-                            dragging?.item.id,
-                            intent.index
-                          )
-                        : undefined
+                      item.kind !== "folder"
+                        ? undefined
+                        : intent.kind === "folder" &&
+                            intent.folderId === item.id
+                          ? previewFolderTabs(
+                              item.tabs,
+                              dragging?.item.id,
+                              item.tabs.length
+                            )
+                          : intent.kind === "reorder" &&
+                              intent.folderId === item.id
+                            ? previewFolderTabs(
+                                item.tabs,
+                                dragging?.item.id,
+                                intent.index
+                              )
+                            : dragging?.sourceFolderId === item.id &&
+                                dragging.sourceFolderIndex !== undefined
+                              ? previewFolderTabs(
+                                  item.tabs,
+                                  dragging.item.id,
+                                  dragging.sourceFolderIndex
+                                )
+                              : undefined
                     }
                     onOpen={() => {
                       const action = getComponentDefinition(
@@ -810,7 +855,7 @@ export default function TabGrid() {
               zIndex={1000}
               dropAnimation={
                 dragging?.sourceFolderId ||
-                intent.kind === "folder" ||
+                (intent.kind === "folder" && intent.ready) ||
                 window.matchMedia("(prefers-reduced-motion: reduce)").matches
                   ? null
                   : {
@@ -825,6 +870,7 @@ export default function TabGrid() {
               {dragging && (
                 <div
                   aria-hidden="true"
+                  data-tab-grid-overlay
                   className="pointer-events-none relative cursor-grabbing"
                   style={{ width: overlayWidth, height: overlayHeight }}
                 >
@@ -832,8 +878,8 @@ export default function TabGrid() {
                     className="pointer-events-none absolute inset-0 rounded-2xl"
                     style={{
                       background: overlayItem?.color ?? dragging.item.color,
-                      opacity: 0.45,
-                      filter: "blur(16px)",
+                      opacity: 0.3,
+                      filter: "blur(14px)",
                     }}
                   />
                   <div
@@ -852,9 +898,7 @@ export default function TabGrid() {
                       item={overlayItem ?? dragging.item}
                       onOpen={() => {}}
                       preview
-                      compactTab={
-                        !!dragging.sourceFolderId && releaseProgress < 1
-                      }
+                      compactTab={releaseProgress < 1}
                     />
                   </div>
                 </div>
@@ -883,7 +927,19 @@ export default function TabGrid() {
                       dragging?.item.id,
                       intent.index
                     )
-                  : undefined
+                  : dragging?.sourceFolderId === folderId &&
+                      dragging.sourceFolderIndex !== undefined
+                    ? previewFolderTabs(
+                        items.find(
+                          (
+                            item
+                          ): item is Extract<GridItem, { kind: "folder" }> =>
+                            item.id === folderId && item.kind === "folder"
+                        )?.tabs ?? [],
+                        dragging.item.id,
+                        dragging.sourceFolderIndex
+                      )
+                    : undefined
               }
             />
           )}

@@ -21,7 +21,7 @@ export default function FolderExpandedGrid({
       data-folder-id={folder.id}
       label={`${folder.name}内的标签`}
     >
-      <CollectionGrid expanded>
+      <CollectionGrid expanded data-expanded-folder-grid>
         {visibleTabs.map((tab, index) => (
           <CollectionRow
             key={tab.id}

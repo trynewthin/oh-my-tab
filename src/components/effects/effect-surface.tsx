@@ -48,7 +48,11 @@ export default function EffectSurface({
   const entering = phase === "entering"
   const transitioning = entering || phase === "exiting"
   const region = useRef<HTMLDivElement>(null)
+  const pixi = useRef<ReturnType<typeof createPixiEffect> | null>(null)
   const [grid, setGrid] = useState({ columns: 0, rows: 0, width: 0, height: 0 })
+  const effectState = useRef({ color, grid })
+  const hidden = phase === "hidden" && !transitioning
+  const hasGrid = !!grid.columns
   const seed = textureSeed(textureId)
   const firstRow = Math.floor(offsetY / (CELL_SIZE + GAP))
   const shiftY = offsetY % (CELL_SIZE + GAP)
@@ -72,6 +76,39 @@ export default function EffectSurface({
     observer.observe(element)
     return () => observer.disconnect()
   }, [])
+
+  useEffect(() => {
+    effectState.current = { color, grid }
+  }, [color, grid])
+
+  useEffect(() => {
+    if (effectStyle === "none" || hidden || !hasGrid || !region.current) return
+    const initial = effectState.current
+    const effect = createPixiEffect(
+      region.current,
+      initial.color,
+      seed,
+      initial.grid.columns,
+      initial.grid.rows + (shiftY ? 1 : 0),
+      offsetY,
+      initial.grid,
+      effectStyle
+    )
+    pixi.current = effect
+    return () => {
+      if (pixi.current === effect) pixi.current = null
+      effect.dispose()
+    }
+  }, [effectStyle, offsetY, hidden, hasGrid, seed, shiftY])
+
+  useEffect(() => {
+    pixi.current?.update(
+      color,
+      grid.columns,
+      grid.rows + (shiftY ? 1 : 0),
+      grid
+    )
+  }, [color, grid, shiftY])
 
   useEffect(() => {
     if (
@@ -101,23 +138,13 @@ export default function EffectSurface({
       }
     )
     const burning = createBurningTexture(color, seed, grid.columns)
-    const canvas = createPixiEffect(
-      element,
-      color,
-      seed,
-      grid.columns,
-      grid.rows + (shiftY ? 1 : 0),
-      offsetY,
-      grid,
-      effectStyle
-    )
     const pointer = null
     const prepare = () => {
-      canvas?.prepare()
+      pixi.current?.prepare()
     }
     const paint = (time?: number) => {
-      if (canvas) {
-        canvas.paint(time, reveal.current.value, amplitude, pointer)
+      if (pixi.current) {
+        pixi.current.paint(time, reveal.current.value, amplitude, pointer)
         return
       }
       paintCells(time)
@@ -173,7 +200,6 @@ export default function EffectSurface({
     return () => {
       observer.disconnect()
       pause()
-      canvas?.dispose()
       paintCells()
     }
   }, [

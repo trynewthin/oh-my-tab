@@ -35,6 +35,26 @@ function expandedBounds() {
   }
 }
 
+function resetClosingStyles(panel: HTMLElement) {
+  const content = panel.querySelector<HTMLElement>("[data-expansion-content]")
+  const grid = panel.querySelector<HTMLElement>("[data-expanded-folder-grid]")
+  const rows = panel.querySelectorAll<HTMLElement>("[data-stack-row]")
+  if (content) {
+    gsap.killTweensOf(content)
+    gsap.set(content, { clearProps: "padding,gap,overflow,opacity" })
+  }
+  if (grid) {
+    delete grid.dataset.collapsing
+    grid.style.removeProperty("grid-template-columns")
+    grid.style.removeProperty("gap")
+  }
+  gsap.killTweensOf(rows)
+  gsap.set(rows, {
+    clearProps:
+      "position,left,top,width,height,margin,opacity,transform,transform-origin",
+  })
+}
+
 export default function CollectionExpansion({
   itemId,
   onClose,
@@ -69,6 +89,7 @@ export default function CollectionExpansion({
   useLayoutEffect(() => {
     const panel = panelRef.current
     if (!panel) return
+    resetClosingStyles(panel)
     const source =
       Array.from(
         document.querySelectorAll<HTMLElement>("[data-grid-item-id]")
@@ -119,6 +140,7 @@ export default function CollectionExpansion({
     return () => {
       window.removeEventListener("resize", resize)
       gsap.killTweensOf(panel)
+      resetClosingStyles(panel)
       if (source) source.style.visibility = sourceVisibility.current
       if (
         previousFocus?.isConnected &&
@@ -148,6 +170,57 @@ export default function CollectionExpansion({
     closing.current = true
     const source = sourceRef.current
     const origin = source?.isConnected ? source.getBoundingClientRect() : null
+    const content = panel.querySelector<HTMLElement>("[data-expansion-content]")
+    const grid = panel.querySelector<HTMLElement>("[data-expanded-folder-grid]")
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+    if (grid) {
+      const targets = new Map(
+        Array.from(
+          source?.querySelectorAll<HTMLElement>("[data-stack-row]") ?? []
+        ).map(
+          (row) => [row.dataset.tabId, row.getBoundingClientRect()] as const
+        )
+      )
+      const rows = Array.from(
+        grid.querySelectorAll<HTMLElement>("[data-stack-row]")
+      ).map((row) => ({
+        row,
+        before: row.getBoundingClientRect(),
+        target: targets.get(row.dataset.tabId),
+      }))
+      grid.dataset.collapsing = "true"
+      if (content) gsap.set(content, { overflow: "visible" })
+      rows.forEach(({ row, before, target }) => {
+        gsap.set(row, {
+          position: "fixed",
+          left: before.left,
+          top: before.top,
+          width: before.width,
+          height: before.height,
+          margin: 0,
+        })
+        gsap.to(row, {
+          left: target?.left ?? before.left,
+          top: target?.top ?? before.top,
+          width: target?.width ?? before.width,
+          height: target?.height ?? before.height,
+          opacity: target ? 1 : 0,
+          duration: reduced ? 0 : 0.3,
+          ease: "power3.inOut",
+          overwrite: true,
+        })
+      })
+    }
+    if (content)
+      gsap.to(content, {
+        padding: 12,
+        gap: 8,
+        duration: reduced ? 0 : 0.3,
+        ease: "power3.inOut",
+        overwrite: true,
+      })
     gsap.to(panel, {
       ...(origin
         ? {
@@ -157,9 +230,7 @@ export default function CollectionExpansion({
             height: origin.height,
           }
         : { opacity: 0 }),
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 0.3,
+      duration: reduced ? 0 : 0.3,
       ease: "power3.inOut",
       overwrite: true,
       onComplete: () => closeRef.current(),
@@ -215,7 +286,10 @@ export default function CollectionExpansion({
         color={collection.color}
         animated={!!collection.dynamicEffect}
       />
-      <div className="relative z-10 flex h-full min-h-0 [scrollbar-width:none] flex-col gap-4 overflow-y-auto p-5 [&::-webkit-scrollbar]:hidden">
+      <div
+        data-expansion-content
+        className="relative z-10 flex h-full min-h-0 [scrollbar-width:none] flex-col gap-4 overflow-y-auto p-5 [&::-webkit-scrollbar]:hidden"
+      >
         <header className="-mx-1 -mt-2 flex h-8 shrink-0 items-center justify-between gap-3">
           <h2
             id={titleId}

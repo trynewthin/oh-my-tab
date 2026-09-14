@@ -50,8 +50,10 @@ export function placeItems(
   items: GridItem[],
   columns: number,
   positions: GridPositions,
-  target?: { id: string; position: GridPosition }
+  target?: { id: string; position: GridPosition },
+  fixedIds: Iterable<string> = []
 ): Record<string, GridPlacement> {
+  const fixed = new Set(fixedIds)
   if (target) {
     const targetItem = items.find((item) => item.id === target.id)
     if (targetItem) {
@@ -101,7 +103,7 @@ export function placeItems(
       }
 
       const originIndex = positioned.findIndex((item) => item.id === target.id)
-      if (originIndex >= 0) {
+      if (originIndex >= 0 && fixed.size === 0) {
         const destination = collisions.reduce((best, item) => {
           const placement = current[item.id]
           const bestPlacement = current[best.id]
@@ -153,9 +155,16 @@ export function placeItems(
 
   const result: Record<string, GridPlacement> = {}
   const ordered = [
-    ...items.filter((item) => item.id === target?.id),
-    ...items.filter((item) => item.id !== target?.id && positions[item.id]),
-    ...items.filter((item) => item.id !== target?.id && !positions[item.id]),
+    ...items.filter((item) => fixed.has(item.id) && positions[item.id]),
+    ...items.filter((item) => item.id === target?.id && !fixed.has(item.id)),
+    ...items.filter(
+      (item) =>
+        item.id !== target?.id && !fixed.has(item.id) && positions[item.id]
+    ),
+    ...items.filter(
+      (item) =>
+        item.id !== target?.id && !fixed.has(item.id) && !positions[item.id]
+    ),
   ]
   for (const item of ordered) {
     const saved = item.id === target?.id ? target.position : positions[item.id]

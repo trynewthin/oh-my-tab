@@ -33,25 +33,50 @@ export function createPixiEffect(
   let bounds = region.getBoundingClientRect()
   const firstRow = Math.floor(offsetY / 9)
   const shift = offsetY % 9
-  const left = size.width - (columns * 9 - 1)
-  const burning = createBurningTexture(color, seed, columns)
+  let left = size.width - (columns * 9 - 1)
+  let burning = createBurningTexture(color, seed, columns)
+  let updateScene:
+    | ((previous: { color: string; columns: number; rows: number }) => void)
+    | undefined
   void Promise.all([lease.ready, import("pixi.js")])
     .then(([renderer, { Container, Sprite, Texture }]) => {
       if (stopped) return
       const stage = new Container()
-      const cells = Array.from({ length: rows * columns }, (_, index) => {
-        const x = index % columns,
-          y = Math.floor(index / columns)
-        const sprite = new Sprite(Texture.WHITE)
-        sprite.tint = color
-        stage.addChild(sprite)
-        return {
-          x,
-          y,
-          sprite,
-          sample: createParticleCell(color, seed, x, firstRow + y, columns),
+      const createCells = () =>
+        Array.from({ length: rows * columns }, (_, index) => {
+          const x = index % columns,
+            y = Math.floor(index / columns)
+          const sprite = new Sprite(Texture.WHITE)
+          sprite.tint = color
+          stage.addChild(sprite)
+          return {
+            x,
+            y,
+            sprite,
+            sample: createParticleCell(color, seed, x, firstRow + y, columns),
+          }
+        })
+      const cells = createCells()
+      updateScene = (previous) => {
+        left = size.width - (columns * 9 - 1)
+        burning = createBurningTexture(color, seed, columns)
+        if (previous.columns !== columns || previous.rows !== rows) {
+          stage.removeChildren().forEach((child) => child.destroy())
+          cells.splice(0, cells.length, ...createCells())
+          return
         }
-      })
+        if (previous.color !== color)
+          cells.forEach((entry) => {
+            entry.sprite.tint = color
+            entry.sample = createParticleCell(
+              color,
+              seed,
+              entry.x,
+              firstRow + entry.y,
+              columns
+            )
+          })
+      }
       region.append(canvas)
       grid.style.visibility = "hidden"
       disposeScene = () => stage.destroy({ children: true })
@@ -115,6 +140,21 @@ export function createPixiEffect(
       grid.style.visibility = previous
     })
   return {
+    update(
+      nextColor: string,
+      nextColumns: number,
+      nextRows: number,
+      nextSize: { width: number; height: number }
+    ) {
+      const previous = { color, columns, rows }
+      color = nextColor
+      columns = nextColumns
+      rows = nextRows
+      size = nextSize
+      bounds = region.getBoundingClientRect()
+      updateScene?.(previous)
+      draw?.()
+    },
     prepare() {
       bounds = region.getBoundingClientRect()
     },

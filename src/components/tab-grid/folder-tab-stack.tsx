@@ -121,6 +121,8 @@ export default function FolderTabStack({
       ref={viewportRef}
       data-folder-surface={draggable ? surface : undefined}
       data-folder-id={draggable ? folder.id : undefined}
+      data-folder-columns={draggable ? innerColumns : undefined}
+      data-folder-row-height={draggable ? rowHeight : undefined}
       role="region"
       aria-label={`${folder.name}内的标签`}
       tabIndex={0}

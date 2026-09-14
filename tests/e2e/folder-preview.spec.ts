@@ -75,8 +75,30 @@ for (const size of ["large", "tall"] as const) {
         return Math.abs(first.x - second.x) < 1 && second.y > first.y
       })
       .toBe(true)
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await expect
+      .poll(async () => {
+        const first = (await links.nth(0).boundingBox())!
+        const second = (await links.nth(1).boundingBox())!
+        return Math.abs(first.y - second.y) < 1 && second.x > first.x
+      })
+      .toBe(true)
+    const folder = page.locator('[data-grid-item-id="folder"]')
+    const content = expanded.locator("[data-expansion-content]")
+    const expandedGrid = expanded.locator("[data-expanded-folder-grid]")
     await expanded.getByRole("button", { name: "关闭文件夹" }).click()
+    await expect(content).toHaveCSS("opacity", "1")
+    await expect(expandedGrid).toHaveAttribute("data-collapsing", "true")
+    await expect(expandedGrid.locator("[data-stack-row]").nth(1)).toHaveCSS(
+      "position",
+      "fixed"
+    )
+    await expect(expandedGrid).toHaveCSS(
+      "grid-template-columns",
+      /\d+(\.\d+)?px \d+(\.\d+)?px/
+    )
     await expect(expanded).toHaveCount(0)
+    await expect(folder).toHaveCSS("visibility", "visible")
     await region.focus()
     await region.press("End")
     await expect(

@@ -38,9 +38,23 @@ import {
 } from "./grid-layout"
 import type { GridItem, TabItem } from "./types"
 import type { FolderTabDragData } from "./drag-types"
+import { FOLDER_DWELL, confirmedFolderDrop } from "./folder-drop"
 
 const emptyPositions: GridPositions = {}
-import { FOLDER_DWELL, confirmedFolderDrop } from "./folder-drop"
+
+function ItemGlow({ color }: { color: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-2xl"
+      style={{
+        background: color,
+        opacity: 0.45,
+        filter: "blur(22px)",
+      }}
+    />
+  )
+}
 
 type Point = { x: number; y: number }
 type Bounds = { left: number; top: number; width: number; height: number }
@@ -135,7 +149,7 @@ export default function TabGrid() {
     }
     const timer = setTimeout(() => {
       setSettledTarget({ id: targetId, position: { x: targetX, y: targetY } })
-    }, 320)
+    }, 120)
     return () => clearTimeout(timer)
   }, [targetId, targetX, targetY, holdPreview])
   const previewItems =
@@ -603,18 +617,18 @@ export default function TabGrid() {
                   <div
                     key={item.id}
                     data-grid-item-id={item.id}
-                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""} transition-shadow duration-200 motion-reduce:transition-none`}
+                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""}`}
                     style={{
-                      boxShadow: selectedIds.includes(item.id)
-                        ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
-                        : undefined,
                       gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
                       gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
                     }}
                   >
+                    {selectedIds.includes(item.id) && (
+                      <ItemGlow color={item.color} />
+                    )}
                     <div
                       inert
-                      className="pointer-events-none relative h-full overflow-hidden rounded-[inherit]"
+                      className="pointer-events-none relative z-10 h-full overflow-hidden rounded-[inherit]"
                     >
                       <GridTileContent
                         item={{
@@ -668,14 +682,16 @@ export default function TabGrid() {
               {dragging && intent.kind === "grid" && (
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-300 ease-[cubic-bezier(0.45,0,0.55,1)] motion-reduce:transition-none"
+                  className="pointer-events-none absolute top-0 left-0 transition-transform duration-150 ease-out motion-reduce:transition-none"
                   style={{
                     width:
                       columnStep * itemWidth(dragging.item, columns) - gridGap,
                     height: itemHeight(dragging.item) * rowStep - gridGap,
                     transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
                   }}
-                />
+                >
+                  <ItemGlow color={dragging.item.color} />
+                </div>
               )}
             </div>
           </div>

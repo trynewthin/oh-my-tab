@@ -2,9 +2,9 @@ import MotionPresence from "@/components/effects/motion-presence"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { X } from "@phosphor-icons/react"
 import EffectSurface from "@/components/effects/effect-surface"
 import { Button } from "@/components/ui/button"
+import CloseIcon from "@/components/ui/close-icon"
 import { useToastStore, type ToastMessage } from "@/stores/toast-store"
 
 function ToastCard({ item }: { item: ToastMessage }) {
@@ -66,9 +66,10 @@ function ToastCard({ item }: { item: ToastMessage }) {
             variant="ghost"
             size="icon-sm"
             aria-label="关闭通知"
+            className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
             onClick={() => dismiss(item.id)}
           >
-            <X />
+            <CloseIcon />
           </Button>
         )}
       </div>

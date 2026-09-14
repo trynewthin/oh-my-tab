@@ -1,6 +1,6 @@
 import { storageOptions } from "@/lib/storage"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
-import { groupComponents } from "@/lib/grid-operations"
+import { groupComponents, resolveGroupAction } from "@/lib/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
   GRID_COLUMNS,
@@ -62,7 +62,7 @@ type TabGridState = {
   resizeItem: (id: string, size: GridItem["size"]) => void
   removeItem: (id: string) => void
   removeItems: (ids: string[]) => void
-  groupItems: (ids: string[], name: string) => boolean
+  groupItems: (ids: string[], name?: string) => boolean
   importBookmarks: (bookmarks: ImportedBookmark[]) => {
     added: number
     duplicates: number
@@ -214,10 +214,19 @@ export const useTabGridStore = create<TabGridState>()(
         )
       },
       groupItems: (ids, name) => {
-        const next = groupComponents(get(), ids, name)
+        const state = get()
+        const selected = state.items.filter((item) => ids.includes(item.id))
+        const action = resolveGroupAction(selected)
+        const next = groupComponents(state, ids, name)
         if (!next) return false
         set(next)
-        toast(`已创建文件夹「${name.trim()}」`, "success")
+        if (action.kind === "move") {
+          const folder = selected.find((item) => item.id === action.folderId)
+          toast(
+            `已将标签移入「${folder && folder.kind === "folder" ? folder.name : "文件夹"}」`,
+            "success"
+          )
+        } else toast(`已创建文件夹「${(name ?? "").trim()}」`, "success")
         return true
       },
       importBookmarks: (bookmarks) => {

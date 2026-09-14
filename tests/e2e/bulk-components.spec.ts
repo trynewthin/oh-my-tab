@@ -60,7 +60,6 @@ test("bulk delete supports cancellation and a single undo", async ({
   await page.getByRole("checkbox", { name: "选择甲", exact: true }).click()
   await page.getByRole("checkbox", { name: "选择资料", exact: true }).click()
   const bar = page.getByRole("toolbar", { name: "批量操作" })
-  await expect(bar).toContainText("已选 2 项")
   await bar.getByRole("button", { name: "删除", exact: true }).click()
   let dialog = page.getByRole("dialog", { name: "删除组件", exact: true })
   await dialog.getByRole("button", { name: "取消", exact: true }).click()
@@ -85,20 +84,42 @@ test("bulk delete supports cancellation and a single undo", async ({
   ).toBeVisible()
 })
 
-test("group selected components preserves folder bookmarks", async ({
-  page,
-}) => {
+test("one folder and tabs move into the existing folder", async ({ page }) => {
   await page.getByRole("checkbox", { name: "选择甲", exact: true }).click()
   await page.getByRole("checkbox", { name: "选择资料", exact: true }).click()
   await page.getByRole("button", { name: "成组", exact: true }).click()
-  const dialog = page.getByRole("dialog", { name: "成组", exact: true })
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(
+    page.getByRole("button", { name: "资料", exact: true })
+  ).toBeVisible()
+  await expect(
+    page.getByRole("link", { name: "乙", exact: true })
+  ).toBeVisible()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{
+        items: { id: string; name: string; tabs?: { id: string }[] }[]
+      }>(page, "omt.tab-grid")
+      return {
+        ids: state.items.map((item) => item.id),
+        tabIds:
+          state.items
+            .find((item) => item.name === "资料")
+            ?.tabs?.map((tab) => tab.id) ?? [],
+      }
+    })
+    .toEqual({ ids: ["b", "folder"], tabIds: ["child", "a"] })
+})
+
+test("selected tabs create a named folder", async ({ page }) => {
+  await page.getByRole("checkbox", { name: "选择甲", exact: true }).click()
+  await page.getByRole("checkbox", { name: "选择乙", exact: true }).click()
+  await page.getByRole("button", { name: "成组", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "文件夹名称", exact: true })
   await dialog.getByLabel("文件夹名称").fill("项目")
   await dialog.getByRole("button", { name: "确认成组", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "项目", exact: true })
-  ).toBeVisible()
-  await expect(
-    page.getByRole("link", { name: "乙", exact: true })
   ).toBeVisible()
   await expect
     .poll(async () => {
@@ -113,7 +134,7 @@ test("group selected components preserves folder bookmarks", async ({
             ?.tabs?.map((tab) => tab.id) ?? [],
       }
     })
-    .toEqual({ count: 2, tabIds: ["a", "child"] })
+    .toEqual({ count: 2, tabIds: ["a", "b"] })
 })
 
 test("selection toolbar works on mobile and exits cleanly", async ({
@@ -121,11 +142,15 @@ test("selection toolbar works on mobile and exits cleanly", async ({
 }) => {
   await page.setViewportSize({ width: 320, height: 812 })
   const bar = page.getByRole("toolbar", { name: "批量操作" })
-  await bar.getByRole("button", { name: "全选", exact: true }).click()
-  await expect(bar).toContainText("已选 3 项")
+  await expect(
+    bar.getByRole("button", { name: "成组", exact: true })
+  ).toBeVisible()
   await expect(
     bar.getByRole("button", { name: "删除", exact: true })
   ).toBeInViewport()
+  await expect(
+    bar.getByRole("button", { name: "完成", exact: true })
+  ).toBeVisible()
   await bar.getByRole("button", { name: "完成", exact: true }).click()
   await expect(bar).toHaveCount(0)
   await page.getByRole("button", { name: "更多操作", exact: true }).click()

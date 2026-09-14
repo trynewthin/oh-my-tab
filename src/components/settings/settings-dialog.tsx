@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
+import CloseIcon from "@/components/ui/close-icon"
 import {
   Select,
   SelectContent,
@@ -82,9 +83,10 @@ export default function SettingsDialog() {
               variant="ghost"
               size="icon-sm"
               aria-label="关闭设置"
+              className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
               onClick={() => setOpen(false)}
             >
-              <X />
+              <CloseIcon />
             </Button>
           </div>
           <div className="shrink-0 px-4 pb-3 sm:hidden">

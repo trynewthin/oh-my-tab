@@ -9,8 +9,8 @@ import {
 import { createPortal } from "react-dom"
 import { useDndContext } from "@dnd-kit/core"
 import gsap from "gsap"
-import { X } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import CloseIcon from "@/components/ui/close-icon"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import ComponentBackground from "../shared/component-background"
 import FolderExpandedGrid from "../folder-expanded-grid"
@@ -226,9 +226,10 @@ export default function CollectionExpansion({
               variant="ghost"
               size="icon"
               aria-label={`关闭${definition.label}`}
+              className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
               onClick={close}
             >
-              <X className="size-4" />
+              <CloseIcon />
             </Button>
           </div>
         </header>

@@ -96,7 +96,7 @@ export default function PersonalizationSettings() {
                     "ariaLabel" in option ? option.ariaLabel : option.label
                   }
                 >
-                  <option.icon />
+                  <option.icon weight="bold" />
                   <span>{option.label}</span>
                 </ToggleGroupItem>
               ))}

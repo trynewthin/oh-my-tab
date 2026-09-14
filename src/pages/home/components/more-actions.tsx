@@ -90,7 +90,7 @@ export default function MoreActions({
                     "ariaLabel" in option ? option.ariaLabel : option.label
                   }
                 >
-                  <option.icon />
+                  <option.icon weight="bold" />
                   <span>{option.label}</span>
                 </ToggleGroupItem>
               ))}

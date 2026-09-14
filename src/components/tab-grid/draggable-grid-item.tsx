@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
-import type { GridItem } from "./types"
+import type { GridItem, TabEntry } from "./types"
 import {
   getComponentDefinition,
   getComponentSizeOptions,
@@ -28,8 +28,10 @@ export default function DraggableGridItem({
   onEdit,
   placement,
   dropProgress,
+  folderTabs,
 }: {
   dropProgress?: number
+  folderTabs?: TabEntry[]
   placement: GridPlacement
   item: GridItem
   onOpen: () => void
@@ -66,7 +68,7 @@ export default function DraggableGridItem({
         style={{
           gridColumn: `${placement.x + 1} / span ${placement.width ?? 4}`,
           gridRow: `${placement.y + 1} / span ${placement.height}`,
-          opacity: isDragging ? 0 : 1,
+          borderColor: isDragging ? "transparent" : undefined,
         }}
         onMouseDown={(event) => {
           if (event.button !== 0) return
@@ -78,7 +80,7 @@ export default function DraggableGridItem({
         }}
         onDragStart={(event) => event.preventDefault()}
       >
-        {dropProgress ? (
+        {dropProgress !== undefined && (
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 rounded-[inherit]"
@@ -88,8 +90,16 @@ export default function DraggableGridItem({
               filter: `blur(${8 + dropProgress * 6}px)`,
             }}
           />
-        ) : null}
-        <GridTileContent item={item} onOpen={onOpen} />
+        )}
+        <div
+          className={`relative h-full rounded-[inherit] ${isDragging ? "invisible" : ""}`}
+        >
+          <GridTileContent
+            item={item}
+            onOpen={onOpen}
+            folderTabs={folderTabs}
+          />
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
         {sizeOptions.length > 0 && (

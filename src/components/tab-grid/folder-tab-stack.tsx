@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState } from "react"
+import gsap from "gsap"
 import { useStackScroll } from "./collection/use-stack-scroll"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
-import type { FolderItem } from "./types"
+import type { FolderItem, TabEntry } from "./types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function FolderTabStack({
@@ -11,15 +12,18 @@ export default function FolderTabStack({
   topBleed = 0,
   surface = "preview",
   draggable = true,
+  tabs,
 }: {
   folder: FolderItem
   className?: string
   topBleed?: number
   surface?: "preview" | "dialog"
   draggable?: boolean
+  tabs?: TabEntry[]
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const glass = backgroundType !== "solid"
+  const visibleTabs = tabs ?? folder.tabs
   const wide =
     surface === "preview" &&
     (folder.size === "wide" || folder.size === "wide-tall")
@@ -28,6 +32,33 @@ export default function FolderTabStack({
   const rowGap = 8
   const rowStep = rowHeight + rowGap
   const viewportRef = useRef<HTMLDivElement>(null)
+  const previousRows = useRef<Map<string, number>>(new Map())
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+    const rows = Array.from(
+      viewport.querySelectorAll<HTMLElement>("[data-stack-row]")
+    )
+    const next = new Map(
+      rows.map((row) => [row.dataset.tabId ?? "", row.offsetTop] as const)
+    )
+    const previous = previousRows.current
+    previousRows.current = next
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    rows.forEach((row) => {
+      const before = previous.get(row.dataset.tabId ?? "")
+      const after = next.get(row.dataset.tabId ?? "")
+      if (before === undefined || after === undefined) return
+      const delta = before - after
+      if (!delta) return
+      gsap.fromTo(
+        row,
+        { y: delta },
+        { y: 0, duration: 0.22, ease: "power2.out", overwrite: true }
+      )
+    })
+  }, [visibleTabs])
+
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
@@ -77,7 +108,7 @@ export default function FolderTabStack({
   }, [folder.size, surface, topBleed, rowGap, wide])
 
   useStackScroll(viewportRef, {
-    revision: folder.tabs,
+    revision: visibleTabs,
     singleRow: surface === "preview" && folder.size === "small",
     topBleed,
     rowStep,
@@ -109,7 +140,7 @@ export default function FolderTabStack({
         event.stopPropagation()
         const viewport = event.currentTarget
         const visibleHeight = viewport.clientHeight - topBleed
-        const lines = Math.ceil(folder.tabs.length / innerColumns)
+        const lines = Math.ceil(visibleTabs.length / innerColumns)
         const visibleLines = Math.max(
           1,
           Math.floor((visibleHeight - rowHeight) / rowStep) + 1
@@ -140,19 +171,36 @@ export default function FolderTabStack({
           paddingBottom: "var(--stack-bottom, 0px)",
         }}
       >
-        {folder.tabs.map((tab, index) => (
+        {visibleTabs.map((tab, index) => (
           <div
             key={tab.id}
             data-stack-row
             data-tab-id={tab.id}
             role="listitem"
-            className={`relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${glass ? "bg-transparent after:bg-card/55" : "bg-card after:bg-card"}`}
+            className={`relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${
+              tab.id === "__folder-gap__"
+                ? ""
+                : glass
+                  ? "bg-transparent after:bg-card/55"
+                  : "bg-card after:bg-card"
+            }`}
             style={{
               height: rowHeight,
-              marginBottom: index < folder.tabs.length - 1 ? rowGap : 0,
+              marginBottom: index < visibleTabs.length - 1 ? rowGap : 0,
             }}
           >
-            {draggable ? (
+            {tab.id === "__folder-gap__" && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-2 inset-y-1.5 rounded-xl"
+                style={{
+                  background: folder.color,
+                  opacity: 0.22,
+                  filter: "blur(6px)",
+                }}
+              />
+            )}
+            {tab.id === "__folder-gap__" ? null : draggable ? (
               <DraggableFolderTab
                 tab={tab}
                 color={folder.color}

@@ -12,6 +12,7 @@ import gsap from "gsap"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import { useTabGridStore } from "@/stores/tab-grid-store"
+import type { TabEntry } from "../types"
 import ComponentBackground from "../shared/component-background"
 import FolderExpandedGrid from "../folder-expanded-grid"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
@@ -40,12 +41,14 @@ export default function CollectionExpansion({
   suspended = false,
   children,
   headerActions,
+  folderTabs,
 }: {
   itemId: string
   onClose: () => void
   suspended?: boolean
   children?: ReactNode
   headerActions?: ReactNode
+  folderTabs?: TabEntry[]
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const collection = useTabGridStore((state) =>
@@ -234,9 +237,10 @@ export default function CollectionExpansion({
           </div>
         </header>
         {children ??
-          (collection.kind === "folder" && collection.tabs.length > 0 && (
-            <FolderExpandedGrid folder={collection} />
-          ))}
+          (collection.kind === "folder" &&
+            (folderTabs ?? collection.tabs).length > 0 && (
+              <FolderExpandedGrid folder={collection} tabs={folderTabs} />
+            ))}
       </div>
     </section>,
     document.body

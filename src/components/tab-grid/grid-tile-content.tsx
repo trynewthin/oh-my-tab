@@ -7,16 +7,21 @@ import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
-import type { GridItem } from "./types"
+import FolderTabRow from "./folder-tab-row"
+import type { GridItem, TabEntry } from "./types"
 
 export default function GridTileContent({
   item,
   onOpen,
   preview = false,
+  compactTab = false,
+  folderTabs,
 }: {
   item: GridItem
   onOpen: () => void
   preview?: boolean
+  compactTab?: boolean
+  folderTabs?: TabEntry[]
 }) {
   if (item.kind === "todo") return <Todo item={item} preview={preview} />
   if (item.kind === "calendar")
@@ -44,6 +49,16 @@ export default function GridTileContent({
         </div>
       </button>
     )
+  if (item.kind === "tab" && compactTab)
+    return (
+      <FolderTabRow
+        tab={item}
+        color={item.color}
+        folderId={item.id}
+        index={0}
+        animated={!!item.dynamicEffect}
+      />
+    )
   return item.kind === "tab" ? (
     <>
       <TabBackground
@@ -56,7 +71,12 @@ export default function GridTileContent({
   ) : (
     <>
       <ComponentBackground color={item.color} animated={!!item.dynamicEffect} />
-      <FolderUI item={item} onOpen={onOpen} preview={preview} />
+      <FolderUI
+        item={item}
+        onOpen={onOpen}
+        preview={preview}
+        tabs={folderTabs}
+      />
     </>
   )
 }

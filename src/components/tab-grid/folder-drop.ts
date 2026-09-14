@@ -1,4 +1,5 @@
 export const FOLDER_CHARGE_DURATION = 550
+export const FOLDER_RELEASE_DURATION = 550
 export const FOLDER_MERGE_THRESHOLD = 0.42
 
 type Point = { x: number; y: number }

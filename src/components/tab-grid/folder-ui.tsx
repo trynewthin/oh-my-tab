@@ -1,5 +1,5 @@
 import FolderTabStack from "./folder-tab-stack"
-import type { FolderItem } from "./types"
+import type { FolderItem, TabEntry } from "./types"
 import {
   CollectionCardHeader,
   CollectionTitleButton,
@@ -9,10 +9,12 @@ export default function FolderUI({
   item,
   onOpen,
   preview = false,
+  tabs,
 }: {
   item: FolderItem
   onOpen: () => void
   preview?: boolean
+  tabs?: TabEntry[]
 }) {
   return (
     <div className="relative z-10 flex h-full w-full flex-col gap-1.5 overflow-hidden rounded-[inherit] p-2.5 text-left sm:gap-2 sm:p-3">
@@ -27,10 +29,11 @@ export default function FolderUI({
           {item.name}
         </CollectionTitleButton>
       </CollectionCardHeader>
-      {item.tabs.length > 0 && (
+      {(tabs ?? item.tabs).length > 0 && (
         <FolderTabStack
           draggable={!preview}
           folder={item}
+          tabs={tabs}
           topBleed={28}
           className="flex-1"
         />

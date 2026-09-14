@@ -60,8 +60,7 @@ export default function DraggableFolderTab({
         {...attributes}
         role="group"
         aria-label={`拖动 ${tab.name}`}
-        className="h-full cursor-grab rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{ opacity: isDragging ? 0.2 : 1 }}
+        className="relative h-full cursor-grab rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onMouseDown={(event) => {
           if (event.button !== 0) return
           event.stopPropagation()
@@ -75,14 +74,16 @@ export default function DraggableFolderTab({
         }}
         onDragStart={(event) => event.preventDefault()}
       >
-        <FolderTabRow
-          tab={tab}
-          color={color}
-          folderId={folderId}
-          index={index}
-          animated={animated}
-          entrance
-        />
+        <div className={`h-full rounded-2xl ${isDragging ? "invisible" : ""}`}>
+          <FolderTabRow
+            tab={tab}
+            color={color}
+            folderId={folderId}
+            index={index}
+            animated={animated}
+            entrance
+          />
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent positionerClassName="z-[80]">
         <ContextMenuItem onClick={() => void refreshFavicon(tab.url)}>

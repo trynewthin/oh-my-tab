@@ -45,12 +45,14 @@ import {
   FOLDER_RELEASE_DURATION,
   mixHexColor,
   overlapRatio,
+  retainedFolderDrop,
 } from "./folder-drop"
 
 const emptyPositions: GridPositions = {}
 
 const FOLDER_GAP_ID = "__folder-gap__"
 const FOLDER_DROP_INSET = 0.08
+const FOLDER_DROP_EXIT_INSET = 0.04
 
 function previewFolderTabs(
   tabs: TabEntry[],
@@ -85,6 +87,54 @@ function ItemGlow({
         filter: "blur(12px)",
       }}
     />
+  )
+}
+
+type GridGlowTarget = {
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+}
+
+function GridDropGlow({ target }: { target?: GridGlowTarget }) {
+  const x = target?.x
+  const y = target?.y
+  const width = target?.width
+  const height = target?.height
+  const color = target?.color
+  const element = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (
+      x === undefined ||
+      y === undefined ||
+      width === undefined ||
+      height === undefined ||
+      color === undefined
+    )
+      return
+    const node = element.current
+    if (!node) return
+    node.style.width = `${width}px`
+    node.style.height = `${height}px`
+    node.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    node.style.setProperty("--grid-drop-color", color)
+  }, [x, y, width, height, color])
+  return (
+    <div
+      ref={element}
+      aria-hidden="true"
+      className="pointer-events-none absolute top-0 left-0 transition-transform duration-150 ease-out motion-reduce:transition-none"
+    >
+      <div
+        data-grid-drop-glow
+        className="absolute inset-0 transition-opacity duration-200 ease-out will-change-[opacity] motion-reduce:transition-none"
+        style={{ opacity: target ? 1 : 0 }}
+      >
+        <ItemGlow color="var(--grid-drop-color)" />
+      </div>
+    </div>
   )
 }
 
@@ -509,9 +559,15 @@ export default function TabGrid() {
         const rect = folderBounds(folder.id)
         if (!rect) continue
         const ratio = overlapRatio(overlay, rect)
+        const retained = hover.current?.folderId === folder.id
         if (
-          !contains(point, rect, FOLDER_DROP_INSET, FOLDER_DROP_INSET) ||
-          !confirmedFolderDrop(ratio)
+          !contains(
+            point,
+            rect,
+            retained ? FOLDER_DROP_EXIT_INSET : FOLDER_DROP_INSET,
+            retained ? FOLDER_DROP_EXIT_INSET : FOLDER_DROP_INSET
+          ) ||
+          !(retained ? retainedFolderDrop(ratio) : confirmedFolderDrop(ratio))
         )
           continue
         if (!best || ratio > best.ratio)
@@ -712,6 +768,22 @@ export default function TabGrid() {
     dragging && compactSize && fullHeight !== undefined
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
+  const gridGlowTarget =
+    dragging && intent.kind === "grid" && intent.ready
+      ? {
+          x:
+            (settledTarget
+              ? placements[dragging.item.id].x
+              : intent.position.x) * columnStep,
+          y:
+            (settledTarget
+              ? placements[dragging.item.id].y
+              : intent.position.y) * rowStep,
+          width: columnStep * itemWidth(dragging.item, columns) - gridGap,
+          height: itemHeight(dragging.item) * rowStep - gridGap,
+          color: dragging.item.color,
+        }
+      : undefined
 
   return (
     <ContextMenu>
@@ -834,20 +906,7 @@ export default function TabGrid() {
                   />
                 )
               )}
-              {dragging && intent.kind === "grid" && intent.ready && (
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-0 left-0 transition-transform duration-150 ease-out motion-reduce:transition-none"
-                  style={{
-                    width:
-                      columnStep * itemWidth(dragging.item, columns) - gridGap,
-                    height: itemHeight(dragging.item) * rowStep - gridGap,
-                    transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
-                  }}
-                >
-                  <ItemGlow color={dragging.item.color} />
-                </div>
-              )}
+              <GridDropGlow target={gridGlowTarget} />
             </div>
           </div>
           {createPortal(
@@ -862,6 +921,9 @@ export default function TabGrid() {
                       duration: 280,
                       easing: "cubic-bezier(0.22, 1, 0.36, 1)",
                       sideEffects: defaultDropAnimationSideEffects({
+                        className: {
+                          dragOverlay: "tab-grid-dropping",
+                        },
                         styles: { active: { opacity: "0" } },
                       }),
                     }
@@ -875,10 +937,11 @@ export default function TabGrid() {
                   style={{ width: overlayWidth, height: overlayHeight }}
                 >
                   <div
-                    className="pointer-events-none absolute inset-0 rounded-2xl"
+                    data-tab-grid-overlay-glow
+                    className="pointer-events-none absolute inset-0 animate-in rounded-2xl duration-200 fade-in-0 motion-reduce:animate-none"
                     style={{
                       background: overlayItem?.color ?? dragging.item.color,
-                      opacity: 0.3,
+                      opacity: 0.3 * releaseProgress,
                       filter: "blur(14px)",
                     }}
                   />

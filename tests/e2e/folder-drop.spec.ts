@@ -4,6 +4,7 @@ import {
   folderMergeProgress,
   mixHexColor,
   overlapRatio,
+  retainedFolderDrop,
 } from "../../src/components/tab-grid/folder-drop"
 
 test("folder merge uses overlap of the dragged tile", () => {
@@ -16,6 +17,9 @@ test("folder merge uses overlap of the dragged tile", () => {
   expect(confirmedFolderDrop(overlapRatio(close, folder))).toBe(true)
   expect(folderMergeProgress(0.12)).toBe(0)
   expect(folderMergeProgress(0.42)).toBe(1)
+  expect(confirmedFolderDrop(0.31)).toBe(false)
+  expect(retainedFolderDrop(0.31)).toBe(true)
+  expect(retainedFolderDrop(0.29)).toBe(false)
   expect(mixHexColor("#000000", "#ffffff", 0.5)).toBe("#808080")
 })
 
@@ -51,7 +55,9 @@ test("dragged folder hides its source box", async ({ page }) => {
 
   await page.mouse.move(bounds.x + 20, bounds.y + 20)
   await page.mouse.down()
-  await page.mouse.move(bounds.x + 80, bounds.y + 80, { steps: 5 })
+  await page.mouse.move(bounds.x + bounds.width + 80, bounds.y + 80, {
+    steps: 5,
+  })
 
   await expect(folder).toHaveCSS("visibility", "hidden")
   await expect(folder).toHaveCSS("isolation", "auto")
@@ -60,7 +66,16 @@ test("dragged folder hides its source box", async ({ page }) => {
     "display",
     "none"
   )
+  const overlayGlow = page.locator("[data-tab-grid-overlay-glow]")
+  await expect(overlayGlow).toBeVisible()
   await page.mouse.up()
+  await expect
+    .poll(async () =>
+      Number(
+        await overlayGlow.evaluate((node) => getComputedStyle(node).opacity)
+      )
+    )
+    .toBeLessThan(0.1)
 })
 
 test("source folder stays fixed until an extracted tab is released", async ({
@@ -220,8 +235,19 @@ test("edge overlap previews folder movement and releases as a grid move", async 
   await page.mouse.move(target.x + 4, target.y + source.height / 2, {
     steps: 10,
   })
+  const gridGlow = page.locator("[data-grid-drop-glow]")
+  await expect
+    .poll(async () =>
+      Number(await gridGlow.evaluate((node) => getComputedStyle(node).opacity))
+    )
+    .toBeGreaterThan(0)
   await expect.poll(async () => await folder.boundingBox()).not.toEqual(target)
   await page.mouse.up()
+  await expect
+    .poll(async () =>
+      Number(await gridGlow.evaluate((node) => getComputedStyle(node).opacity))
+    )
+    .toBe(0)
   await expect(tab).toBeVisible()
   await expect.poll(async () => await tab.boundingBox()).not.toEqual(source)
   await expect(
@@ -282,6 +308,21 @@ for (const charged of [false, true]) {
       target.y + source.height / 2,
       { steps: 10 }
     )
+    const currentTarget = (await folder.boundingBox())!
+    await page.mouse.move(
+      currentTarget.x + currentTarget.width / 2,
+      currentTarget.y + source.height / 2,
+      { steps: 5 }
+    )
+    const folderGlow = folder.locator("[data-folder-drop-glow]")
+    await expect(folderGlow).toHaveAttribute("data-active", "true")
+    await expect
+      .poll(async () =>
+        Number(
+          await folderGlow.evaluate((node) => getComputedStyle(node).opacity)
+        )
+      )
+      .toBeGreaterThan(0)
     if (charged) {
       await page.waitForTimeout(100)
       const shrinking = (await page
@@ -313,6 +354,13 @@ for (const charged of [false, true]) {
       await page.waitForTimeout(650)
     }
     await page.mouse.up()
+    await expect
+      .poll(async () =>
+        Number(
+          await folderGlow.evaluate((node) => getComputedStyle(node).opacity)
+        )
+      )
+      .toBe(0)
     if (charged) {
       await expect(tab).toHaveCount(0)
       await expect(

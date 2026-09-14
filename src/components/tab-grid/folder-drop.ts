@@ -1,6 +1,7 @@
 export const FOLDER_CHARGE_DURATION = 550
 export const FOLDER_RELEASE_DURATION = 550
 export const FOLDER_MERGE_THRESHOLD = 0.42
+export const FOLDER_MERGE_EXIT_THRESHOLD = 0.3
 
 type Point = { x: number; y: number }
 export type Bounds = {
@@ -71,4 +72,8 @@ export function folderMergeProgress(ratio: number) {
 
 export function confirmedFolderDrop(ratio: number) {
   return ratio >= FOLDER_MERGE_THRESHOLD
+}
+
+export function retainedFolderDrop(ratio: number) {
+  return ratio >= FOLDER_MERGE_EXIT_THRESHOLD
 }

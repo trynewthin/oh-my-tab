@@ -1,6 +1,6 @@
 import { refreshFavicon } from "@/lib/favicon-cache"
 import { ArrowClockwise } from "@phosphor-icons/react"
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { useDraggable } from "@dnd-kit/core"
 import type { GridPlacement } from "./grid-layout"
 import { PencilSimple, Shuffle, Fire, Trash } from "@phosphor-icons/react"
@@ -21,6 +21,35 @@ import {
   getComponentSizeOptions,
   supportsComponentAction,
 } from "./model/registry"
+
+function FolderDropGlow({
+  color,
+  progress,
+}: {
+  color: string
+  progress?: number
+}) {
+  const glow = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (progress === undefined || !glow.current) return
+    glow.current.style.opacity = String(0.08 + progress * 0.16)
+  }, [progress])
+  return (
+    <div
+      aria-hidden="true"
+      data-folder-drop-glow
+      data-active={progress !== undefined ? "true" : undefined}
+      className="pointer-events-none absolute inset-0 rounded-[inherit] transition-opacity duration-200 ease-out will-change-[opacity] motion-reduce:transition-none"
+      style={{ opacity: progress === undefined ? 0 : 1 }}
+    >
+      <div
+        ref={glow}
+        className="absolute inset-0 rounded-[inherit]"
+        style={{ background: color, opacity: 0.08, filter: "blur(12px)" }}
+      />
+    </div>
+  )
+}
 
 export default function DraggableGridItem({
   item,
@@ -79,17 +108,7 @@ export default function DraggableGridItem({
         }}
         onDragStart={(event) => event.preventDefault()}
       >
-        {dropProgress !== undefined && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-[inherit]"
-            style={{
-              background: item.color,
-              opacity: 0.08 + dropProgress * 0.16,
-              filter: `blur(${8 + dropProgress * 6}px)`,
-            }}
-          />
-        )}
+        <FolderDropGlow color={item.color} progress={dropProgress} />
         <div
           data-grid-item-content
           className={`relative h-full rounded-[inherit] ${isDragging ? "hidden" : ""}`}

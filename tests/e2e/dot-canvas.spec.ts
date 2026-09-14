@@ -13,7 +13,9 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "选择点阵画布" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
+  await page
+    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑点阵画布 点阵画布" }).click()
   const dialog = page.getByRole("dialog", { name: "编辑点阵画布" })
@@ -83,7 +85,8 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
     await page.setViewportSize({ width, height: 969 })
     await expect
       .poll(async () => {
-        const bounds = (await tile.boundingBox())!
+        const bounds = await tile.boundingBox()
+        if (!bounds) return Number.POSITIVE_INFINITY
         return Math.abs(bounds.width - bounds.height)
       })
       .toBeLessThan(1)

@@ -40,7 +40,15 @@ import type { GridItem, TabItem } from "./types"
 import type { FolderTabDragData } from "./drag-types"
 
 const emptyPositions: GridPositions = {}
-import { FOLDER_DWELL, confirmedFolderDrop } from "./folder-drop"
+import {
+  FOLDER_CENTER_INSET_X,
+  FOLDER_CENTER_INSET_Y,
+  FOLDER_DWELL,
+  confirmedFolderDrop,
+  expandFolderBounds,
+  folderInsertionIndex,
+} from "./folder-drop"
+import { FolderInsertPreviewContext } from "./folder-insert-preview"
 
 type Point = { x: number; y: number }
 type Bounds = { left: number; top: number; width: number; height: number }
@@ -62,7 +70,13 @@ type DragSession = {
 type Intent =
   | { kind: "none" }
   | { kind: "grid"; position: GridPosition; holdLayout: boolean }
-  | { kind: "folder"; folderId: string; ready: boolean }
+  | {
+      kind: "folder"
+      folderId: string
+      ready: boolean
+      startedAt: number
+      index?: number
+    }
   | { kind: "reorder"; folderId: string; index: number }
 
 function contains(point: Point, rect: Bounds, insetX = 0, insetY = 0) {
@@ -274,7 +288,8 @@ export default function TabGrid() {
     const element = Array.from(gridRef.current?.children ?? []).find(
       (node) => node.getAttribute("data-grid-item-id") === id
     )
-    return element?.getBoundingClientRect() ?? null
+    const rect = element?.getBoundingClientRect()
+    return rect ? expandFolderBounds(rect) : null
   }
   function insertionIndex(id: string, point: Point, session: DragSession) {
     const folder = items.find((item) => item.id === id)
@@ -288,36 +303,22 @@ export default function TabGrid() {
         node.dataset.folderSurface ===
           (session.dialogBounds && !session.dialogExited ? "dialog" : "preview")
     )
-    if (!surface) return remaining.length
-    const viewport = surface.getBoundingClientRect()
-    const rows = Array.from(
-      surface.querySelectorAll<HTMLElement>("[data-stack-row]")
-    )
-    for (const row of rows) {
-      if (row.dataset.tabId === session.item.id || row.inert) continue
-      const rect = row.getBoundingClientRect()
-      if (rect.bottom <= viewport.top || rect.top >= viewport.bottom) continue
-      if (
-        surface.dataset.folderSurface === "dialog" && window.innerWidth >= 1024
-          ? point.y < rect.top ||
-            (point.y <= rect.bottom && point.x < rect.left + rect.width / 2)
-          : point.y < rect.top + rect.height / 2
-      )
-        return Math.max(
-          0,
-          remaining.findIndex((tab) => tab.id === row.dataset.tabId)
-        )
+    return folderInsertionIndex(remaining.length, point, surface ?? null)
+  }
+  function folderIntent(
+    folderId: string,
+    ready: boolean,
+    startedAt: number,
+    point: Point,
+    session: DragSession
+  ): Intent {
+    return {
+      kind: "folder",
+      folderId,
+      ready,
+      startedAt,
+      index: ready ? insertionIndex(folderId, point, session) : undefined,
     }
-    const visible = rows.filter(
-      (row) =>
-        !row.inert &&
-        row.dataset.tabId !== session.item.id &&
-        row.getBoundingClientRect().top < viewport.bottom
-    )
-    const last = visible.at(-1)
-    return last
-      ? remaining.findIndex((tab) => tab.id === last.dataset.tabId) + 1
-      : remaining.length
   }
   function updateIntent(delta: Point) {
     const session = sessionRef.current
@@ -359,7 +360,15 @@ export default function TabGrid() {
     if (latched?.ready) {
       const bounds = folderBounds(latched.folderId)
       if (confirmedFolderDrop(latched, point, bounds, performance.now())) {
-        publish({ kind: "folder", folderId: latched.folderId, ready: true })
+        publish(
+          folderIntent(
+            latched.folderId,
+            true,
+            latched.startedAt,
+            point,
+            session
+          )
+        )
         return
       }
       clearHover()
@@ -372,7 +381,10 @@ export default function TabGrid() {
         const rect = folderBounds(folder.id)
         if (!rect || !contains(point, rect)) continue
         overlapsFolder = true
-        if (!contains(point, rect, 0.22, 0.18)) continue
+        if (
+          !contains(point, rect, FOLDER_CENTER_INSET_X, FOLDER_CENTER_INSET_Y)
+        )
+          continue
         if (
           hover.current?.folderId !== folder.id ||
           (!hover.current.ready &&
@@ -407,22 +419,37 @@ export default function TabGrid() {
                 !contains(
                   session.mouse ? (pointer.current ?? point) : point,
                   liveBounds,
-                  0.22,
-                  0.18
+                  FOLDER_CENTER_INSET_X,
+                  FOLDER_CENTER_INSET_Y
                 )
               )
                 return
               hover.current.ready = true
-              publish({ kind: "folder", folderId: folder.id, ready: true })
+              const livePoint = session.mouse
+                ? (pointer.current ?? point)
+                : point
+              publish(
+                folderIntent(
+                  folder.id,
+                  true,
+                  hover.current.startedAt,
+                  livePoint,
+                  session
+                )
+              )
             }, FOLDER_DWELL),
           }
           hover.current = candidate
         }
-        publish({
-          kind: "folder",
-          folderId: folder.id,
-          ready: hover.current!.ready,
-        })
+        publish(
+          folderIntent(
+            folder.id,
+            hover.current!.ready,
+            hover.current!.startedAt,
+            point,
+            session
+          )
+        )
         return
       }
     }
@@ -473,7 +500,16 @@ export default function TabGrid() {
       candidate ? folderBounds(candidate.folderId) : null,
       performance.now()
     )
-    if (confirmed) publish({ kind: "folder", folderId: confirmed, ready: true })
+    if (confirmed && candidate)
+      publish(
+        folderIntent(
+          confirmed,
+          true,
+          candidate.startedAt,
+          releasePoint,
+          session
+        )
+      )
     else updateIntent(event.delta)
     let action = intentRef.current
     const grid = gridRef.current?.getBoundingClientRect()
@@ -519,6 +555,7 @@ export default function TabGrid() {
           tabId: session.item.id,
           fromFolderId: session.sourceFolderId,
           toFolderId: action.folderId,
+          index: action.index,
           columns,
         })
         committed = true
@@ -557,16 +594,29 @@ export default function TabGrid() {
     }
     resetDrag()
   }
-  const intentText =
+  const statusText =
     intent.kind === "folder"
       ? intent.ready
-        ? "松手放入文件夹"
-        : "继续停留，等待确认"
-      : intent.kind === "reorder"
-        ? "松开调整文件夹内顺序"
-        : intent.kind === "grid" && dragging?.sourceFolderId
-          ? "松开放到主页"
-          : ""
+        ? "可以松手放入文件夹"
+        : "正在确认放入文件夹"
+      : ""
+  const insertPreview =
+    dragging && intent.kind === "reorder"
+      ? {
+          folderId: intent.folderId,
+          tabId: dragging.item.id,
+          index: intent.index,
+        }
+      : dragging &&
+          intent.kind === "folder" &&
+          intent.ready &&
+          intent.index !== undefined
+        ? {
+            folderId: intent.folderId,
+            tabId: dragging.item.id,
+            index: intent.index,
+          }
+        : null
 
   return (
     <ContextMenu>
@@ -583,157 +633,176 @@ export default function TabGrid() {
           onDragEnd={finishDrag}
           onDragCancel={resetDrag}
         >
-          <div
-            className={`${selecting ? "pb-28" : "pb-4"} px-5`}
-            style={{
-              margin: "0 -20px",
-              paddingTop: compactGrid ? 12 : 20,
-            }}
-          >
+          <FolderInsertPreviewContext.Provider value={insertPreview}>
             <div
-              ref={gridRef}
-              className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
+              className={`${selecting ? "pb-28" : "pb-4"} px-5`}
               style={{
-                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                gridAutoRows: Math.max(1, rowStep - gridGap),
+                margin: "0 -20px",
+                paddingTop: compactGrid ? 12 : 20,
               }}
             >
-              {(width > 0 && layouts[columns] ? items : []).map((item) =>
-                selecting ? (
-                  <div
-                    key={item.id}
-                    data-grid-item-id={item.id}
-                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""} transition-shadow duration-200 motion-reduce:transition-none`}
-                    style={{
-                      boxShadow: selectedIds.includes(item.id)
-                        ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
-                        : undefined,
-                      gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
-                      gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
-                    }}
-                  >
+              <div
+                ref={gridRef}
+                className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
+                style={{
+                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                  gridAutoRows: Math.max(1, rowStep - gridGap),
+                }}
+              >
+                {(width > 0 && layouts[columns] ? items : []).map((item) =>
+                  selecting ? (
                     <div
-                      inert
-                      className="pointer-events-none relative h-full overflow-hidden rounded-[inherit]"
+                      key={item.id}
+                      data-grid-item-id={item.id}
+                      className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""} transition-shadow duration-200 motion-reduce:transition-none`}
+                      style={{
+                        boxShadow: selectedIds.includes(item.id)
+                          ? `0 0 16px 2px color-mix(in srgb, ${item.color} 45%, transparent), 0 0 5px color-mix(in srgb, ${item.color} 65%, transparent)`
+                          : undefined,
+                        gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
+                        gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
+                      }}
                     >
-                      <GridTileContent
-                        item={{
-                          ...item,
-                          dynamicEffect: selectedIds.includes(item.id),
-                        }}
-                        onOpen={() => {}}
-                        preview
+                      <div
+                        inert
+                        className="pointer-events-none relative h-full overflow-hidden rounded-[inherit]"
+                      >
+                        <GridTileContent
+                          item={{
+                            ...item,
+                            dynamicEffect: selectedIds.includes(item.id),
+                          }}
+                          onOpen={() => {}}
+                          preview
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={selectedIds.includes(item.id)}
+                        aria-label={`选择${item.name}`}
+                        className="absolute inset-0 z-30 cursor-pointer appearance-none rounded-[inherit] border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => toggleSelection(item.id)}
                       />
                     </div>
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={selectedIds.includes(item.id)}
-                      aria-label={`选择${item.name}`}
-                      className="absolute inset-0 z-30 cursor-pointer appearance-none rounded-[inherit] border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() => toggleSelection(item.id)}
-                    />
-                  </div>
-                ) : (
-                  <DraggableGridItem
-                    key={item.id}
-                    item={item}
-                    placement={
-                      !dragging?.sourceFolderId && dragging?.item.id === item.id
-                        ? {
-                            ...dragging.origin,
-                            height: itemHeight(item),
-                            width: itemWidth(item, columns),
-                          }
-                        : placements[item.id]
-                    }
-                    dropState={
-                      intent.kind === "folder" && intent.folderId === item.id
-                        ? intent.ready
+                  ) : (
+                    <DraggableGridItem
+                      key={item.id}
+                      item={item}
+                      placement={
+                        !dragging?.sourceFolderId &&
+                        dragging?.item.id === item.id
+                          ? {
+                              ...dragging.origin,
+                              height: itemHeight(item),
+                              width: itemWidth(item, columns),
+                            }
+                          : placements[item.id]
+                      }
+                      dropState={
+                        intent.kind === "folder" &&
+                        intent.folderId === item.id &&
+                        intent.ready
                           ? "ready"
-                          : "pending"
-                        : undefined
-                    }
-                    onOpen={() => {
-                      const action = getComponentDefinition(
-                        item.kind
-                      ).openAction
-                      if (action === "edit") setEditor({ item })
-                      if (action === "expand") setFolderId(item.id)
+                          : undefined
+                      }
+                      onOpen={() => {
+                        const action = getComponentDefinition(
+                          item.kind
+                        ).openAction
+                        if (action === "edit") setEditor({ item })
+                        if (action === "expand") setFolderId(item.id)
+                      }}
+                      onEdit={() => setEditor({ item })}
+                    />
+                  )
+                )}
+                {dragging && intent.kind === "grid" && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-300 ease-[cubic-bezier(0.45,0,0.55,1)] motion-reduce:transition-none"
+                    style={{
+                      width:
+                        columnStep * itemWidth(dragging.item, columns) -
+                        gridGap,
+                      height: itemHeight(dragging.item) * rowStep - gridGap,
+                      transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
                     }}
-                    onEdit={() => setEditor({ item })}
                   />
-                )
-              )}
-              {dragging && intent.kind === "grid" && (
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-0 left-0 rounded-2xl border-2 border-dashed border-primary/25 bg-primary/5 transition-transform duration-300 ease-[cubic-bezier(0.45,0,0.55,1)] motion-reduce:transition-none"
-                  style={{
-                    width:
-                      columnStep * itemWidth(dragging.item, columns) - gridGap,
-                    height: itemHeight(dragging.item) * rowStep - gridGap,
-                    transform: `translate3d(${(settledTarget ? placements[dragging.item.id].x : intent.position.x) * columnStep}px, ${(settledTarget ? placements[dragging.item.id].y : intent.position.y) * rowStep}px, 0)`,
-                  }}
-                />
-              )}
+                )}
+              </div>
             </div>
-          </div>
-          {createPortal(
-            <DragOverlay
-              zIndex={1000}
-              dropAnimation={
-                dragging?.sourceFolderId ||
-                intent.kind === "folder" ||
-                window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                  ? null
-                  : {
-                      duration: 280,
-                      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                      sideEffects: defaultDropAnimationSideEffects({
-                        styles: { active: { opacity: "0" } },
-                      }),
-                    }
-              }
-            >
-              {dragging && (
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none relative isolate cursor-grabbing rounded-2xl border shadow-lg"
-                  style={{ width: dragging.width, height: dragging.height }}
-                >
-                  <GridTileContent
-                    item={dragging.item}
-                    onOpen={() => {}}
-                    preview
-                  />
-                  {intentText && (
-                    <span className="absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-lg bg-primary px-3 py-1 text-xs whitespace-nowrap text-primary-foreground">
-                      {intentText}
-                    </span>
-                  )}
-                </div>
-              )}
-            </DragOverlay>,
-            document.body
-          )}
-          <span role="status" className="sr-only">
-            {intentText}
-          </span>
-          {editor && (
-            <GridItemDialog
-              item={editor.item}
-              onClose={() => setEditor(null)}
-            />
-          )}
-          {folderId && (
-            <CollectionExpansion
-              itemId={folderId}
-              suspended={dialogSuspended}
-              onClose={() => setFolderId(null)}
-            />
-          )}
-          <BulkActions />
+            {createPortal(
+              <DragOverlay
+                zIndex={1000}
+                dropAnimation={
+                  dragging?.sourceFolderId ||
+                  intent.kind === "folder" ||
+                  window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                    ? null
+                    : {
+                        duration: 280,
+                        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                        sideEffects: defaultDropAnimationSideEffects({
+                          styles: { active: { opacity: "0" } },
+                        }),
+                      }
+                }
+              >
+                {dragging && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none relative isolate overflow-hidden rounded-2xl border shadow-lg"
+                    style={{ width: dragging.width, height: dragging.height }}
+                  >
+                    <GridTileContent
+                      item={dragging.item}
+                      onOpen={() => {}}
+                      preview
+                    />
+                    {intent.kind === "folder" && (
+                      <div
+                        className="absolute inset-x-3 bottom-0 h-[2px] overflow-hidden rounded-full"
+                        aria-hidden="true"
+                      >
+                        <div
+                          key={intent.startedAt}
+                          data-ready={intent.ready ? "true" : "false"}
+                          className="folder-dwell-fill h-full origin-left bg-primary"
+                          style={
+                            intent.ready
+                              ? { transform: "scaleX(1)" }
+                              : {
+                                  transform: "scaleX(0)",
+                                  animation: `folder-dwell-progress ${FOLDER_DWELL}ms linear forwards`,
+                                }
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </DragOverlay>,
+              document.body
+            )}
+            <span role="status" className="sr-only">
+              {statusText}
+            </span>
+            {editor && (
+              <GridItemDialog
+                item={editor.item}
+                onClose={() => setEditor(null)}
+              />
+            )}
+            {folderId && (
+              <CollectionExpansion
+                itemId={folderId}
+                suspended={dialogSuspended}
+                onClose={() => setFolderId(null)}
+              />
+            )}
+            <BulkActions />
+          </FolderInsertPreviewContext.Provider>
         </DndContext>
       </ContextMenuTrigger>
       <ContextMenuContent>

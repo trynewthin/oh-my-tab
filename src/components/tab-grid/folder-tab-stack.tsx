@@ -2,6 +2,12 @@ import { useLayoutEffect, useRef, useState } from "react"
 import { useStackScroll } from "./collection/use-stack-scroll"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
+import {
+  FOLDER_INSERT_GAP_CLASS,
+  previewFolderEntries,
+  useFolderInsertPreview,
+} from "./folder-insert-preview"
+import { useLayoutFlip } from "./use-layout-flip"
 import type { FolderItem } from "./types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
@@ -28,6 +34,10 @@ export default function FolderTabStack({
   const rowGap = 8
   const rowStep = rowHeight + rowGap
   const viewportRef = useRef<HTMLDivElement>(null)
+  const insertPreview = useFolderInsertPreview()
+  const previewing = insertPreview?.folderId === folder.id
+  const entries = previewFolderEntries(folder.tabs, insertPreview, folder.id)
+  const flipRef = useLayoutFlip(entries.map((entry) => entry.key).join("|"))
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
@@ -77,6 +87,7 @@ export default function FolderTabStack({
   }, [folder.size, surface, topBleed, rowGap, wide])
 
   useStackScroll(viewportRef, {
+    enabled: !previewing,
     revision: folder.tabs,
     singleRow: surface === "preview" && folder.size === "small",
     topBleed,
@@ -124,6 +135,7 @@ export default function FolderTabStack({
       }}
     >
       <div
+        ref={flipRef}
         role="list"
         className="relative grid"
         style={{
@@ -132,36 +144,43 @@ export default function FolderTabStack({
           paddingBottom: "var(--stack-bottom, 0px)",
         }}
       >
-        {folder.tabs.map((tab, index) => (
+        {entries.map((entry, index) => (
           <div
-            key={tab.id}
+            key={entry.key}
+            data-flip-id={entry.key}
             data-stack-row
-            data-tab-id={tab.id}
+            data-tab-id={entry.tab?.id}
+            inert={entry.gap ? true : undefined}
             role="listitem"
-            className={`relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${glass ? "bg-transparent after:bg-card/55" : "bg-card after:bg-card"}`}
+            className={
+              entry.gap
+                ? `relative ${FOLDER_INSERT_GAP_CLASS}`
+                : `relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${glass ? "bg-transparent after:bg-card/55" : "bg-card after:bg-card"}`
+            }
             style={{
               height: rowHeight,
-              marginBottom: index < folder.tabs.length - 1 ? rowGap : 0,
+              marginBottom: index < entries.length - 1 ? rowGap : 0,
             }}
           >
-            {draggable ? (
-              <DraggableFolderTab
-                tab={tab}
-                color={folder.color}
-                folderId={folder.id}
-                index={index}
-                animated={!!folder.dynamicEffect}
-                surface={surface}
-              />
-            ) : (
-              <FolderTabRow
-                tab={tab}
-                color={folder.color}
-                folderId={folder.id}
-                index={index}
-                animated={!!folder.dynamicEffect}
-              />
-            )}
+            {entry.tab &&
+              (draggable ? (
+                <DraggableFolderTab
+                  tab={entry.tab}
+                  color={folder.color}
+                  folderId={folder.id}
+                  index={index}
+                  animated={!!folder.dynamicEffect}
+                  surface={surface}
+                />
+              ) : (
+                <FolderTabRow
+                  tab={entry.tab}
+                  color={folder.color}
+                  folderId={folder.id}
+                  index={index}
+                  animated={!!folder.dynamicEffect}
+                />
+              ))}
           </div>
         ))}
       </div>

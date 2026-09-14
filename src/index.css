@@ -141,6 +141,22 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
+@keyframes folder-dwell-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-dwell-fill[data-ready="false"] {
+    animation: none;
+    transform: scaleX(0);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

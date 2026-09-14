@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -135,12 +136,12 @@ export default function DotImageCrop({
             }}
           />
         </label>
-        <div className="flex justify-end gap-2">
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             取消
           </Button>
           <Button onClick={confirm}>确认范围</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

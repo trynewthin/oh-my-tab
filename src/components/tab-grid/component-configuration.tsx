@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogDescription,
@@ -137,12 +138,12 @@ export default function ComponentConfiguration({
         />
       </label>
 
-      <div className="flex justify-end gap-2">
+      <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
           取消
         </Button>
         <Button type="submit">{item ? "保存" : "确认添加"}</Button>
-      </div>
+      </DialogFooter>
     </form>
   )
 

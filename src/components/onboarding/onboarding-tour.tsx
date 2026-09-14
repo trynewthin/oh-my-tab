@@ -2,22 +2,26 @@ import { applyNetworkChoices, usePrivacyStore } from "@/stores/privacy-store"
 import { reloadVisibleFavicons } from "@/lib/favicon-cache"
 import { toast } from "@/stores/toast-store"
 import PrivacySettings from "@/components/settings/privacy-settings"
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 
-const steps = [
+const steps: {
+  title: string
+  text?: string
+  target?: string
+}[] = [
   {
     title: "欢迎使用 Oh My Tab",
-    text: "勾选需要的联网服务，点击「我同意」后启用。点击「不同意」将关闭两项联网服务并继续教程。可随时在「设置 → 关于」中修改。",
   },
   {
     target: "search",
@@ -126,6 +130,8 @@ function Tour() {
     }
   }
   const [rect, setRect] = useState<DOMRect | null>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const [bodyHeight, setBodyHeight] = useState<number>()
   const finish = useOnboardingStore((state) => state.finish)
   const current = steps[step]
 
@@ -146,6 +152,16 @@ function Tour() {
       window.removeEventListener("scroll", update, true)
     }
   }, [current.target])
+
+  useLayoutEffect(() => {
+    const element = bodyRef.current
+    if (!element) return
+    const update = () => setBodyHeight(element.scrollHeight)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [step, current.text, current.title])
 
   return (
     <>
@@ -179,63 +195,96 @@ function Tour() {
           }
           className={
             step === 0
-              ? "z-[60] max-h-[90svh] gap-4 overflow-y-auto"
-              : "top-auto bottom-4 z-[60] max-h-[45svh] -translate-y-0 gap-4 overflow-y-auto sm:bottom-6"
+              ? "z-[60] gap-4 overflow-hidden"
+              : "top-auto bottom-4 z-[60] max-h-[45svh] -translate-y-0 gap-4 overflow-hidden sm:bottom-6"
           }
         >
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-xs text-muted-foreground" aria-live="polite">
-              新手教程 · {step + 1} / {steps.length}
-            </span>
-            <Button variant="ghost" size="sm" disabled={busy} onClick={finish}>
+          <DialogHeader
+            aria-live="polite"
+            aria-atomic="true"
+            className="flex-row items-start justify-between gap-4"
+          >
+            <DialogTitle className="pt-1">{current.title}</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              className="-mt-1 -mr-2 shrink-0"
+              onClick={finish}
+            >
               跳过教程
             </Button>
-          </div>
-          <DialogHeader aria-live="polite" aria-atomic="true">
-            <DialogTitle>{current.title}</DialogTitle>
-            <DialogDescription className="leading-relaxed">
-              {current.text}
-            </DialogDescription>
           </DialogHeader>
-          {step === 0 && (
-            <PrivacySettings
-              choices={choices}
-              disabled={busy}
-              onChange={(feature, enabled) =>
-                setChoices((current) => ({ ...current, [feature]: enabled }))
-              }
-            />
-          )}
           {step === 0 ? (
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
+            <>
+              <DialogDescription className="sr-only">
+                选择需要的联网服务后继续教程。
+              </DialogDescription>
+              <PrivacySettings
+                choices={choices}
                 disabled={busy}
-                onClick={() => void consent(false)}
-              >
-                不同意
-              </Button>
-              <Button disabled={busy} onClick={() => void consent(true)}>
-                我同意
-              </Button>
-            </div>
-          ) : (
-            <div className="flex justify-between gap-3">
-              <Button
-                variant="outline"
-                disabled={step === 0}
-                onClick={() => setStep(step - 1)}
-              >
-                上一步
-              </Button>
-              <Button
-                onClick={() =>
-                  step === steps.length - 1 ? finish() : setStep(step + 1)
+                onChange={(feature, enabled) =>
+                  setChoices((current) => ({ ...current, [feature]: enabled }))
                 }
+              />
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => void consent(false)}
+                >
+                  不同意
+                </Button>
+                <Button disabled={busy} onClick={() => void consent(true)}>
+                  我同意
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div
+                className="overflow-hidden transition-[height] duration-240 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                style={bodyHeight ? { height: bodyHeight } : undefined}
               >
-                {step === steps.length - 1 ? "开始使用" : "下一步"}
-              </Button>
-            </div>
+                <div ref={bodyRef} className="space-y-3">
+                  {current.text
+                    ?.split(/(?<=。)/)
+                    .filter((sentence) => sentence.trim())
+                    .map((sentence, index) =>
+                      index === 0 ? (
+                        <DialogDescription
+                          key={`${current.title}-${sentence}`}
+                          className="leading-relaxed animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                        >
+                          {sentence}
+                        </DialogDescription>
+                      ) : (
+                        <p
+                          key={`${current.title}-${sentence}`}
+                          className="text-sm leading-relaxed text-muted-foreground animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                        >
+                          {sentence}
+                        </p>
+                      )
+                    )}
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                >
+                  上一步
+                </Button>
+                <Button
+                  onClick={() =>
+                    step === steps.length - 1 ? finish() : setStep(step + 1)
+                  }
+                >
+                  {step === steps.length - 1 ? "开始使用" : "下一步"}
+                </Button>
+              </DialogFooter>
+            </>
           )}
         </DialogContent>
       </Dialog>

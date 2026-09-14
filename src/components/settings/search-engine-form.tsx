@@ -1,6 +1,7 @@
 import { toast } from "@/stores/toast-store"
 import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
+import { DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { isSearchUrl, type SearchEngine } from "@/lib/search-engines"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
@@ -63,12 +64,21 @@ export default function SearchEngineForm({
         用 {"{query}"} 表示搜索关键词。
       </p>
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          取消
-        </Button>
-        <Button type="submit">保存</Button>
-      </div>
+      {inDialog ? (
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="submit">保存</Button>
+        </DialogFooter>
+      ) : (
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            取消
+          </Button>
+          <Button type="submit">保存</Button>
+        </div>
+      )}
     </form>
   )
 }

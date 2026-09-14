@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -68,12 +69,12 @@ export default function FolderTabEditor({
             />
           </label>
 
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button variant="outline" type="button" onClick={onClose}>
               取消
             </Button>
             <Button type="submit">保存</Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

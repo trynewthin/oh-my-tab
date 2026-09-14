@@ -65,7 +65,7 @@ function DialogContent({
         {...props}
       >
         {internalScroll ? (
-          <div className="grid min-h-0 gap-6 overflow-y-auto overscroll-contain pr-1">
+          <div className="grid min-h-0 gap-6 overflow-x-hidden overflow-y-auto overscroll-contain pr-1">
             {children}
           </div>
         ) : (

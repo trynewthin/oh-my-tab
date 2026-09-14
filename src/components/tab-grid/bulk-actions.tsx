@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogHeader,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -136,7 +137,7 @@ export default function BulkActions() {
                 onChange={(event) => setName(event.target.value)}
               />
             )}
-            <div className="flex justify-end gap-2">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
@@ -154,7 +155,7 @@ export default function BulkActions() {
               >
                 {dialog === "group" ? "确认成组" : "确认删除"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

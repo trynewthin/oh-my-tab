@@ -56,7 +56,7 @@ const steps: {
   {
     target: "grid",
     title: "网格：拖拽与布局恢复",
-    text: "拖动组件调整位置，空位会保留。宽屏最多显示五列；不同列数分别保存排版，缩放窗口后切回来会恢复。拖动标签到文件夹中心并停留可放入，展开文件夹后也可将标签拖出。",
+    text: "拖动组件调整位置，空位会保留。宽屏最多显示五列；不同列数分别保存排版，缩放窗口后切回来会恢复。将标签拖到文件夹上，重合足够后文件夹会发光，标签颜色也会靠近文件夹，松手即可放入。展开文件夹后也可将标签拖出。",
   },
   {
     target: "grid",
@@ -254,14 +254,14 @@ function Tour() {
                       index === 0 ? (
                         <DialogDescription
                           key={`${current.title}-${sentence}`}
-                          className="leading-relaxed animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                          className="animate-in leading-relaxed duration-200 fade-in-0 motion-reduce:animate-none"
                         >
                           {sentence}
                         </DialogDescription>
                       ) : (
                         <p
                           key={`${current.title}-${sentence}`}
-                          className="text-sm leading-relaxed text-muted-foreground animate-in fade-in-0 duration-200 motion-reduce:animate-none"
+                          className="animate-in text-sm leading-relaxed text-muted-foreground duration-200 fade-in-0 motion-reduce:animate-none"
                         >
                           {sentence}
                         </p>
@@ -270,10 +270,7 @@ function Tour() {
                 </div>
               </div>
               <DialogFooter className="sm:justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(step - 1)}
-                >
+                <Button variant="outline" onClick={() => setStep(step - 1)}>
                   上一步
                 </Button>
                 <Button

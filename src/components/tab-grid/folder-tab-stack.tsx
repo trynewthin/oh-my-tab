@@ -94,7 +94,7 @@ export default function FolderTabStack({
       aria-label={`${folder.name}内的标签`}
       tabIndex={0}
       style={{ marginTop: -topBleed, paddingTop: topBleed }}
-      className={`relative min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl outline-none [overflow-anchor:none] focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-scrollbar]:hidden ${className}`}
+      className={`relative min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-scrollbar]:hidden ${className}`}
       onMouseDown={(event) => event.stopPropagation()}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return
@@ -108,11 +108,19 @@ export default function FolderTabStack({
         event.preventDefault()
         event.stopPropagation()
         const viewport = event.currentTarget
+        const visibleHeight = viewport.clientHeight - topBleed
+        const lines = Math.ceil(folder.tabs.length / innerColumns)
+        const visibleLines = Math.max(
+          1,
+          Math.floor((visibleHeight - rowHeight) / rowStep) + 1
+        )
+        const maxScroll = Math.max(0, (lines - visibleLines) * rowStep)
+        if (maxScroll <= 0) return
         const top =
           event.key === "Home"
             ? 0
             : event.key === "End"
-              ? viewport.scrollHeight
+              ? maxScroll
               : viewport.scrollTop + amount
         viewport.scrollTo({
           top,

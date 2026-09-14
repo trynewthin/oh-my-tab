@@ -35,13 +35,25 @@ export function useStackScroll(
     function draw() {
       if (!viewport) return
       const height = singleRow ? rowHeight : viewport.clientHeight - topBleed
-      const progress = Math.min(1, viewport.scrollTop / rowStep)
+      const lines = Math.ceil(rows.length / innerColumns)
+      const lastLine = Math.max(0, lines - 1)
+      const visibleLines = Math.max(
+        1,
+        Math.floor((height - rowHeight) / rowStep) + 1
+      )
+      const maxScroll = Math.max(0, (lines - visibleLines) * rowStep)
+      const compact = maxScroll <= 0
+      const progress = compact
+        ? 0
+        : Math.min(1, viewport.scrollTop / Math.max(rowStep, 1))
       const folding = progress * progress * (3 - 2 * progress)
+      const atEnd = maxScroll > 0 && viewport.scrollTop >= maxScroll - 0.5
       const focusLine = Math.max(0, height - 64)
       const spread = Math.max(12, height - rowHeight - focusLine)
       rows.forEach((row, index) => {
-        const position =
-          Math.floor(index / innerColumns) * rowStep - viewport.scrollTop
+        const line = Math.floor(index / innerColumns)
+        const position = line * rowStep - viewport.scrollTop
+        const settled = height - rowHeight - 1 - (lastLine - line) * rowStep
         const depth = Math.max(0, (position - focusLine) / rowStep)
         const projected =
           position <= focusLine
@@ -50,25 +62,38 @@ export function useStackScroll(
         const scale = motion.matches
           ? 1
           : 1 - Math.min(0.22, depth * 0.07) * folding
-        const bottomLimit = Math.max(0, height - rowHeight * scale - 1)
-        const animatedPosition = position + (projected - position) * folding
-        const boundedPosition = Math.min(animatedPosition, bottomLimit)
-        const initiallyBelow =
-          Math.floor(index / innerColumns) * rowStep + rowHeight > height
+        const bottomLimit = Math.max(0, height - rowHeight * scale)
+        const stackedPosition = Math.min(
+          position + (projected - position) * folding,
+          bottomLimit
+        )
+        const boundedPosition = compact
+          ? position
+          : atEnd
+            ? settled
+            : stackedPosition
+        const initiallyBelow = line * rowStep + rowHeight > height
         const reveal = initiallyBelow ? folding : 1
         const opacity =
-          (position < 0
-            ? Math.max(0, 1 + position / rowHeight)
+          (boundedPosition < 0
+            ? Math.max(0, 1 + boundedPosition / rowHeight)
             : Math.max(0, 1 - (folding * Math.max(0, depth - 2)) / 3)) * reveal
         const hidden = motion.matches
-          ? position + rowHeight <= 0 || position + rowHeight > height
+          ? boundedPosition + rowHeight <= 0 || boundedPosition >= height
           : opacity <= 0.02
         row.inert = hidden
         gsap.set(row, {
           y: motion.matches ? 0 : boundedPosition - position,
           scale,
-          autoAlpha: hidden ? 0 : motion.matches || position >= 0 ? 1 : opacity,
-          "--stack-shade": motion.matches || position < 0 ? 0 : 1 - opacity,
+          autoAlpha: hidden
+            ? 0
+            : motion.matches || boundedPosition >= 0
+              ? 1
+              : opacity,
+          "--stack-shade":
+            motion.matches || boundedPosition < 0 || compact || atEnd
+              ? 0
+              : 1 - opacity,
           zIndex: rows.length - index,
           transformOrigin: "center top",
         })
@@ -78,15 +103,24 @@ export function useStackScroll(
       cancelAnimationFrame(animationFrame)
       animationFrame = requestAnimationFrame(draw)
     }
+    function maxScrollTop() {
+      if (!viewport) return 0
+      const height = singleRow ? rowHeight : viewport.clientHeight - topBleed
+      const lines = Math.ceil(rows.length / innerColumns)
+      const visibleLines = Math.max(
+        1,
+        Math.floor((height - rowHeight) / rowStep) + 1
+      )
+      return Math.max(0, (lines - visibleLines) * rowStep)
+    }
     function resize() {
       if (!viewport) return
+      const maxScroll = maxScrollTop()
       viewport.style.setProperty(
         "--stack-bottom",
-        `${Math.max(0, viewport.clientHeight - topBleed - rowHeight)}px`
-      )
-      const maxScroll = Math.max(
-        0,
-        (Math.ceil(rows.length / innerColumns) - 1) * rowStep
+        maxScroll > 0
+          ? `${Math.max(0, viewport.clientHeight - topBleed - rowHeight)}px`
+          : "0px"
       )
       viewport.scrollTop = Math.min(viewport.scrollTop, maxScroll)
       wheelTarget = viewport.scrollTop
@@ -99,7 +133,7 @@ export function useStackScroll(
         Math.abs(event.deltaX) > Math.abs(event.deltaY)
       )
         return
-      const max = viewport.scrollHeight - viewport.clientHeight
+      const max = maxScrollTop()
       if (max <= 0) return
       event.preventDefault()
       event.stopPropagation()

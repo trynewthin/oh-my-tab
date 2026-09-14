@@ -27,9 +27,9 @@ export default function DraggableGridItem({
   onOpen,
   onEdit,
   placement,
-  dropState,
+  dropProgress,
 }: {
-  dropState?: "pending" | "ready"
+  dropProgress?: number
   placement: GridPlacement
   item: GridItem
   onOpen: () => void
@@ -62,7 +62,7 @@ export default function DraggableGridItem({
         {...attributes}
         role="group"
         aria-label={`拖动 ${item.name} 放置`}
-        className={`group relative isolate col-span-4 min-w-0 cursor-grab rounded-2xl ${definition.tileBorder ? "border" : ""} outline-none focus-visible:ring-2 focus-visible:ring-ring ${dropState === "ready" ? "ring-2 ring-primary" : dropState === "pending" ? "ring-2 ring-primary/30" : ""}`}
+        className={`group relative isolate col-span-4 min-w-0 cursor-grab rounded-2xl ${definition.tileBorder ? "border" : ""} outline-none focus-visible:ring-2 focus-visible:ring-ring`}
         style={{
           gridColumn: `${placement.x + 1} / span ${placement.width ?? 4}`,
           gridRow: `${placement.y + 1} / span ${placement.height}`,
@@ -78,12 +78,18 @@ export default function DraggableGridItem({
         }}
         onDragStart={(event) => event.preventDefault()}
       >
+        {dropProgress ? (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-[inherit]"
+            style={{
+              background: item.color,
+              opacity: 0.08 + dropProgress * 0.16,
+              filter: `blur(${8 + dropProgress * 6}px)`,
+            }}
+          />
+        ) : null}
         <GridTileContent item={item} onOpen={onOpen} />
-        {dropState && (
-          <span className="pointer-events-none absolute inset-x-2 bottom-2 z-30 rounded-lg bg-primary px-2 py-1 text-center text-xs text-primary-foreground">
-            {dropState === "ready" ? "松手放入文件夹" : "继续停留，等待确认"}
-          </span>
-        )}
       </ContextMenuTrigger>
       <ContextMenuContent>
         {sizeOptions.length > 0 && (

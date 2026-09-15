@@ -13,6 +13,7 @@ import {
   supportsBrowserBookmarks,
 } from "@/lib/browser-bookmarks"
 import { flushStorage } from "@/lib/storage"
+import { rehydrateData } from "@/lib/hydrate"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
 
@@ -28,10 +29,7 @@ export default function BookmarkImport() {
         toast("浏览器中没有可导入的书签", "info")
         return
       }
-      await flushStorage()
-      await useTabGridStore.persist.rehydrate()
-      if (!useTabGridStore.persist.hasHydrated())
-        throw new Error("本机数据读取失败，请重试")
+      await rehydrateData(["omt.tab-grid"])
       const result = useTabGridStore
         .getState()
         .importBookmarks(parsed.bookmarks)

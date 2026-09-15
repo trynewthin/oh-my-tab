@@ -22,13 +22,42 @@ const stores = [
   useGardenStore,
   useOnboardingStore,
 ]
-export async function rehydrateData(keys?: string[]) {
+async function rehydrateStores(keys?: ReadonlySet<string>) {
   for (const store of stores) {
-    if (!keys || keys.includes(store.persist.getOptions().name ?? "")) {
-      await store.persist.rehydrate()
-      if (!store.persist.hasHydrated()) throw new Error("本地数据读取失败")
-    }
+    if (keys && !keys.has(store.persist.getOptions().name ?? "")) continue
+    await store.persist.rehydrate()
+    if (!store.persist.hasHydrated()) throw new Error("本地数据读取失败")
   }
+}
+
+let rehydrateTail: Promise<void> = Promise.resolve()
+// undefined: nothing queued · "all": every store · Set: queued storage keys
+let rehydratePending: Set<string> | "all" | undefined
+
+// Rehydration must run strictly serially: when two rehydrate() calls overlap
+// on the same store, zustand resolves the superseded one early and leaves
+// hasHydrated false until the newer pass finishes, so the check above is only
+// reliable while this queue guarantees no overlap.
+export function rehydrateData(keys?: string[]): Promise<void> {
+  rehydratePending =
+    rehydratePending === "all" || keys === undefined
+      ? "all"
+      : rehydratePending === undefined
+        ? new Set(keys)
+        : new Set([...rehydratePending, ...keys])
+  const run = rehydrateTail.then(async () => {
+    const pending = rehydratePending
+    rehydratePending = undefined
+    if (pending === undefined) return // drained by the previous run
+    try {
+      await flushStorage()
+    } catch {
+      /* Re-read committed data after a failed write. */
+    }
+    await rehydrateStores(pending === "all" ? undefined : pending)
+  })
+  rehydrateTail = run.catch(() => {})
+  return run
 }
 export async function prepareData() {
   await navigator.locks.request("omt-startup", async () => {
@@ -43,14 +72,9 @@ export async function prepareData() {
     await flushStorage()
   })
   const unsubscribe = subscribeStorage((keys) => {
-    void (async () => {
-      try {
-        await flushStorage()
-      } catch {
-        /* Re-read committed data after a failed write. */
-      }
-      await rehydrateData(keys)
-    })().catch(() => toast("读取更新失败，请重新打开页面", "error"))
+    void rehydrateData(keys).catch(() =>
+      toast("读取更新失败，请重新打开页面", "error")
+    )
   })
   const onError = (event: Event) =>
     toast(

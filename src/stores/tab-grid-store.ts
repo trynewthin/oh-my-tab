@@ -293,8 +293,9 @@ export const useTabGridStore = create<TabGridState>()(
     {
       ...storageOptions(),
       name: "omt.tab-grid",
-      partialize: ({ items, layouts, mockDataVersion, lastLayoutColumns }) => ({
-        lastLayoutColumns,
+      // lastLayoutColumns stays tab-local: persisting it makes tabs with
+      // different column counts overwrite each other in a ping-pong loop.
+      partialize: ({ items, layouts, mockDataVersion }) => ({
         items,
         layouts,
         mockDataVersion,
@@ -341,12 +342,6 @@ export const useTabGridStore = create<TabGridState>()(
         const restoredItems = Array.isArray(items) ? storedItems : initialItems
         return {
           ...current,
-          lastLayoutColumns: GRID_COLUMNS.find(
-            (columns) =>
-              columns ===
-              (persisted as { lastLayoutColumns?: number } | null)
-                ?.lastLayoutColumns
-          ),
           layouts,
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION

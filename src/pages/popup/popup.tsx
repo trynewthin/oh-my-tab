@@ -1,4 +1,5 @@
 import { flushStorage } from "@/lib/storage"
+import { rehydrateData } from "@/lib/hydrate"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import PopupBackground from "./popup-background"
 import { useEffect, useState, type ReactNode, type FormEvent } from "react"
@@ -64,7 +65,7 @@ export default function Popup() {
           setUnsupported(true)
           return
         }
-        await useTabGridStore.persist.rehydrate()
+        await rehydrateData(["omt.tab-grid"])
         if (cancelled) return
         const match = findBookmarkByUrl(
           useTabGridStore.getState().items,
@@ -93,7 +94,7 @@ export default function Popup() {
     setSaving(true)
     setError("")
     try {
-      await useTabGridStore.persist.rehydrate()
+      await rehydrateData(["omt.tab-grid"])
       useTabGridStore.getState().upsertBookmark(name, address)
       await flushStorage()
       setSuccess(true)

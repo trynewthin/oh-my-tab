@@ -14,7 +14,7 @@ The product website and hosted privacy policy are maintained as the `website/` w
 - `npm run dev`: start the Vite development server.
 - `npm run build`: type-check and build the extension into `dist/`.
 - `npm run lint`: run ESLint across the repository.
-- `npm run test:unit`: run Node unit tests.
+- `npm run test:unit`: run the Vitest unit suite in `tests/unit/` (the Vite config is shared, so `@/` imports and `import.meta.env` work).
 - `npm test`: run Playwright tests against an existing build; run `npm run build` first.
 - `npm run test:extension`: validate the unpacked extension and CSP behavior.
 - `npm run test:webdav`: run the Docker-backed WebDAV integration check while the development server is running.
@@ -27,7 +27,7 @@ Use TypeScript, React function components, strict typing, and the `@/` alias. Pr
 
 ## Testing Guidelines
 
-Name Playwright tests `*.spec.ts` and unit tests `*.test.mjs`. Test user-visible behavior in E2E suites and stable input/output boundaries in unit suites. Add regression coverage for persisted data, layout, permission, or registry changes. Use `testInfo.outputPath()` for screenshots.
+Name Playwright tests `*.spec.ts` and unit tests `*.test.ts` (Vitest). Test user-visible behavior in E2E suites and stable input/output boundaries in unit suites. Import source modules directly and stub dependencies with `vi.mock`/`vi.stubGlobal`; `tests/unit/setup.ts` supplies shared IndexedDB/location/locks stubs. Add regression coverage for persisted data, layout, permission, or registry changes. Use `testInfo.outputPath()` for screenshots.
 
 ## Commit & Pull Request Guidelines
 

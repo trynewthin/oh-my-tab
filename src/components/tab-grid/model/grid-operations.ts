@@ -1,7 +1,7 @@
-import type { GridItem, TabEntry } from "@/components/tab-grid/types"
-import type { GridPositions } from "@/components/tab-grid/grid-layout"
-import { supportsComponentAction } from "@/components/tab-grid/model/registry"
-import { createFolderItem } from "@/components/tab-grid/model/factory"
+import type { GridItem, TabEntry } from "../types"
+import type { GridPositions } from "../grid-layout"
+import { supportsComponentAction } from "./registry"
+import { createFolderItem } from "./factory"
 type GridData = {
   items: GridItem[]
   layouts: Record<number, GridPositions>

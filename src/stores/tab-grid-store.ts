@@ -1,5 +1,8 @@
 import { storageOptions } from "@/lib/storage"
-import { groupComponents, resolveGroupAction } from "@/lib/grid-operations"
+import {
+  groupComponents,
+  resolveGroupAction,
+} from "@/components/tab-grid/model/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
   GRID_COLUMNS,
@@ -43,7 +46,7 @@ import type { GridPositions } from "@/components/tab-grid/grid-layout"
 import {
   transferTab,
   type TabTransfer,
-} from "@/components/tab-grid/tab-transfer"
+} from "@/components/tab-grid/model/tab-transfer"
 
 import { randomComponentColor } from "@/lib/component-colors"
 

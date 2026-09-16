@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { resolveGroupAction } from "@/lib/grid-operations"
+import { resolveGroupAction } from "@/components/tab-grid/model/grid-operations"
 
 export default function BulkActions() {
   const active = useGridSelectionStore((state) => state.active)

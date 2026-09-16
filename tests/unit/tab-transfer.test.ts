@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { transferTab } from "@/components/tab-grid/tab-transfer"
+import { transferTab } from "@/components/tab-grid/model/tab-transfer"
 import type { GridItem, TabItem, FolderItem } from "@/components/tab-grid/types"
 
 let seq = 0

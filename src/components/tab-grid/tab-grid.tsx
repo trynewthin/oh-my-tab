@@ -1,6 +1,6 @@
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import BulkActions from "./bulk-actions"
-import { Plus } from "@phosphor-icons/react"
+import { Check, Plus } from "@phosphor-icons/react"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -35,8 +35,13 @@ import {
 } from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 import { mixHexColor } from "./folder-drop"
+import EffectSurface from "@/components/effects/effect-surface"
 import { ItemGlow } from "./grid-dnd-overlay"
-import { previewFolderTabs, useGridDrag } from "./use-grid-drag"
+import {
+  previewFolderTabs,
+  previewTodoTasks,
+  useGridDrag,
+} from "./use-grid-drag"
 
 const emptyPositions: GridPositions = {}
 
@@ -182,7 +187,8 @@ export default function TabGrid() {
     dragging &&
     (intent.kind === "grid" ||
       intent.kind === "folder" ||
-      intent.kind === "reorder")
+      intent.kind === "reorder" ||
+      intent.kind === "todo-reorder")
       ? intent.releaseProgress
       : dragging?.sourceFolderId
         ? 0
@@ -341,6 +347,17 @@ export default function TabGrid() {
                                 )
                               : undefined
                     }
+                    todoTasks={
+                      item.kind === "todo" &&
+                      intent.kind === "todo-reorder" &&
+                      intent.todoId === item.id
+                        ? previewTodoTasks(
+                            item.tasks,
+                            dragging?.todoTask?.id,
+                            intent.index
+                          )
+                        : undefined
+                    }
                     onOpen={() => {
                       const action = getComponentDefinition(
                         item.kind
@@ -402,12 +419,27 @@ export default function TabGrid() {
                       borderColor: `color-mix(in srgb, var(--border) ${releaseProgress * 100}%, transparent)`,
                     }}
                   >
-                    <GridTileContent
-                      item={overlayItem ?? dragging.item}
-                      onOpen={() => {}}
-                      preview
-                      compactTab={releaseProgress < 1}
-                    />
+                    {dragging.todoTask ? (
+                      <div className="relative flex h-full items-center gap-2 px-3 py-2">
+                        <EffectSurface
+                          color={dragging.item.color}
+                          textureId={dragging.todoTask.id}
+                        />
+                        <span className="relative z-10 flex size-4 shrink-0 items-center justify-center rounded-sm border border-foreground/50">
+                          {dragging.todoTask.done && <Check size={12} />}
+                        </span>
+                        <span className="relative z-10 min-w-0 flex-1 truncate text-sm font-medium">
+                          {dragging.todoTask.text}
+                        </span>
+                      </div>
+                    ) : (
+                      <GridTileContent
+                        item={overlayItem ?? dragging.item}
+                        onOpen={() => {}}
+                        preview
+                        compactTab={releaseProgress < 1}
+                      />
+                    )}
                   </div>
                 </div>
               )}

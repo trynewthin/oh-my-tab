@@ -2,9 +2,11 @@ import { useStackScroll } from "./collection/use-stack-scroll"
 import { Checkbox } from "@/components/ui/checkbox"
 import EffectSurface from "@/components/effects/effect-surface"
 import {
+  useCallback,
   useState,
   useLayoutEffect,
   useRef,
+  type CSSProperties,
   type ReactNode,
   type FormEvent,
 } from "react"
@@ -18,13 +20,83 @@ import {
   CollectionHeaderAction,
   CollectionTitleButton,
 } from "./collection/header"
-import type { TodoItem } from "@/lib/grid/types"
+import type { TodoItem, TodoTask } from "@/lib/grid/types"
+import { useDraggable } from "@dnd-kit/core"
+import type { TodoTaskDragData } from "./drag-types"
+import { TODO_GAP_ID } from "./use-grid-drag"
 
 function focusDraft(node: HTMLInputElement | null) {
   if (node) {
     node.focus()
     node.scrollIntoView({ block: "nearest" })
   }
+}
+
+function TodoTaskRow({
+  id,
+  todoId,
+  sortable,
+  stacked,
+  className,
+  style,
+  done,
+  children,
+}: {
+  id: string
+  todoId: string
+  sortable: boolean
+  stacked: boolean
+  className: string
+  style?: CSSProperties
+  done: boolean
+  children: ReactNode
+}) {
+  const node = useRef<HTMLDivElement | null>(null)
+  const surface = sortable ? "dialog" : "preview"
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `todo-task:${surface}:${todoId}:${id}`,
+    disabled: !sortable,
+    data: {
+      type: "todo-task",
+      taskId: id,
+      todoId,
+      surface,
+      getElement: () => node.current,
+    } satisfies TodoTaskDragData,
+  })
+  const ref = useCallback(
+    (element: HTMLDivElement | null) => {
+      node.current = element
+      setNodeRef(element)
+    },
+    [setNodeRef]
+  )
+  return (
+    <div
+      ref={ref}
+      role="listitem"
+      data-stack-row={stacked ? "" : undefined}
+      data-tab-id={id}
+      data-todo-done={done}
+      className={`${className} ${sortable ? "cursor-grab" : ""} ${isDragging ? "invisible" : ""}`}
+      style={style}
+      {...attributes}
+      onMouseDown={(event) => {
+        if (!sortable || event.button !== 0) return
+        event.stopPropagation()
+        listeners?.onMouseDown?.(event)
+      }}
+      onKeyDown={(event) => {
+        if (sortable && event.target === event.currentTarget) {
+          event.stopPropagation()
+          listeners?.onKeyDown?.(event)
+        }
+      }}
+      onDragStart={(event) => event.preventDefault()}
+    >
+      {children}
+    </div>
+  )
 }
 
 function TodoList({
@@ -87,6 +159,9 @@ function TodoList({
       >
         <CollectionGrid
           expanded={showDelete}
+          data-expanded-collection-grid={showDelete ? "" : undefined}
+          data-todo-surface={showDelete ? "dialog" : undefined}
+          data-todo-id={showDelete ? item.id : undefined}
           style={
             cards && (item.tasks.length > 0 || draftRow)
               ? { paddingBottom: "var(--stack-bottom, 0px)" }
@@ -108,9 +183,10 @@ function TodoList({
           {draftRow && (
             <div
               role="listitem"
-              data-stack-row={cards ? "" : undefined}
+              data-stack-row={cards || showDelete ? "" : undefined}
+              data-tab-id="__todo-draft__"
               style={{
-                height: cards ? rowHeight : 44,
+                height: cards ? rowHeight : showDelete ? 48 : 44,
                 marginBottom: showDelete ? 0 : 8,
               }}
               className="relative"
@@ -119,75 +195,87 @@ function TodoList({
             </div>
           )}
           {item.tasks.map((task) => (
-            <div
+            <TodoTaskRow
               key={task.id}
-              role="listitem"
-              data-stack-row={cards ? "" : undefined}
-              className={`group/task relative isolate flex items-center gap-2 ${cards || showDelete ? `${showDelete ? "h-11 min-w-0" : "mb-2 min-h-11"} overflow-hidden rounded-2xl border border-border/60 px-3 py-2` : "py-1.5"}`}
+              id={task.id}
+              todoId={item.id}
+              sortable={showDelete && !preview && task.id !== TODO_GAP_ID}
+              stacked={cards || showDelete}
+              className={
+                task.id === TODO_GAP_ID
+                  ? `relative ${showDelete ? "h-12 min-w-0" : "mb-2 min-h-11"}`
+                  : `group/task relative isolate flex items-center gap-2 ${cards || showDelete ? `${showDelete ? "h-12 min-w-0" : "mb-2 min-h-11"} overflow-hidden rounded-2xl border border-border/60 px-3 py-2` : "py-1.5"}`
+              }
               style={cards ? { height: rowHeight, minHeight: 0 } : undefined}
-              data-todo-done={task.done}
+              done={task.done}
             >
-              {(cards || showDelete) && (
-                <div
-                  className={`pointer-events-none absolute inset-0 -z-10 ${task.done ? "grayscale" : ""}`}
-                >
-                  <EffectSurface
-                    color={item.color}
-                    textureId={task.id}
-                    animated={!preview && !!item.dynamicEffect && !task.done}
-                  />
-                </div>
-              )}
-              <Checkbox
-                aria-label={`完成 ${task.text}`}
-                checked={task.done}
-                disabled={preview}
-                onCheckedChange={() =>
-                  update(item.id, (tasks) =>
-                    tasks.map((t) =>
-                      t.id === task.id ? { ...t, done: !t.done } : t
-                    )
-                  )
-                }
-                className="size-4 shrink-0 cursor-pointer"
-              />
-              <span
-                className={`min-w-0 flex-1 truncate text-[13px] font-medium sm:text-sm ${task.done ? "text-muted-foreground" : ""}`}
-              >
-                {task.text}
-              </span>
-              {showDelete && (
-                <button
-                  type="button"
-                  aria-label={`${confirmDelete === task.id ? "确认删除" : "删除"} ${task.text}`}
-                  disabled={preview}
-                  onClick={() => {
-                    if (confirmDelete !== task.id) {
-                      setConfirmDelete(task.id)
-                      return
-                    }
-                    update(item.id, (tasks) =>
-                      tasks.filter((t) => t.id !== task.id)
-                    )
-                    setConfirmDelete(null)
-                  }}
-                  onBlur={() =>
-                    setConfirmDelete((current) =>
-                      current === task.id ? null : current
-                    )
-                  }
-                  className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
-                >
-                  {confirmDelete === task.id ? (
-                    <span className="px-1 text-xs font-medium text-destructive">
-                      确认删除
-                    </span>
-                  ) : (
-                    <Trash size={16} />
+              {task.id !== TODO_GAP_ID && (
+                <>
+                  {(cards || showDelete) && (
+                    <div
+                      className={`pointer-events-none absolute inset-0 -z-10 ${task.done ? "grayscale" : ""}`}
+                    >
+                      <EffectSurface
+                        color={item.color}
+                        textureId={task.id}
+                        animated={
+                          !preview && !!item.dynamicEffect && !task.done
+                        }
+                      />
+                    </div>
                   )}
-                </button>
+                  <Checkbox
+                    aria-label={`完成 ${task.text}`}
+                    checked={task.done}
+                    disabled={preview}
+                    onCheckedChange={() =>
+                      update(item.id, (tasks) =>
+                        tasks.map((t) =>
+                          t.id === task.id ? { ...t, done: !t.done } : t
+                        )
+                      )
+                    }
+                    className="size-4 shrink-0 cursor-pointer"
+                  />
+                  <span
+                    className={`min-w-0 flex-1 truncate text-[13px] font-medium sm:text-sm ${task.done ? "text-muted-foreground" : ""}`}
+                  >
+                    {task.text}
+                  </span>
+                  {showDelete && (
+                    <button
+                      type="button"
+                      aria-label={`${confirmDelete === task.id ? "确认删除" : "删除"} ${task.text}`}
+                      disabled={preview}
+                      onClick={() => {
+                        if (confirmDelete !== task.id) {
+                          setConfirmDelete(task.id)
+                          return
+                        }
+                        update(item.id, (tasks) =>
+                          tasks.filter((t) => t.id !== task.id)
+                        )
+                        setConfirmDelete(null)
+                      }}
+                      onBlur={() =>
+                        setConfirmDelete((current) =>
+                          current === task.id ? null : current
+                        )
+                      }
+                      className="shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                    >
+                      {confirmDelete === task.id ? (
+                        <span className="px-1 text-xs font-medium text-destructive">
+                          确认删除
+                        </span>
+                      ) : (
+                        <Trash size={16} />
+                      )}
+                    </button>
+                  )}
+                </>
               )}
-            </div>
+            </TodoTaskRow>
           ))}
         </CollectionGrid>
       </CollectionViewport>
@@ -224,15 +312,18 @@ function TodoList({
 export default function Todo({
   item,
   preview = false,
+  tasks,
 }: {
   item: TodoItem
   preview?: boolean
+  tasks?: TodoTask[]
 }) {
+  const displayItem = tasks ? { ...item, tasks } : item
   const [open, setOpen] = useState(false)
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState("")
   const update = useTabGridStore((state) => state.updateTodoTasks)
-  const remaining = item.tasks.filter((t) => !t.done)
+  const remaining = displayItem.tasks.filter((t) => !t.done)
   const next = remaining[0]
   const draftRow = adding ? (
     <form
@@ -302,7 +393,7 @@ export default function Todo({
         />
         <section
           aria-label={item.name}
-          className={`relative z-10 flex h-full min-h-0 cursor-default text-card-foreground ${item.size === "small" ? "items-center gap-2 px-3" : "flex-col p-3"}`}
+          className={`relative z-10 flex h-full min-h-0 cursor-default text-card-foreground ${item.size === "small" ? "items-center gap-2 px-3" : "flex-col gap-1.5 p-2.5 sm:gap-2 sm:p-3"}`}
           onClick={(event) => {
             if (
               preview ||
@@ -362,7 +453,7 @@ export default function Todo({
             </>
           ) : (
             <>
-              <CollectionCardHeader className="mb-1">
+              <CollectionCardHeader className="pr-0.5 pl-0.5 sm:pr-1 sm:pl-1">
                 <CollectionTitleButton
                   data-todo-drag-surface
                   disabled={preview}
@@ -380,6 +471,7 @@ export default function Todo({
                       if (!adding) setDraft("")
                       setAdding(true)
                     }}
+                    className="size-5 p-0"
                   >
                     <Plus size={16} />
                   </CollectionHeaderAction>
@@ -390,7 +482,7 @@ export default function Todo({
                 )}
               </CollectionCardHeader>
               <TodoList
-                item={item}
+                item={displayItem}
                 preview={preview}
                 showInput={item.size !== "large"}
                 draftRow={
@@ -424,9 +516,12 @@ export default function Todo({
             </CollectionHeaderAction>
           }
         >
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div
+            className="flex min-h-0 flex-1 flex-col"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <TodoList
-              item={item}
+              item={displayItem}
               preview={preview}
               showDelete
               showInput={false}

@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
-import type { GridItem, TabEntry } from "@/lib/grid/types"
+import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import {
   getComponentDefinition,
   getComponentSizeOptions,
@@ -29,9 +29,11 @@ export default function DraggableGridItem({
   placement,
   dropProgress,
   folderTabs,
+  todoTasks,
 }: {
   dropProgress?: number
   folderTabs?: TabEntry[]
+  todoTasks?: TodoTask[]
   placement: GridPlacement
   item: GridItem
   onOpen: () => void
@@ -93,6 +95,7 @@ export default function DraggableGridItem({
             item={item}
             onOpen={onOpen}
             folderTabs={folderTabs}
+            todoTasks={todoTasks}
           />
         </div>
       </ContextMenuTrigger>

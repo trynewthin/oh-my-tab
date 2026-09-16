@@ -7,6 +7,7 @@ export function CollectionCardHeader({
 }: HTMLAttributes<HTMLElement>) {
   return (
     <header
+      data-collection-header
       className={cn(
         "relative z-20 flex h-5 shrink-0 items-center justify-between gap-2",
         className
@@ -23,6 +24,7 @@ export function CollectionTitleButton({
   return (
     <button
       type="button"
+      data-collection-title
       className={cn(
         "min-w-0 flex-1 truncate text-left text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm",
         className
@@ -44,6 +46,7 @@ export function CollectionHeaderAction({
   return (
     <button
       type="button"
+      data-collection-actions
       aria-label={label}
       className={cn(
         "flex shrink-0 items-center justify-center rounded-full p-1 text-foreground hover:bg-muted disabled:opacity-40",

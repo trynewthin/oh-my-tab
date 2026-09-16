@@ -8,7 +8,7 @@ import TabUI from "./tab-ui"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
-import type { GridItem, TabEntry } from "@/lib/grid/types"
+import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 
 export default function GridTileContent({
   item,
@@ -16,14 +16,17 @@ export default function GridTileContent({
   preview = false,
   compactTab = false,
   folderTabs,
+  todoTasks,
 }: {
   item: GridItem
   onOpen: () => void
   preview?: boolean
   compactTab?: boolean
   folderTabs?: TabEntry[]
+  todoTasks?: TodoTask[]
 }) {
-  if (item.kind === "todo") return <Todo item={item} preview={preview} />
+  if (item.kind === "todo")
+    return <Todo item={item} preview={preview} tasks={todoTasks} />
   if (item.kind === "calendar")
     return <Calendar item={item} preview={preview} />
   if (item.kind === "ecosystem")

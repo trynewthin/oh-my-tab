@@ -134,8 +134,11 @@ export function placeItems(
         )
         const reordered = positioned.filter((item) => item.id !== target.id)
         reordered.splice(destinationIndex, 0, targetItem)
-        const first = Math.min(originIndex, destinationIndex)
-        const last = Math.max(originIndex, destinationIndex)
+        const collisionIndexes = collisions.map((item) =>
+          positioned.findIndex((positionedItem) => positionedItem.id === item.id)
+        )
+        const first = Math.min(originIndex, ...collisionIndexes)
+        const last = Math.max(originIndex, ...collisionIndexes)
         for (let index = first; index <= last; index++) {
           const item = reordered[index]
           current[item.id] = {

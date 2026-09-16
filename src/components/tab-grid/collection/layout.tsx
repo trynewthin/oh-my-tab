@@ -5,8 +5,8 @@ import {
 } from "react"
 import { cn } from "@/lib/utils"
 
-export const COLLECTION_ROW_HEIGHT = 44
-export const COLLECTION_ROW_GAP = 12
+export const COLLECTION_ROW_HEIGHT = 48
+export const COLLECTION_ROW_GAP = 8
 export const COLLECTION_ROW_STEP = COLLECTION_ROW_HEIGHT + COLLECTION_ROW_GAP
 
 export const CollectionViewport = forwardRef<
@@ -71,7 +71,7 @@ export function CollectionGrid({
     <div
       role="list"
       className={cn(
-        expanded && "grid grid-cols-1 gap-3 lg:grid-cols-2",
+        expanded && "grid grid-cols-2 gap-2 lg:grid-cols-3",
         className
       )}
       {...props}
@@ -90,7 +90,7 @@ export function CollectionRow({
     <div
       data-stack-row
       role="listitem"
-      className={cn("h-11 min-w-0", className)}
+      className={cn("h-12 min-w-0", className)}
       {...props}
     >
       {children}

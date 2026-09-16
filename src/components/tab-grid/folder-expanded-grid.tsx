@@ -21,11 +21,16 @@ export default function FolderExpandedGrid({
       data-folder-id={folder.id}
       label={`${folder.name}内的标签`}
     >
-      <CollectionGrid expanded data-expanded-folder-grid>
+      <CollectionGrid
+        expanded
+        data-expanded-folder-grid
+        data-expanded-collection-grid
+      >
         {visibleTabs.map((tab, index) => (
           <CollectionRow
             key={tab.id}
             data-tab-id={tab.id === "__folder-gap__" ? undefined : tab.id}
+            className="relative after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-2xl after:bg-card/55 after:opacity-[var(--stack-shade,0)]"
           >
             {tab.id === "__folder-gap__" ? null : (
               <DraggableFolderTab

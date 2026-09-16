@@ -7,9 +7,14 @@ import type {
   GridPosition,
   GridPositions,
 } from "@/lib/grid/grid-layout"
-import type { GridItem, TabEntry, TabItem } from "@/lib/grid/types"
+import type {
+  GridItem,
+  TabEntry,
+  TabItem,
+  TodoTask,
+} from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import type { FolderTabDragData } from "./drag-types"
+import type { GridDragData } from "./drag-types"
 import {
   confirmedFolderDrop,
   draggedBounds,
@@ -20,6 +25,7 @@ import {
 } from "./folder-drop"
 
 export const FOLDER_GAP_ID = "__folder-gap__"
+export const TODO_GAP_ID = "__todo-gap__"
 const FOLDER_DROP_INSET = 0.08
 const FOLDER_DROP_EXIT_INSET = 0.04
 
@@ -35,6 +41,22 @@ export function previewFolderTabs(
     id: FOLDER_GAP_ID,
     name: "",
     url: "",
+  })
+  return next
+}
+
+export function previewTodoTasks(
+  tasks: TodoTask[],
+  taskId: string | undefined,
+  index: number
+) {
+  if (!taskId) return tasks
+  const remaining = tasks.filter((task) => task.id !== taskId)
+  const next = [...remaining]
+  next.splice(Math.max(0, Math.min(index, next.length)), 0, {
+    id: TODO_GAP_ID,
+    text: "",
+    done: false,
   })
   return next
 }
@@ -55,6 +77,9 @@ export type DragSession = {
   sourceFolderId?: string
   sourceFolderIndex?: number
   sourceFolderColor?: string
+  sourceTodoId?: string
+  sourceTodoIndex?: number
+  todoTask?: TodoTask
   sourceSurface?: "preview" | "dialog"
   dialogBounds?: Bounds
   dialogExited: boolean
@@ -80,6 +105,12 @@ export type Intent =
   | {
       kind: "reorder"
       folderId: string
+      index: number
+      releaseProgress: number
+    }
+  | {
+      kind: "todo-reorder"
+      todoId: string
       index: number
       releaseProgress: number
     }
@@ -121,6 +152,7 @@ export function useGridDrag({
 }) {
   const setLayout = useTabGridStore((state) => state.setLayout)
   const transferTab = useTabGridStore((state) => state.transferTab)
+  const updateTodoTasks = useTabGridStore((state) => state.updateTodoTasks)
   const [dragging, setDragging] = useState<DragSession | null>(null)
   const sessionRef = useRef<DragSession | null>(null)
   const [intent, setIntent] = useState<Intent>({ kind: "none" })
@@ -229,18 +261,54 @@ export function useGridDrag({
       : remaining.length
   }
 
+  function todoInsertionIndex(id: string, point: Point, session: DragSession) {
+    const todo = items.find((item) => item.id === id)
+    if (todo?.kind !== "todo") return 0
+    const remaining = todo.tasks.filter(
+      (task) => task.id !== session.todoTask?.id
+    )
+    const surface = document.querySelector<HTMLElement>(
+      `[data-todo-surface][data-todo-id="${CSS.escape(id)}"]`
+    )
+    if (!surface) return remaining.length
+    const rows = Array.from(
+      surface.querySelectorAll<HTMLElement>("[data-stack-row]")
+    )
+    for (const row of rows) {
+      if (
+        !row.dataset.tabId ||
+        row.dataset.tabId === session.todoTask?.id ||
+        row.dataset.tabId === TODO_GAP_ID
+      )
+        continue
+      const rect = row.getBoundingClientRect()
+      if (
+        point.y < rect.top ||
+        (point.y <= rect.bottom && point.x < rect.left + rect.width / 2)
+      )
+        return Math.max(
+          0,
+          remaining.findIndex((task) => task.id === row.dataset.tabId)
+        )
+    }
+    return remaining.length
+  }
+
   function startDrag(event: DragStartEvent) {
     clearHover()
     // startDrag only fires while idle, so the base placements (from the stored
     // layout, no preview target) are the session's source of truth for origin
     // and the positions snapshot.
     const placements = resolvePlacements(columns)
-    const data = event.active.data.current as FolderTabDragData | undefined
+    const data = event.active.data.current as GridDragData | undefined
     let item: GridItem | undefined
     let element: Element | null | undefined
     let sourceFolderId: string | undefined
     let sourceFolderIndex: number | undefined
     let sourceFolderColor: string | undefined
+    let sourceTodoId: string | undefined
+    let sourceTodoIndex: number | undefined
+    let todoTask: TodoTask | undefined
     if (data?.type === "folder-tab") {
       const folder = items.find((entry) => entry.id === data.folderId)
       const tab =
@@ -259,6 +327,26 @@ export function useGridDrag({
         (entry) => entry.id === data.tabId
       )
       sourceFolderColor = folder.color
+      element = data.getElement()
+    } else if (data?.type === "todo-task") {
+      const todo = items.find((entry) => entry.id === data.todoId)
+      todoTask =
+        todo?.kind === "todo"
+          ? todo.tasks.find((entry) => entry.id === data.taskId)
+          : undefined
+      if (!todoTask || todo?.kind !== "todo") return
+      item = {
+        id: todoTask.id,
+        kind: "tab",
+        name: todoTask.text,
+        url: "",
+        size: "small",
+        color: todo.color,
+      }
+      sourceTodoId = todo.id
+      sourceTodoIndex = todo.tasks.findIndex(
+        (entry) => entry.id === data.taskId
+      )
       element = data.getElement()
     } else {
       item = items.find((entry) => entry.id === event.active.id)
@@ -281,7 +369,7 @@ export function useGridDrag({
       item,
       width: rect.width,
       height: rect.height,
-      origin: placements[sourceFolderId ?? item.id],
+      origin: placements[sourceFolderId ?? sourceTodoId ?? item.id],
       grabOffset: { x: point.x - rect.left, y: point.y - rect.top },
       pointerOrigin: point,
       mouse,
@@ -291,7 +379,10 @@ export function useGridDrag({
       sourceFolderId,
       sourceFolderIndex,
       sourceFolderColor,
-      sourceSurface: data?.type === "folder-tab" ? data.surface : undefined,
+      sourceTodoId,
+      sourceTodoIndex,
+      todoTask,
+      sourceSurface: data?.surface,
       dialogBounds: element
         ?.closest("[data-expanded-collection]")
         ?.getBoundingClientRect(),
@@ -305,7 +396,8 @@ export function useGridDrag({
     const currentIntent = intentRef.current
     return currentIntent.kind === "grid" ||
       currentIntent.kind === "folder" ||
-      currentIntent.kind === "reorder"
+      currentIntent.kind === "reorder" ||
+      currentIntent.kind === "todo-reorder"
       ? currentIntent.releaseProgress
       : sessionRef.current?.sourceFolderId
         ? 0
@@ -347,6 +439,21 @@ export function useGridDrag({
             x: session.pointerOrigin.x + delta.x,
             y: session.pointerOrigin.y + delta.y,
           }
+    if (session.sourceTodoId) {
+      clearHover()
+      clearRelease()
+      publish(
+        session.dialogBounds && contains(point, session.dialogBounds)
+          ? {
+              kind: "todo-reorder",
+              todoId: session.sourceTodoId,
+              index: todoInsertionIndex(session.sourceTodoId, point, session),
+              releaseProgress: 1,
+            }
+          : { kind: "none" }
+      )
+      return
+    }
     if (session.dialogBounds && !session.dialogExited) {
       if (contains(point, session.dialogBounds)) {
         clearHover()
@@ -513,6 +620,23 @@ export function useGridDrag({
         toFolderId: action.folderId,
         index: action.index,
         columns,
+      })
+      committed = true
+    } else if (
+      action.kind === "todo-reorder" &&
+      session.sourceTodoId &&
+      session.todoTask
+    ) {
+      updateTodoTasks(session.sourceTodoId, (tasks) => {
+        const remaining = tasks.filter(
+          (task) => task.id !== session.todoTask!.id
+        )
+        remaining.splice(
+          Math.max(0, Math.min(action.index, remaining.length)),
+          0,
+          session.todoTask!
+        )
+        return remaining
       })
       committed = true
     } else if (action.kind === "grid" && action.ready) {

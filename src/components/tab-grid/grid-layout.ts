@@ -233,3 +233,48 @@ export function deriveLayout(
   })
   return positionsOnly(placeItems(ordered, columns, {}))
 }
+
+export type LayoutState = {
+  items: GridItem[]
+  layouts: Record<number, GridPositions>
+  lastLayoutColumns?: number
+}
+
+// Ensures every item has a slot for the requested column count. Derives a new
+// layout from the nearest known breakpoint, and returns null when nothing
+// changed so callers can skip a state update.
+export function ensureLayoutColumns(
+  state: LayoutState,
+  columns: number
+): { layouts: Record<number, GridPositions>; lastLayoutColumns: number } | null {
+  const layouts = reconcileLayouts(state.items, state.layouts)
+  if (!layouts[columns]) {
+    const sourceColumns =
+      state.lastLayoutColumns && layouts[state.lastLayoutColumns]
+        ? state.lastLayoutColumns
+        : Object.keys(layouts)
+            .map(Number)
+            .sort((a, b) => Math.abs(a - columns) - Math.abs(b - columns))[0]
+    layouts[columns] = deriveLayout(
+      state.items,
+      columns,
+      sourceColumns ? layouts[sourceColumns] : {}
+    )
+  }
+  const unchanged =
+    Object.keys(layouts).length === Object.keys(state.layouts).length &&
+    Object.entries(layouts).every(([key, layout]) => {
+      const old = state.layouts[Number(key)]
+      return (
+        old &&
+        Object.keys(layout).length === Object.keys(old).length &&
+        Object.entries(layout).every(
+          ([id, position]) =>
+            old[id]?.x === position.x && old[id]?.y === position.y
+        )
+      )
+    })
+  return unchanged && state.lastLayoutColumns === columns
+    ? null
+    : { layouts, lastLayoutColumns: columns }
+}

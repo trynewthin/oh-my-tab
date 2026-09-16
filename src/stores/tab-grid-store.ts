@@ -6,8 +6,7 @@ import {
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
   GRID_COLUMNS,
-  reconcileLayouts,
-  deriveLayout,
+  ensureLayoutColumns,
   itemWidth,
 } from "@/components/tab-grid/grid-layout"
 import { toast } from "@/stores/toast-store"
@@ -89,40 +88,7 @@ export const useTabGridStore = create<TabGridState>()(
       mockDataVersion: import.meta.env.DEV ? MOCK_DATA_VERSION : 0,
       layouts: {},
       ensureLayout: (columns) =>
-        set((state) => {
-          const layouts = reconcileLayouts(state.items, state.layouts)
-          if (!layouts[columns]) {
-            const sourceColumns =
-              state.lastLayoutColumns && layouts[state.lastLayoutColumns]
-                ? state.lastLayoutColumns
-                : Object.keys(layouts)
-                    .map(Number)
-                    .sort(
-                      (a, b) => Math.abs(a - columns) - Math.abs(b - columns)
-                    )[0]
-            layouts[columns] = deriveLayout(
-              state.items,
-              columns,
-              layouts[sourceColumns] ?? {}
-            )
-          }
-          const unchanged =
-            Object.keys(layouts).length === Object.keys(state.layouts).length &&
-            Object.entries(layouts).every(([key, layout]) => {
-              const old = state.layouts[Number(key)]
-              return (
-                old &&
-                Object.keys(layout).length === Object.keys(old).length &&
-                Object.entries(layout).every(
-                  ([id, position]) =>
-                    old[id]?.x === position.x && old[id]?.y === position.y
-                )
-              )
-            })
-          return unchanged && state.lastLayoutColumns === columns
-            ? state
-            : { layouts, lastLayoutColumns: columns }
-        }),
+        set((state) => ensureLayoutColumns(state, columns) ?? state),
       setLayout: (columns, positions) =>
         set((state) => ({
           layouts: { ...state.layouts, [columns]: positions },

@@ -267,8 +267,12 @@ export function useGridDrag({
     const remaining = todo.tasks.filter(
       (task) => task.id !== session.todoTask?.id
     )
-    const surface = document.querySelector<HTMLElement>(
-      `[data-todo-surface][data-todo-id="${CSS.escape(id)}"]`
+    const surface = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-todo-surface]")
+    ).find(
+      (node) =>
+        node.dataset.todoId === id &&
+        node.dataset.todoSurface === session.sourceSurface
     )
     if (!surface) return remaining.length
     const rows = Array.from(
@@ -442,8 +446,16 @@ export function useGridDrag({
     if (session.sourceTodoId) {
       clearHover()
       clearRelease()
+      const surface = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-todo-surface]")
+      ).find(
+        (node) =>
+          node.dataset.todoId === session.sourceTodoId &&
+          node.dataset.todoSurface === session.sourceSurface
+      )
+      const bounds = session.dialogBounds ?? surface?.getBoundingClientRect()
       publish(
-        session.dialogBounds && contains(point, session.dialogBounds)
+        bounds && contains(point, bounds)
           ? {
               kind: "todo-reorder",
               todoId: session.sourceTodoId,

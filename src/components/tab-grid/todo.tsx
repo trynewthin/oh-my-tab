@@ -35,6 +35,7 @@ function focusDraft(node: HTMLInputElement | null) {
 function TodoTaskRow({
   id,
   todoId,
+  surface,
   sortable,
   stacked,
   className,
@@ -44,6 +45,7 @@ function TodoTaskRow({
 }: {
   id: string
   todoId: string
+  surface: "preview" | "dialog"
   sortable: boolean
   stacked: boolean
   className: string
@@ -52,7 +54,6 @@ function TodoTaskRow({
   children: ReactNode
 }) {
   const node = useRef<HTMLDivElement | null>(null)
-  const surface = sortable ? "dialog" : "preview"
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `todo-task:${surface}:${todoId}:${id}`,
     disabled: !sortable,
@@ -160,8 +161,8 @@ function TodoList({
         <CollectionGrid
           expanded={showDelete}
           data-expanded-collection-grid={showDelete ? "" : undefined}
-          data-todo-surface={showDelete ? "dialog" : undefined}
-          data-todo-id={showDelete ? item.id : undefined}
+          data-todo-surface={showDelete ? "dialog" : cards ? "preview" : undefined}
+          data-todo-id={showDelete || cards ? item.id : undefined}
           style={
             cards && (item.tasks.length > 0 || draftRow)
               ? { paddingBottom: "var(--stack-bottom, 0px)" }
@@ -199,7 +200,12 @@ function TodoList({
               key={task.id}
               id={task.id}
               todoId={item.id}
-              sortable={showDelete && !preview && task.id !== TODO_GAP_ID}
+              surface={showDelete ? "dialog" : "preview"}
+              sortable={
+                !preview &&
+                (showDelete || cards) &&
+                task.id !== TODO_GAP_ID
+              }
               stacked={cards || showDelete}
               className={
                 task.id === TODO_GAP_ID

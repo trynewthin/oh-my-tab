@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 import {
   groupComponents,
   resolveGroupAction,
-} from "../../src/lib/grid-operations"
+} from "../../src/components/tab-grid/model/grid-operations"
 import type { GridItem } from "../../src/components/tab-grid/types"
 
 const tab = (id: string, name = id): Extract<GridItem, { kind: "tab" }> => ({

@@ -33,12 +33,14 @@ import {
   upsertItem,
 } from "@/components/tab-grid/model/operations"
 
-import {
-  mockGridItems,
-  MOCK_DATA_VERSION,
-} from "@/components/tab-grid/mock-data"
+import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
+import { mockGridItems } from "@/components/tab-grid/mock-data"
 
-const initialItems = import.meta.env.DEV ? mockGridItems : []
+// Kept as a function so production builds can tree-shake the mock item list
+// entirely: a top-level `import.meta.env.DEV ? mockGridItems : []` constant is
+// captured by `merge` below and survives dead-code elimination.
+const devInitialItems = (): GridItem[] =>
+  import.meta.env.DEV ? mockGridItems : []
 
 import type { GridPositions } from "@/components/tab-grid/grid-layout"
 
@@ -94,7 +96,7 @@ export const useTabGridStore = create<TabGridState>()(
           layouts: { ...state.layouts, [columns]: positions },
           lastLayoutColumns: columns,
         })),
-      items: initialItems,
+      items: devInitialItems(),
       updateTodoTasks: (id, change) =>
         set((state) => ({ items: updateTodoTasks(state.items, id, change) })),
       transferTab: (move) => set((state) => transferTab(state, move)),
@@ -215,7 +217,9 @@ export const useTabGridStore = create<TabGridState>()(
         const savedMockVersion =
           (persisted as { mockDataVersion?: number } | null)?.mockDataVersion ??
           0
-        const restoredItems = Array.isArray(items) ? storedItems : initialItems
+        const restoredItems = Array.isArray(items)
+          ? storedItems
+          : devInitialItems()
         return {
           ...current,
           layouts,

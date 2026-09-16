@@ -13,7 +13,7 @@ import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { validGridItem } from "@/components/tab-grid/model/validation"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
-import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-data"
+import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
 import { decodeConfig } from "./config-codec"
 import { isBackgroundPaletteId } from "./background-palettes"
 

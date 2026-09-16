@@ -254,7 +254,6 @@ export const additionalMockGridItems: GridItem[] = [
   },
 ]
 
-export const MOCK_DATA_VERSION = 2
 export const mockGridItems: GridItem[] = [
   ...baseMockGridItems,
   ...additionalMockGridItems,

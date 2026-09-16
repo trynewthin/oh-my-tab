@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.5.1",
   "type": "module",
+  "sideEffects": ["**/*.css", "src/main.tsx", "src/popup.tsx"],
   "workspaces": [
     "website"
   ],

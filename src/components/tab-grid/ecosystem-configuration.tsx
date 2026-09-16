@@ -13,11 +13,11 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Ecosystem from "./ecosystem"
-import type { EcosystemItem, GardenPlant } from "./types"
+import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { careForPlant, growth, settleGarden, plantSeed } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
-import { getComponentDefinition } from "./model/registry"
+import { getComponentDefinition } from "@/lib/grid/registry"
 
 export default function EcosystemConfiguration({
   item,

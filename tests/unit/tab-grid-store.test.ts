@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useToastStore } from "@/stores/toast-store"
-import type { FolderItem, GridItem, TabItem } from "@/components/tab-grid/types"
+import type { FolderItem, GridItem, TabItem } from "@/lib/grid/types"
 
 let seq = 0
 const tab = (over: Partial<TabItem> = {}): TabItem => ({

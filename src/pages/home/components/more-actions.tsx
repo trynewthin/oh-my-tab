@@ -1,5 +1,5 @@
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { placeItems, positionsOnly } from "@/components/tab-grid/grid-layout"
+import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { useState } from "react"
 import {

@@ -12,7 +12,7 @@ import { usePromptStore } from "@/stores/prompt-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import TabBackground from "@/components/tab-grid/tab-background"
-import type { TabItem } from "@/components/tab-grid/types"
+import type { TabItem } from "@/lib/grid/types"
 import SearchEngineSelect from "@/pages/home/components/search-engine-select"
 import SettingsButton from "@/pages/home/components/settings-button"
 

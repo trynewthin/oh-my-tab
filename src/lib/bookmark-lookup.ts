@@ -2,7 +2,7 @@ import {
   normalizeTabUrl,
   type GridItem,
   type TabEntry,
-} from "@/components/tab-grid/types"
+} from "@/lib/grid/types"
 
 export function findBookmarkByUrl(
   items: GridItem[],

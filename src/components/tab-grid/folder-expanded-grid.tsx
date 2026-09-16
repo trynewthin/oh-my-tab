@@ -1,5 +1,5 @@
 import DraggableFolderTab from "./draggable-folder-tab"
-import type { FolderItem, TabEntry } from "./types"
+import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import {
   CollectionGrid,
   CollectionRow,

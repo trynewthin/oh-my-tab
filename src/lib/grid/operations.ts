@@ -1,13 +1,13 @@
-import type { GridItem, TabEntry, TodoTask } from "../types"
-import type { GridPositions } from "../grid-layout"
+import type { GridItem, TabEntry, TodoTask } from "./types"
+import type { GridPositions } from "./grid-layout"
 import {
   getComponentDefinition,
   isComponentSize,
   supportsComponentAction,
 } from "./registry"
-import { createTabItem } from "./factory"
+import { createTabItem } from "@/components/tab-grid/factory"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
-import { normalizeTabUrl } from "../types"
+import { normalizeTabUrl } from "./types"
 
 export type GridData = {
   items: GridItem[]

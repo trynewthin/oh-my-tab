@@ -18,18 +18,18 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl } from "./types"
+import { normalizeTabUrl } from "@/lib/grid/types"
 import {
   getComponentDefinition,
   getComponentSize,
   getComponentSizeOptions,
   isComponentSize,
   type GridItemSize,
-} from "./model/registry"
+} from "@/lib/grid/registry"
 import {
   configureComponent,
   type ConfigurableItem,
-} from "./model/factory"
+} from "@/components/tab-grid/factory"
 
 export default function ComponentConfiguration({
   item,

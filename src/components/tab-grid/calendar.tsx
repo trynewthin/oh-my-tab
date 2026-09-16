@@ -1,7 +1,7 @@
 import ComponentBackground from "./shared/component-background"
 import { useEffect, useState } from "react"
 import { CaretLeft, CaretRight } from "@phosphor-icons/react"
-import type { CalendarItem } from "./types"
+import type { CalendarItem } from "@/lib/grid/types"
 
 function CalendarContent({
   item,

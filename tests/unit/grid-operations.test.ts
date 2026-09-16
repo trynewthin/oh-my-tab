@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest"
 import {
   groupComponents,
   resolveGroupAction,
-} from "@/components/tab-grid/model/grid-operations"
-import type { GridItem, TabItem, FolderItem } from "@/components/tab-grid/types"
-import type { GridPositions } from "@/components/tab-grid/grid-layout"
+} from "@/lib/grid/grid-operations"
+import type { GridItem, TabItem, FolderItem } from "@/lib/grid/types"
+import type { GridPositions } from "@/lib/grid/grid-layout"
 
 let seq = 0
 const tab = (over: Partial<TabItem> = {}): TabItem => ({

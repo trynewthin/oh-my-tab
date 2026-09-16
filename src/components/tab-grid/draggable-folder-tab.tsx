@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/context-menu"
 import FolderTabEditor from "./folder-tab-editor"
 import FolderTabRow from "./folder-tab-row"
-import type { TabEntry } from "./types"
+import type { TabEntry } from "@/lib/grid/types"
 import type { FolderTabDragData } from "./drag-types"
 
 type Props = {

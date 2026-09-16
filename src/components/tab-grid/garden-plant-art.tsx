@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react"
-import type { GardenPlant } from "./types"
+import type { GardenPlant } from "@/lib/grid/types"
 import { growth, plantSeed, randomGene, plantName } from "@/lib/garden"
 
 const FAMILIES = ["雏菊", "向日葵", "风铃草", "穗花", "蕨叶", "多肉"]

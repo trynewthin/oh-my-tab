@@ -1,4 +1,4 @@
-import type { FolderItem, GridItem, TabItem } from "@/components/tab-grid/types"
+import type { FolderItem, GridItem, TabItem } from "@/lib/grid/types"
 
 export type ImportedBookmark = { name: string; url: string; folder: string }
 export type BookmarkItemFactory = {

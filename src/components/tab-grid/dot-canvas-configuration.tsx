@@ -16,8 +16,8 @@ import {
   displayDots,
   isDotVisible,
 } from "./dot-canvas-data"
-import type { DotCanvasItem } from "./types"
-import { getComponentDefinition } from "./model/registry"
+import type { DotCanvasItem } from "@/lib/grid/types"
+import { getComponentDefinition } from "@/lib/grid/registry"
 
 export default function DotCanvasConfiguration({
   item,

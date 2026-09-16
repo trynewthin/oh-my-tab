@@ -1,6 +1,6 @@
 import EffectSurface from "@/components/effects/effect-surface"
 import TabIcon from "./tab-icon"
-import type { TabItem } from "./types"
+import type { TabItem } from "@/lib/grid/types"
 import type { ComponentProps } from "react"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 

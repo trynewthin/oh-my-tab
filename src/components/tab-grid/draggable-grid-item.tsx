@@ -2,7 +2,7 @@ import { refreshFavicon } from "@/lib/favicon-cache"
 import { ArrowClockwise } from "@phosphor-icons/react"
 import { useLayoutEffect, useRef, useState } from "react"
 import { useDraggable } from "@dnd-kit/core"
-import type { GridPlacement } from "./grid-layout"
+import type { GridPlacement } from "@/lib/grid/grid-layout"
 import { PencilSimple, Shuffle, Fire, Trash } from "@phosphor-icons/react"
 import {
   ContextMenu,
@@ -15,12 +15,12 @@ import { Badge } from "@/components/ui/badge"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
-import type { GridItem, TabEntry } from "./types"
+import type { GridItem, TabEntry } from "@/lib/grid/types"
 import {
   getComponentDefinition,
   getComponentSizeOptions,
   supportsComponentAction,
-} from "./model/registry"
+} from "@/lib/grid/registry"
 
 function FolderDropGlow({
   color,

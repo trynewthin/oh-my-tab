@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl, type TabEntry } from "./types"
+import { normalizeTabUrl, type TabEntry } from "@/lib/grid/types"
 
 export default function FolderTabEditor({
   folderId,

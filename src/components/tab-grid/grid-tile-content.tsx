@@ -8,7 +8,7 @@ import TabUI from "./tab-ui"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
-import type { GridItem, TabEntry } from "./types"
+import type { GridItem, TabEntry } from "@/lib/grid/types"
 
 export default function GridTileContent({
   item,

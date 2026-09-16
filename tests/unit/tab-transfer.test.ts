@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { transferTab } from "@/components/tab-grid/model/tab-transfer"
-import type { GridItem, TabItem, FolderItem } from "@/components/tab-grid/types"
+import { transferTab } from "@/lib/grid/tab-transfer"
+import type { GridItem, TabItem, FolderItem } from "@/lib/grid/types"
 
 let seq = 0
 const tab = (over: Partial<TabItem> = {}): TabItem => ({

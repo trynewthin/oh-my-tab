@@ -1,7 +1,7 @@
 import { storageOptions } from "@/lib/storage"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { GardenPlant, GridItem } from "@/components/tab-grid/types"
+import type { GardenPlant, GridItem } from "@/lib/grid/types"
 import { plantSeed, settleGarden, validGardenPlant } from "@/lib/garden"
 
 export type SharedGarden = {

@@ -5,12 +5,12 @@ import {
   validSharedGarden,
   migrateGarden,
 } from "@/stores/garden-store"
-import { GRID_COLUMNS, itemWidth } from "@/components/tab-grid/grid-layout"
+import { GRID_COLUMNS, itemWidth } from "@/lib/grid/grid-layout"
 import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
-import { validGridItem } from "@/components/tab-grid/model/validation"
+import { validGridItem } from "@/components/tab-grid/validation"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"

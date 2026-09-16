@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl } from "@/components/tab-grid/types"
+import { normalizeTabUrl } from "@/lib/grid/types"
 
 interface TabAPI {
   tabs: {

@@ -1,4 +1,4 @@
-import type { TabItem } from "./types"
+import type { TabItem } from "@/lib/grid/types"
 
 export default function TabUI({ item }: { item: TabItem }) {
   return (

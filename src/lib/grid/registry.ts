@@ -1,4 +1,4 @@
-import type { GridItem } from "../types"
+import type { GridItem } from "./types"
 
 export type GridItemKind = GridItem["kind"]
 export type GridItemSize = GridItem["size"]

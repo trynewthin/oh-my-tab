@@ -1,6 +1,6 @@
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
-import type { TabEntry, TabItem } from "./types"
+import type { TabEntry, TabItem } from "@/lib/grid/types"
 
 export default function FolderTabRow({
   tab,

@@ -1,4 +1,4 @@
-import type { EcosystemItem, GardenPlant } from "@/components/tab-grid/types"
+import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 export const HOUR = 3600000
 export function plantSeed(plant: GardenPlant) {
   return (plant.seed ?? Math.floor(plant.plantedAt) + plant.slot * 997) >>> 0

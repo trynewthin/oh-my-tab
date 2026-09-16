@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { createCatalogComponent } from "../../src/components/tab-grid/model/factory"
+import { createCatalogComponent } from "../../src/components/tab-grid/factory"
 import {
   catalogComponentKinds,
   componentRegistry,
@@ -7,8 +7,8 @@ import {
   getComponentSizeOptions,
   getItemGridDimensions,
   supportsComponentAction,
-} from "../../src/components/tab-grid/model/registry"
-import { validGridItem } from "../../src/components/tab-grid/model/validation"
+} from "../../src/lib/grid/registry"
+import { validGridItem } from "../../src/components/tab-grid/validation"
 
 test("component registry is the shared source for sizes and capabilities", () => {
   for (const definition of Object.values(componentRegistry)) {

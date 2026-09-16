@@ -1,12 +1,12 @@
-import { blankDots, canvasDimensions } from "../dot-canvas-data"
+import { blankDots, canvasDimensions } from "./dot-canvas-data"
 import {
   getComponentDefinition,
   getComponentSizeOptions,
   isComponentSize,
   type CatalogComponentKind,
   type GridItemSize,
-} from "./registry"
-import type { FolderItem, GridItem, TabEntry, TabItem } from "../types"
+} from "@/lib/grid/registry"
+import type { FolderItem, GridItem, TabEntry, TabItem } from "@/lib/grid/types"
 
 type CatalogItem = Extract<GridItem, { kind: CatalogComponentKind }>
 export type ConfigurableItem = Exclude<

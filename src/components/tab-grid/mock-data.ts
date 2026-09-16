@@ -1,4 +1,4 @@
-import type { GridItem } from "./types"
+import type { GridItem } from "@/lib/grid/types"
 
 const baseMockGridItems: GridItem[] = [
   {

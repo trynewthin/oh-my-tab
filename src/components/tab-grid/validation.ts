@@ -1,6 +1,6 @@
 import { validGardenPlant } from "@/lib/garden"
-import { isComponentSize, isGridItemKind } from "./registry"
-import { normalizeTabUrl, type GridItem, type TabEntry } from "../types"
+import { isComponentSize, isGridItemKind } from "@/lib/grid/registry"
+import { normalizeTabUrl, type GridItem, type TabEntry } from "@/lib/grid/types"
 
 function validDynamicEffect(value: unknown) {
   return value === undefined || typeof value === "boolean"

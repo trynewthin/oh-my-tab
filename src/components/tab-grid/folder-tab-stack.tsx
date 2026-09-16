@@ -3,7 +3,7 @@ import gsap from "gsap"
 import { useStackScroll } from "./collection/use-stack-scroll"
 import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
-import type { FolderItem, TabEntry } from "./types"
+import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function FolderTabStack({

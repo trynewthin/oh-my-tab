@@ -1,5 +1,5 @@
 import type { GridItem } from "./types"
-import { getItemGridDimensions } from "./model/registry"
+import { getItemGridDimensions } from "./registry"
 
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
 

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { useGardenStore } from "@/stores/garden-store"
 import { plantSeed, plantName } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
-import type { EcosystemItem, GardenPlant } from "./types"
+import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 import Ecosystem from "./ecosystem"
 const keyOf = (plant: GardenPlant) => `${plantSeed(plant)}-${plant.plantedAt}`
 export default function GardenAlbum({

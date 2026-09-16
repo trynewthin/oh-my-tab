@@ -1,5 +1,5 @@
 import FolderTabStack from "./folder-tab-stack"
-import type { FolderItem, TabEntry } from "./types"
+import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import {
   CollectionCardHeader,
   CollectionTitleButton,

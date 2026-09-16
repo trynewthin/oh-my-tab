@@ -1,7 +1,7 @@
 import { mountPixiGarden } from "./pixi-garden"
 import GardenPlantArt from "./garden-plant-art"
 import { useEffect, useRef, useState } from "react"
-import type { EcosystemItem } from "./types"
+import type { EcosystemItem } from "@/lib/grid/types"
 import "./ecosystem.css"
 
 export default function Ecosystem({

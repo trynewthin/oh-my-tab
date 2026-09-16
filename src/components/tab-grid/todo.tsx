@@ -18,7 +18,7 @@ import {
   CollectionHeaderAction,
   CollectionTitleButton,
 } from "./collection/header"
-import type { TodoItem } from "./types"
+import type { TodoItem } from "@/lib/grid/types"
 
 function focusDraft(node: HTMLInputElement | null) {
   if (node) {

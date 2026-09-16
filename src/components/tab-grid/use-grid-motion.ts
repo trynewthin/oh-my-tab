@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef } from "react"
 import gsap from "gsap"
-import type { GridPlacement } from "./grid-layout"
+import type { GridPlacement } from "@/lib/grid/grid-layout"
 
 export function useGridMotion(
   placement: GridPlacement,

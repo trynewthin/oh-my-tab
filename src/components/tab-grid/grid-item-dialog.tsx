@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/dialog"
 import ComponentConfiguration from "./component-configuration"
 import type { ComponentProps } from "react"
-import type { GridItem } from "./types"
+import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
   getComponentDefinition,
   getComponentSizeOptions,
   type CatalogComponentKind,
   type GridItemSize,
-} from "./model/registry"
-import { createCatalogComponent } from "./model/factory"
+} from "@/lib/grid/registry"
+import { createCatalogComponent } from "@/components/tab-grid/factory"
 
 function PreviewContent({
   kind,

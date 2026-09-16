@@ -2,8 +2,8 @@ import {
   placeItems,
   type GridPosition,
   type GridPositions,
-} from "../grid-layout"
-import type { GridItem, TabEntry, TabItem } from "../types"
+} from "./grid-layout"
+import type { GridItem, TabEntry, TabItem } from "./types"
 import { getComponentDefinition } from "./registry"
 
 export type TabTransfer = {

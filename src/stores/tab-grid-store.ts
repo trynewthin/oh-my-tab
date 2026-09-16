@@ -2,13 +2,13 @@ import { storageOptions } from "@/lib/storage"
 import {
   groupComponents,
   resolveGroupAction,
-} from "@/components/tab-grid/model/grid-operations"
+} from "@/lib/grid/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
   GRID_COLUMNS,
   ensureLayoutColumns,
   itemWidth,
-} from "@/components/tab-grid/grid-layout"
+} from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
@@ -16,9 +16,9 @@ import {
   type GridItem,
   type TabEntry,
   type TodoTask,
-} from "@/components/tab-grid/types"
-import { validGridItem } from "@/components/tab-grid/model/validation"
-import { bookmarkItemFactory } from "@/components/tab-grid/model/factory"
+} from "@/lib/grid/types"
+import { validGridItem } from "@/components/tab-grid/validation"
+import { bookmarkItemFactory } from "@/components/tab-grid/factory"
 import {
   addFolderTab,
   describeRemoval,
@@ -31,7 +31,7 @@ import {
   updateTodoTasks,
   upsertBookmark,
   upsertItem,
-} from "@/components/tab-grid/model/operations"
+} from "@/lib/grid/operations"
 
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
 import { mockGridItems } from "@/components/tab-grid/mock-data"
@@ -42,12 +42,12 @@ import { mockGridItems } from "@/components/tab-grid/mock-data"
 const devInitialItems = (): GridItem[] =>
   import.meta.env.DEV ? mockGridItems : []
 
-import type { GridPositions } from "@/components/tab-grid/grid-layout"
+import type { GridPosition, GridPositions } from "@/lib/grid/grid-layout"
 
 import {
   transferTab,
   type TabTransfer,
-} from "@/components/tab-grid/model/tab-transfer"
+} from "@/lib/grid/tab-transfer"
 
 import { randomComponentColor } from "@/lib/component-colors"
 
@@ -82,6 +82,51 @@ type TabGridState = {
     changes: Pick<TabEntry, "name" | "url">
   ) => void
   addFolderTab: (folderId: string, tab: TabEntry) => void
+}
+
+// Normalizes the persisted blob (any version) into the shape this store keeps.
+// Shared by migrate() and merge() so a legacy v0 blob and a current blob are
+// validated and clamped by exactly one code path. Throws on invalid items so a
+// corrupt blob is rejected instead of silently overwriting good data.
+function sanitizePersisted(persisted: unknown): {
+  items: GridItem[]
+  layouts: Record<number, GridPositions>
+  mockDataVersion: number
+} {
+  const items = (persisted as { items?: unknown } | null)?.items
+  if (items !== undefined && (!Array.isArray(items) || !items.every(validGridItem))) {
+    throw new Error("组件数据无效，已停止加载以保留原始数据")
+  }
+  const storedItems: GridItem[] = Array.isArray(items) ? items : []
+  const savedLayouts = (
+    persisted as { layouts?: Record<string, unknown> } | null
+  )?.layouts
+  const layouts: Record<number, GridPositions> = {}
+  for (const columns of GRID_COLUMNS) {
+    const layout = savedLayouts?.[columns]
+    if (!layout || typeof layout !== "object") continue
+    layouts[columns] = Object.fromEntries(
+      Object.entries(layout).filter(([id, value]) => {
+        if (
+          !value ||
+          !Number.isInteger((value as GridPosition).x) ||
+          !Number.isInteger((value as GridPosition).y)
+        )
+          return false
+        const { x, y } = value as GridPosition
+        const item = storedItems.find((entry) => entry.id === id)
+        const width = item ? itemWidth(item, columns) : 4
+        return x >= 0 && x <= columns - width && y >= 0 && y <= 500
+      })
+    )
+  }
+  const mockDataVersion =
+    (persisted as { mockDataVersion?: number } | null)?.mockDataVersion ?? 0
+  return {
+    items: Array.isArray(items) ? storedItems : devInitialItems(),
+    layouts,
+    mockDataVersion,
+  }
 }
 
 export const useTabGridStore = create<TabGridState>()(
@@ -171,6 +216,11 @@ export const useTabGridStore = create<TabGridState>()(
     {
       ...storageOptions(),
       name: "omt.tab-grid",
+      version: 1,
+      // v0 persisted blobs had no schema version. Reuse the same sanitizer for
+      // both migration and merge so a v0 blob and a fresh blob are normalized
+      // identically; anything invalid throws and preserves the stored data.
+      migrate: (persisted) => sanitizePersisted(persisted),
       // lastLayoutColumns stays tab-local: persisting it makes tabs with
       // different column counts overwrite each other in a ping-pong loop.
       partialize: ({ items, layouts, mockDataVersion }) => ({
@@ -179,54 +229,13 @@ export const useTabGridStore = create<TabGridState>()(
         mockDataVersion,
       }),
       merge: (persisted, current) => {
-        const items = (persisted as { items?: unknown } | null)?.items
-        if (
-          items !== undefined &&
-          (!Array.isArray(items) || !items.every(validGridItem))
-        ) {
-          throw new Error("组件数据无效，已停止加载以保留原始数据")
-        }
-        const storedItems: GridItem[] = Array.isArray(items) ? items : []
-        const savedLayouts = (
-          persisted as { layouts?: Record<string, unknown> } | null
-        )?.layouts
-        const layouts: Record<number, GridPositions> = {}
-        for (const columns of GRID_COLUMNS) {
-          const layout = savedLayouts?.[columns]
-          if (!layout || typeof layout !== "object") continue
-          layouts[columns] = Object.fromEntries(
-            Object.entries(layout).filter(
-              ([id, value]) =>
-                value &&
-                Number.isInteger(value.x) &&
-                Number.isInteger(value.y) &&
-                value.x >= 0 &&
-                value.x <=
-                  columns -
-                    (storedItems.find((item) => item.id === id)
-                      ? itemWidth(
-                          storedItems.find((item) => item.id === id)!,
-                          columns
-                        )
-                      : 4) &&
-                value.y >= 0 &&
-                value.y <= 500
-            )
-          )
-        }
-        const savedMockVersion =
-          (persisted as { mockDataVersion?: number } | null)?.mockDataVersion ??
-          0
-        const restoredItems = Array.isArray(items)
-          ? storedItems
-          : devInitialItems()
+        const clean = sanitizePersisted(persisted)
         return {
           ...current,
-          layouts,
+          ...clean,
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION
-            : savedMockVersion,
-          items: restoredItems,
+            : clean.mockDataVersion,
         }
       },
     }

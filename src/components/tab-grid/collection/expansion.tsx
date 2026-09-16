@@ -12,14 +12,14 @@ import gsap from "gsap"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import type { TabEntry } from "../types"
+import type { TabEntry } from "@/lib/grid/types"
 import ComponentBackground from "../shared/component-background"
 import FolderExpandedGrid from "../folder-expanded-grid"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import {
   getComponentDefinition,
   supportsComponentAction,
-} from "../model/registry"
+} from "@/lib/grid/registry"
 
 function expandedBounds() {
   const width = Math.min(

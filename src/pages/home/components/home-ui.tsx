@@ -9,7 +9,6 @@ import {
 } from "@/lib/background-palettes"
 import { toast } from "@/stores/toast-store"
 import Toaster from "@/components/ui/toaster"
-import OnboardingTour from "@/components/onboarding/onboarding-tour"
 import HomePromptInput from "@/pages/home/components/home-prompt-input"
 
 import HomeContentContainer from "@/pages/home/components/home-content-container"
@@ -21,9 +20,18 @@ import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { buildSearchUrl } from "@/lib/search-engines"
 
 import TabGrid from "@/components/tab-grid/tab-grid"
+import { lazy, Suspense } from "react"
+import { useOnboardingStore } from "@/stores/onboarding-store"
+
+// Only first-run users (or an explicit replay) need the tour; keep its bundle
+// off the initial page for everyone else.
+const OnboardingTour = lazy(
+  () => import("@/components/onboarding/onboarding-tour")
+)
 
 export default function HomeUI() {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const needsTour = useOnboardingStore((state) => !state.seen || state.replay)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
   const palette = getBackgroundPalette(paletteId)
@@ -79,7 +87,11 @@ export default function HomeUI() {
           <TabGrid />
         </div>
       </div>
-      <OnboardingTour />
+      {needsTour && (
+        <Suspense fallback={null}>
+          <OnboardingTour />
+        </Suspense>
+      )}
       <Toaster />
     </div>
   )

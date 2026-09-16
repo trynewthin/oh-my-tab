@@ -35,11 +35,7 @@ import {
 } from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 import { mixHexColor } from "./folder-drop"
-import {
-  GridDropGlow,
-  ItemGlow,
-  type GridGlowTarget,
-} from "./grid-dnd-overlay"
+import { ItemGlow } from "./grid-dnd-overlay"
 import { previewFolderTabs, useGridDrag } from "./use-grid-drag"
 
 const emptyPositions: GridPositions = {}
@@ -199,7 +195,7 @@ export default function TabGrid() {
           color: mixHexColor(
             dragging.item.color,
             intent.color,
-            1 - releaseProgress
+            intent.progress
           ),
         }
       : dragging.sourceFolderId &&
@@ -214,14 +210,12 @@ export default function TabGrid() {
             ),
           }
         : dragging.item
-  const compactSize =
-    intent.kind === "folder"
-      ? intent.compactSize
-      : intent.kind === "grid" && intent.compactSize
-        ? intent.compactSize
-        : dragging?.sourceFolderId
-          ? { width: dragging.width, height: dragging.height }
-          : undefined
+  // A tab dragged out of a folder starts as its source row and only ever
+  // grows into the full tile (releaseProgress). Grid items keep their grab
+  // size for the whole drag — approaching a folder never resizes the overlay.
+  const compactSize = dragging?.sourceFolderId
+    ? { width: dragging.width, height: dragging.height }
+    : undefined
   const fullWidth = dragging
     ? columnStep * itemWidth(dragging.item, columns) - gridGap
     : undefined
@@ -236,22 +230,6 @@ export default function TabGrid() {
     dragging && compactSize && fullHeight !== undefined
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
-  const gridGlowTarget: GridGlowTarget | undefined =
-    dragging && intent.kind === "grid" && intent.ready
-      ? {
-          x:
-            (settledTarget
-              ? placements[dragging.item.id].x
-              : intent.position.x) * columnStep,
-          y:
-            (settledTarget
-              ? placements[dragging.item.id].y
-              : intent.position.y) * rowStep,
-          width: columnStep * itemWidth(dragging.item, columns) - gridGap,
-          height: itemHeight(dragging.item) * rowStep - gridGap,
-          color: dragging.item.color,
-        }
-      : undefined
 
   return (
     <ContextMenu>
@@ -374,7 +352,6 @@ export default function TabGrid() {
                   />
                 )
               )}
-              <GridDropGlow target={gridGlowTarget} />
             </div>
           </div>
           {createPortal(
@@ -406,7 +383,7 @@ export default function TabGrid() {
                 >
                   <div
                     data-tab-grid-overlay-glow
-                    className="pointer-events-none absolute inset-0 animate-in rounded-2xl duration-200 fade-in-0 motion-reduce:animate-none"
+                    className="pointer-events-none absolute inset-0 rounded-2xl"
                     style={{
                       background: overlayItem?.color ?? dragging.item.color,
                       opacity: 0.3 * releaseProgress,

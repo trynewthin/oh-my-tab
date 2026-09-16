@@ -141,7 +141,9 @@ test("source folder stays fixed until an extracted tab is released", async ({
     tabBounds.y + tabBounds.height / 2 + 12,
     { steps: 5 }
   )
-  await expect(folder.locator('[data-tab-id="__folder-gap__"]')).toBeVisible()
+  const sourceGap = folder.locator('[data-tab-id="__folder-gap__"]')
+  await expect(sourceGap).toBeVisible()
+  await expect(sourceGap.locator(":scope > *")).toHaveCount(0)
   const overlay = page.locator("[data-tab-grid-overlay]")
   const initialCanvas = await overlay
     .locator("[data-burning-canvas]")
@@ -160,7 +162,9 @@ test("source folder stays fixed until an extracted tab is released", async ({
   await expect
     .poll(async () => await neighbor.boundingBox())
     .not.toEqual(neighborBefore)
-  await expect(folder.locator('[data-tab-id="__folder-gap__"]')).toBeVisible()
+  const returnGap = folder.locator('[data-tab-id="__folder-gap__"]')
+  await expect(returnGap).toBeVisible()
+  await expect(returnGap.locator(":scope > *")).toHaveCount(0)
   await expect(folder.locator('[data-tab-id="folder-tab"]')).toHaveCount(0)
   const expanded = (await overlay.boundingBox())!
 
@@ -170,18 +174,17 @@ test("source folder stays fixed until an extracted tab is released", async ({
     { steps: 10 }
   )
   await page.waitForTimeout(100)
-  const shrinking = (await overlay.boundingBox())!
-  expect(shrinking.height).toBeLessThan(expanded.height)
-  expect(shrinking.height).toBeGreaterThan(tabBounds.height)
-  const shrinkingCanvas = await overlay
+  const returned = (await overlay.boundingBox())!
+  expect(returned.height).toBeCloseTo(expanded.height, 0)
+  const returnedCanvas = await overlay
     .locator("[data-burning-canvas]")
     .elementHandle()
-  expect(shrinkingCanvas).not.toBeNull()
+  expect(returnedCanvas).not.toBeNull()
   await page.waitForTimeout(150)
-  expect(await shrinkingCanvas!.evaluate((node) => node.isConnected)).toBe(true)
+  expect(await returnedCanvas!.evaluate((node) => node.isConnected)).toBe(true)
   await expect
     .poll(async () => (await overlay.boundingBox())?.height)
-    .toBeCloseTo(tabBounds.height, 0)
+    .toBeCloseTo(expanded.height, 0)
   await page.mouse.up()
 })
 
@@ -235,19 +238,10 @@ test("edge overlap previews folder movement and releases as a grid move", async 
   await page.mouse.move(target.x + 4, target.y + source.height / 2, {
     steps: 10,
   })
-  const gridGlow = page.locator("[data-grid-drop-glow]")
-  await expect
-    .poll(async () =>
-      Number(await gridGlow.evaluate((node) => getComputedStyle(node).opacity))
-    )
-    .toBeGreaterThan(0)
+  await expect(page.locator("[data-grid-drop-glow]")).toHaveCount(0)
+  await expect(page.locator("[data-tab-grid-overlay-glow]")).toBeVisible()
   await expect.poll(async () => await folder.boundingBox()).not.toEqual(target)
   await page.mouse.up()
-  await expect
-    .poll(async () =>
-      Number(await gridGlow.evaluate((node) => getComputedStyle(node).opacity))
-    )
-    .toBe(0)
   await expect(tab).toBeVisible()
   await expect.poll(async () => await tab.boundingBox()).not.toEqual(source)
   await expect(
@@ -314,18 +308,11 @@ for (const charged of [false, true]) {
       currentTarget.y + source.height / 2,
       { steps: 5 }
     )
-    const folderGlow = folder.locator("[data-folder-drop-glow]")
-    await expect(folderGlow).toHaveAttribute("data-active", "true")
-    await expect
-      .poll(async () =>
-        Number(
-          await folderGlow.evaluate((node) => getComputedStyle(node).opacity)
-        )
-      )
-      .toBeGreaterThan(0)
+    await expect(folder.locator("[data-folder-drop-glow]")).toHaveCount(0)
+    await expect(page.locator("[data-tab-grid-overlay-glow]")).toBeVisible()
     if (charged) {
       await page.waitForTimeout(100)
-      const shrinking = (await page
+      const hovering = (await page
         .locator("[data-tab-grid-overlay]")
         .boundingBox())!
       const compactHeight = Number(
@@ -333,19 +320,21 @@ for (const charged of [false, true]) {
           .locator("[data-folder-row-height]")
           .getAttribute("data-folder-row-height")
       )
-      expect(shrinking.height).toBeLessThan(source.height)
-      expect(shrinking.height).toBeGreaterThan(compactHeight)
+      expect(hovering.height).toBeGreaterThan(
+        compactHeight + (source.height - compactHeight) / 2
+      )
       await page.mouse.move(
         source.x + source.width / 2,
         source.y + source.height / 2,
         { steps: 10 }
       )
       await page.waitForTimeout(100)
-      const growing = (await page
+      const returned = (await page
         .locator("[data-tab-grid-overlay]")
         .boundingBox())!
-      expect(growing.height).toBeGreaterThan(shrinking.height)
-      expect(growing.height).toBeLessThan(source.height)
+      expect(returned.height).toBeGreaterThan(
+        compactHeight + (source.height - compactHeight) / 2
+      )
       await page.mouse.move(
         target.x + target.width / 2,
         target.y + source.height / 2,
@@ -354,13 +343,6 @@ for (const charged of [false, true]) {
       await page.waitForTimeout(650)
     }
     await page.mouse.up()
-    await expect
-      .poll(async () =>
-        Number(
-          await folderGlow.evaluate((node) => getComputedStyle(node).opacity)
-        )
-      )
-      .toBe(0)
     if (charged) {
       await expect(tab).toHaveCount(0)
       await expect(

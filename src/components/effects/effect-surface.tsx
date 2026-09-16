@@ -2,7 +2,7 @@ import { createPixiEffect } from "./pixi-effect"
 import { createParticleCell, particleCell } from "./particle-texture"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useVisualTransition } from "./use-visual-transition"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
   textureSeed,
   burningCell,
@@ -57,13 +57,12 @@ export default function EffectSurface({
   const firstRow = Math.floor(offsetY / (CELL_SIZE + GAP))
   const shiftY = offsetY % (CELL_SIZE + GAP)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = region.current
     if (!element) return
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect
-      const columns = Math.ceil(entry.contentRect.width / (CELL_SIZE + GAP))
-      const rows = Math.ceil(entry.contentRect.height / (CELL_SIZE + GAP))
+    const updateGrid = ({ width, height }: { width: number; height: number }) => {
+      const columns = Math.ceil(width / (CELL_SIZE + GAP))
+      const rows = Math.ceil(height / (CELL_SIZE + GAP))
       setGrid((current) =>
         current.columns === columns &&
         current.rows === rows &&
@@ -72,6 +71,10 @@ export default function EffectSurface({
           ? current
           : { columns, rows, width, height }
       )
+    }
+    updateGrid(element.getBoundingClientRect())
+    const observer = new ResizeObserver(([entry]) => {
+      updateGrid(entry.contentRect)
     })
     observer.observe(element)
     return () => observer.disconnect()

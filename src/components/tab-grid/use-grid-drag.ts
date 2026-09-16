@@ -68,7 +68,6 @@ export type Intent =
       holdLayout: boolean
       releaseProgress: number
       ready: boolean
-      compactSize?: { width: number; height: number }
     }
   | {
       kind: "folder"
@@ -77,7 +76,6 @@ export type Intent =
       progress: number
       releaseProgress: number
       color: string
-      compactSize: { width: number; height: number }
     }
   | {
       kind: "reorder"
@@ -138,7 +136,6 @@ export function useGridDrag({
     startedAt: number
     frame: number
     from: number
-    target: 0 | 1
   } | null>(null)
 
   // Frozen while a drag session is live; otherwise the width-derived count.
@@ -179,21 +176,6 @@ export function useGridDrag({
       (node) => node.getAttribute("data-grid-item-id") === id
     )
     return element?.getBoundingClientRect() ?? null
-  }
-  function folderTabSize(id: string) {
-    const surface = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-folder-surface]")
-    ).find(
-      (node) =>
-        node.dataset.folderId === id && node.dataset.folderSurface === "preview"
-    )
-    if (!surface) return { width: 0, height: 44 }
-    const bounds = surface.getBoundingClientRect()
-    const surfaceColumns = Number(surface.dataset.folderColumns) || 1
-    return {
-      width: (bounds.width - (surfaceColumns - 1) * 8) / surfaceColumns,
-      height: Number(surface.dataset.folderRowHeight) || 44,
-    }
   }
   function insertionIndex(id: string, point: Point, session: DragSession) {
     const folder = items.find((item) => item.id === id)
@@ -319,32 +301,33 @@ export function useGridDrag({
     setDragging(session)
   }
 
-  function animateRelease(target: 0 | 1, delta: Point) {
+  function currentRelease() {
     const currentIntent = intentRef.current
-    const current =
-      currentIntent.kind === "grid" ||
+    return currentIntent.kind === "grid" ||
       currentIntent.kind === "folder" ||
       currentIntent.kind === "reorder"
-        ? currentIntent.releaseProgress
-        : sessionRef.current?.sourceFolderId
-          ? 0
-          : 1
-    if (!release.current || release.current.target !== target) {
-      clearRelease()
+      ? currentIntent.releaseProgress
+      : sessionRef.current?.sourceFolderId
+        ? 0
+        : 1
+  }
+
+  // releaseProgress only ever rises: an overlay extracted from a folder grows
+  // into its grid tile on the way out and never shrinks again mid-drag.
+  function animateRelease(delta: Point) {
+    const current = currentRelease()
+    if (!release.current) {
       release.current = {
         startedAt: performance.now(),
         frame: 0,
         from: current,
-        target,
       }
     }
     const transition = release.current
-    const duration =
-      FOLDER_RELEASE_DURATION * Math.abs(transition.target - transition.from)
+    const duration = FOLDER_RELEASE_DURATION * (1 - transition.from)
     const elapsed = performance.now() - transition.startedAt
     const amount = duration === 0 ? 1 : Math.min(1, elapsed / duration)
-    const progress =
-      transition.from + (transition.target - transition.from) * amount
+    const progress = transition.from + (1 - transition.from) * amount
     cancelAnimationFrame(transition.frame)
     if (amount < 1)
       transition.frame = requestAnimationFrame(() => updateIntent(delta))
@@ -367,11 +350,12 @@ export function useGridDrag({
     if (session.dialogBounds && !session.dialogExited) {
       if (contains(point, session.dialogBounds)) {
         clearHover()
+        clearRelease()
         publish({
           kind: "reorder",
           folderId: session.sourceFolderId!,
           index: insertionIndex(session.sourceFolderId!, point, session),
-          releaseProgress: animateRelease(0, delta),
+          releaseProgress: currentRelease(),
         })
         return
       }
@@ -382,11 +366,12 @@ export function useGridDrag({
       const sourceBounds = folderBounds(session.sourceFolderId)
       if (sourceBounds && contains(point, sourceBounds)) {
         clearHover()
+        clearRelease()
         publish({
           kind: "reorder",
           folderId: session.sourceFolderId,
           index: insertionIndex(session.sourceFolderId, point, session),
-          releaseProgress: animateRelease(0, delta),
+          releaseProgress: currentRelease(),
         })
         return
       }
@@ -443,14 +428,17 @@ export function useGridDrag({
         cancelAnimationFrame(candidate.frame)
         if (!ready)
           candidate.frame = requestAnimationFrame(() => updateIntent(delta))
+        // Approaching a folder never resizes the overlay — the folder glows
+        // and previews the gap instead. releaseProgress freezes wherever it
+        // is, so a grown overlay never shrinks back mid-drag.
+        clearRelease()
         publish({
           kind: "folder",
           folderId: best.folderId,
           ready,
           progress,
-          releaseProgress: animateRelease(0, delta),
+          releaseProgress: currentRelease(),
           color: best.color,
-          compactSize: folderTabSize(best.folderId),
         })
         return
       }
@@ -481,18 +469,13 @@ export function useGridDrag({
         )
       ),
     }
-    const progress = animateRelease(1, delta)
-    const previousIntent = intentRef.current
+    const progress = animateRelease(delta)
     publish({
       kind: "grid",
       position,
       holdLayout: false,
       releaseProgress: progress,
       ready: session.sourceFolderId ? progress >= 1 : true,
-      compactSize:
-        previousIntent.kind === "folder" || previousIntent.kind === "grid"
-          ? previousIntent.compactSize
-          : undefined,
     })
   }
 

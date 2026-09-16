@@ -27,17 +27,7 @@ export default function FolderExpandedGrid({
             key={tab.id}
             data-tab-id={tab.id === "__folder-gap__" ? undefined : tab.id}
           >
-            {tab.id === "__folder-gap__" ? (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-2 inset-y-1.5 rounded-xl"
-                style={{
-                  background: folder.color,
-                  opacity: 0.22,
-                  filter: "blur(6px)",
-                }}
-              />
-            ) : (
+            {tab.id === "__folder-gap__" ? null : (
               <DraggableFolderTab
                 tab={tab}
                 color={folder.color}

@@ -191,17 +191,6 @@ export default function FolderTabStack({
               marginBottom: index < visibleTabs.length - 1 ? rowGap : 0,
             }}
           >
-            {tab.id === "__folder-gap__" && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-2 inset-y-1.5 rounded-xl"
-                style={{
-                  background: folder.color,
-                  opacity: 0.22,
-                  filter: "blur(6px)",
-                }}
-              />
-            )}
             {tab.id === "__folder-gap__" ? null : draggable ? (
               <DraggableFolderTab
                 tab={tab}

@@ -17,7 +17,11 @@ type IconRecord = {
   retryAfter?: number
   sourcesVersion?: number
 }
-type MemoryEntry = { promise: Promise<string | null>; expires: number }
+type MemoryEntry = {
+  promise: Promise<string | null>
+  src?: string | null
+  expires: number
+}
 const memory = new Map<string, MemoryEntry>()
 
 export function faviconKey(url: string): string | null {
@@ -213,11 +217,19 @@ export function getCachedFavicon(
   )
     .catch(() => null)
     .then((src) => {
+      entry.src = src
       if (!src) entry.expires = Date.now() + RETRY_DELAY
       return src
     })
   memory.set(key, entry)
   return entry.promise
+}
+
+export function peekCachedFavicon(url: string): string | null {
+  const key = faviconKey(url)
+  if (!key) return null
+  const cached = memory.get(key)
+  return cached && cached.expires > Date.now() ? (cached.src ?? null) : null
 }
 
 const listeners = new Set<(key: string) => void>()

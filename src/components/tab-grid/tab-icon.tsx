@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import {
   faviconKey,
   getCachedFavicon,
+  peekCachedFavicon,
   subscribeFavicon,
 } from "@/lib/favicon-cache"
 
@@ -12,14 +13,15 @@ export default function TabIcon({
   url: string
   className?: string
 }) {
+  const key = faviconKey(url)
+  const initialSrc = peekCachedFavicon(url)
   const element = useRef<HTMLSpanElement>(null)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(!!initialSrc)
   const [icon, setIcon] = useState<{ key: string | null; src: string | null }>({
-    key: null,
-    src: null,
+    key,
+    src: initialSrc,
   })
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
-  const key = faviconKey(url)
 
   useEffect(() => {
     const node = element.current

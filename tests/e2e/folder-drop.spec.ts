@@ -66,16 +66,10 @@ test("dragged folder hides its source box", async ({ page }) => {
     "display",
     "none"
   )
-  const overlayGlow = page.locator("[data-tab-grid-overlay-glow]")
-  await expect(overlayGlow).toBeVisible()
+  const overlay = page.locator("[data-tab-grid-overlay]")
+  await expect(overlay).toBeVisible()
   await page.mouse.up()
-  await expect
-    .poll(async () =>
-      Number(
-        await overlayGlow.evaluate((node) => getComputedStyle(node).opacity)
-      )
-    )
-    .toBeLessThan(0.1)
+  await expect(overlay).toHaveCount(0)
 })
 
 test("source folder stays fixed until an extracted tab is released", async ({
@@ -239,7 +233,7 @@ test("edge overlap previews folder movement and releases as a grid move", async 
     steps: 10,
   })
   await expect(page.locator("[data-grid-drop-glow]")).toHaveCount(0)
-  await expect(page.locator("[data-tab-grid-overlay-glow]")).toBeVisible()
+  await expect(page.locator("[data-tab-grid-overlay]")).toBeVisible()
   await expect.poll(async () => await folder.boundingBox()).not.toEqual(target)
   await page.mouse.up()
   await expect(tab).toBeVisible()
@@ -309,7 +303,7 @@ for (const charged of [false, true]) {
       { steps: 5 }
     )
     await expect(folder.locator("[data-folder-drop-glow]")).toHaveCount(0)
-    await expect(page.locator("[data-tab-grid-overlay-glow]")).toBeVisible()
+    await expect(page.locator("[data-tab-grid-overlay]")).toBeVisible()
     if (charged) {
       await page.waitForTimeout(100)
       const hovering = (await page

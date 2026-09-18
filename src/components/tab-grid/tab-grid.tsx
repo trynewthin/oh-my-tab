@@ -383,9 +383,6 @@ export default function TabGrid() {
                       duration: 280,
                       easing: "cubic-bezier(0.22, 1, 0.36, 1)",
                       sideEffects: defaultDropAnimationSideEffects({
-                        className: {
-                          dragOverlay: "tab-grid-dropping",
-                        },
                         styles: { active: { opacity: "0" } },
                       }),
                     }
@@ -398,15 +395,6 @@ export default function TabGrid() {
                   className="pointer-events-none relative cursor-grabbing"
                   style={{ width: overlayWidth, height: overlayHeight }}
                 >
-                  <div
-                    data-tab-grid-overlay-glow
-                    className="pointer-events-none absolute inset-0 rounded-2xl"
-                    style={{
-                      background: overlayItem?.color ?? dragging.item.color,
-                      opacity: 0.3 * releaseProgress,
-                      filter: "blur(14px)",
-                    }}
-                  />
                   <div
                     className="relative isolate h-full overflow-hidden rounded-2xl"
                     style={{

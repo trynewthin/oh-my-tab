@@ -58,7 +58,7 @@ export default function SettingsDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showCloseButton={false}
-        className="h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-none gap-0 overflow-hidden p-0 sm:h-auto sm:w-full sm:max-w-3xl"
+        className="h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-none gap-0 overflow-hidden p-0 ring-0 sm:h-auto sm:w-full sm:max-w-3xl"
       >
         <DialogTitle className="sr-only">设置</DialogTitle>
         <DialogDescription className="sr-only">
@@ -120,7 +120,7 @@ export default function SettingsDialog() {
               </SelectContent>
             </Select>
           </div>
-          <aside className="hidden w-44 shrink-0 flex-col overflow-y-auto p-4 pt-6 sm:flex">
+          <aside className="hidden w-36 shrink-0 flex-col overflow-y-auto p-4 pt-6 sm:flex">
             <div className="px-2 pb-6 text-left text-base leading-6 font-medium">
               设置
             </div>

@@ -52,7 +52,7 @@ test("first visit tour completes and can be replayed from settings", async ({
   await page.reload()
   await expect(tour).toHaveCount(0)
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "常规", exact: true }).click()
+  await page.getByRole("button", { name: "基础", exact: true }).click()
   await page.getByRole("button", { name: "重新开始教程" }).click()
   await expect(
     tour.getByRole("heading", { name: "欢迎使用 Oh My Tab" })

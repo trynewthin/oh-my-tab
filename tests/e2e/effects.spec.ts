@@ -45,10 +45,10 @@ test("settings flame completes a cell transition and stops when hidden", async (
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "个性化", exact: true }).click()
+  await dialog.getByRole("button", { name: "外观", exact: true }).click()
   const flame = dialog.locator("[data-effect-phase]")
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
-  await dialog.getByRole("button", { name: "主页", exact: true }).click()
+  await dialog.getByRole("button", { name: "顶部", exact: true }).click()
   await expect(flame).toHaveAttribute("data-effect-phase", "hidden")
   expect(
     await flame
@@ -60,7 +60,7 @@ test("settings flame completes a cell transition and stops when hidden", async (
         )
       )
   ).toBe(true)
-  await dialog.getByRole("button", { name: "个性化", exact: true }).click()
+  await dialog.getByRole("button", { name: "外观", exact: true }).click()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
 })
 
@@ -83,7 +83,7 @@ test("particle style switches globally, responds to pointer and persists", async
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "个性化", exact: true }).click()
+  await dialog.getByRole("button", { name: "动效", exact: true }).click()
   await dialog.getByRole("button", { name: "选择粒子效果" }).click()
   await page.getByRole("radio", { name: "呼吸点阵", exact: true }).click()
   const surface = dialog.locator('[data-effect-style="particles"]')
@@ -113,7 +113,7 @@ test("particle style switches globally, responds to pointer and persists", async
     .toEqual(["particles", 0])
   await page.reload()
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await dialog.getByRole("button", { name: "个性化", exact: true }).click()
+  await dialog.getByRole("button", { name: "动效", exact: true }).click()
   await expect(
     dialog.getByRole("button", { name: "选择粒子效果" })
   ).toContainText("呼吸点阵")

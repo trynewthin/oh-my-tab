@@ -1,49 +1,25 @@
-import AboutSettings from "./about-settings"
 import EffectSurface from "@/components/effects/effect-surface"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import PersonalizationSettings from "./personalization-settings"
-import {
-  MagnifyingGlass,
-  X,
-  House,
-  Gear,
-  Palette,
-  Info,
-} from "@phosphor-icons/react"
-
+import { X } from "@phosphor-icons/react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog"
-import SearchEngineSettings from "@/components/settings/search-engine-settings"
-import { useSettingsStore, type SettingsSection } from "@/stores/settings-store"
+import { useSettingsStore } from "@/stores/settings-store"
+import { settingsRouteSurface } from "./settings-routes"
+import { defaultSettingsSection, settingsViews } from "./settings-views"
+import { SettingsSectionSelect, SettingsSidebar } from "./settings-sidebar"
 
-import HomeSettings from "@/components/settings/home-settings"
-
-import GeneralSettings from "./general-settings"
-
-const sections = [
-  { id: "general", label: "常规", icon: Gear },
-  { id: "home", label: "主页", icon: House },
-  { id: "search-engines", label: "搜索", icon: MagnifyingGlass },
-  { id: "personalization", label: "个性化", icon: Palette },
-  { id: "about", label: "关于", icon: Info },
-] satisfies {
-  id: SettingsSection
-  label: string
-  icon: typeof MagnifyingGlass
-}[]
+function scrollPercent(node: HTMLElement) {
+  const max = node.scrollHeight - node.clientHeight
+  if (max <= 0) return 0
+  return Math.min(100, Math.max(0, Math.round((node.scrollTop / max) * 100)))
+}
 
 export default function SettingsDialog() {
   const color = useHomeSettingsStore((state) => state.color)
@@ -51,13 +27,31 @@ export default function SettingsDialog() {
   const setOpen = useSettingsStore((state) => state.setOpen)
   const section = useSettingsStore((state) => state.section)
   const setSection = useSettingsStore((state) => state.setSection)
-  const currentSection =
-    sections.find((item) => item.id === section) ?? sections[0]
+  const View = settingsViews[section] ?? settingsViews[defaultSettingsSection]
+  const [navNode, setNavNode] = useState<HTMLDivElement | null>(null)
+  const [navProgress, setNavProgress] = useState(0)
+
+  useEffect(() => {
+    if (!navNode) return
+    function update() {
+      setNavProgress(scrollPercent(navNode))
+    }
+    update()
+    navNode.addEventListener("scroll", update, { passive: true })
+    const observer = new ResizeObserver(update)
+    observer.observe(navNode)
+    if (navNode.firstElementChild) observer.observe(navNode.firstElementChild)
+    return () => {
+      navNode.removeEventListener("scroll", update)
+      observer.disconnect()
+    }
+  }, [navNode])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         showCloseButton={false}
+        overlayClassName="bg-black/10 backdrop-blur-xl"
         className="h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-none gap-0 overflow-hidden p-0 ring-0 sm:h-auto sm:w-full sm:max-w-3xl"
       >
         <DialogTitle className="sr-only">设置</DialogTitle>
@@ -72,7 +66,7 @@ export default function SettingsDialog() {
             textureId={"personalization-background"}
             color={color}
             animated
-            visible={section === "personalization"}
+            visible={settingsRouteSurface(section) === "personalization"}
           />
         </div>
         <div className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row">
@@ -90,81 +84,56 @@ export default function SettingsDialog() {
             </Button>
           </div>
           <div className="shrink-0 px-4 pb-3 sm:hidden">
-            <Select
-              value={section}
-              onValueChange={(value) => {
-                const next = sections.find((item) => item.id === value)
-                if (next) setSection(next.id)
-              }}
-            >
-              <SelectTrigger
-                aria-label="设置分类"
-                className="w-full border-border bg-muted"
-              >
-                <SelectValue>
-                  <currentSection.icon />
-                  {currentSection.label}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent
-                side="bottom"
-                align="start"
-                alignItemWithTrigger={false}
-              >
-                {sections.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    <item.icon />
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SettingsSectionSelect section={section} onSelect={setSection} />
           </div>
-          <aside className="hidden w-36 shrink-0 flex-col overflow-y-auto p-4 pt-6 sm:flex">
-            <div className="px-2 pb-6 text-left text-base leading-6 font-medium">
-              设置
+          <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent px-4 pt-6 pb-4">
+              <div className="text-left text-base leading-6 font-medium">
+                设置
+              </div>
             </div>
-            <nav aria-label="设置分类" className="space-y-1">
-              {sections.map((item) => (
+            <div
+              ref={setNavNode}
+              onScroll={(event) =>
+                setNavProgress(scrollPercent(event.currentTarget))
+              }
+              className="h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
+            >
+              <SettingsSidebar section={section} onSelect={setSection} />
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 isolate z-10 px-4 pb-4">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 -z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
+              />
+              <div className="relative flex items-center overflow-hidden rounded-2xl bg-popover shadow-md">
                 <Button
-                  key={item.id}
-                  variant={section === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start px-2 text-sm"
-                  aria-current={section === item.id ? "page" : undefined}
-                  onClick={() => setSection(item.id)}
+                  type="button"
+                  variant="ghost"
+                  className="pointer-events-auto min-w-0 flex-1 justify-start rounded-none bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                  onClick={() => setOpen(false)}
                 >
-                  <item.icon />
-                  {item.label}
+                  <X />
+                  关闭
                 </Button>
-              ))}
-            </nav>
-            <div className="mt-auto pt-6">
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full justify-start px-2 text-sm"
-                onClick={() => setOpen(false)}
-              >
-                <X />
-                关闭
-              </Button>
+                <span
+                  role="progressbar"
+                  aria-label="设置列表滚动进度"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={navProgress}
+                  className="w-8 shrink-0 pr-2.5 text-right text-xs text-muted-foreground tabular-nums"
+                >
+                  {navProgress}
+                </span>
+              </div>
             </div>
           </aside>
           <div
             data-settings-content
             className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
           >
-            {section === "about" ? (
-              <AboutSettings />
-            ) : section === "general" ? (
-              <GeneralSettings />
-            ) : section === "search-engines" ? (
-              <SearchEngineSettings />
-            ) : section === "personalization" ? (
-              <PersonalizationSettings />
-            ) : (
-              <HomeSettings />
-            )}
+            <View />
           </div>
         </div>
       </DialogContent>

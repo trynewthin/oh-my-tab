@@ -1,7 +1,10 @@
 import { create } from "zustand"
+import {
+  defaultSettingsSection,
+  type SettingsSection,
+} from "@/components/settings/settings-views"
 
-export type SettingsSection =
-  "about" | "general" | "search-engines" | "home" | "personalization"
+export type { SettingsSection }
 
 type SettingsState = {
   open: boolean
@@ -13,7 +16,7 @@ type SettingsState = {
 
 export const useSettingsStore = create<SettingsState>()((set) => ({
   open: false,
-  section: "search-engines",
+  section: defaultSettingsSection,
   openSettings: (section) => set({ open: true, section }),
   setOpen: (open) => set({ open }),
   setSection: (section) => set({ section }),

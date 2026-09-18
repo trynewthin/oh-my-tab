@@ -45,7 +45,7 @@ test("network features require consent and browser search is the default", async
     )
     .toEqual([{ text: "hello", disposition: "NEW_TAB" }])
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "关于", exact: true }).click()
+  await page.getByRole("button", { name: "隐私", exact: true }).click()
   await expect(
     page.getByRole("link", { name: "隐私政策与数据删除说明" })
   ).toHaveAttribute("href", "https://ohmytab.vercel.app/privacy")
@@ -85,7 +85,7 @@ test("denied optional permission leaves suggestions disabled", async ({
   })
   await page.goto("/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "关于", exact: true }).click()
+  await page.getByRole("button", { name: "隐私", exact: true }).click()
   const toggle = page.getByRole("checkbox", { name: /启用搜索联想/ })
   await toggle.click()
   await expect(toggle).not.toBeChecked()

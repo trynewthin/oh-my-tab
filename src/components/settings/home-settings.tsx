@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/select"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
-export default function HomeSettings() {
-  const color = useHomeSettingsStore((state) => state.color)
+export default function HomeSettings({ pane }: { pane: "top" | "search" }) {
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
   const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
   const content = useHomeSettingsStore((state) => state.content)
@@ -27,25 +26,14 @@ export default function HomeSettings() {
 
   return (
     <section
-      className="relative isolate min-h-full"
+      className="relative isolate min-h-full space-y-5"
       aria-labelledby="home-settings-title"
     >
-      <h2 id="home-settings-title" className="sr-only">
-        主页
+      <h2 id="home-settings-title" className="text-base leading-6 font-medium">
+        {pane === "top" ? "顶部" : "搜索框"}
       </h2>
-      <div className="space-y-8">
-        <section className="space-y-5" aria-labelledby="home-top-title">
-          <h3
-            id="home-top-title"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <span
-              aria-hidden="true"
-              className="h-4 w-1 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            顶部
-          </h3>
+      {pane === "top" ? (
+        <>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
             <label htmlFor="home-top-component" className="text-sm">
               顶部显示的组件
@@ -158,46 +146,34 @@ export default function HomeSettings() {
               )}
             </>
           )}
-        </section>
-        <section className="space-y-5" aria-labelledby="home-search-title">
-          <h3
-            id="home-search-title"
-            className="flex items-center gap-2 text-sm font-medium"
+        </>
+      ) : (
+        <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
+          <label htmlFor="search-box-style" className="text-sm">
+            搜索框样式
+          </label>
+          <Select
+            value={searchBoxStyle}
+            onValueChange={(value) => {
+              if (value === "full" || value === "minimal")
+                setSearchBoxStyle(value)
+            }}
           >
-            <span
-              aria-hidden="true"
-              className="h-4 w-1 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            搜索框
-          </h3>
-          <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <label htmlFor="search-box-style" className="text-sm">
-              搜索框样式
-            </label>
-            <Select
-              value={searchBoxStyle}
-              onValueChange={(value) => {
-                if (value === "full" || value === "minimal")
-                  setSearchBoxStyle(value)
-              }}
+            <SelectTrigger
+              id="search-box-style"
+              className={`w-full min-w-0 ${settingsControlClassName}`}
             >
-              <SelectTrigger
-                id="search-box-style"
-                className={`w-full min-w-0 ${settingsControlClassName}`}
-              >
-                <SelectValue>
-                  {searchBoxStyle === "minimal" ? "简约" : "完整"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="full">完整</SelectItem>
-                <SelectItem value="minimal">简约</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </section>
-      </div>
+              <SelectValue>
+                {searchBoxStyle === "minimal" ? "简约" : "完整"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full">完整</SelectItem>
+              <SelectItem value="minimal">简约</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </section>
   )
 }

@@ -80,7 +80,7 @@ test("browser bookmark import explains when extension access is unavailable", as
   page,
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await page.getByRole("button", { name: "常规", exact: true }).click()
+  await page.getByRole("button", { name: "数据", exact: true }).click()
   const importButton = page.getByRole("button", { name: "导入", exact: true })
   await expect(importButton).toBeDisabled()
   await page

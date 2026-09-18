@@ -24,7 +24,17 @@ const themeOptions = [
   { value: "system", label: "系统", ariaLabel: "跟随系统", icon: Desktop },
 ] as const
 
-export default function PersonalizationSettings() {
+const paneTitle = {
+  appearance: "外观",
+  background: "背景",
+  motion: "动效",
+} as const
+
+export default function PersonalizationSettings({
+  pane,
+}: {
+  pane: "appearance" | "background" | "motion"
+}) {
   const theme = useThemeStore((state) => state.theme)
   const setTheme = useThemeStore((state) => state.setTheme)
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
@@ -44,24 +54,16 @@ export default function PersonalizationSettings() {
   return (
     <section
       aria-labelledby="personalization-title"
-      className="relative isolate min-h-full"
+      className="relative isolate min-h-full space-y-5"
     >
-      <h2 id="personalization-title" className="sr-only">
-        个性化
+      <h2
+        id="personalization-title"
+        className="text-base leading-6 font-medium"
+      >
+        {paneTitle[pane]}
       </h2>
-      <div className="space-y-8">
-        <section className="space-y-5" aria-labelledby="color-settings-title">
-          <h3
-            id="color-settings-title"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <span
-              aria-hidden="true"
-              className="h-4 w-1 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            外观
-          </h3>
+      {pane === "appearance" ? (
+        <>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
             <span className="text-sm">主题色</span>
             <ColorPicker
@@ -138,36 +140,11 @@ export default function PersonalizationSettings() {
               </SelectContent>
             </Select>
           </div>
-        </section>
-        <section
-          className="space-y-5"
-          aria-labelledby="background-settings-title"
-        >
-          <h3
-            id="background-settings-title"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <span
-              aria-hidden="true"
-              className="h-4 w-1 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            背景
-          </h3>
-          <BackgroundSettings />
-        </section>
-        <section className="space-y-5" aria-labelledby="motion-settings-title">
-          <h3
-            id="motion-settings-title"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <span
-              aria-hidden="true"
-              className="h-4 w-1 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            动效
-          </h3>
+        </>
+      ) : pane === "background" ? (
+        <BackgroundSettings />
+      ) : (
+        <>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
             <span className="text-sm">粒子效果</span>
             <EffectStylePicker
@@ -214,8 +191,8 @@ export default function PersonalizationSettings() {
               onCheckedChange={setEntrance}
             />
           </div>
-        </section>
-      </div>
+        </>
+      )}
     </section>
   )
 }

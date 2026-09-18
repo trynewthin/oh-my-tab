@@ -8,6 +8,7 @@ import TabUI from "./tab-ui"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
+import TemplateTile from "./template/tile"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 
 export default function GridTileContent({
@@ -31,6 +32,8 @@ export default function GridTileContent({
     return <Calendar item={item} preview={preview} />
   if (item.kind === "ecosystem")
     return <Ecosystem item={item} preview={preview} onEdit={onOpen} />
+  if (item.kind === "template")
+    return <TemplateTile item={item} preview={preview} />
   if (item.kind === "dot-canvas")
     return (
       <button

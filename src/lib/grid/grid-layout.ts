@@ -10,7 +10,7 @@ export function columnsForWidth(width: number): number {
 }
 
 export type GridPosition = { x: number; y: number }
-export type GridPlacement = GridPosition & { height: number; width?: number }
+export type GridPlacement = GridPosition & { width: number; height: number }
 export type GridPositions = Record<string, GridPosition>
 
 export function itemWidth(item: GridItem, columns = 24) {
@@ -23,8 +23,8 @@ export function itemHeight(item: GridItem) {
 
 function overlaps(a: GridPlacement, b: GridPlacement) {
   return (
-    a.x < b.x + (b.width ?? 4) &&
-    a.x + (a.width ?? 4) > b.x &&
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
     a.y < b.y + b.height &&
     a.y + a.height > b.y
   )
@@ -33,8 +33,8 @@ function overlaps(a: GridPlacement, b: GridPlacement) {
 export function findVacancy(
   placed: GridPlacement[],
   columns: number,
-  height = 1,
-  width = 4
+  height: number,
+  width: number
 ): GridPlacement {
   const end = Math.max(0, ...placed.map((item) => item.y + item.height))
   for (let y = 0; y <= end; y++) {
@@ -110,7 +110,7 @@ export function placeItems(
           const area =
             Math.min(
               candidate.x + candidate.width,
-              placement.x + placement.width!
+              placement.x + placement.width
             ) - Math.max(candidate.x, placement.x)
           const height =
             Math.min(
@@ -120,7 +120,7 @@ export function placeItems(
           const bestArea =
             Math.min(
               candidate.x + candidate.width,
-              bestPlacement.x + bestPlacement.width!
+              bestPlacement.x + bestPlacement.width
             ) - Math.max(candidate.x, bestPlacement.x)
           const bestHeight =
             Math.min(
@@ -135,7 +135,9 @@ export function placeItems(
         const reordered = positioned.filter((item) => item.id !== target.id)
         reordered.splice(destinationIndex, 0, targetItem)
         const collisionIndexes = collisions.map((item) =>
-          positioned.findIndex((positionedItem) => positionedItem.id === item.id)
+          positioned.findIndex(
+            (positionedItem) => positionedItem.id === item.id
+          )
         )
         const first = Math.min(originIndex, ...collisionIndexes)
         const last = Math.max(originIndex, ...collisionIndexes)
@@ -249,7 +251,10 @@ export type LayoutState = {
 export function ensureLayoutColumns(
   state: LayoutState,
   columns: number
-): { layouts: Record<number, GridPositions>; lastLayoutColumns: number } | null {
+): {
+  layouts: Record<number, GridPositions>
+  lastLayoutColumns: number
+} | null {
   const layouts = reconcileLayouts(state.items, state.layouts)
   if (!layouts[columns]) {
     const sourceColumns =

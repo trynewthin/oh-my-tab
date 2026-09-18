@@ -5,6 +5,7 @@ import Ecosystem from "./ecosystem"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import DotArt from "./dot-art"
+import TemplateTile from "./template/tile"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,9 @@ import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
   getComponentDefinition,
+  getComponentSize,
   getComponentSizeOptions,
+  occupancyPreviewStyle,
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
@@ -30,16 +33,53 @@ import { createCatalogComponent } from "@/components/tab-grid/factory"
 function PreviewContent({
   kind,
   detail = false,
-  size = "large",
+  size,
 }: {
   kind: CatalogComponentKind
   size?: GridItemSize
   detail?: boolean
 }) {
+  const resolved = size ?? getComponentDefinition(kind).defaultSize
+  if (kind === "template") {
+    const occupancy = getComponentSize(kind, resolved) ?? {
+      width: 1,
+      height: 1,
+    }
+    return (
+      <div
+        className={
+          detail
+            ? "flex size-40 items-center justify-center"
+            : "mx-auto flex aspect-square w-full max-w-60 items-center justify-center"
+        }
+      >
+        <div
+          className="overflow-hidden rounded-2xl border"
+          style={occupancyPreviewStyle(occupancy.width, occupancy.height)}
+        >
+          <TemplateTile
+            preview
+            item={{
+              id: "template-preview",
+              kind: "template",
+              name: getComponentDefinition(kind).defaultName,
+              size:
+                resolved === "medium" ||
+                resolved === "wide" ||
+                resolved === "large"
+                  ? resolved
+                  : "small",
+              color: getComponentDefinition(kind).defaultColor,
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
   if (kind === "todo")
     return (
       <div
-        className={`mx-auto w-full max-w-60 overflow-hidden rounded-2xl border ${size === "small" ? "aspect-[4/1]" : size === "medium" ? "aspect-[2/1]" : "aspect-square"}`}
+        className={`mx-auto w-full max-w-60 overflow-hidden rounded-2xl border ${resolved === "small" ? "aspect-[4/1]" : resolved === "medium" ? "aspect-[2/1]" : "aspect-square"}`}
       >
         <Todo
           preview
@@ -47,7 +87,10 @@ function PreviewContent({
             id: "todo-preview",
             kind: "todo",
             name: getComponentDefinition(kind).defaultName,
-            size: size === "small" || size === "medium" ? size : "large",
+            size:
+              resolved === "small" || resolved === "medium"
+                ? resolved
+                : "large",
             color: getComponentDefinition(kind).defaultColor,
             tasks: [
               { id: "1", text: "整理今天的计划", done: true },
@@ -60,7 +103,7 @@ function PreviewContent({
   if (kind === "calendar")
     return (
       <div
-        className={`mx-auto w-full overflow-hidden rounded-2xl border ${!detail ? "aspect-square max-w-60" : size === "small" ? "aspect-[4/1] max-w-60" : size === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
+        className={`mx-auto w-full overflow-hidden rounded-2xl border ${!detail ? "aspect-square max-w-60" : resolved === "small" ? "aspect-[4/1] max-w-60" : resolved === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
       >
         <Calendar
           preview
@@ -68,7 +111,10 @@ function PreviewContent({
             id: "calendar-preview",
             kind: "calendar",
             name: getComponentDefinition(kind).defaultName,
-            size: size === "small" || size === "medium" ? size : "large",
+            size:
+              resolved === "small" || resolved === "medium"
+                ? resolved
+                : "large",
             color: getComponentDefinition(kind).defaultColor,
           }}
         />

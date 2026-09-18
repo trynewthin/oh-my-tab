@@ -40,14 +40,16 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 ## 网格组件
 
-`src/components/tab-grid/model/registry.ts` 是组件元数据、尺寸和能力的统一来源。菜单、组件选择页、编辑器、布局计算和右键操作都读取注册表，不各自维护功能判断。
+`src/lib/grid/registry.ts` 是组件元数据、尺寸和能力的统一来源。菜单、组件选择页、编辑器、布局计算和右键操作都读取注册表，不各自维护功能判断。
+
+网格占位以 **1×1 为正方形单位**。允许的占格写在 `GRID_OCCUPANCY`：`1×1`、`2×2`、`4×1`、`4×2`、`4×4`、`4×8`、`8×4`、`8×8`。组件用 `gridSize(token, occupancy, role?)` 报名，不能自写宽高。持久化仍用每种组件自己的 `small` / `large` 等令牌，令牌只在该 kind 内有效。`src/components/tab-grid/template/` 是空的标准组件骨架，新组件和标签升级按它接入。
 
 新增或修改组件时按以下顺序处理：
 
 1. 在 `types.ts` 定义持久化数据结构。
-2. 在 `model/registry.ts` 声明默认值、尺寸、入口和能力。
-3. 在 `model/factory.ts` 创建完整记录。
-4. 在 `model/validation.ts` 校验保存和导入的数据。
+2. 在 `registry.ts` 从 `GRID_OCCUPANCY` 声明默认值、尺寸、入口和能力。
+3. 在 `factory.ts` 创建完整记录。
+4. 在 `validation.ts` 校验保存和导入的数据。
 5. 接入展示、编辑和共享操作界面。
 6. 为注册信息、数据操作和关键交互补充对应测试。
 

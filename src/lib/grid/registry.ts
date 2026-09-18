@@ -2,15 +2,66 @@ import type { GridItem } from "./types"
 
 export type GridItemKind = GridItem["kind"]
 export type GridItemSize = GridItem["size"]
+
+/** One grid cell. Width 1 and height 1 always form a square. */
+export const GRID_UNIT = 1
+
+/**
+ * Allowed occupancies. Components pick from this scale; they do not invent
+ * widths or heights. Persisted size tokens (small, large, …) stay per-kind.
+ */
+export const GRID_OCCUPANCY = {
+  "1x1": { width: 1, height: 1 },
+  "2x2": { width: 2, height: 2 },
+  "4x1": { width: 4, height: 1 },
+  "4x2": { width: 4, height: 2 },
+  "4x4": { width: 4, height: 4 },
+  "4x8": { width: 4, height: 8 },
+  "8x4": { width: 8, height: 4 },
+  "8x8": { width: 8, height: 8 },
+} as const
+
+export type GridOccupancyId = keyof typeof GRID_OCCUPANCY
+
+export function occupancyMark(width: number, height: number) {
+  return `${width}×${height}`
+}
+
+export function occupancyPreviewStyle(width: number, height: number) {
+  const frame = Math.max(GRID_OCCUPANCY["4x4"].width, width, height)
+  return {
+    width: `${(width / frame) * 100}%`,
+    aspectRatio: `${width} / ${height}`,
+  }
+}
+
 export type ComponentAction =
   "resize" | "randomColor" | "dynamicEffect" | "groupable" | "expandable"
 
 export type ComponentSizeDefinition = {
   value: GridItemSize
+  occupancy: GridOccupancyId
   label: string
   menuLabel: string
   width: number
   height: number
+}
+
+export function gridSize(
+  value: GridItemSize,
+  occupancy: GridOccupancyId,
+  role?: string
+): ComponentSizeDefinition {
+  const { width, height } = GRID_OCCUPANCY[occupancy]
+  const mark = occupancyMark(width, height)
+  return {
+    value,
+    occupancy,
+    label: role ? `${role} · ${mark}` : mark,
+    menuLabel: mark,
+    width,
+    height,
+  }
 }
 
 type ComponentDefinition = {
@@ -38,22 +89,7 @@ export const componentRegistry = {
     defaultName: "新标签",
     defaultColor: "#6c8bd4",
     defaultSize: "small",
-    sizes: [
-      {
-        value: "small",
-        label: "小 · 4×1",
-        menuLabel: "4×1",
-        width: 4,
-        height: 1,
-      },
-      {
-        value: "medium",
-        label: "中 · 4×2",
-        menuLabel: "4×2",
-        width: 4,
-        height: 2,
-      },
-    ],
+    sizes: [gridSize("small", "4x1", "小"), gridSize("medium", "4x2", "中")],
     menuSizes: ["medium", "small"],
     editorSizes: ["small", "medium"],
     catalogSizes: [],
@@ -77,41 +113,11 @@ export const componentRegistry = {
     defaultColor: "#6c8bd4",
     defaultSize: "large",
     sizes: [
-      {
-        value: "small",
-        label: "小 · 4×2",
-        menuLabel: "4×2",
-        width: 4,
-        height: 2,
-      },
-      {
-        value: "large",
-        label: "大 · 4×4",
-        menuLabel: "4×4",
-        width: 4,
-        height: 4,
-      },
-      {
-        value: "tall",
-        label: "高 · 4×8",
-        menuLabel: "4×8",
-        width: 4,
-        height: 8,
-      },
-      {
-        value: "wide",
-        label: "宽 · 8×4",
-        menuLabel: "8×4",
-        width: 8,
-        height: 4,
-      },
-      {
-        value: "wide-tall",
-        label: "宽高 · 8×8",
-        menuLabel: "8×8",
-        width: 8,
-        height: 8,
-      },
+      gridSize("small", "4x2", "小"),
+      gridSize("large", "4x4", "大"),
+      gridSize("tall", "4x8", "高"),
+      gridSize("wide", "8x4", "宽"),
+      gridSize("wide-tall", "8x8", "宽高"),
     ],
     menuSizes: ["wide-tall", "wide", "tall", "large"],
     editorSizes: ["large", "tall", "wide", "wide-tall"],
@@ -136,34 +142,10 @@ export const componentRegistry = {
     defaultColor: "#3291ff",
     defaultSize: "large",
     sizes: [
-      {
-        value: "large",
-        label: "大 · 4×4",
-        menuLabel: "4×4",
-        width: 4,
-        height: 4,
-      },
-      {
-        value: "tall",
-        label: "高 · 4×8",
-        menuLabel: "4×8",
-        width: 4,
-        height: 8,
-      },
-      {
-        value: "wide",
-        label: "宽 · 8×4",
-        menuLabel: "8×4",
-        width: 8,
-        height: 4,
-      },
-      {
-        value: "wide-tall",
-        label: "宽高 · 8×8",
-        menuLabel: "8×8",
-        width: 8,
-        height: 8,
-      },
+      gridSize("large", "4x4", "大"),
+      gridSize("tall", "4x8", "高"),
+      gridSize("wide", "8x4", "宽"),
+      gridSize("wide-tall", "8x8", "宽高"),
     ],
     menuSizes: [],
     editorSizes: ["large", "tall", "wide", "wide-tall"],
@@ -187,15 +169,7 @@ export const componentRegistry = {
     defaultName: "像素花盆",
     defaultColor: "#42b883",
     defaultSize: "large",
-    sizes: [
-      {
-        value: "large",
-        label: "大 · 4×4",
-        menuLabel: "4×4",
-        width: 4,
-        height: 4,
-      },
-    ],
+    sizes: [gridSize("large", "4x4", "大")],
     menuSizes: [],
     editorSizes: [],
     catalogSizes: ["large"],
@@ -219,27 +193,9 @@ export const componentRegistry = {
     defaultColor: "#3478f6",
     defaultSize: "large",
     sizes: [
-      {
-        value: "small",
-        label: "周 · 4×1",
-        menuLabel: "4×1",
-        width: 4,
-        height: 1,
-      },
-      {
-        value: "medium",
-        label: "日 · 2×2",
-        menuLabel: "2×2",
-        width: 2,
-        height: 2,
-      },
-      {
-        value: "large",
-        label: "月 · 4×4",
-        menuLabel: "4×4",
-        width: 4,
-        height: 4,
-      },
+      gridSize("small", "4x1", "周"),
+      gridSize("medium", "2x2", "日"),
+      gridSize("large", "4x4", "月"),
     ],
     menuSizes: ["large", "medium", "small"],
     editorSizes: ["small", "medium", "large"],
@@ -257,6 +213,34 @@ export const componentRegistry = {
       expandable: false,
     },
   },
+  template: {
+    label: "模板",
+    description: "标准占位格。1×1 是正方形单位，其它尺寸都是它的整数倍。",
+    defaultName: "模板",
+    defaultColor: "#8a90a0",
+    defaultSize: "small",
+    sizes: [
+      gridSize("small", "1x1"),
+      gridSize("medium", "2x2"),
+      gridSize("wide", "4x1"),
+      gridSize("large", "4x4"),
+    ],
+    menuSizes: ["small", "medium", "wide", "large"],
+    editorSizes: ["small", "medium", "wide", "large"],
+    catalogSizes: ["small", "medium", "wide", "large"],
+    catalogDirectAdd: false,
+    detailPreviewWidth: "compact",
+    showNameInEditor: true,
+    tileBorder: true,
+    openAction: "edit",
+    actions: {
+      resize: true,
+      randomColor: true,
+      dynamicEffect: true,
+      groupable: false,
+      expandable: false,
+    },
+  },
   todo: {
     label: "待办",
     description: "记录事项，勾选完成。",
@@ -264,27 +248,9 @@ export const componentRegistry = {
     defaultColor: "#6c8bd4",
     defaultSize: "large",
     sizes: [
-      {
-        value: "small",
-        label: "小 · 4×1",
-        menuLabel: "4×1",
-        width: 4,
-        height: 1,
-      },
-      {
-        value: "medium",
-        label: "中 · 4×2",
-        menuLabel: "4×2",
-        width: 4,
-        height: 2,
-      },
-      {
-        value: "large",
-        label: "大 · 4×4",
-        menuLabel: "4×4",
-        width: 4,
-        height: 4,
-      },
+      gridSize("small", "4x1", "小"),
+      gridSize("medium", "4x2", "中"),
+      gridSize("large", "4x4", "大"),
     ],
     menuSizes: [],
     editorSizes: [],
@@ -305,6 +271,7 @@ export const componentRegistry = {
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
 export const catalogComponentKinds = [
+  "template",
   "dot-canvas",
   "todo",
   "calendar",
@@ -383,7 +350,7 @@ export function getItemGridDimensions(
 ) {
   const size = getComponentSize(item.kind, item.size)
   return {
-    width: Math.min(columns, size?.width ?? 4),
-    height: size?.height ?? 1,
+    width: Math.min(columns, size?.width ?? GRID_UNIT),
+    height: size?.height ?? GRID_UNIT,
   }
 }

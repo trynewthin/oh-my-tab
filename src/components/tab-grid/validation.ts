@@ -82,5 +82,6 @@ export function validGridItem(value: unknown): value is GridItem {
       )
     )
   if (typed.kind === "tab") return validTabEntry(typed)
+  if (typed.kind === "template") return true
   return Array.isArray(typed.tabs) && typed.tabs.every(validTabEntry)
 }

@@ -66,9 +66,9 @@ export default function DraggableGridItem({
         {...attributes}
         role="group"
         aria-label={`拖动 ${item.name} 放置`}
-        className={`relative col-span-4 min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
+        className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
         style={{
-          gridColumn: `${placement.x + 1} / span ${placement.width ?? 4}`,
+          gridColumn: `${placement.x + 1} / span ${placement.width}`,
           gridRow: `${placement.y + 1} / span ${placement.height}`,
         }}
         onMouseDown={(event) => {

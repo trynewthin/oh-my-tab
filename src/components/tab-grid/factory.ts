@@ -6,7 +6,13 @@ import {
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
-import type { FolderItem, GridItem, TabEntry, TabItem } from "@/lib/grid/types"
+import type {
+  FolderItem,
+  GridItem,
+  TabEntry,
+  TabItem,
+  TemplateItem,
+} from "@/lib/grid/types"
 
 type CatalogItem = Extract<GridItem, { kind: CatalogComponentKind }>
 export type ConfigurableItem = Exclude<
@@ -64,6 +70,16 @@ export function configureComponent({
       color,
       size: size as Extract<GridItem, { kind: "calendar" }>["size"],
       dynamicEffect: existing?.dynamicEffect ?? false,
+    }
+  if (kind === "template")
+    return {
+      id,
+      kind,
+      name,
+      color,
+      size: size as TemplateItem["size"],
+      dynamicEffect:
+        existing?.kind === "template" ? existing.dynamicEffect : false,
     }
   return {
     id,
@@ -138,6 +154,12 @@ export function createCatalogComponent(
   }
 
   if (kind === "todo") return { ...shared, kind, size: "large", tasks: [] }
+  if (kind === "template")
+    return {
+      ...shared,
+      kind,
+      size: size as TemplateItem["size"],
+    }
   if (kind === "calendar")
     return {
       ...shared,

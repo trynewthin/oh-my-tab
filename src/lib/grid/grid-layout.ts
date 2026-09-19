@@ -9,6 +9,32 @@ export function columnsForWidth(width: number): number {
   return width >= 640 ? 12 : width > 0 ? 8 : 4
 }
 
+export function gridMetrics(width: number) {
+  const columns = columnsForWidth(width)
+  const gap = width > 0 && width < 640 ? 12 : 16
+  const columnStep = width > 0 ? (width + gap) / columns : 0
+  return {
+    columns,
+    gap,
+    compact: width > 0 && width < 640,
+    columnStep,
+    rowStep: columnStep,
+    rowSize: Math.max(1, columnStep - gap),
+  }
+}
+
+export function gridOccupancyBox(
+  trackWidth: number,
+  columns: number,
+  rows: number
+) {
+  const { columnStep, gap } = gridMetrics(trackWidth)
+  return {
+    width: columns * columnStep - gap,
+    height: rows * columnStep - gap,
+  }
+}
+
 export type GridPosition = { x: number; y: number }
 export type GridPlacement = GridPosition & { width: number; height: number }
 export type GridPositions = Record<string, GridPosition>

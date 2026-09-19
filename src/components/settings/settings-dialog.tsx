@@ -67,7 +67,10 @@ export default function SettingsDialog() {
             textureId={"personalization-background"}
             color={color}
             animated
-            visible={settingsRouteSurface(section) === "personalization"}
+            visible={
+              settingsRouteSurface(section) === "personalization" &&
+              section !== "personalization-tabs"
+            }
           />
         </div>
         <div className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row">
@@ -107,11 +110,11 @@ export default function SettingsDialog() {
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 -z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
               />
-              <div className="relative flex items-center overflow-hidden rounded-2xl bg-popover shadow-md">
+              <div className="relative overflow-hidden rounded-2xl bg-popover shadow-md">
                 <Button
                   type="button"
                   variant="ghost"
-                  className="pointer-events-auto min-w-0 flex-1 justify-start rounded-none bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                  className="pointer-events-auto w-full justify-start rounded-none bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
                   onClick={() => setOpen(false)}
                 >
                   <X />
@@ -123,7 +126,7 @@ export default function SettingsDialog() {
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={navProgress}
-                  className="w-8 shrink-0 pr-2.5 text-right text-xs text-muted-foreground tabular-nums"
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-8 items-center justify-end pr-2.5 text-xs text-muted-foreground tabular-nums"
                 >
                   {navProgress}
                 </span>

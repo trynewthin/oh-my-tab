@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest"
-import { placeItems } from "@/lib/grid/grid-layout"
+import {
+  gridMetrics,
+  gridOccupancyBox,
+  placeItems,
+} from "@/lib/grid/grid-layout"
 import type { TemplateItem } from "@/lib/grid/types"
 
 const template = (id: string, size: TemplateItem["size"]): TemplateItem => ({
@@ -29,5 +33,19 @@ describe("grid unit occupancy", () => {
     )
     expect(placed.square).toEqual({ x: 0, y: 0, width: 2, height: 2 })
     expect(placed.bar).toEqual({ x: 2, y: 0, width: 4, height: 1 })
+  })
+})
+
+describe("grid metrics", () => {
+  test("cell size matches home grid geometry", () => {
+    const metrics = gridMetrics(1280)
+    expect(metrics.columns).toBe(20)
+    expect(metrics.gap).toBe(16)
+    expect(metrics.columnStep).toBe((1280 + 16) / 20)
+    expect(metrics.rowSize).toBe(metrics.columnStep - 16)
+    expect(gridOccupancyBox(1280, 4, 1)).toEqual({
+      width: 4 * metrics.columnStep - 16,
+      height: metrics.columnStep - 16,
+    })
   })
 })

@@ -23,6 +23,7 @@
       "label": "个性化",
       "children": [
         { "id": "personalization-appearance", "label": "外观" },
+        { "id": "personalization-tabs", "label": "标签" },
         { "id": "personalization-background", "label": "背景" },
         { "id": "personalization-motion", "label": "动效" }
       ]

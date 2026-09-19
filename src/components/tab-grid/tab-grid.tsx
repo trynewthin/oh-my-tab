@@ -7,7 +7,14 @@ import {
   ContextMenuContent,
   ContextMenuItem,
 } from "@/components/ui/context-menu"
-import { columnsForWidth } from "@/lib/grid/grid-layout"
+import {
+  gridMetrics,
+  gridOccupancyBox,
+  itemHeight,
+  itemWidth,
+  placeItems,
+  type GridPositions,
+} from "@/lib/grid/grid-layout"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import {
@@ -27,12 +34,6 @@ import GridTileContent from "./grid-tile-content"
 import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
 import { getComponentDefinition } from "@/lib/grid/registry"
-import {
-  itemHeight,
-  itemWidth,
-  placeItems,
-  type GridPositions,
-} from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 import { mixHexColor } from "./folder-drop"
 import EffectSurface from "@/components/effects/effect-surface"
@@ -45,21 +46,38 @@ import {
 
 const emptyPositions: GridPositions = {}
 
-export default function TabGrid() {
-  const selecting = useGridSelectionStore((state) => state.active)
+export default function TabGrid({
+  preview = false,
+  items: itemsOverride,
+  trackWidth,
+  area,
+}: {
+  preview?: boolean
+  items?: GridItem[]
+  trackWidth?: number
+  area?: { columns: number; rows: number }
+} = {}) {
+  const selecting = useGridSelectionStore((state) => state.active) && !preview
   const selectedIds = useGridSelectionStore((state) => state.ids)
   const toggleSelection = useGridSelectionStore((state) => state.toggle)
-  const items = useTabGridStore((state) => state.items)
+  const storeItems = useTabGridStore((state) => state.items)
+  const items = itemsOverride ?? storeItems
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const gridRef = useRef<HTMLDivElement>(null)
   const pointer = useRef<{ x: number; y: number } | null>(null)
-  const [width, setWidth] = useState(0)
+  const [measuredWidth, setMeasuredWidth] = useState(0)
+  const sourceWidth = trackWidth ?? measuredWidth
+  const metrics = gridMetrics(sourceWidth)
+  const box = area
+    ? gridOccupancyBox(sourceWidth, area.columns, area.rows)
+    : null
+  const width = box?.width ?? measuredWidth
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
-  const widthColumns = columnsForWidth(width)
-  const compactGrid = width > 0 && width < 640
-  const gridGap = compactGrid ? 12 : 16
+  const widthColumns = area?.columns ?? metrics.columns
+  const compactGrid = metrics.compact
+  const gridGap = metrics.gap
   const [settledTarget, setSettledTarget] = useState<
     | {
         id: string
@@ -98,8 +116,8 @@ export default function TabGrid() {
   // The drag session freezes its own column count and positions snapshot, so
   // geometry must be recomputed against the session's columns while dragging.
   const columns = dragging?.columns ?? widthColumns
-  const columnStep = (width + gridGap) / columns
-  const rowStep = columnStep
+  const columnStep = metrics.columnStep
+  const rowStep = metrics.rowStep
 
   const positions =
     heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
@@ -140,14 +158,16 @@ export default function TabGrid() {
   )
 
   useEffect(() => {
-    if (width > 0 && !dragging) ensureLayout(columns)
-  }, [columns, width, items, layouts, dragging, ensureLayout])
+    if (preview || width <= 0 || dragging) return
+    ensureLayout(columns)
+  }, [preview, columns, width, items, layouts, dragging, ensureLayout])
 
   useLayoutEffect(() => {
+    if (trackWidth) return
     const element = gridRef.current
     if (!element) return
     const observer = new ResizeObserver(() => {
-      setWidth(element!.getBoundingClientRect().width)
+      setMeasuredWidth(element.getBoundingClientRect().width)
     })
     const trackPointer = (event: MouseEvent) => {
       pointer.current = { x: event.clientX, y: event.clientY }
@@ -159,7 +179,7 @@ export default function TabGrid() {
       observer.disconnect()
       document.removeEventListener("mousemove", trackPointer)
     }
-  }, [cancelTimers])
+  }, [cancelTimers, trackWidth])
 
   const keyboardCoordinates: KeyboardCoordinateGetter = (
     event,
@@ -237,6 +257,36 @@ export default function TabGrid() {
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
 
+  if (preview) {
+    return (
+      <div
+        ref={gridRef}
+        aria-label="标签预览"
+        className={`relative grid min-h-11 overflow-hidden ${compactGrid ? "gap-3" : "gap-4"}`}
+        style={{
+          width: box?.width,
+          height: box?.height,
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+          gridAutoRows: Math.max(1, rowStep - gridGap),
+        }}
+      >
+        {items.map((item) => (
+          <div
+            key={item.id}
+            data-grid-item-id={item.id}
+            className={`relative isolate min-w-0 overflow-hidden rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""}`}
+            style={{
+              gridColumn: `1 / span ${itemWidth(item, columns)}`,
+              gridRow: `1 / span ${itemHeight(item)}`,
+            }}
+          >
+            <GridTileContent item={item} onOpen={() => {}} preview />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger
@@ -261,6 +311,7 @@ export default function TabGrid() {
           >
             <div
               ref={gridRef}
+              data-tab-grid-track={preview ? undefined : ""}
               className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
               style={{
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,

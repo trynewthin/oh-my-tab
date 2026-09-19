@@ -14,6 +14,7 @@ export const settingsViews = {
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />
   ),
+  "personalization-tabs": () => <PersonalizationSettings pane="tabs" />,
   "personalization-background": () => (
     <PersonalizationSettings pane="background" />
   ),

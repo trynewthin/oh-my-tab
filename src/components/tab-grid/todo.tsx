@@ -75,7 +75,6 @@ function TodoTaskRow({
   return (
     <div
       ref={ref}
-      role="listitem"
       data-stack-row={stacked ? "" : undefined}
       data-tab-id={id}
       data-todo-done={done}

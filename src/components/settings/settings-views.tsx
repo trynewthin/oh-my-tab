@@ -1,8 +1,8 @@
-import AboutSettings from "./about-settings"
-import GeneralSettings from "./general-settings"
-import HomeSettings from "./home-settings"
-import PersonalizationSettings from "./personalization-settings"
-import SearchEngineSettings from "./search-engine-settings"
+import AboutSettings from "./about/about-settings"
+import GeneralSettings from "./general/general-settings"
+import HomeSettings from "./home/home-settings"
+import PersonalizationSettings from "./personalization/personalization-settings"
+import SearchEngineSettings from "./search/search-engine-settings"
 import { defaultSettingsSection as defaultRouteId } from "./settings-routes"
 
 export const settingsViews = {

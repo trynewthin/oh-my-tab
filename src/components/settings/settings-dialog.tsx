@@ -33,16 +33,17 @@ export default function SettingsDialog() {
 
   useEffect(() => {
     if (!navNode) return
+    const node = navNode
     function update() {
-      setNavProgress(scrollPercent(navNode))
+      setNavProgress(scrollPercent(node))
     }
     update()
-    navNode.addEventListener("scroll", update, { passive: true })
+    node.addEventListener("scroll", update, { passive: true })
     const observer = new ResizeObserver(update)
-    observer.observe(navNode)
-    if (navNode.firstElementChild) observer.observe(navNode.firstElementChild)
+    observer.observe(node)
+    if (node.firstElementChild) observer.observe(node.firstElementChild)
     return () => {
-      navNode.removeEventListener("scroll", update)
+      node.removeEventListener("scroll", update)
       observer.disconnect()
     }
   }, [navNode])

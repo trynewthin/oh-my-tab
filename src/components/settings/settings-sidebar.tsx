@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react"
+import { createElement, type CSSProperties } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -25,8 +25,9 @@ function SettingsIcon({
   name?: string
   className?: string
 }) {
-  const Icon = settingsIcon(name)
-  return Icon ? <Icon className={className} /> : null
+  const icon = settingsIcon(name)
+  if (!icon) return null
+  return createElement(icon, { className })
 }
 
 function NavButton({

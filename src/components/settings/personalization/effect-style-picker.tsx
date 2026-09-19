@@ -1,4 +1,4 @@
-import { settingsControlClassName } from "./control-styles"
+import { settingsControlClassName } from "../shared/control-styles"
 import { CaretDown, Check } from "@phosphor-icons/react"
 import EffectSurface from "@/components/effects/effect-surface"
 import { Button } from "@/components/ui/button"

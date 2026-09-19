@@ -1,4 +1,4 @@
-import { settingsControlClassName } from "./control-styles"
+import { settingsControlClassName } from "../shared/control-styles"
 import CacheSettings from "./cache-settings"
 import BookmarkImport from "./bookmark-import"
 import { useOnboardingStore } from "@/stores/onboarding-store"

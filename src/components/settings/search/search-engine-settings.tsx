@@ -12,10 +12,10 @@ import {
 } from "@/lib/search-engines"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 
-import SearchEngineForm from "@/components/settings/search-engine-form"
-import AddSearchEngineDialog from "@/components/settings/add-search-engine-dialog"
+import SearchEngineForm from "./search-engine-form"
+import AddSearchEngineDialog from "./add-search-engine-dialog"
 
-import DeleteSearchEngineDialog from "@/components/settings/delete-search-engine-dialog"
+import DeleteSearchEngineDialog from "./delete-search-engine-dialog"
 
 export default function SearchEngineSettings() {
   const available = canSelectBrowserSearch()

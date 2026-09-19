@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import SearchEngineForm from "@/components/settings/search-engine-form"
+import SearchEngineForm from "./search-engine-form"
 import type { SearchEngine } from "@/lib/search-engines"
 
 type AddSearchEngineDialogProps = {

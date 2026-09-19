@@ -1,4 +1,4 @@
-import { settingsControlClassName } from "./control-styles"
+import { settingsControlClassName } from "../shared/control-styles"
 import { useState } from "react"
 import { Info } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"

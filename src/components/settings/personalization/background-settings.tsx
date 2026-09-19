@@ -1,7 +1,7 @@
 import {
   settingsControlClassName,
   settingsControlSurface,
-} from "./control-styles"
+} from "../shared/control-styles"
 import { putAsset } from "@/lib/storage"
 import { useImageAsset } from "@/lib/use-image-asset"
 import { useState } from "react"

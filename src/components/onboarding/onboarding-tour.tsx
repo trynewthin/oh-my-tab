@@ -1,7 +1,7 @@
 import { applyNetworkChoices, usePrivacyStore } from "@/stores/privacy-store"
 import { reloadVisibleFavicons } from "@/lib/favicon-cache"
 import { toast } from "@/stores/toast-store"
-import PrivacySettings from "@/components/settings/privacy-settings"
+import PrivacySettings from "@/components/settings/about/privacy-settings"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"

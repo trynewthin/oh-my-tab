@@ -1,5 +1,4 @@
-import EffectSurface from "@/components/effects/effect-surface"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
+
 import { X } from "@phosphor-icons/react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useSettingsStore } from "@/stores/settings-store"
-import { settingsRouteSurface } from "./settings-routes"
+
 import { defaultSettingsSection, settingsViews } from "./settings-views"
 import { SettingsSectionSelect, SettingsSidebar } from "./settings-sidebar"
 
@@ -22,7 +21,6 @@ function scrollPercent(node: HTMLElement) {
 }
 
 export default function SettingsDialog() {
-  const color = useHomeSettingsStore((state) => state.color)
   const open = useSettingsStore((state) => state.open)
   const setOpen = useSettingsStore((state) => state.setOpen)
   const section = useSettingsStore((state) => state.section)
@@ -59,20 +57,6 @@ export default function SettingsDialog() {
         <DialogDescription className="sr-only">
           选择分类，管理对应设置。
         </DialogDescription>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] opacity-40"
-        >
-          <EffectSurface
-            textureId={"personalization-background"}
-            color={color}
-            animated
-            visible={
-              settingsRouteSurface(section) === "personalization" &&
-              section !== "personalization-tabs"
-            }
-          />
-        </div>
         <div className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row">
           <div className="flex shrink-0 items-center justify-between px-4 pt-4 pb-2 sm:hidden">
             <span className="text-base font-medium">设置</span>
@@ -110,7 +94,7 @@ export default function SettingsDialog() {
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 -z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
               />
-              <div className="relative overflow-hidden rounded-2xl bg-popover shadow-md">
+              <div className="relative overflow-hidden rounded-2xl bg-popover shadow-md dark:border dark:border-border">
                 <Button
                   type="button"
                   variant="ghost"

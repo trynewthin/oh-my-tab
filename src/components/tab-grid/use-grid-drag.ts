@@ -7,12 +7,7 @@ import type {
   GridPosition,
   GridPositions,
 } from "@/lib/grid/grid-layout"
-import type {
-  GridItem,
-  TabEntry,
-  TabItem,
-  TodoTask,
-} from "@/lib/grid/types"
+import type { GridItem, TabEntry, TabItem, TodoTask } from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import type { GridDragData } from "./drag-types"
 import {
@@ -137,6 +132,8 @@ export function useGridDrag({
   pointer,
   closeFolder,
   resolvePlacements,
+  commitLayout,
+  resolveDrop,
 }: {
   items: GridItem[]
   /** Column count derived from container width (ignores any drag freeze). */
@@ -149,6 +146,16 @@ export function useGridDrag({
   closeFolder: () => void
   /** Base placements for a column count, from the stored layout (no preview). */
   resolvePlacements: (columns: number) => Record<string, GridPlacement>
+  /** Where a grid drop lands. Defaults to the store; previews pass local state. */
+  commitLayout?: (columns: number, positions: GridPositions) => void
+  /**
+   * Overrides how a grid drop resolves placements. Returning null rejects the
+   * drop (tiles revert). Defaults to placeItems against the session snapshot.
+   */
+  resolveDrop?: (
+    positions: GridPositions,
+    target: { id: string; position: GridPosition }
+  ) => GridPositions | null
 }) {
   const setLayout = useTabGridStore((state) => state.setLayout)
   const transferTab = useTabGridStore((state) => state.transferTab)
@@ -660,18 +667,20 @@ export function useGridDrag({
           position: action.position,
         })
       else {
-        const next = placeItems(items, columns, session.positions, {
-          id: session.item.id,
-          position: action.position,
-        })
-        setLayout(
-          columns,
-          Object.fromEntries(
-            Object.entries(next).map(([id, { x, y }]) => [id, { x, y }])
-          )
-        )
+        const target = { id: session.item.id, position: action.position }
+        const positions = resolveDrop
+          ? resolveDrop(session.positions, target)
+          : Object.fromEntries(
+              Object.entries(
+                placeItems(items, columns, session.positions, target)
+              ).map(([id, { x, y }]) => [id, { x, y }])
+            )
+        if (positions) {
+          if (commitLayout) commitLayout(columns, positions)
+          else setLayout(columns, positions)
+          committed = true
+        }
       }
-      committed = true
     }
     if (committed && session.dialogExited) closeFolder()
     resetDrag()

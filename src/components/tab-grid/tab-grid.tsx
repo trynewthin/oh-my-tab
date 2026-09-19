@@ -8,11 +8,14 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu"
 import {
+  findVacancy,
   gridMetrics,
   gridOccupancyBox,
   itemHeight,
   itemWidth,
   placeItems,
+  positionsOnly,
+  type GridPlacement,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
@@ -27,6 +30,7 @@ import {
   useSensors,
   type DragMoveEvent,
   type KeyboardCoordinateGetter,
+  type Modifier,
 } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import DraggableGridItem from "./draggable-grid-item"
@@ -43,19 +47,124 @@ import {
   previewTodoTasks,
   useGridDrag,
 } from "./use-grid-drag"
+import type { GridPosition } from "@/lib/grid/grid-layout"
 
 const emptyPositions: GridPositions = {}
+
+// Fractional overlay transforms make the 8px texture cells and the icon
+// rasterize at half-pixel offsets (the slight slide visible on grab and
+// drop). Preview drags snap the translate to whole pixels.
+const snapToWholePixels: Modifier = ({ transform }) => ({
+  ...transform,
+  x: Math.round(transform.x),
+  y: Math.round(transform.y),
+})
+
+// Preview drops resolve by re-homing overlapped tiles into freed cells, and
+// when that cannot fit the fixed area, by reflowing every tile in reading
+// order. A drop that still overflows is rejected — the caller keeps the
+// settled layout so tiles spring back instead of clipping out of view.
+function resolvePreviewDrop(
+  items: GridItem[],
+  columns: number,
+  rows: number | undefined,
+  positions: GridPositions,
+  target: { id: string; position: GridPosition }
+): GridPositions | null {
+  const item = items.find((entry) => entry.id === target.id)
+  if (!item) return null
+  const width = itemWidth(item, columns)
+  const height = itemHeight(item)
+  const targetPlacement: GridPlacement = {
+    x: Math.max(0, Math.min(columns - width, Math.round(target.position.x))),
+    y: Math.max(
+      0,
+      Math.min(
+        Math.max(0, (rows ?? height) - height),
+        Math.round(target.position.y)
+      )
+    ),
+    width,
+    height,
+  }
+  const ordered = items
+    .filter((entry) => positions[entry.id])
+    .sort(
+      (a, b) =>
+        positions[a.id].y - positions[b.id].y ||
+        positions[a.id].x - positions[b.id].x
+    )
+  const placementOf = (entry: GridItem): GridPlacement => ({
+    ...(positions[entry.id] ?? { x: 0, y: 0 }),
+    width: itemWidth(entry, columns),
+    height: itemHeight(entry),
+  })
+  const displaced = ordered.filter(
+    (entry) =>
+      entry.id !== item.id &&
+      placementsOverlap(targetPlacement, placementOf(entry))
+  )
+  const next: Record<string, GridPlacement> = { [item.id]: targetPlacement }
+  for (const entry of ordered) {
+    if (entry.id === item.id || displaced.includes(entry)) continue
+    next[entry.id] = placementOf(entry)
+  }
+  const fits = (p: GridPlacement) =>
+    rows === undefined || (p.y + p.height <= rows && p.x + p.width <= columns)
+  let passOk = true
+  for (const entry of displaced) {
+    const free = findVacancy(
+      Object.values(next),
+      columns,
+      itemHeight(entry),
+      itemWidth(entry, columns)
+    )
+    if (!fits(free)) {
+      passOk = false
+      break
+    }
+    next[entry.id] = free
+  }
+  if (passOk) return positionsOnly(next)
+
+  const reflowed: Record<string, GridPlacement> = {
+    [item.id]: targetPlacement,
+  }
+  for (const entry of ordered) {
+    if (entry.id === item.id) continue
+    const free = findVacancy(
+      Object.values(reflowed),
+      columns,
+      itemHeight(entry),
+      itemWidth(entry, columns)
+    )
+    if (!fits(free)) return null
+    reflowed[entry.id] = free
+  }
+  return positionsOnly(reflowed)
+}
+
+function placementsOverlap(a: GridPlacement, b: GridPlacement) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  )
+}
 
 export default function TabGrid({
   preview = false,
   items: itemsOverride,
   trackWidth,
   area,
+  previewPositions,
 }: {
   preview?: boolean
   items?: GridItem[]
   trackWidth?: number
   area?: { columns: number; rows: number }
+  previewPositions?: GridPositions
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
   const selectedIds = useGridSelectionStore((state) => state.ids)
@@ -86,6 +195,17 @@ export default function TabGrid({
     | undefined
   >(undefined)
 
+  // Preview grids keep their placements in local state; the live grid reads
+  // them from the store layouts. Both feed the same drag hook below.
+  const [previewPlaced, setPreviewPlaced] = useState<GridPositions>(
+    () => previewPositions ?? emptyPositions
+  )
+  const [previewSeed, setPreviewSeed] = useState(previewPositions)
+  if (previewSeed !== previewPositions) {
+    setPreviewSeed(previewPositions)
+    setPreviewPlaced(previewPositions ?? emptyPositions)
+  }
+
   // The hook owns the drag session and freezes the column count into it at
   // startDrag time. startDrag only ever runs while not dragging, so it reads
   // the base placements derived from the stored layout — never the live,
@@ -99,7 +219,18 @@ export default function TabGrid({
     pointer,
     closeFolder: () => setFolderId(null),
     resolvePlacements: (columns) =>
-      placeItems(items, columns, layouts[columns] ?? emptyPositions),
+      placeItems(
+        items,
+        columns,
+        preview ? previewPlaced : (layouts[columns] ?? emptyPositions)
+      ),
+    commitLayout: preview
+      ? (_columns, next) => setPreviewPlaced(next)
+      : undefined,
+    resolveDrop: preview
+      ? (positions, target) =>
+          resolvePreviewDrop(items, widthColumns, area?.rows, positions, target)
+      : undefined,
   })
   const {
     dragging,
@@ -120,7 +251,10 @@ export default function TabGrid({
   const rowStep = metrics.rowStep
 
   const positions =
-    heldLayout ?? dragging?.positions ?? layouts[columns] ?? emptyPositions
+    heldLayout ??
+    dragging?.positions ??
+    (preview ? previewPlaced : layouts[columns]) ??
+    emptyPositions
   const gridTarget =
     dragging && intent.kind === "grid"
       ? { id: dragging.item.id, position: intent.position }
@@ -147,36 +281,55 @@ export default function TabGrid({
   }, [targetId, targetX, targetY, holdPreview])
   const previewItems =
     dragging?.sourceFolderId && gridTarget ? [...items, dragging.item] : items
-  const placements = placeItems(
-    previewItems,
-    columns,
-    positions,
+  const liveTarget =
     dragging && intent.kind === "grid" && !intent.holdLayout
       ? settledTarget
-      : undefined,
-    dragging?.sourceFolderId ? [dragging.sourceFolderId] : []
-  )
+      : undefined
+  const placements = (() => {
+    if (preview && liveTarget) {
+      // The same two-pass resolution used for the drop commit drives the
+      // in-flight preview, so what animates during a drag is what lands.
+      const resolved = resolvePreviewDrop(
+        items,
+        columns,
+        area?.rows,
+        positions,
+        liveTarget
+      )
+      if (resolved) return placeItems(items, columns, resolved)
+      return placeItems(items, columns, positions)
+    }
+    return placeItems(
+      previewItems,
+      columns,
+      positions,
+      liveTarget,
+      dragging?.sourceFolderId ? [dragging.sourceFolderId] : []
+    )
+  })()
 
   useEffect(() => {
     if (preview || width <= 0 || dragging) return
     ensureLayout(columns)
   }, [preview, columns, width, items, layouts, dragging, ensureLayout])
 
+  // Pointer tracking feeds intent resolution during drags; the observer only
+  // matters when the grid measures itself (a provided trackWidth skips it).
   useLayoutEffect(() => {
-    if (trackWidth) return
-    const element = gridRef.current
-    if (!element) return
-    const observer = new ResizeObserver(() => {
-      setMeasuredWidth(element.getBoundingClientRect().width)
-    })
     const trackPointer = (event: MouseEvent) => {
       pointer.current = { x: event.clientX, y: event.clientY }
     }
-    observer.observe(element)
     document.addEventListener("mousemove", trackPointer, { passive: true })
+    const element = trackWidth ? null : gridRef.current
+    const observer = element
+      ? new ResizeObserver(() => {
+          setMeasuredWidth(element.getBoundingClientRect().width)
+        })
+      : null
+    if (element && observer) observer.observe(element)
     return () => {
       cancelTimers()
-      observer.disconnect()
+      observer?.disconnect()
       document.removeEventListener("mousemove", trackPointer)
     }
   }, [cancelTimers, trackWidth])
@@ -257,33 +410,127 @@ export default function TabGrid({
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
 
-  if (preview) {
-    return (
-      <div
-        ref={gridRef}
-        aria-label="标签预览"
-        className={`relative grid min-h-11 overflow-hidden ${compactGrid ? "gap-3" : "gap-4"}`}
-        style={{
-          width: box?.width,
-          height: box?.height,
-          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-          gridAutoRows: Math.max(1, rowStep - gridGap),
-        }}
-      >
-        {items.map((item) => (
+  const overlay = createPortal(
+    <DragOverlay
+      zIndex={1000}
+      modifiers={preview ? [snapToWholePixels] : undefined}
+      dropAnimation={
+        dragging?.sourceFolderId ||
+        (intent.kind === "folder" && intent.ready) ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? null
+          : {
+              duration: 280,
+              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+              sideEffects: defaultDropAnimationSideEffects({
+                styles: { active: { opacity: "0" } },
+              }),
+            }
+      }
+    >
+      {dragging && (
+        <div
+          aria-hidden="true"
+          data-tab-grid-overlay
+          className="pointer-events-none relative cursor-grabbing"
+          style={{ width: overlayWidth, height: overlayHeight }}
+        >
           <div
-            key={item.id}
-            data-grid-item-id={item.id}
-            className={`relative isolate min-w-0 overflow-hidden rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""}`}
+            className="relative isolate h-full overflow-hidden rounded-2xl"
             style={{
-              gridColumn: `1 / span ${itemWidth(item, columns)}`,
-              gridRow: `1 / span ${itemHeight(item)}`,
+              // Previews keep the resting look: no lift shadow, and the
+              // overlay carries the same border as the settled tile so the
+              // padding box (and every inset-0/right-anchored child) stays
+              // pixel-identical while dragging — a missing 1px border reads
+              // as the icon and texture sliding on grab and drop.
+              boxShadow:
+                !preview && releaseProgress > 0
+                  ? `0 10px 15px -3px rgb(0 0 0 / ${0.1 * releaseProgress}), 0 4px 6px -4px rgb(0 0 0 / ${0.1 * releaseProgress})`
+                  : undefined,
+              borderWidth: preview
+                ? getComponentDefinition(dragging.item.kind).tileBorder
+                  ? 1
+                  : 0
+                : releaseProgress > 0
+                  ? 1
+                  : 0,
+              borderStyle: "solid",
+              borderColor: preview
+                ? "var(--tile-border)"
+                : `color-mix(in srgb, var(--tile-border) ${releaseProgress * 100}%, transparent)`,
             }}
           >
-            <GridTileContent item={item} onOpen={() => {}} preview />
+            {dragging.todoTask ? (
+              <div className="relative flex h-full items-center gap-2 px-3 py-2">
+                <EffectSurface
+                  color={dragging.item.color}
+                  textureId={dragging.todoTask.id}
+                />
+                <span className="relative z-10 flex size-4 shrink-0 items-center justify-center rounded-sm border border-foreground/50">
+                  {dragging.todoTask.done && <Check size={12} />}
+                </span>
+                <span className="relative z-10 min-w-0 flex-1 truncate text-sm font-medium">
+                  {dragging.todoTask.text}
+                </span>
+              </div>
+            ) : (
+              <GridTileContent
+                item={overlayItem ?? dragging.item}
+                onOpen={() => {}}
+                preview
+                compactTab={releaseProgress < 1}
+              />
+            )}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+    </DragOverlay>,
+    document.body
+  )
+
+  // The preview grid runs the same drag pipeline as the live grid — dnd-kit
+  // sensors, the floating overlay, FLIP reflows — but tiles render without
+  // context menus and drops commit to local state instead of the store.
+  if (preview) {
+    return (
+      <DndContext
+        sensors={sensors}
+        onDragStart={startDrag}
+        onDragMove={(event: DragMoveEvent) => updateIntent(event.delta)}
+        onDragEnd={finishDrag}
+        onDragCancel={resetDrag}
+      >
+        <div
+          ref={gridRef}
+          aria-label="标签预览"
+          className={`relative grid min-h-11 overflow-hidden ${compactGrid ? "gap-3" : "gap-4"}`}
+          style={{
+            width: box?.width,
+            height: box?.height,
+            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            gridAutoRows: Math.max(1, rowStep - gridGap),
+          }}
+        >
+          {items.map((item) => (
+            <DraggableGridItem
+              key={item.id}
+              item={item}
+              interactive={false}
+              placement={
+                placements[item.id] ?? {
+                  x: 0,
+                  y: 0,
+                  width: itemWidth(item, columns),
+                  height: itemHeight(item),
+                }
+              }
+              onOpen={() => {}}
+              onEdit={() => {}}
+            />
+          ))}
+        </div>
+        {overlay}
+      </DndContext>
     )
   }
 
@@ -323,7 +570,7 @@ export default function TabGrid({
                   <div
                     key={item.id}
                     data-grid-item-id={item.id}
-                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border" : ""}`}
+                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border border-tile-border" : ""}`}
                     style={{
                       gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
                       gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
@@ -422,69 +669,7 @@ export default function TabGrid({
               )}
             </div>
           </div>
-          {createPortal(
-            <DragOverlay
-              zIndex={1000}
-              dropAnimation={
-                dragging?.sourceFolderId ||
-                (intent.kind === "folder" && intent.ready) ||
-                window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                  ? null
-                  : {
-                      duration: 280,
-                      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                      sideEffects: defaultDropAnimationSideEffects({
-                        styles: { active: { opacity: "0" } },
-                      }),
-                    }
-              }
-            >
-              {dragging && (
-                <div
-                  aria-hidden="true"
-                  data-tab-grid-overlay
-                  className="pointer-events-none relative cursor-grabbing"
-                  style={{ width: overlayWidth, height: overlayHeight }}
-                >
-                  <div
-                    className="relative isolate h-full overflow-hidden rounded-2xl"
-                    style={{
-                      boxShadow:
-                        releaseProgress > 0
-                          ? `0 10px 15px -3px rgb(0 0 0 / ${0.1 * releaseProgress}), 0 4px 6px -4px rgb(0 0 0 / ${0.1 * releaseProgress})`
-                          : undefined,
-                      borderWidth: releaseProgress > 0 ? 1 : 0,
-                      borderStyle: "solid",
-                      borderColor: `color-mix(in srgb, var(--border) ${releaseProgress * 100}%, transparent)`,
-                    }}
-                  >
-                    {dragging.todoTask ? (
-                      <div className="relative flex h-full items-center gap-2 px-3 py-2">
-                        <EffectSurface
-                          color={dragging.item.color}
-                          textureId={dragging.todoTask.id}
-                        />
-                        <span className="relative z-10 flex size-4 shrink-0 items-center justify-center rounded-sm border border-foreground/50">
-                          {dragging.todoTask.done && <Check size={12} />}
-                        </span>
-                        <span className="relative z-10 min-w-0 flex-1 truncate text-sm font-medium">
-                          {dragging.todoTask.text}
-                        </span>
-                      </div>
-                    ) : (
-                      <GridTileContent
-                        item={overlayItem ?? dragging.item}
-                        onOpen={() => {}}
-                        preview
-                        compactTab={releaseProgress < 1}
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-            </DragOverlay>,
-            document.body
-          )}
+          {overlay}
           {editor && (
             <GridItemDialog
               item={editor.item}

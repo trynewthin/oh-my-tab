@@ -271,7 +271,6 @@ export const componentRegistry = {
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
 export const catalogComponentKinds = [
-  "template",
   "dot-canvas",
   "todo",
   "calendar",

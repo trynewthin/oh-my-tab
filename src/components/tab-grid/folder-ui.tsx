@@ -17,7 +17,7 @@ export default function FolderUI({
   tabs?: TabEntry[]
 }) {
   return (
-    <div className="relative z-10 flex h-full w-full flex-col gap-1.5 overflow-hidden rounded-[inherit] p-2.5 text-left sm:gap-2 sm:p-3">
+    <div className="relative z-10 flex h-full w-full flex-col gap-1 overflow-hidden rounded-[inherit] px-2.5 pt-1.5 pb-2.5 text-left sm:gap-1.5 sm:px-3 sm:pt-2 sm:pb-3">
       <button
         type="button"
         onClick={onOpen}
@@ -34,7 +34,7 @@ export default function FolderUI({
           draggable={!preview}
           folder={item}
           tabs={tabs}
-          topBleed={28}
+          topBleed={20}
           className="flex-1"
         />
       )}

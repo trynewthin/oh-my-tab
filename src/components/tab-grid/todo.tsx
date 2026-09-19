@@ -160,7 +160,9 @@ function TodoList({
         <CollectionGrid
           expanded={showDelete}
           data-expanded-collection-grid={showDelete ? "" : undefined}
-          data-todo-surface={showDelete ? "dialog" : cards ? "preview" : undefined}
+          data-todo-surface={
+            showDelete ? "dialog" : cards ? "preview" : undefined
+          }
           data-todo-id={showDelete || cards ? item.id : undefined}
           style={
             cards && (item.tasks.length > 0 || draftRow)
@@ -201,9 +203,7 @@ function TodoList({
               todoId={item.id}
               surface={showDelete ? "dialog" : "preview"}
               sortable={
-                !preview &&
-                (showDelete || cards) &&
-                task.id !== TODO_GAP_ID
+                !preview && (showDelete || cards) && task.id !== TODO_GAP_ID
               }
               stacked={cards || showDelete}
               className={

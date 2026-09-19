@@ -20,6 +20,7 @@ type Props = {
   folderId: string
   index: number
   surface: "preview" | "dialog"
+  rowPitch?: number
   animated?: boolean
 }
 
@@ -29,6 +30,7 @@ export default function DraggableFolderTab({
   folderId,
   index,
   surface,
+  rowPitch,
   animated = false,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -80,6 +82,7 @@ export default function DraggableFolderTab({
             color={color}
             folderId={folderId}
             index={index}
+            rowPitch={rowPitch}
             animated={animated}
             entrance
           />

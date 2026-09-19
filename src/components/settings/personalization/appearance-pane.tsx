@@ -3,6 +3,7 @@ import {
   settingsControlSurface,
 } from "../shared/control-styles"
 import ColorPicker from "@/components/ui/color-picker"
+import BackgroundSettings from "./background-settings"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
@@ -59,6 +60,7 @@ export default function AppearancePane() {
           ))}
         </ToggleGroup>
       </div>
+      <BackgroundSettings />
     </>
   )
 }

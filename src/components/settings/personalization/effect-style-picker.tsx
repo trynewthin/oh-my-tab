@@ -10,8 +10,8 @@ import {
 import type { EffectStyle } from "@/stores/home-settings-store"
 
 const options = [
-  { value: "burning", label: "方格燃烧" },
-  { value: "particles", label: "呼吸点阵" },
+  { value: "burning", label: "像素火焰" },
+  { value: "particles", label: "浮游点阵" },
   { value: "none", label: "无" },
 ] as const
 
@@ -38,17 +38,19 @@ export default function EffectStylePicker({
   value,
   color,
   onChange,
+  label = "粒子效果",
 }: {
   value: EffectStyle
   color: string
   onChange: (value: EffectStyle) => void
+  label?: string
 }) {
   const current = options.find((option) => option.value === value) ?? options[0]
 
   return (
     <Popover>
       <PopoverTrigger
-        aria-label="选择粒子效果"
+        aria-label={`选择${label}`}
         render={
           <Button
             variant="outline"
@@ -64,7 +66,7 @@ export default function EffectStylePicker({
         side="bottom"
         className="w-(--anchor-width) gap-2 rounded-2xl p-2"
       >
-        <div role="radiogroup" aria-label="粒子效果" className="grid gap-2">
+        <div role="radiogroup" aria-label={label} className="grid gap-2">
           {options.map((option) => {
             const selected = option.value === value
             return (

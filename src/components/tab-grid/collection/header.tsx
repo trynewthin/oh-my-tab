@@ -9,7 +9,7 @@ export function CollectionCardHeader({
     <header
       data-collection-header
       className={cn(
-        "relative z-20 flex h-5 shrink-0 items-center justify-between gap-2",
+        "relative z-20 flex h-4 shrink-0 items-center justify-between gap-2",
         className
       )}
       {...props}
@@ -26,7 +26,7 @@ export function CollectionTitleButton({
       type="button"
       data-collection-title
       className={cn(
-        "min-w-0 flex-1 truncate text-left text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm",
+        "min-w-0 flex-1 truncate text-left text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-[13px]",
         className
       )}
       {...props}

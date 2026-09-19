@@ -5,7 +5,6 @@ import Ecosystem from "./ecosystem"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import DotArt from "./dot-art"
-import TemplateTile from "./template/tile"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -22,9 +21,7 @@ import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
   getComponentDefinition,
-  getComponentSize,
   getComponentSizeOptions,
-  occupancyPreviewStyle,
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
@@ -40,42 +37,6 @@ function PreviewContent({
   detail?: boolean
 }) {
   const resolved = size ?? getComponentDefinition(kind).defaultSize
-  if (kind === "template") {
-    const occupancy = getComponentSize(kind, resolved) ?? {
-      width: 1,
-      height: 1,
-    }
-    return (
-      <div
-        className={
-          detail
-            ? "flex size-40 items-center justify-center"
-            : "mx-auto flex aspect-square w-full max-w-60 items-center justify-center"
-        }
-      >
-        <div
-          className="overflow-hidden rounded-2xl border"
-          style={occupancyPreviewStyle(occupancy.width, occupancy.height)}
-        >
-          <TemplateTile
-            preview
-            item={{
-              id: "template-preview",
-              kind: "template",
-              name: getComponentDefinition(kind).defaultName,
-              size:
-                resolved === "medium" ||
-                resolved === "wide" ||
-                resolved === "large"
-                  ? resolved
-                  : "small",
-              color: getComponentDefinition(kind).defaultColor,
-            }}
-          />
-        </div>
-      </div>
-    )
-  }
   if (kind === "todo")
     return (
       <div

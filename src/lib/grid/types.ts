@@ -5,6 +5,9 @@ export type TabEntry = {
   size?: "small" | "medium"
   color?: string
   dynamicEffect?: boolean
+  // Pins a fixed icon (e.g. preview samples); without it the favicon of
+  // `url` is resolved through the favicon cache.
+  icon?: string
 }
 
 export type TabItem = TabEntry & {

@@ -3,6 +3,7 @@ import { createBurningTexture } from "./burning-texture"
 import { createParticleCell } from "./particle-texture"
 
 type Point = { x: number; y: number } | null
+type CellSteps = { stepX: number; stepY: number }
 export function createPixiEffect(
   region: HTMLElement,
   color: string,
@@ -11,6 +12,7 @@ export function createPixiEffect(
   rows: number,
   offsetY: number,
   size: { width: number; height: number },
+  steps: CellSteps,
   mode: "burning" | "particles"
 ) {
   const canvas = document.createElement("canvas")
@@ -31,9 +33,12 @@ export function createPixiEffect(
     null,
   ]
   let bounds = region.getBoundingClientRect()
-  const firstRow = Math.floor(offsetY / 9)
-  const shift = offsetY % 9
-  let left = size.width - (columns * 9 - 1)
+  // Cell pitch tracks the surface: step = cell edge + 1px gap, sized so the
+  // texture fills the surface exactly (see stepsOf in effect-surface).
+  let { stepX, stepY } = steps
+  const firstRow = Math.floor(offsetY / stepY)
+  const shift = offsetY % stepY
+  let left = size.width - (columns * stepX - 1)
   let burning = createBurningTexture(color, seed, columns)
   let updateScene:
     | ((previous: { color: string; columns: number; rows: number }) => void)
@@ -58,7 +63,7 @@ export function createPixiEffect(
         })
       const cells = createCells()
       updateScene = (previous) => {
-        left = size.width - (columns * 9 - 1)
+        left = size.width - (columns * stepX - 1)
         burning = createBurningTexture(color, seed, columns)
         if (previous.columns !== columns || previous.rows !== rows) {
           stage.removeChildren().forEach((child) => child.destroy())
@@ -103,21 +108,22 @@ export function createPixiEffect(
               sprite.visible = false
               continue
             }
-            const length = 8 * Number(transform[3])
+            const length = Math.min(stepX, stepY) - 1
+            const scaled = length * Number(transform[3])
             sprite.position.set(
-              left + x * 9 + 4 + Number(transform[1]) - length / 2,
-              y * 9 - shift + 4 + Number(transform[2]) - length / 2
+              left + x * stepX + stepX / 2 + Number(transform[1]) - scaled / 2,
+              y * stepY - shift + stepY / 2 + Number(transform[2]) - scaled / 2
             )
-            sprite.width = sprite.height = length
+            sprite.width = sprite.height = scaled
           } else {
-            const cellX = bounds.left + left + x * 9,
-              cellY = bounds.top + y * 9 - shift
+            const cellX = bounds.left + left + x * stepX,
+              cellY = bounds.top + y * stepY - shift
             sprite.position.set(
               Math.round(cellX) - Math.round(bounds.left),
               Math.round(cellY) - Math.round(bounds.top)
             )
-            sprite.width = Math.round(cellX + 8) - Math.round(cellX)
-            sprite.height = Math.round(cellY + 8) - Math.round(cellY)
+            sprite.width = Math.round(cellX + stepX - 1) - Math.round(cellX)
+            sprite.height = Math.round(cellY + stepY - 1) - Math.round(cellY)
           }
         }
         canvas.style.left =
@@ -144,13 +150,16 @@ export function createPixiEffect(
       nextColor: string,
       nextColumns: number,
       nextRows: number,
-      nextSize: { width: number; height: number }
+      nextSize: { width: number; height: number },
+      nextSteps: CellSteps
     ) {
       const previous = { color, columns, rows }
       color = nextColor
       columns = nextColumns
       rows = nextRows
       size = nextSize
+      stepX = nextSteps.stepX
+      stepY = nextSteps.stepY
       bounds = region.getBoundingClientRect()
       updateScene?.(previous)
       draw?.()

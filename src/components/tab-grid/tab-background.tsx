@@ -31,6 +31,7 @@ export default function TabBackground({
           <TabIcon
             key={item.url}
             url={item.url}
+            src={item.icon}
             className={
               compact
                 ? "size-5"

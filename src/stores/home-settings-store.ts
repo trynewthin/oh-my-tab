@@ -15,6 +15,7 @@ export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
 export type EffectStyle = "none" | "burning" | "particles"
 export type FolderStyle = "classic" | "noise" | "none"
+export type TabTexture = EffectStyle
 export type BackgroundType = "solid" | "image"
 export type SearchBoxStyle = "full" | "minimal"
 
@@ -24,12 +25,12 @@ type HomeSettings = {
   backgroundPalette: BackgroundPaletteId
   searchBoxStyle: SearchBoxStyle
   folderStyle: FolderStyle
+  tabTexture: TabTexture
   topComponent: TopComponent
   content: MatrixContent
   text: string
   pet: MatrixPet
   color: string
-  effectStyle: EffectStyle
   burningAmplitude: number
   transitionsEnabled: boolean
 }
@@ -39,12 +40,12 @@ type HomeSettingsStore = HomeSettings & {
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
   setFolderStyle: (value: FolderStyle) => void
+  setTabTexture: (value: TabTexture) => void
   setTopComponent: (value: TopComponent) => void
   setContent: (value: MatrixContent) => void
   setText: (value: string) => void
   setPet: (value: MatrixPet) => void
   setColor: (value: string) => void
-  setEffectStyle: (value: EffectStyle) => void
   setBurningAmplitude: (value: number) => void
   setTransitionsEnabled: (value: boolean) => void
 }
@@ -57,13 +58,12 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       backgroundPalette: "gray",
       searchBoxStyle: "full",
       folderStyle: "noise",
+      tabTexture: "burning",
       topComponent: "dot-matrix",
       content: "time",
       text: "HELLO WORLD",
       pet: "cat",
       color: "#3478f6",
-      effectStyle: "burning",
-      setEffectStyle: (effectStyle) => set({ effectStyle }),
       burningAmplitude: 1,
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
@@ -71,6 +71,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
+      setTabTexture: (tabTexture) => set({ tabTexture }),
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
           set({ burningAmplitude: Math.min(2, Math.max(0, value)) })
@@ -95,6 +96,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         backgroundPalette,
         searchBoxStyle,
         folderStyle,
+        tabTexture,
         topComponent,
         content,
         text,
@@ -102,13 +104,13 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         color,
         burningAmplitude,
         transitionsEnabled,
-        effectStyle,
       }) => ({
         backgroundType,
         backgroundImage,
         backgroundPalette,
         searchBoxStyle,
         folderStyle,
+        tabTexture,
         topComponent,
         content,
         text,
@@ -116,7 +118,6 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         color,
         burningAmplitude,
         transitionsEnabled,
-        effectStyle,
       }),
       merge: (persisted, current) => {
         const saved = persisted as Partial<HomeSettings> | null
@@ -136,10 +137,16 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             saved?.folderStyle === "classic" || saved?.folderStyle === "none"
               ? saved.folderStyle
               : "noise",
-          effectStyle:
-            saved?.effectStyle === "none" || saved?.effectStyle === "particles"
-              ? saved.effectStyle
-              : "burning",
+          // Legacy `effectStyle` (the old global material) seeds tabTexture
+          // for users upgrading from before the two were merged.
+          tabTexture: (() => {
+            const legacy =
+              saved?.tabTexture ??
+              (saved as { effectStyle?: string } | null)?.effectStyle
+            return legacy === "none" || legacy === "particles"
+              ? legacy
+              : "burning"
+          })(),
           burningAmplitude:
             typeof saved?.burningAmplitude === "number" &&
             Number.isFinite(saved.burningAmplitude)

@@ -30,6 +30,7 @@ export default function DraggableGridItem({
   dropProgress,
   folderTabs,
   todoTasks,
+  interactive = true,
 }: {
   dropProgress?: number
   folderTabs?: TabEntry[]
@@ -38,6 +39,8 @@ export default function DraggableGridItem({
   item: GridItem
   onOpen: () => void
   onEdit: () => void
+  // Preview grids keep drag+FLIP but drop the context menu and dialog hooks.
+  interactive?: boolean
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const removeItem = useTabGridStore((state) => state.removeItem)
@@ -57,48 +60,53 @@ export default function DraggableGridItem({
 
   const motionRef = useGridMotion(placement, isDragging, setNodeRef)
 
+  const tile = (
+    <article
+      ref={motionRef}
+      data-grid-item-id={item.id}
+      {...attributes}
+      role="group"
+      aria-label={`拖动 ${item.name} 放置`}
+      className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border border-tile-border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
+      style={{
+        gridColumn: `${placement.x + 1} / span ${placement.width}`,
+        gridRow: `${placement.y + 1} / span ${placement.height}`,
+      }}
+      onMouseDown={(event) => {
+        if (event.button !== 0) return
+        listeners?.onMouseDown?.(event)
+      }}
+      onKeyDown={(event) => {
+        if (event.target === event.currentTarget) listeners?.onKeyDown?.(event)
+      }}
+      onDragStart={(event) => event.preventDefault()}
+    >
+      <div
+        data-grid-item-content
+        className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
+        style={{
+          transform:
+            dropProgress !== undefined
+              ? `scale(${1 + dropProgress * 0.04})`
+              : undefined,
+        }}
+      >
+        <GridTileContent
+          item={item}
+          onOpen={onOpen}
+          preview={!interactive}
+          folderTabs={folderTabs}
+          todoTasks={todoTasks}
+        />
+      </div>
+    </article>
+  )
+
+  if (!interactive) return tile
+
   return (
     <ContextMenu onOpenChange={() => setConfirmDelete(false)}>
-      <ContextMenuTrigger
-        render={<article />}
-        ref={motionRef}
-        data-grid-item-id={item.id}
-        {...attributes}
-        role="group"
-        aria-label={`拖动 ${item.name} 放置`}
-        className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
-        style={{
-          gridColumn: `${placement.x + 1} / span ${placement.width}`,
-          gridRow: `${placement.y + 1} / span ${placement.height}`,
-        }}
-        onMouseDown={(event) => {
-          if (event.button !== 0) return
-          listeners?.onMouseDown?.(event)
-        }}
-        onKeyDown={(event) => {
-          if (event.target === event.currentTarget)
-            listeners?.onKeyDown?.(event)
-        }}
-        onDragStart={(event) => event.preventDefault()}
-      >
-        <div
-          data-grid-item-content
-          className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
-          style={{
-            transform:
-              dropProgress !== undefined
-                ? `scale(${1 + dropProgress * 0.04})`
-                : undefined,
-          }}
-        >
-          <GridTileContent
-            item={item}
-            onOpen={onOpen}
-            folderTabs={folderTabs}
-            todoTasks={todoTasks}
-          />
-        </div>
-      </ContextMenuTrigger>
+      <ContextMenuTrigger render={tile} />
       <ContextMenuContent>
         {sizeOptions.length > 0 && (
           <div

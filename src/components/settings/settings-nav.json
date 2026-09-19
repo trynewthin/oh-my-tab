@@ -14,7 +14,6 @@
       "label": "主页",
       "children": [
         { "id": "home-top", "label": "顶部" },
-        { "id": "home-search", "label": "搜索框" },
         { "id": "search-engines", "label": "搜索" }
       ]
     },
@@ -24,8 +23,7 @@
       "children": [
         { "id": "personalization-appearance", "label": "外观" },
         { "id": "personalization-tabs", "label": "标签" },
-        { "id": "personalization-background", "label": "背景" },
-        { "id": "personalization-motion", "label": "动效" }
+        { "id": "personalization-folders", "label": "文件夹" }
       ]
     },
     {

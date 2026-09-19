@@ -154,12 +154,6 @@ export function createCatalogComponent(
   }
 
   if (kind === "todo") return { ...shared, kind, size: "large", tasks: [] }
-  if (kind === "template")
-    return {
-      ...shared,
-      kind,
-      size: size as TemplateItem["size"],
-    }
   if (kind === "calendar")
     return {
       ...shared,

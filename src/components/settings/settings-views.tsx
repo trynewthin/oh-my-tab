@@ -8,17 +8,13 @@ import { defaultSettingsSection as defaultRouteId } from "./settings-routes"
 export const settingsViews = {
   "general-basic": () => <GeneralSettings pane="basic" />,
   "general-data": () => <GeneralSettings pane="data" />,
-  "home-top": () => <HomeSettings pane="top" />,
-  "home-search": () => <HomeSettings pane="search" />,
+  "home-top": () => <HomeSettings />,
   "search-engines": SearchEngineSettings,
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />
   ),
   "personalization-tabs": () => <PersonalizationSettings pane="tabs" />,
-  "personalization-background": () => (
-    <PersonalizationSettings pane="background" />
-  ),
-  "personalization-motion": () => <PersonalizationSettings pane="motion" />,
+  "personalization-folders": () => <PersonalizationSettings pane="folders" />,
   "about-project": () => <AboutSettings pane="project" />,
   "about-privacy": () => <AboutSettings pane="privacy" />,
 } as const

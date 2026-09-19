@@ -31,13 +31,13 @@ export function snapshot() {
       backgroundPalette: home.backgroundPalette,
       searchBoxStyle: home.searchBoxStyle,
       folderStyle: home.folderStyle,
+      tabTexture: home.tabTexture,
       topComponent: home.topComponent,
       content: home.content,
       text: home.text,
       pet: home.pet,
       color: home.color,
       burningAmplitude: home.burningAmplitude,
-      effectStyle: home.effectStyle,
       transitionsEnabled: home.transitionsEnabled,
     },
     theme: { theme: useThemeStore.getState().theme },
@@ -84,13 +84,15 @@ export function validateConfig(value: unknown): Config {
       !["full", "minimal"].includes(home.searchBoxStyle)) ||
     (home.folderStyle !== undefined &&
       !["classic", "noise", "none"].includes(home.folderStyle)) ||
+    (home.tabTexture !== undefined &&
+      !["none", "burning", "particles"].includes(home.tabTexture)) ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
     !["time", "text", "pet", "breathing"].includes(home.content) ||
     typeof home.text !== "string" ||
     home.text.length > 80 ||
     !hex(home.color) ||
-    (home.effectStyle !== undefined &&
-      !["none", "burning", "particles"].includes(home.effectStyle)) ||
+    (home.tabTexture !== undefined &&
+      !["none", "burning", "particles"].includes(home.tabTexture)) ||
     (home.burningAmplitude !== undefined &&
       (!Number.isFinite(home.burningAmplitude) ||
         home.burningAmplitude < 0 ||
@@ -151,7 +153,13 @@ export function validateConfig(value: unknown): Config {
     )
       throw new Error("网格布局无效")
   }
-  home.effectStyle ??= "burning"
+  // Older exports carried the material as `effectStyle`; fold it into
+  // tabTexture when the new key is absent.
+  const legacyTexture = (home as { effectStyle?: string }).effectStyle
+  home.tabTexture ??=
+    legacyTexture === "none" || legacyTexture === "particles"
+      ? legacyTexture
+      : "burning"
   home.backgroundType ??= "solid"
   if ((home as { backgroundType?: string }).backgroundType === "explore")
     home.backgroundType = "solid"

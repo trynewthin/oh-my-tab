@@ -14,6 +14,19 @@ import type { EffectStyle } from "@/stores/home-settings-store"
 const CELL_SIZE = 8
 const GAP = 1
 
+// Pixel pitch of one cell+gap along each axis for a measured surface.
+function stepsOf(grid: {
+  width: number
+  height: number
+  columns: number
+  rows: number
+}) {
+  return {
+    stepX: (grid.width + GAP) / grid.columns,
+    stepY: (grid.height + GAP) / grid.rows,
+  }
+}
+
 export default function EffectSurface({
   color,
   textureId,
@@ -36,7 +49,7 @@ export default function EffectSurface({
   glass?: boolean
 }) {
   const configuredEffectStyle = useHomeSettingsStore(
-    (state) => state.effectStyle
+    (state) => state.tabTexture
   )
   const effectStyle = effectStyleOverride ?? configuredEffectStyle
   const amplitude = useHomeSettingsStore((state) => state.burningAmplitude)
@@ -54,15 +67,32 @@ export default function EffectSurface({
   const hidden = phase === "hidden" && !transitioning
   const hasGrid = !!grid.columns
   const seed = textureSeed(textureId)
-  const firstRow = Math.floor(offsetY / (CELL_SIZE + GAP))
-  const shiftY = offsetY % (CELL_SIZE + GAP)
+  // Per-axis cell geometry derived from the measured surface: step = cell +
+  // gap. Fractional steps are fine — DOM spans and pixi sprites both take
+  // sub-pixel sizes without visible seams at 1px gaps.
+  const stepX = hasGrid ? (grid.width + GAP) / grid.columns : CELL_SIZE + GAP
+  const stepY = hasGrid ? (grid.height + GAP) / grid.rows : CELL_SIZE + GAP
+  const cellW = stepX - GAP
+  const cellH = stepY - GAP
+  const firstRow = Math.floor(offsetY / stepY)
+  const shiftY = offsetY % stepY
 
   useLayoutEffect(() => {
     const element = region.current
     if (!element) return
-    const updateGrid = ({ width, height }: { width: number; height: number }) => {
-      const columns = Math.ceil(width / (CELL_SIZE + GAP))
-      const rows = Math.ceil(height / (CELL_SIZE + GAP))
+    const updateGrid = ({
+      width,
+      height,
+    }: {
+      width: number
+      height: number
+    }) => {
+      // Cells are sized to fill the surface exactly: the row/column count
+      // is rounded (not ceiled) to the nearest 9px step, then the cell
+      // edge shrinks or grows a fraction of a pixel so the last cell ends
+      // flush with the edge — no clipped partial row anywhere.
+      const columns = Math.max(1, Math.round(width / (CELL_SIZE + GAP)))
+      const rows = Math.max(1, Math.round(height / (CELL_SIZE + GAP)))
       setGrid((current) =>
         current.columns === columns &&
         current.rows === rows &&
@@ -95,6 +125,7 @@ export default function EffectSurface({
       initial.grid.rows + (shiftY ? 1 : 0),
       offsetY,
       initial.grid,
+      stepsOf(initial.grid),
       effectStyle
     )
     pixi.current = effect
@@ -109,7 +140,8 @@ export default function EffectSurface({
       color,
       grid.columns,
       grid.rows + (shiftY ? 1 : 0),
-      grid
+      grid,
+      stepsOf(grid)
     )
   }, [color, grid, shiftY])
 
@@ -238,8 +270,8 @@ export default function EffectSurface({
           <div
             className="absolute top-0 right-0 grid"
             style={{
-              gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${CELL_SIZE}px)`,
-              gridAutoRows: `${CELL_SIZE}px`,
+              gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${cellW}px)`,
+              gridAutoRows: `${cellH}px`,
               gap: GAP,
               top: -shiftY,
             }}

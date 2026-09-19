@@ -9,9 +9,11 @@ import {
 export default function TabIcon({
   url,
   className = "size-4",
+  src: overrideSrc,
 }: {
   url: string
   className?: string
+  src?: string | null
 }) {
   const key = faviconKey(url)
   const initialSrc = peekCachedFavicon(url)
@@ -59,7 +61,7 @@ export default function TabIcon({
     }
   }, [key, url, visible])
 
-  const src = icon.key === key ? icon.src : null
+  const src = overrideSrc ?? (icon.key === key ? icon.src : null)
   return (
     <span
       ref={element}

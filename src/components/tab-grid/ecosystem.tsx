@@ -82,7 +82,11 @@ export default function Ecosystem({
     </svg>
   )
   return (
-    <div ref={container} data-garden-static={!animated || undefined} className="relative h-full w-full p-3">
+    <div
+      ref={container}
+      data-garden-static={!animated || undefined}
+      className="relative h-full w-full p-3"
+    >
       {preview ? (
         <div className="relative h-full w-full">{art}</div>
       ) : (

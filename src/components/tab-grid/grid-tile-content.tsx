@@ -63,6 +63,7 @@ export default function GridTileContent({
         folderId={item.id}
         index={0}
         animated={!!item.dynamicEffect}
+        preview
       />
     )
   return item.kind === "tab" ? (
@@ -72,7 +73,7 @@ export default function GridTileContent({
         animated={!!item.dynamicEffect}
         entrance={!preview}
       />
-      <TabUI item={item} />
+      <TabUI item={item} preview={preview} />
     </>
   ) : (
     <>

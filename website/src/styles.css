@@ -90,7 +90,10 @@ a {
 }
 
 .header-action {
-  padding: 10px 17px;
+  display: inline-flex;
+  height: var(--header-control-height);
+  align-items: center;
+  padding: 0 17px;
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 999px;
   background: #f5f3ff;
@@ -100,6 +103,7 @@ a {
 }
 
 .header-actions {
+  --header-control-height: 38px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -107,7 +111,10 @@ a {
 }
 
 .header-download {
-  padding: 10px 8px;
+  display: inline-flex;
+  height: var(--header-control-height);
+  align-items: center;
+  padding: 0 8px;
   color: #b9bbc8;
   font-size: 13px;
 }
@@ -118,8 +125,8 @@ a {
 
 .header-github {
   display: inline-flex;
-  width: 38px;
-  height: 38px;
+  width: var(--header-control-height);
+  height: var(--header-control-height);
   align-items: center;
   justify-content: center;
   border: 1px solid rgb(255 255 255 / 14%);
@@ -142,7 +149,8 @@ a {
 }
 
 .language-switch {
-  display: flex;
+  display: inline-flex;
+  height: var(--header-control-height);
   align-items: center;
   gap: 2px;
   padding: 3px;
@@ -154,7 +162,10 @@ a {
 
 .language-switch a,
 .language-switch span {
-  padding: 5px 10px;
+  display: inline-flex;
+  height: 100%;
+  align-items: center;
+  padding: 0 10px;
   border-radius: 999px;
   color: #b9bbc8;
   line-height: 1;
@@ -797,22 +808,23 @@ button:focus-visible {
     display: none;
   }
   .header-actions {
+    --header-control-height: 32px;
     gap: 7px;
   }
   .header-action {
     font-size: 11px;
-    padding: 9px 11px;
+    padding: 0 11px;
   }
   .header-github {
-    width: 30px;
-    height: 30px;
+    width: var(--header-control-height);
+    height: var(--header-control-height);
   }
   .language-switch {
     font-size: 11px;
   }
   .language-switch a,
   .language-switch span {
-    padding: 4px 7px;
+    padding: 0 7px;
   }
   .hero-copy {
     margin-bottom: 36px;

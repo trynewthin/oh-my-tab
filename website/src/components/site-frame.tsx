@@ -70,12 +70,7 @@ export function SiteHeader({ language, page }: SiteChromeProps) {
         <a href={pathFor("privacy", language)}>{t("header.privacy")}</a>
       </nav>
       <div className="header-actions">
-        <a className="header-download" href={releaseUrl}>
-          {t("header.download")}
-        </a>
-        <a className="header-action" href={chromeStoreUrl}>
-          {t("header.chromeStore")}
-        </a>
+        <LanguageSwitcher language={language} page={page} />
         <a
           className="header-github"
           href={repositoryUrl}
@@ -83,7 +78,12 @@ export function SiteHeader({ language, page }: SiteChromeProps) {
         >
           <GitHubIcon />
         </a>
-        <LanguageSwitcher language={language} page={page} />
+        <a className="header-download" href={releaseUrl}>
+          {t("header.download")}
+        </a>
+        <a className="header-action" href={chromeStoreUrl}>
+          {t("header.chromeStore")}
+        </a>
       </div>
     </header>
   )

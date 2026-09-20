@@ -43,11 +43,8 @@ import { useTranslation } from "react-i18next"
 import { mixHexColor } from "./folder-drop"
 import EffectSurface from "@/components/effects/effect-surface"
 import { ItemGlow } from "./grid-dnd-overlay"
-import {
-  previewFolderTabs,
-  previewTodoTasks,
-  useGridDrag,
-} from "./use-grid-drag"
+import { useGridDrag } from "./use-grid-drag"
+import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 import type { GridPosition } from "@/lib/grid/grid-layout"
 
 const emptyPositions: GridPositions = {}

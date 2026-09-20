@@ -23,7 +23,7 @@ import {
 import type { TodoItem, TodoTask } from "@/lib/grid/types"
 import { useDraggable } from "@dnd-kit/core"
 import type { TodoTaskDragData } from "./drag-types"
-import { TODO_GAP_ID } from "./use-grid-drag"
+import { TODO_GAP_ID } from "./drag/model"
 import { useTranslation } from "react-i18next"
 
 function focusDraft(node: HTMLInputElement | null) {

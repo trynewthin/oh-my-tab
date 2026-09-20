@@ -7,7 +7,7 @@ import type {
   GridPosition,
   GridPositions,
 } from "@/lib/grid/grid-layout"
-import type { GridItem, TabEntry, TabItem, TodoTask } from "@/lib/grid/types"
+import type { GridItem, TabItem, TodoTask } from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import type { GridDragData } from "./drag-types"
 import {
@@ -18,106 +18,19 @@ import {
   overlapRatio,
   retainedFolderDrop,
 } from "./folder-drop"
+import { containsPoint, gridPositionFromPoint } from "./drag/geometry"
+import {
+  FOLDER_GAP_ID,
+  TODO_GAP_ID,
+  reorderTodoTasks,
+  type Bounds,
+  type DragSession,
+  type Intent,
+  type Point,
+} from "./drag/model"
 
-export const FOLDER_GAP_ID = "__folder-gap__"
-export const TODO_GAP_ID = "__todo-gap__"
 const FOLDER_DROP_INSET = 0.08
 const FOLDER_DROP_EXIT_INSET = 0.04
-
-export function previewFolderTabs(
-  tabs: TabEntry[],
-  tabId: string | undefined,
-  index: number
-) {
-  if (!tabId) return tabs
-  const remaining = tabs.filter((tab) => tab.id !== tabId)
-  const next = [...remaining]
-  next.splice(Math.max(0, Math.min(index, next.length)), 0, {
-    id: FOLDER_GAP_ID,
-    name: "",
-    url: "",
-  })
-  return next
-}
-
-export function previewTodoTasks(
-  tasks: TodoTask[],
-  taskId: string | undefined,
-  index: number
-) {
-  if (!taskId) return tasks
-  const remaining = tasks.filter((task) => task.id !== taskId)
-  const next = [...remaining]
-  next.splice(Math.max(0, Math.min(index, next.length)), 0, {
-    id: TODO_GAP_ID,
-    text: "",
-    done: false,
-  })
-  return next
-}
-
-type Point = { x: number; y: number }
-type Bounds = { left: number; top: number; width: number; height: number }
-
-export type DragSession = {
-  columns: number
-  item: GridItem
-  width: number
-  height: number
-  origin: GridPosition
-  grabOffset: Point
-  pointerOrigin: Point
-  mouse: boolean
-  positions: GridPositions
-  sourceFolderId?: string
-  sourceFolderIndex?: number
-  sourceFolderColor?: string
-  sourceTodoId?: string
-  sourceTodoIndex?: number
-  todoTask?: TodoTask
-  sourceSurface?: "preview" | "dialog"
-  dialogBounds?: Bounds
-  dialogExited: boolean
-}
-
-export type Intent =
-  | { kind: "none" }
-  | {
-      kind: "grid"
-      position: GridPosition
-      holdLayout: boolean
-      releaseProgress: number
-      ready: boolean
-    }
-  | {
-      kind: "folder"
-      folderId: string
-      ready: boolean
-      progress: number
-      releaseProgress: number
-      color: string
-    }
-  | {
-      kind: "reorder"
-      folderId: string
-      index: number
-      releaseProgress: number
-    }
-  | {
-      kind: "todo-reorder"
-      todoId: string
-      index: number
-      releaseProgress: number
-    }
-
-function contains(point: Point, rect: Bounds, insetX = 0, insetY = 0) {
-  return (
-    point.x >= rect.left + rect.width * insetX &&
-    point.x <= rect.left + rect.width * (1 - insetX) &&
-    point.y >= rect.top + rect.height * insetY &&
-    point.y <= rect.top + rect.height * (1 - insetY)
-  )
-}
 
 // Encapsulates the whole drag lifecycle: session capture, the per-frame intent
 // state machine (grid / folder-charge / folder-reorder), and the two rAF timers
@@ -466,7 +379,7 @@ export function useGridDrag({
       )
       const bounds = session.dialogBounds ?? surface?.getBoundingClientRect()
       publish(
-        bounds && contains(point, bounds)
+        bounds && containsPoint(point, bounds)
           ? {
               kind: "todo-reorder",
               todoId: session.sourceTodoId,
@@ -478,7 +391,7 @@ export function useGridDrag({
       return
     }
     if (session.dialogBounds && !session.dialogExited) {
-      if (contains(point, session.dialogBounds)) {
+      if (containsPoint(point, session.dialogBounds)) {
         clearHover()
         clearRelease()
         publish({
@@ -494,7 +407,7 @@ export function useGridDrag({
     }
     if (session.sourceFolderId) {
       const sourceBounds = folderBounds(session.sourceFolderId)
-      if (sourceBounds && contains(point, sourceBounds)) {
+      if (sourceBounds && containsPoint(point, sourceBounds)) {
         clearHover()
         clearRelease()
         publish({
@@ -520,7 +433,7 @@ export function useGridDrag({
         const ratio = overlapRatio(overlay, rect)
         const retained = hover.current?.folderId === folder.id
         if (
-          !contains(
+          !containsPoint(
             point,
             rect,
             retained ? FOLDER_DROP_EXIT_INSET : FOLDER_DROP_INSET,
@@ -583,22 +496,15 @@ export function useGridDrag({
       publish({ kind: "none" })
       return
     }
-    const position = {
-      x: Math.max(
-        0,
-        Math.min(
-          columns - itemWidth(session.item, columns),
-          Math.round((point.x - session.grabOffset.x - grid.left) / columnStep)
-        )
-      ),
-      y: Math.max(
-        0,
-        Math.min(
-          500,
-          Math.round((point.y - session.grabOffset.y - grid.top) / rowStep)
-        )
-      ),
-    }
+    const position = gridPositionFromPoint({
+      point,
+      grabOffset: session.grabOffset,
+      bounds: grid,
+      columns,
+      columnStep,
+      rowStep,
+      itemWidth: itemWidth(session.item, columns),
+    })
     const progress = animateRelease(delta)
     publish({
       kind: "grid",
@@ -650,17 +556,9 @@ export function useGridDrag({
       session.sourceTodoId &&
       session.todoTask
     ) {
-      updateTodoTasks(session.sourceTodoId, (tasks) => {
-        const remaining = tasks.filter(
-          (task) => task.id !== session.todoTask!.id
-        )
-        remaining.splice(
-          Math.max(0, Math.min(action.index, remaining.length)),
-          0,
-          session.todoTask!
-        )
-        return remaining
-      })
+      updateTodoTasks(session.sourceTodoId, (tasks) =>
+        reorderTodoTasks(tasks, session.todoTask!, action.index)
+      )
       committed = true
     } else if (action.kind === "grid" && action.ready) {
       if (session.sourceFolderId)

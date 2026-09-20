@@ -81,6 +81,24 @@ export type TodoItem = {
   dynamicEffect?: boolean
 }
 
+export type MinimalSearchItem = {
+  id: string
+  kind: "search-minimal"
+  name: string
+  size: "small"
+  color: string
+  dynamicEffect?: boolean
+}
+
+export type FullSearchItem = {
+  id: string
+  kind: "search-full"
+  name: string
+  size: "medium"
+  color: string
+  dynamicEffect?: boolean
+}
+
 export type TemplateItem = {
   id: string
   kind: "template"
@@ -97,6 +115,8 @@ export type GridItem =
   | EcosystemItem
   | CalendarItem
   | TodoItem
+  | MinimalSearchItem
+  | FullSearchItem
   | TemplateItem
 
 export function normalizeTabUrl(value: string): string | null {

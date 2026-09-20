@@ -78,6 +78,11 @@ export default function DraggableGridItem({
       }}
       onMouseDown={(event) => {
         if (event.button !== 0) return
+        if (
+          (item.kind === "search-minimal" || item.kind === "search-full") &&
+          !(event.target as Element).closest("[data-grid-drag-handle]")
+        )
+          return
         listeners?.onMouseDown?.(event)
       }}
       onKeyDown={(event) => {
@@ -147,10 +152,12 @@ export default function DraggableGridItem({
             {t("grid.menu.refreshIcon")}
           </ContextMenuItem>
         )}
-        <ContextMenuItem onClick={onEdit}>
-          <PencilSimple />
-          {t("grid.menu.edit")}
-        </ContextMenuItem>
+        {item.kind !== "search-minimal" && item.kind !== "search-full" && (
+          <ContextMenuItem onClick={onEdit}>
+            <PencilSimple />
+            {t("grid.menu.edit")}
+          </ContextMenuItem>
+        )}
         {(supportsComponentAction(item.kind, "randomColor") ||
           supportsComponentAction(item.kind, "dynamicEffect")) && (
           <>
@@ -183,7 +190,9 @@ export default function DraggableGridItem({
         >
           <Trash />
           <span>
-            {confirmDelete ? t("grid.menu.confirmDelete") : t("grid.menu.delete")}
+            {confirmDelete
+              ? t("grid.menu.confirmDelete")
+              : t("grid.menu.delete")}
             {confirmDelete && item.kind === "folder" && (
               <span className="block text-xs opacity-75">
                 {t("grid.menu.deleteFolderHint")}

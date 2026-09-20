@@ -160,12 +160,14 @@ export default function TabGrid({
   trackWidth,
   area,
   previewPositions,
+  fullViewport = false,
 }: {
   preview?: boolean
   items?: GridItem[]
   trackWidth?: number
   area?: { columns: number; rows: number }
   previewPositions?: GridPositions
+  fullViewport?: boolean
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
   const { t } = useTranslation()
@@ -179,7 +181,10 @@ export default function TabGrid({
   const pointer = useRef<{ x: number; y: number } | null>(null)
   const [measuredWidth, setMeasuredWidth] = useState(0)
   const sourceWidth = trackWidth ?? measuredWidth
-  const metrics = gridMetrics(sourceWidth)
+  const metrics = gridMetrics(
+    sourceWidth,
+    fullViewport ? "even-components" : "standard"
+  )
   const box = area
     ? gridOccupancyBox(sourceWidth, area.columns, area.rows)
     : null
@@ -542,7 +547,7 @@ export default function TabGrid({
         render={<section />}
         data-tour="grid"
         aria-label={t("grid.chrome.grid")}
-        className="mx-auto min-h-0 w-full max-w-[1280px]"
+        className={`min-h-0 w-full ${fullViewport ? "" : "mx-auto max-w-[1280px]"}`}
       >
         <DndContext
           sensors={sensors}
@@ -552,9 +557,9 @@ export default function TabGrid({
           onDragCancel={resetDrag}
         >
           <div
-            className={`${selecting ? "pb-28" : "pb-4"} px-5`}
+            className={`${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
             style={{
-              margin: "0 -20px",
+              margin: fullViewport ? undefined : "0 -20px",
               paddingTop: compactGrid ? 12 : 20,
             }}
           >

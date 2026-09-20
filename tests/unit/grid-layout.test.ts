@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest"
 import {
+  columnsForWidth,
   gridMetrics,
   gridOccupancyBox,
   placeItems,
 } from "@/lib/grid/grid-layout"
-import type { TemplateItem } from "@/lib/grid/types"
+import type { GridItem, TemplateItem } from "@/lib/grid/types"
 
 const template = (id: string, size: TemplateItem["size"]): TemplateItem => ({
   id,
@@ -36,6 +37,33 @@ describe("grid unit occupancy", () => {
   })
 })
 
+describe("responsive component width", () => {
+  test("search components use 12 columns when available and shrink to the grid", () => {
+    const minimal: GridItem = {
+      id: "minimal-search",
+      kind: "search-minimal",
+      name: "search",
+      size: "small",
+      color: "#6c8bd4",
+    }
+    const full: GridItem = {
+      id: "full-search",
+      kind: "search-full",
+      name: "search",
+      size: "medium",
+      color: "#6c8bd4",
+    }
+    expect(placeItems([minimal, full], 20, {})).toMatchObject({
+      "minimal-search": { width: 12, height: 1 },
+      "full-search": { width: 12, height: 2 },
+    })
+    expect(placeItems([minimal, full], 8, {})).toMatchObject({
+      "minimal-search": { width: 8, height: 1 },
+      "full-search": { width: 8, height: 2 },
+    })
+  })
+})
+
 describe("grid metrics", () => {
   test("cell size matches home grid geometry", () => {
     const metrics = gridMetrics(1280)
@@ -47,5 +75,18 @@ describe("grid metrics", () => {
       width: 4 * metrics.columnStep - 16,
       height: metrics.columnStep - 16,
     })
+  })
+
+  test("free grids expose only an even number of four-unit component columns", () => {
+    for (const [width, columns] of [
+      [500, 8],
+      [900, 16],
+      [1440, 24],
+      [1920, 24],
+    ] as const) {
+      expect(columnsForWidth(width, "even-components")).toBe(columns)
+      expect(columns / 4).toBeGreaterThan(0)
+      expect((columns / 4) % 2).toBe(0)
+    }
   })
 })

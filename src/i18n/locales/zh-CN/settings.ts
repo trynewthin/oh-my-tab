@@ -112,8 +112,7 @@ export default {
     remoteSource: "WebDAV 云端备份",
     download: "下载",
     addressInvalid: "请输入完整的 HTTPS WebDAV 目录地址",
-    addressInsecure:
-      "WebDAV 地址须使用 HTTPS，且不能包含凭据、查询参数或片段",
+    addressInsecure: "WebDAV 地址须使用 HTTPS，且不能包含凭据、查询参数或片段",
     usernameColon: "用户名不能包含冒号",
     permissionDenied: "未获得服务器访问权限",
     networkFailed:
@@ -161,6 +160,9 @@ export default {
     sleepy: "困困 (-ω-)",
   },
   appearance: {
+    layoutMode: "主页布局",
+    layoutTraditional: "传统",
+    layoutFree: "自由网格",
     accentColor: "主题色",
     themeMode: "深浅色模式",
     themeLight: "浅色",

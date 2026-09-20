@@ -18,8 +18,10 @@ export type FolderStyle = "classic" | "noise" | "none"
 export type TabTexture = EffectStyle
 export type BackgroundType = "solid" | "image"
 export type SearchBoxStyle = "full" | "minimal"
+export type HomeLayoutMode = "traditional" | "free"
 
 type HomeSettings = {
+  layoutMode: HomeLayoutMode
   backgroundType: BackgroundType
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
@@ -36,6 +38,7 @@ type HomeSettings = {
 }
 type HomeSettingsStore = HomeSettings & {
   setBackgroundType: (value: BackgroundType) => void
+  setLayoutMode: (value: HomeLayoutMode) => void
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
@@ -53,6 +56,7 @@ type HomeSettingsStore = HomeSettings & {
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
+      layoutMode: "traditional",
       backgroundType: "solid",
       backgroundImage: null,
       backgroundPalette: "gray",
@@ -67,6 +71,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       burningAmplitude: 1,
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
+      setLayoutMode: (layoutMode) => set({ layoutMode }),
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
@@ -91,6 +96,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       ...storageOptions(),
       name: "omt.home-settings",
       partialize: ({
+        layoutMode,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -105,6 +111,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         transitionsEnabled,
       }) => ({
+        layoutMode,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -123,6 +130,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         const saved = persisted as Partial<HomeSettings> | null
         return {
           ...current,
+          layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
           backgroundImage:
             typeof saved?.backgroundImage === "string"

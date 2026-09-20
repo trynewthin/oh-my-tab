@@ -9,6 +9,7 @@ import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
+import SearchTile from "./search-tile"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 
@@ -28,6 +29,8 @@ export default function GridTileContent({
   todoTasks?: TodoTask[]
 }) {
   const { t } = useTranslation()
+  if (item.kind === "search-minimal" || item.kind === "search-full")
+    return <SearchTile item={item} preview={preview} />
   if (item.kind === "todo")
     return <Todo item={item} preview={preview} tasks={todoTasks} />
   if (item.kind === "calendar")

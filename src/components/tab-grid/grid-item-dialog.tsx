@@ -5,6 +5,7 @@ import Ecosystem from "./ecosystem"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import DotArt from "./dot-art"
+import SearchTile from "./search-tile"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { BookmarkSimple } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -43,6 +44,40 @@ function PreviewContent({
 }) {
   const { t } = useTranslation()
   const resolved = size ?? getComponentDefinition(kind).defaultSize
+  if (kind === "search-minimal" || kind === "search-full") {
+    const item =
+      kind === "search-minimal"
+        ? ({
+            id: `${kind}-preview`,
+            kind,
+            name: componentDefaultName(kind, t),
+            size: "small",
+            color: getComponentDefinition(kind).defaultColor,
+          } as const)
+        : ({
+            id: `${kind}-preview`,
+            kind,
+            name: componentDefaultName(kind, t),
+            size: "medium",
+            color: getComponentDefinition(kind).defaultColor,
+          } as const)
+    return (
+      <div
+        className={`${detail ? "w-full" : "mx-auto w-full max-w-60"} overflow-hidden rounded-2xl`}
+        style={{
+          height: detail
+            ? kind === "search-minimal"
+              ? 56
+              : 112
+            : kind === "search-minimal"
+              ? 40
+              : 80,
+        }}
+      >
+        <SearchTile preview item={item} />
+      </div>
+    )
+  }
   if (kind === "todo")
     return (
       <div
@@ -168,6 +203,8 @@ export default function GridItemDialog({
     return (
       <DotCanvasConfiguration item={item} onClose={onClose} onSaved={onClose} />
     )
+  if (item?.kind === "search-minimal" || item?.kind === "search-full")
+    return null
   if (item)
     return (
       <ComponentConfiguration item={item} onClose={onClose} onSaved={onClose} />
@@ -284,9 +321,15 @@ export default function GridItemDialog({
                                 >
                                   {confirmSize === option.value
                                     ? t("grid.dialog.confirmAddWithSize", {
-                                        size: occupancyMark(option.width, option.height),
+                                        size: occupancyMark(
+                                          option.width,
+                                          option.height
+                                        ),
                                       })
-                                    : occupancyMark(option.width, option.height)}
+                                    : occupancyMark(
+                                        option.width,
+                                        option.height
+                                      )}
                                 </Button>
                               )
                             )}

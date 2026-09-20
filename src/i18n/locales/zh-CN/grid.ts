@@ -36,6 +36,16 @@ const grid = {
       description: "查看月历，切换月份，快速回到今天。",
       defaultName: "日历",
     },
+    searchMinimal: {
+      label: "简约搜索框",
+      description: "适合自由网格的单行搜索框，最大占用 12×1。",
+      defaultName: "简约搜索框",
+    },
+    searchFull: {
+      label: "普通搜索框",
+      description: "带完整操作区的搜索框，最大占用 12×2。",
+      defaultName: "普通搜索框",
+    },
     template: {
       label: "模板",
       description: "标准占位格。1×1 是正方形单位，其它尺寸都是它的整数倍。",

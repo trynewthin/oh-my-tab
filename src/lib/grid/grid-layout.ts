@@ -3,14 +3,24 @@ import { getItemGridDimensions } from "./registry"
 
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
 
-export function columnsForWidth(width: number): number {
+export type GridColumnMode = "standard" | "even-components"
+
+export function columnsForWidth(
+  width: number,
+  mode: GridColumnMode = "standard"
+): number {
+  if (mode === "even-components") {
+    if (width >= 1260) return 24
+    if (width >= 640) return 16
+    return width > 0 ? 8 : 4
+  }
   if (width >= 1260) return 20
   if (width >= 1000) return 16
   return width >= 640 ? 12 : width > 0 ? 8 : 4
 }
 
-export function gridMetrics(width: number) {
-  const columns = columnsForWidth(width)
+export function gridMetrics(width: number, mode: GridColumnMode = "standard") {
+  const columns = columnsForWidth(width, mode)
   const gap = width > 0 && width < 640 ? 12 : 16
   const columnStep = width > 0 ? (width + gap) / columns : 0
   return {

@@ -37,6 +37,16 @@ const grid = {
       description: "See the month, change months, and jump back to today.",
       defaultName: "Calendar",
     },
+    searchMinimal: {
+      label: "Minimal search",
+      description: "A one-row search box for free grids, up to 12×1.",
+      defaultName: "Minimal search",
+    },
+    searchFull: {
+      label: "Full search",
+      description: "A search box with the full action row, up to 12×2.",
+      defaultName: "Full search",
+    },
     template: {
       label: "Template",
       description:
@@ -228,7 +238,14 @@ const grid = {
       "Leaf",
       "Orchid",
     ],
-    family: ["Daisy", "Sunflower", "Bellflower", "Foxtail", "Fern", "Succulent"],
+    family: [
+      "Daisy",
+      "Sunflower",
+      "Bellflower",
+      "Foxtail",
+      "Fern",
+      "Succulent",
+    ],
     stage: ["Sprout", "Seedling", "Growing", "Bloom", "Mature"],
     artTitle: "{{name}} · {{family}} · {{stage}}",
   },
@@ -242,7 +259,8 @@ const grid = {
     invalidBookmark: "Enter a name and a valid URL",
   },
   error: {
-    corruptGrid: "Invalid component data. Loading stopped to keep the original.",
+    corruptGrid:
+      "Invalid component data. Loading stopped to keep the original.",
   },
   mock: {
     designFolder: "Design inspiration",

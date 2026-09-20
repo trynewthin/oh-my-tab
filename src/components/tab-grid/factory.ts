@@ -19,7 +19,8 @@ import type {
 type CatalogItem = Extract<GridItem, { kind: CatalogComponentKind }>
 export type ConfigurableItem = Exclude<
   GridItem,
-  { kind: "dot-canvas" | "ecosystem" }
+  | { kind: "dot-canvas" | "ecosystem" }
+  | { kind: "search-minimal" | "search-full" }
 >
 
 export function configureComponent({
@@ -155,6 +156,9 @@ export function createCatalogComponent(
     name: componentDefaultName(kind, (key) => i18n.t(key)),
     color: definition.defaultColor,
   }
+
+  if (kind === "search-minimal") return { ...shared, kind, size: "small" }
+  if (kind === "search-full") return { ...shared, kind, size: "medium" }
 
   if (kind === "todo") return { ...shared, kind, size: "large", tasks: [] }
   if (kind === "calendar")

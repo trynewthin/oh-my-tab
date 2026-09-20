@@ -17,7 +17,13 @@ import type { TabItem } from "@/lib/grid/types"
 import SearchEngineSelect from "@/pages/home/components/search-engine-select"
 import SettingsButton from "@/pages/home/components/settings-button"
 
-type HomePromptInputProps = { onSubmit?: (message: string) => void }
+import type { SearchBoxStyle } from "@/stores/home-settings-store"
+
+type HomePromptInputProps = {
+  onSubmit?: (message: string) => void
+  style?: SearchBoxStyle
+  embedded?: boolean
+}
 
 function readableForeground(hex: string) {
   const channels = [1, 3, 5].map((start) => {
@@ -31,14 +37,21 @@ function readableForeground(hex: string) {
   return luminance > 0.179 ? "#18181b" : "#ffffff"
 }
 
-export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
+export default function HomePromptInput({
+  onSubmit,
+  style,
+  embedded = false,
+}: HomePromptInputProps) {
   const { t } = useTranslation()
   const draft = usePromptStore((state) => state.draft)
   const setDraft = usePromptStore((state) => state.setDraft)
   const items = useTabGridStore((state) => state.items)
   const themeColor = useHomeSettingsStore((state) => state.color)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
-  const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
+  const storedSearchBoxStyle = useHomeSettingsStore(
+    (state) => state.searchBoxStyle
+  )
+  const searchBoxStyle = style ?? storedSearchBoxStyle
   const root = useRef<HTMLDivElement>(null)
   const listId = useId()
   const [focused, setFocused] = useState(false)
@@ -155,11 +168,15 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
   return (
     <div
       ref={root}
-      className={`relative isolate z-20 mx-auto mt-6 w-full max-w-3xl shrink-0 ${searchBoxStyle === "minimal" ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : ""}`}
+      className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto mt-6 max-w-3xl"} ${searchBoxStyle === "minimal" ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : embedded ? "flex flex-col" : ""}`}
       data-tour={searchBoxStyle === "minimal" ? "search" : undefined}
+      onMouseDown={embedded ? (event) => event.stopPropagation() : undefined}
+      onKeyDown={embedded ? (event) => event.stopPropagation() : undefined}
     >
       {searchBoxStyle === "minimal" ? (
-        <div className="contents">
+        <div
+          className={`contents ${embedded ? "[&>div:last-child]:h-full" : ""}`}
+        >
           <div className="flex shrink-0 items-center gap-2">
             <MoreActions compact />
             <SettingsButton compact />
@@ -248,11 +265,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
         </div>
       ) : (
         <PromptInput
-          className={
-            backgroundType === "solid"
-              ? "relative isolate overflow-hidden dark:bg-card"
-              : "relative isolate overflow-hidden bg-background/55 backdrop-blur-xl dark:bg-card/55"
-          }
+          className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : "relative isolate overflow-hidden"} ${backgroundType === "solid" ? "dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           value={draft}
           onValueChange={(value) => {
             setDraft(value)
@@ -309,7 +322,9 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
               }
             }}
           />
-          <PromptInputActions className="justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2">
+          <PromptInputActions
+            className={`justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2 ${embedded ? "mt-auto" : ""}`}
+          >
             <MoreActions />
             <div className="mr-auto">
               <SettingsButton />
@@ -345,6 +360,7 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
           role="listbox"
           aria-label={t("shell.home.suggestions")}
           className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" ? "col-start-2 col-end-3" : ""}`}
+          style={embedded ? { zIndex: 60 } : undefined}
           onMouseDown={(event) => event.preventDefault()}
         >
           {matches.length > 0 && (

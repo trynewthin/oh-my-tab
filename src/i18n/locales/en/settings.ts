@@ -138,8 +138,7 @@ export default {
       'Checked "{{source}}". Restoring overwrites this device\'s data; export a backup first.',
     upload:
       "A cloud backup already exists. Uploading overwrites it with this device's data.",
-    changedRestore:
-      "Local data changed. Select the backup again to confirm.",
+    changedRestore: "Local data changed. Select the backup again to confirm.",
     confirmLocal: "Overwrite this device",
     confirmRemote: "Overwrite cloud",
   },
@@ -170,6 +169,9 @@ export default {
     sleepy: "Sleepy (-ω-)",
   },
   appearance: {
+    layoutMode: "Home layout",
+    layoutTraditional: "Traditional",
+    layoutFree: "Free grid",
     accentColor: "Accent color",
     themeMode: "Light and dark mode",
     themeLight: "Light",
@@ -279,7 +281,8 @@ export default {
     unrecognizedData: "Unrecognized data format or version",
     damagedData: "The data text is incomplete, damaged, or too large",
     invalidContent: "Invalid data content",
-    invalidContentOrSettings: "Invalid data content or missing required settings",
+    invalidContentOrSettings:
+      "Invalid data content or missing required settings",
     duplicateIds: "Duplicate tab or folder identifiers",
     invalidGrid: "Invalid grid layout",
     invalidImageOrSize: "Invalid image type or over 50 MB",
@@ -288,7 +291,8 @@ export default {
     backupSizeLimit: "Backup exceeds the size limit (64 MB)",
     backupFileSizeLimit: "Choose a backup no larger than 64 MB",
     legacyBackupTooLarge: "Legacy backup is too large",
-    zipImageReference: "ZIP images must be referenced through the asset manifest",
+    zipImageReference:
+      "ZIP images must be referenced through the asset manifest",
     invalidBackupStructure: "Invalid backup structure or over the size limit",
     missingManifest: "Backup is missing its data manifest",
     unsupportedBackupVersion: "Unsupported backup format or version",

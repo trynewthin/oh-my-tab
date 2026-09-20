@@ -23,6 +23,10 @@ export type ConfigurableItem = Exclude<
   | { kind: "search-minimal" | "search-full" }
 >
 
+function assertNever(value: never): never {
+  throw new Error(`Unhandled kind: ${String(value)}`)
+}
+
 export function configureComponent({
   existing,
   id,
@@ -84,15 +88,17 @@ export function configureComponent({
       dynamicEffect:
         existing?.kind === "template" ? existing.dynamicEffect : false,
     }
-  return {
-    id,
-    kind,
-    name,
-    color,
-    size: size as Extract<GridItem, { kind: "todo" }>["size"],
-    tasks: existing?.kind === "todo" ? existing.tasks : [],
-    dynamicEffect: existing?.dynamicEffect ?? false,
-  }
+  if (kind === "todo")
+    return {
+      id,
+      kind,
+      name,
+      color,
+      size: size as Extract<GridItem, { kind: "todo" }>["size"],
+      tasks: existing?.kind === "todo" ? existing.tasks : [],
+      dynamicEffect: existing?.dynamicEffect ?? false,
+    }
+  assertNever(kind)
 }
 
 export function createTabItem({
@@ -176,13 +182,16 @@ export function createCatalogComponent(
       plants: [],
     }
 
-  const dotSize = size as Extract<GridItem, { kind: "dot-canvas" }>["size"]
-  const dimensions = canvasDimensions(dotSize)
-  return {
-    ...shared,
-    kind,
-    size: dotSize,
-    pixels: blankDots(dimensions.columns, dimensions.rows),
-    pixelColumns: dimensions.columns,
+  if (kind === "dot-canvas") {
+    const dotSize = size as Extract<GridItem, { kind: "dot-canvas" }>["size"]
+    const dimensions = canvasDimensions(dotSize)
+    return {
+      ...shared,
+      kind,
+      size: dotSize,
+      pixels: blankDots(dimensions.columns, dimensions.rows),
+      pixelColumns: dimensions.columns,
+    }
   }
+  assertNever(kind)
 }

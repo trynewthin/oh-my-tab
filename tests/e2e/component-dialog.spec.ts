@@ -87,6 +87,15 @@ test("more menu creates folders on mobile", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "文件夹", exact: true })
   ).toBeVisible()
+  await expect
+    .poll(async () => {
+      const state = await readStoredState<{ items: { name: string }[] }>(
+        page,
+        "omt.tab-grid"
+      )
+      return state.items.some((item) => item.name === "文件夹")
+    })
+    .toBe(true)
   await page.reload()
   await expect(
     page.getByRole("button", { name: "文件夹", exact: true })

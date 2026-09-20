@@ -1,6 +1,5 @@
 import { useState } from "react"
-import EcosystemConfiguration from "./ecosystem-configuration"
-import DotCanvasConfiguration from "./dot-canvas-configuration"
+import { WidgetEditor } from "./widget-ui"
 import CatalogComponentPreview from "./catalog-component-preview"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { BookmarkSimple } from "@phosphor-icons/react"
@@ -12,7 +11,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import ComponentConfiguration from "./component-configuration"
 import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
@@ -42,20 +40,7 @@ export default function GridItemDialog({
     saveItem(createCatalogComponent(kind, size))
     onClose()
   }
-  if (item?.kind === "ecosystem")
-    return (
-      <EcosystemConfiguration item={item} onClose={onClose} onSaved={onClose} />
-    )
-  if (item?.kind === "dot-canvas")
-    return (
-      <DotCanvasConfiguration item={item} onClose={onClose} onSaved={onClose} />
-    )
-  if (item?.kind === "search-minimal" || item?.kind === "search-full")
-    return null
-  if (item)
-    return (
-      <ComponentConfiguration item={item} onClose={onClose} onSaved={onClose} />
-    )
+  if (item) return <WidgetEditor item={item} onClose={onClose} onSaved={onClose} />
   return (
     <Dialog
       open

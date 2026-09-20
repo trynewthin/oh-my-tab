@@ -88,5 +88,10 @@ export function validGridItem(value: unknown): value is GridItem {
     typed.kind === "search-full"
   )
     return true
-  return typed.tabs.every(validTabEntry)
+  if (typed.kind === "folder") return typed.tabs.every(validTabEntry)
+  assertNever(typed)
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled kind: ${String(value)}`)
 }

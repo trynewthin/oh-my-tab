@@ -11,16 +11,15 @@ import { useDndContext } from "@dnd-kit/core"
 import gsap from "gsap"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import type { TabEntry } from "@/lib/grid/types"
 import ComponentBackground from "../shared/component-background"
-import FolderExpandedGrid from "../folder-expanded-grid"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import {
-  componentLabel,
-  supportsComponentAction,
-} from "@/lib/grid/registry"
-import { useTranslation } from "react-i18next"
+
+export type ExpandedCollection = {
+  id: string
+  name: string
+  color: string
+  dynamicEffect?: boolean
+}
 
 function expandedBounds() {
   const width = Math.min(
@@ -161,25 +160,21 @@ function resetClosingStyles(panel: HTMLElement) {
 }
 
 export default function CollectionExpansion({
-  itemId,
+  collection,
+  closeLabel,
   onClose,
   suspended = false,
-  children,
   headerActions,
-  folderTabs,
+  children,
 }: {
-  itemId: string
+  collection: ExpandedCollection
+  closeLabel: string
   onClose: () => void
   suspended?: boolean
-  children?: ReactNode
   headerActions?: ReactNode
-  folderTabs?: TabEntry[]
+  children: ReactNode
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
-  const { t } = useTranslation()
-  const collection = useTabGridStore((state) =>
-    state.items.find((item) => item.id === itemId)
-  )
   const { active } = useDndContext()
   const panelRef = useRef<HTMLElement | null>(null)
   const sourceRef = useRef<HTMLElement | null>(null)
@@ -201,7 +196,7 @@ export default function CollectionExpansion({
     const source =
       Array.from(
         document.querySelectorAll<HTMLElement>("[data-grid-item-id]")
-      ).find((node) => node.dataset.gridItemId === itemId) ?? null
+      ).find((node) => node.dataset.gridItemId === collection.id) ?? null
     sourceRef.current = source
     sourceVisibility.current = source?.style.visibility ?? ""
     sourceOpacity.current = source?.style.opacity ?? ""
@@ -371,7 +366,7 @@ export default function CollectionExpansion({
       )
         previousFocus.focus({ preventScroll: true })
     }
-  }, [itemId])
+  }, [collection.id])
 
   useLayoutEffect(() => {
     const panel = panelRef.current
@@ -551,9 +546,6 @@ export default function CollectionExpansion({
     }
   }, [active, suspended, close])
 
-  if (!collection || !supportsComponentAction(collection.kind, "expandable"))
-    return null
-
   return createPortal(
     <section
       ref={panelRef}
@@ -591,9 +583,7 @@ export default function CollectionExpansion({
             <Button
               variant="ghost"
               size="icon"
-              aria-label={t("grid.chrome.closeComponent", {
-                label: componentLabel(collection.kind, t),
-              })}
+              aria-label={closeLabel}
               className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
               onClick={close}
             >
@@ -601,11 +591,7 @@ export default function CollectionExpansion({
             </Button>
           </div>
         </header>
-        {children ??
-          (collection.kind === "folder" &&
-            (folderTabs ?? collection.tabs).length > 0 && (
-              <FolderExpandedGrid folder={collection} tabs={folderTabs} />
-            ))}
+        {children}
       </div>
     </section>,
     document.body

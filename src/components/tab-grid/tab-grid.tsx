@@ -21,7 +21,8 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import DraggableGridItem from "./draggable-grid-item"
 import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
-import { getComponentDefinition } from "@/lib/grid/registry"
+import FolderExpandedGrid from "./folder-expanded-grid"
+import { componentLabel, getComponentDefinition } from "@/lib/grid/registry"
 import type { GridItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 import { useGridDrag } from "./use-grid-drag"
@@ -202,6 +203,28 @@ export default function TabGrid({
     ensureLayout(columns)
   }, [preview, columns, width, items, layouts, dragging, ensureLayout])
 
+  // The expanded surface only exists while a folder with this id is present.
+  const expandedFolder =
+    folderId === null
+      ? undefined
+      : items.find(
+          (item): item is Extract<GridItem, { kind: "folder" }> =>
+            item.id === folderId && item.kind === "folder"
+        )
+  const expandedTabs =
+    expandedFolder === undefined
+      ? undefined
+      : intent.kind === "reorder" && intent.folderId === folderId
+        ? previewFolderTabs(expandedFolder.tabs, dragging?.item.id, intent.index)
+        : dragging?.sourceFolderId === folderId &&
+            dragging.sourceFolderIndex !== undefined
+          ? previewFolderTabs(
+              expandedFolder.tabs,
+              dragging.item.id,
+              dragging.sourceFolderIndex
+            )
+          : undefined
+
   const sensors = useGridSensors({ columnStep, rowStep })
 
   const overlay = (
@@ -380,36 +403,22 @@ export default function TabGrid({
               onClose={() => setEditor(null)}
             />
           )}
-          {folderId && (
+          {expandedFolder && (
             <CollectionExpansion
-              itemId={folderId}
+              collection={expandedFolder}
+              closeLabel={t("grid.chrome.closeComponent", {
+                label: componentLabel("folder", t),
+              })}
               suspended={dialogSuspended}
               onClose={() => setFolderId(null)}
-              folderTabs={
-                intent.kind === "reorder" && intent.folderId === folderId
-                  ? previewFolderTabs(
-                      items.find(
-                        (item): item is Extract<GridItem, { kind: "folder" }> =>
-                          item.id === folderId && item.kind === "folder"
-                      )?.tabs ?? [],
-                      dragging?.item.id,
-                      intent.index
-                    )
-                  : dragging?.sourceFolderId === folderId &&
-                      dragging.sourceFolderIndex !== undefined
-                    ? previewFolderTabs(
-                        items.find(
-                          (
-                            item
-                          ): item is Extract<GridItem, { kind: "folder" }> =>
-                            item.id === folderId && item.kind === "folder"
-                        )?.tabs ?? [],
-                        dragging.item.id,
-                        dragging.sourceFolderIndex
-                      )
-                    : undefined
-              }
-            />
+            >
+              {(expandedTabs ?? expandedFolder.tabs).length > 0 && (
+                <FolderExpandedGrid
+                  folder={expandedFolder}
+                  tabs={expandedTabs}
+                />
+              )}
+            </CollectionExpansion>
           )}
           <BulkActions />
         </DndContext>

@@ -35,7 +35,6 @@ import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 
 const emptyPositions: GridPositions = {}
 
-
 export default function TabGrid({
   preview = false,
   items: itemsOverride,
@@ -72,7 +71,8 @@ export default function TabGrid({
   const box = area
     ? gridOccupancyBox(sourceWidth, area.columns, area.rows)
     : null
-  const width = box?.width ?? measuredWidth
+  const liveBox = gridOccupancyBox(sourceWidth, metrics.columns, 1)
+  const width = box?.width ?? (sourceWidth > 0 ? liveBox.width : measuredWidth)
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
   const widthColumns = area?.columns ?? metrics.columns
@@ -215,7 +215,11 @@ export default function TabGrid({
     expandedFolder === undefined
       ? undefined
       : intent.kind === "reorder" && intent.folderId === folderId
-        ? previewFolderTabs(expandedFolder.tabs, dragging?.item.id, intent.index)
+        ? previewFolderTabs(
+            expandedFolder.tabs,
+            dragging?.item.id,
+            intent.index
+          )
         : dragging?.sourceFolderId === folderId &&
             dragging.sourceFolderIndex !== undefined
           ? previewFolderTabs(
@@ -258,8 +262,8 @@ export default function TabGrid({
           style={{
             width: box?.width,
             height: box?.height,
-            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-            gridAutoRows: Math.max(1, rowStep - gridGap),
+            gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
+            gridAutoRows: metrics.rowSize,
           }}
         >
           {items.map((item) => (
@@ -312,8 +316,10 @@ export default function TabGrid({
               data-tab-grid-track={preview ? undefined : ""}
               className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
               style={{
-                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                gridAutoRows: Math.max(1, rowStep - gridGap),
+                width: width > 0 ? width : undefined,
+                marginInline: "auto",
+                gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
+                gridAutoRows: metrics.rowSize,
               }}
             >
               {(width > 0 && layouts[columns] ? items : []).map((item) =>

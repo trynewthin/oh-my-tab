@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test"
 
-for (const size of ["large", "tall"] as const) {
-  test(`${size} folder fills its available height with complete rows`, async ({
+for (const [size, expectedRows] of [
+  ["large", 4],
+  ["tall", 8],
+] as const) {
+  test(`${size} folder fills its height with ${expectedRows} complete rows`, async ({
     page,
   }) => {
     await page.addInitScript(
@@ -21,7 +24,7 @@ for (const size of ["large", "tall"] as const) {
                   name: "资料",
                   size,
                   color: "#6c8bd4",
-                  tabs: Array.from({ length: 10 }, (_, i) => ({
+                  tabs: Array.from({ length: 20 }, (_, i) => ({
                     id: String(i),
                     name: `网站 ${i + 1}`,
                     url: `https://example.com/${i}`,
@@ -39,15 +42,11 @@ for (const size of ["large", "tall"] as const) {
     await page.goto("/")
     const region = page.getByRole("region", { name: "资料内的标签" })
     await expect(region).toBeVisible()
-    // The preview renders as many whole rows as the region's available height
-    // allows. The row pitch is measured from the live stack rather than
-    // assumed: the implementation deliberately tightens the inter-row gap
-    // down to 4px to fit one more row, so the old hard-coded 8px gap
-    // under-counted (3 instead of 4, 8 instead of 9).
+    // The row pitch is measured from the live stack because the gap may shrink
+    // slightly while each texture row stays aligned to whole 9px cells.
     const geometry = await region.evaluate((element) => {
       const available =
-        element.clientHeight -
-        parseFloat(getComputedStyle(element).paddingTop)
+        element.clientHeight - parseFloat(getComputedStyle(element).paddingTop)
       const rows = Array.from(
         element.querySelectorAll<HTMLElement>("[data-stack-row]")
       )
@@ -57,8 +56,6 @@ for (const size of ["large", "tall"] as const) {
           ? rows[1].getBoundingClientRect().top -
             rows[0].getBoundingClientRect().top
           : rowHeight
-      // Both sizes land exactly on a row boundary ((199 - 46) / 51 = 3 and
-      // (458 - 46) / 51.5 = 8), so nudge by a relative epsilon before flooring.
       const fitted =
         step > 0
           ? Math.max(
@@ -71,6 +68,8 @@ for (const size of ["large", "tall"] as const) {
           : rows.length
       return { available, rowHeight, step, fitted, total: rows.length }
     })
+    expect(geometry.fitted).toBe(expectedRows)
+    expect((geometry.rowHeight - 1) % 9).toBeCloseTo(0, 5)
     await expect(region.getByRole("link")).toHaveCount(geometry.fitted)
     const bounds = (await region.boundingBox())!
     const boxes = await region
@@ -87,8 +86,8 @@ for (const size of ["large", "tall"] as const) {
     }
     // The stack must consume the available height: no further full row fits.
     const lowest = Math.max(...boxes.map((box) => box.bottom))
-    expect(bounds.y + bounds.height - lowest).toBeLessThan(geometry.step)
-    // Large and tall previews are multi-row, and their ten bookmarks exceed
+    expect(bounds.y + bounds.height - lowest).toBeLessThan(2)
+    // Large and tall previews are multi-row, and their twenty bookmarks exceed
     // what fits, so the scroll path below is genuinely exercised.
     expect(geometry.fitted).toBeGreaterThan(1)
     expect(geometry.fitted).toBeLessThan(geometry.total)
@@ -140,7 +139,7 @@ for (const size of ["large", "tall"] as const) {
     await region.focus()
     await region.press("End")
     await expect(
-      region.getByRole("link", { name: "网站 10", exact: true })
+      region.getByRole("link", { name: "网站 20", exact: true })
     ).toBeVisible()
   })
 }
@@ -191,8 +190,11 @@ test("legacy compact folders retain bookmarks and their stored size", async ({
     .toBe("small")
 })
 
-for (const size of ["wide", "wide-tall"]) {
-  test(`${size} folder spans eight cells and arranges bookmarks in two columns`, async ({
+for (const [size, expectedRows] of [
+  ["wide", 4],
+  ["wide-tall", 8],
+] as const) {
+  test(`${size} folder uses two columns when eight cells fit and collapses on a narrow grid`, async ({
     page,
   }) => {
     await page.addInitScript((size) => {
@@ -228,6 +230,7 @@ for (const size of ["wide", "wide-tall"]) {
     const folder = page.locator('[data-grid-item-id="wide-folder"]')
     await expect(folder).toHaveCSS("grid-column-end", "span 8")
     const links = folder.getByRole("link")
+    await expect(links).toHaveCount(expectedRows * 2)
     await expect
       .poll(async () => {
         const a = await links.nth(0).boundingBox(),
@@ -238,7 +241,8 @@ for (const size of ["wide", "wide-tall"]) {
     await page.reload()
     await expect(folder).toHaveCSS("grid-column-end", "span 8")
     await page.setViewportSize({ width: 375, height: 900 })
-    await expect(folder).toHaveCSS("grid-column-end", "span 8")
+    await expect(folder).toHaveCSS("grid-column-end", "span 4")
+    await expect(links).toHaveCount(expectedRows)
     await expect
       .poll(async () => {
         const a = await links.nth(0).boundingBox(),

@@ -23,7 +23,7 @@ export default function useGridMeasurement({
       pointer.current = { x: event.clientX, y: event.clientY }
     }
     document.addEventListener("mousemove", trackPointer, { passive: true })
-    const element = trackWidth ? null : gridRef.current
+    const element = trackWidth ? null : gridRef.current?.parentElement
     const observer = element
       ? new ResizeObserver(() => {
           setMeasuredWidth(element.getBoundingClientRect().width)

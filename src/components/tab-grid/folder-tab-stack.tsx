@@ -7,6 +7,36 @@ import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
 
+const ROW_GAP = 8
+const MIN_ROW_GAP = 4
+const TEXTURE_CELL_STEP = 9
+
+function snapRowHeight(height: number, method: "nearest" | "down") {
+  const cells =
+    method === "nearest"
+      ? Math.round((height - 1) / TEXTURE_CELL_STEP)
+      : Math.floor((height - 1) / TEXTURE_CELL_STEP)
+  return Math.max(10, cells * TEXTURE_CELL_STEP + 1)
+}
+
+function fixedRowLayout(availableHeight: number, visibleRows: number) {
+  const idealHeight =
+    (availableHeight - (visibleRows - 1) * ROW_GAP) / visibleRows
+  const maximumHeight =
+    (availableHeight - (visibleRows - 1) * MIN_ROW_GAP) / visibleRows
+  let height = snapRowHeight(idealHeight, "nearest")
+  if (height > maximumHeight) height = snapRowHeight(maximumHeight, "down")
+  const gap = Math.min(
+    ROW_GAP,
+    Math.max(0, (availableHeight - visibleRows * height) / (visibleRows - 1))
+  )
+  const inset = Math.max(
+    0,
+    (availableHeight - visibleRows * height - (visibleRows - 1) * gap) / 2
+  )
+  return { height, gap, inset }
+}
+
 export default function FolderTabStack({
   folder,
   className = "",
@@ -31,15 +61,8 @@ export default function FolderTabStack({
     (folder.size === "wide" || folder.size === "wide-tall")
   const [innerColumns, setInnerColumns] = useState(1)
   const [rowHeight, setRowHeight] = useState(44)
-  // Row heights snap to a whole number of texture cells (9px pitch = 8px
-  // cell + 1px gap) so the burning texture never clips mid-cell; leftover
-  // viewport height flows into the gap between rows instead.
   const [stackGap, setStackGap] = useState(8)
-  // Vertical centering: the height left over after snapping rows to whole
-  // texture cells is split evenly above and below the stack so the rows
-  // sit centered instead of hugging the top.
   const [stackInset, setStackInset] = useState(0)
-  const rowGap = 8
   const rowStep = rowHeight + stackGap
   const viewportRef = useRef<HTMLDivElement>(null)
   const previousRows = useRef<Map<string, number>>(new Map())
@@ -75,52 +98,36 @@ export default function FolderTabStack({
     const update = () => {
       setInnerColumns(wide && viewport.clientWidth >= 400 ? 2 : 1)
       const availableHeight = viewport.clientHeight - topBleed
-      // Fixed row height: border-box 46px = five whole texture cells (44px
-      // content) + 2px border. Preview folders then show as many rows as
-      // fit — the 9px cell pitch never divides evenly into an arbitrary
-      // viewport, so the row count adapts instead of the row height.
       const rowTarget = 46
-      const snapDownToCells = (height: number) =>
-        Math.max(10, Math.floor((height - 1) / 9) * 9 + 1)
       if (surface !== "preview") {
         setRowHeight(rowTarget)
-        setStackGap(rowGap)
+        setStackGap(ROW_GAP)
         setStackInset(0)
       } else if (folder.size === "small") {
-        const height = snapDownToCells(Math.min(availableHeight, rowTarget))
+        const height = snapRowHeight(
+          Math.min(availableHeight, rowTarget),
+          "down"
+        )
         setRowHeight(height)
-        setStackGap(rowGap)
+        setStackGap(ROW_GAP)
         setStackInset(Math.max(0, (availableHeight - height) / 2))
       } else {
-        let fitted = Math.max(
-          1,
-          Math.floor((availableHeight + rowGap) / (rowTarget + rowGap))
+        const visibleRows =
+          folder.size === "tall" || folder.size === "wide-tall" ? 8 : 4
+        const { height, gap, inset } = fixedRowLayout(
+          availableHeight,
+          visibleRows
         )
-        let gap = rowGap
-        // One more row often misses by a few pixels; before giving up on
-        // it, try tightening the inter-row gap (never below 4px) — a 4~7px
-        // seam reads identical to 8px and beats hiding a row entirely.
-        const tightGap = (availableHeight - (fitted + 1) * rowTarget) / fitted
-        if (fitted >= 1 && tightGap >= 4) {
-          fitted += 1
-          gap = tightGap
-        }
-        const filled = fitted * rowTarget + (fitted - 1) * gap
-        // Scrollable stacks keep the top-aligned layout.
-        const slack =
-          visibleTabs.length <= fitted
-            ? Math.max(0, availableHeight - filled) / 2
-            : 0
-        setRowHeight(rowTarget)
+        setRowHeight(height)
         setStackGap(gap)
-        setStackInset(slack)
+        setStackInset(inset)
       }
     }
     update()
     const observer = new ResizeObserver(update)
     observer.observe(viewport)
     return () => observer.disconnect()
-  }, [folder.size, surface, topBleed, rowGap, wide, visibleTabs.length])
+  }, [folder.size, surface, topBleed, wide, visibleTabs.length])
 
   useStackScroll(viewportRef, {
     revision: visibleTabs,
@@ -160,7 +167,7 @@ export default function FolderTabStack({
         const lines = Math.ceil(visibleTabs.length / innerColumns)
         const visibleLines = Math.max(
           1,
-          Math.floor((visibleHeight - rowHeight) / rowStep) + 1
+          Math.floor((visibleHeight - rowHeight) / rowStep + 1e-6) + 1
         )
         const maxScroll = Math.max(0, (lines - visibleLines) * rowStep)
         if (maxScroll <= 0) return
@@ -184,7 +191,7 @@ export default function FolderTabStack({
         className="relative grid"
         style={{
           gridTemplateColumns: `repeat(${innerColumns}, minmax(0, 1fr))`,
-          columnGap: rowGap,
+          columnGap: ROW_GAP,
           marginTop: stackInset,
           paddingBottom: "var(--stack-bottom, 0px)",
         }}

@@ -39,7 +39,7 @@ export function useStackScroll(
       const lastLine = Math.max(0, lines - 1)
       const visibleLines = Math.max(
         1,
-        Math.floor((height - rowHeight) / rowStep) + 1
+        Math.floor((height - rowHeight) / rowStep + 1e-6) + 1
       )
       const maxScroll = Math.max(0, (lines - visibleLines) * rowStep)
       const compact = maxScroll <= 0
@@ -109,7 +109,7 @@ export function useStackScroll(
       const lines = Math.ceil(rows.length / innerColumns)
       const visibleLines = Math.max(
         1,
-        Math.floor((height - rowHeight) / rowStep) + 1
+        Math.floor((height - rowHeight) / rowStep + 1e-6) + 1
       )
       return Math.max(0, (lines - visibleLines) * rowStep)
     }

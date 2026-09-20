@@ -2,6 +2,8 @@ import type { GridItem } from "./types"
 import { getItemGridDimensions } from "./registry"
 
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
+export const GRID_CELL_SIZE = 59.5
+export const GRID_GAP = 16
 
 export type GridColumnMode = "standard" | "even-components"
 
@@ -9,27 +11,31 @@ export function columnsForWidth(
   width: number,
   mode: GridColumnMode = "standard"
 ): number {
-  if (mode === "even-components") {
-    if (width >= 1260) return 24
-    if (width >= 640) return 16
-    return width > 0 ? 8 : 4
-  }
-  if (width >= 1260) return 20
-  if (width >= 1000) return 16
-  return width >= 640 ? 12 : width > 0 ? 8 : 4
+  if (width <= 0) return 4
+  const candidates =
+    mode === "even-components"
+      ? GRID_COLUMNS.filter((columns) => (columns / 4) % 2 === 0)
+      : GRID_COLUMNS
+  return (
+    [...candidates]
+      .reverse()
+      .find(
+        (columns) =>
+          columns * GRID_CELL_SIZE + (columns - 1) * GRID_GAP <= width
+      ) ?? 4
+  )
 }
 
 export function gridMetrics(width: number, mode: GridColumnMode = "standard") {
   const columns = columnsForWidth(width, mode)
-  const gap = width > 0 && width < 640 ? 12 : 16
-  const columnStep = width > 0 ? (width + gap) / columns : 0
+  const columnStep = width > 0 ? GRID_CELL_SIZE + GRID_GAP : 0
   return {
     columns,
-    gap,
+    gap: GRID_GAP,
     compact: width > 0 && width < 640,
     columnStep,
     rowStep: columnStep,
-    rowSize: Math.max(1, columnStep - gap),
+    rowSize: width > 0 ? GRID_CELL_SIZE : 1,
   }
 }
 

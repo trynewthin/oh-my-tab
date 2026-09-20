@@ -76,8 +76,10 @@ test("free grid replaces the fixed header with responsive search components", as
         (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length
       )
     )
-    .toBe(24)
-  expect((24 / 4) % 2).toBe(0)
+    .toBe(16)
+  const initialCellSize = await track.evaluate((node) =>
+    parseFloat(getComputedStyle(node).gridTemplateColumns.split(" ")[0])
+  )
   await expect(page.getByRole("combobox", { name: "搜索" })).toHaveCount(1)
   await expect(page.getByRole("combobox", { name: "对话输入" })).toHaveCount(1)
   const minimalInput = page.getByRole("combobox", { name: "搜索" })
@@ -87,11 +89,11 @@ test("free grid replaces the fixed header with responsive search components", as
   await page.setViewportSize({ width: 500, height: 900 })
   await expect(page.locator('[data-grid-item-id="minimal-search"]')).toHaveCSS(
     "grid-column-end",
-    "span 8"
+    "span 4"
   )
   await expect(page.locator('[data-grid-item-id="full-search"]')).toHaveCSS(
     "grid-column-end",
-    "span 8"
+    "span 4"
   )
   await expect
     .poll(() =>
@@ -99,8 +101,14 @@ test("free grid replaces the fixed header with responsive search components", as
         (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length
       )
     )
-    .toBe(8)
-  expect((8 / 4) % 2).toBe(0)
+    .toBe(4)
+  await expect
+    .poll(() =>
+      track.evaluate((node) =>
+        parseFloat(getComputedStyle(node).gridTemplateColumns.split(" ")[0])
+      )
+    )
+    .toBe(initialCellSize)
 })
 
 test("personalization switches between traditional and free grid layouts", async ({

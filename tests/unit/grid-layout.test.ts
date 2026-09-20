@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest"
 import {
   columnsForWidth,
+  GRID_CELL_SIZE,
+  GRID_GAP,
   gridMetrics,
   gridOccupancyBox,
   placeItems,
@@ -67,26 +69,34 @@ describe("responsive component width", () => {
 describe("grid metrics", () => {
   test("cell size matches home grid geometry", () => {
     const metrics = gridMetrics(1280)
-    expect(metrics.columns).toBe(20)
-    expect(metrics.gap).toBe(16)
-    expect(metrics.columnStep).toBe((1280 + 16) / 20)
-    expect(metrics.rowSize).toBe(metrics.columnStep - 16)
+    expect(metrics.columns).toBe(16)
+    expect(metrics.gap).toBe(GRID_GAP)
+    expect(metrics.columnStep).toBe(GRID_CELL_SIZE + GRID_GAP)
+    expect(metrics.rowSize).toBe(GRID_CELL_SIZE)
     expect(gridOccupancyBox(1280, 4, 1)).toEqual({
-      width: 4 * metrics.columnStep - 16,
-      height: metrics.columnStep - 16,
+      width: 4 * metrics.columnStep - GRID_GAP,
+      height: GRID_CELL_SIZE,
     })
+  })
+
+  test("cell size remains fixed while the column count changes", () => {
+    for (const width of [500, 900, 1280, 1920]) {
+      const metrics = gridMetrics(width)
+      expect(metrics.rowSize).toBe(GRID_CELL_SIZE)
+      expect(metrics.columnStep).toBe(GRID_CELL_SIZE + GRID_GAP)
+    }
   })
 
   test("free grids expose only an even number of four-unit component columns", () => {
     for (const [width, columns] of [
-      [500, 8],
-      [900, 16],
-      [1440, 24],
+      [500, 4],
+      [900, 8],
+      [1440, 16],
       [1920, 24],
     ] as const) {
       expect(columnsForWidth(width, "even-components")).toBe(columns)
       expect(columns / 4).toBeGreaterThan(0)
-      expect((columns / 4) % 2).toBe(0)
+      if (columns > 4) expect((columns / 4) % 2).toBe(0)
     }
   })
 })

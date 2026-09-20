@@ -176,6 +176,18 @@ test("mobile settings uses full-screen application navigation", async ({
   await expect(dialog).toBeVisible()
 })
 
+test("clicking the blurred backdrop closes an application", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  await expect(dialog).toBeVisible()
+
+  await page.mouse.click(10, 10)
+  await expect(dialog).not.toBeVisible()
+})
+
 test("bookmark entrance settles into its saved static background", async ({
   page,
 }) => {

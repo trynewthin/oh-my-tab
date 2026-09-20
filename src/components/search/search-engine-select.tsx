@@ -16,8 +16,10 @@ import { useSettingsStore } from "@/stores/settings-store"
 
 export default function SearchEngineSelect({
   compact = false,
+  inset = false,
 }: {
   compact?: boolean
+  inset?: boolean
 }) {
   const { t } = useTranslation()
   const available = canSelectBrowserSearch()
@@ -42,19 +44,26 @@ export default function SearchEngineSelect({
         render={
           <Button
             variant="ghost"
-            size={compact ? "icon" : "default"}
+            size={compact || inset ? "icon" : "default"}
             className={
               compact
                 ? "size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
-                : undefined
+                : inset
+                  ? "ml-1.5 size-10 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:hover:bg-transparent"
+                  : undefined
             }
           />
         }
-        aria-label={t("shell.engineSelect.triggerLabel", { name: selectedName })}
+        aria-label={t("shell.engineSelect.triggerLabel", {
+          name: selectedName,
+        })}
         onClick={(event) => event.stopPropagation()}
       >
-        <EngineIcon icon={selectedEngine?.icon} size={compact ? 20 : 16} />
-        {!compact && (
+        <EngineIcon
+          icon={selectedEngine?.icon}
+          size={compact || inset ? 20 : 16}
+        />
+        {!compact && !inset && (
           <>
             <span className="hidden max-w-32 truncate sm:inline">
               {selectedName}
@@ -65,7 +74,7 @@ export default function SearchEngineSelect({
       </PopoverTrigger>
       <PopoverContent
         aria-label={t("shell.engineSelect.menuLabel")}
-        align="end"
+        align={inset ? "start" : "end"}
         className="w-48 gap-1 p-2"
         onClick={(event) => event.stopPropagation()}
       >

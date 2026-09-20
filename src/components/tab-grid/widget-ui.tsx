@@ -14,13 +14,13 @@ import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
 import SearchTile from "./search-tile"
+import ActionButton from "./action-button"
 import ComponentConfiguration from "./component-configuration"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
+import { createCatalogComponent } from "@/lib/grid/factory"
 import type { ReactNode } from "react"
 import {
-  componentDefaultName,
-  getComponentDefinition,
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
@@ -85,6 +85,8 @@ export function WidgetTile({
   todoTasks?: TodoTask[]
 }) {
   switch (item.kind) {
+    case "button":
+      return <ActionButton item={item} preview={preview} />
     case "search-minimal":
     case "search-full":
       return <SearchTile item={item} preview={preview} />
@@ -172,6 +174,7 @@ export function WidgetEditor({
     case "todo":
     case "calendar":
     case "template":
+    case "button":
       return (
         <ComponentConfiguration
           item={item}
@@ -183,152 +186,35 @@ export function WidgetEditor({
   return assertNever(item)
 }
 
-/** Catalog card bodies; the scaling container stays in CatalogComponentPreview. */
+/** Catalog previews use the same content and size variants as home tiles. */
 export function WidgetCatalogPreview({
   kind,
   size,
-  detail = false,
 }: {
   kind: CatalogComponentKind
   size?: GridItemSize
-  detail?: boolean
 }): ReactNode {
   const { t } = useTranslation()
-  switch (kind) {
-    case "search-minimal": {
-      const item: Extract<GridItem, { kind: "search-minimal" }> = {
-        id: `${kind}-preview`,
-        kind,
-        name: componentDefaultName(kind, t),
-        size: "small",
-        color: getComponentDefinition(kind).defaultColor,
-      }
-      return (
-        <div
-          className={`${detail ? "w-full" : "mx-auto w-full max-w-60"} overflow-hidden rounded-2xl`}
-          style={{ height: detail ? 56 : 40 }}
-        >
-          <SearchTile preview item={item} />
-        </div>
-      )
-    }
-    case "search-full": {
-      const item: Extract<GridItem, { kind: "search-full" }> = {
-        id: `${kind}-preview`,
-        kind,
-        name: componentDefaultName(kind, t),
-        size: "medium",
-        color: getComponentDefinition(kind).defaultColor,
-      }
-      return (
-        <div
-          className={`${detail ? "w-full" : "mx-auto w-full max-w-60"} overflow-hidden rounded-2xl`}
-          style={{ height: detail ? 112 : 80 }}
-        >
-          <SearchTile preview item={item} />
-        </div>
-      )
-    }
-    case "todo": {
-      const resolved = size ?? getComponentDefinition(kind).defaultSize
-      return (
-        <div
-          className={`mx-auto w-full max-w-60 overflow-hidden rounded-2xl border ${resolved === "small" ? "aspect-[4/1]" : resolved === "medium" ? "aspect-[2/1]" : "aspect-square"}`}
-        >
-          <Todo
-            preview
-            item={{
-              id: "todo-preview",
-              kind: "todo",
-              name: componentDefaultName(kind, t),
-              size:
-                resolved === "small" || resolved === "medium"
-                  ? resolved
-                  : "large",
-              color: getComponentDefinition(kind).defaultColor,
-              tasks: [
-                { id: "1", text: t("grid.dialog.previewTaskPlan"), done: true },
-                {
-                  id: "2",
-                  text: t("grid.dialog.previewTaskRead"),
-                  done: false,
-                },
-              ],
-            }}
-          />
-        </div>
-      )
-    }
-    case "calendar": {
-      const resolved = size ?? getComponentDefinition(kind).defaultSize
-      return (
-        <div
-          className={`mx-auto w-full overflow-hidden rounded-2xl border ${!detail ? "aspect-square max-w-60" : resolved === "small" ? "aspect-[4/1] max-w-60" : resolved === "medium" ? "aspect-square max-w-28" : "aspect-square max-w-60"}`}
-        >
-          <Calendar
-            preview
-            item={{
-              id: "calendar-preview",
-              kind: "calendar",
-              name: componentDefaultName(kind, t),
-              size:
-                resolved === "small" || resolved === "medium"
-                  ? resolved
-                  : "large",
-              color: getComponentDefinition(kind).defaultColor,
-            }}
-          />
-        </div>
-      )
-    }
-    case "ecosystem":
-      return (
-        <div
-          className={
-            detail
-              ? "size-40 [&>div]:p-0"
-              : "mx-auto aspect-square w-full max-w-60 [&>div]:p-0"
-          }
-        >
-          <Ecosystem
-            preview
-            animated={false}
-            item={{
-              id: "ecosystem-preview",
-              kind: "ecosystem",
-              name: componentDefaultName(kind, t),
-              size: "large",
-              color: getComponentDefinition(kind).defaultColor,
-              species: "flowers",
-              plants: [],
-            }}
-          />
-        </div>
-      )
-    case "dot-canvas":
-      return (
-        <div
-          className={
-            detail
-              ? "flex size-40 items-center justify-center"
-              : "mx-auto flex aspect-square w-full max-w-60 items-center justify-center"
-          }
-        >
-          <div className="aspect-square w-full">
-            <DotArt
-              pixels={Array.from({ length: 576 }, (_, i) => {
-                const x = i % 24
-                const y = Math.floor(i / 24)
-                if (x < 3 || x > 20 || y < 3 || y > 20) return ""
-                if (x >= 16 && x <= 18 && y >= 5 && y <= 7) return "#f4c76b"
-                if (y >= 12 + Math.abs(x - 15) && y <= 20) return "#3291ff"
-                if (y >= 8 + Math.abs(x - 8) && y <= 20) return "#75c8e8"
-                return ""
-              })}
-            />
-          </div>
-        </div>
-      )
+  const item = createCatalogComponent(kind, size)
+  if (item.kind === "todo") {
+    item.tasks = [
+      { id: "1", text: t("grid.dialog.previewTaskPlan"), done: true },
+      { id: "2", text: t("grid.dialog.previewTaskRead"), done: false },
+    ]
   }
-  return assertNever(kind)
+  if (item.kind === "dot-canvas") {
+    const pixels = Array.from({ length: 576 }, (_, i) => {
+      const x = i % 24
+      const y = Math.floor(i / 24)
+      if (x < 3 || x > 20 || y < 3 || y > 20) return ""
+      if (x >= 16 && x <= 18 && y >= 5 && y <= 7) return "#f4c76b"
+      if (y >= 12 + Math.abs(x - 15) && y <= 20) return "#3291ff"
+      if (y >= 8 + Math.abs(x - 8) && y <= 20) return "#75c8e8"
+      return ""
+    })
+    const dimensions = canvasDimensions(item.size)
+    item.pixels = resizeDots(pixels, 24, dimensions.columns, dimensions.rows)
+    item.pixelColumns = dimensions.columns
+  }
+  return <WidgetTile item={item} preview onOpen={() => {}} />
 }

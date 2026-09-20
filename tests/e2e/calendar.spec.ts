@@ -13,11 +13,12 @@ test("calendar can be added, navigated, edited and restored", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作", exact: true }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "效率", exact: true }).click()
   await page.getByRole("button", { name: "选择日历", exact: true }).click()
   const detail = page.getByRole("dialog", { name: "日历", exact: true })
   await detail.getByRole("button", { name: "4×4", exact: true }).click()
   await detail
-    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .getByRole("button", { name: "添加", exact: true })
     .click()
   const calendar = page.getByRole("region", { name: "日历", exact: true })
   await expect(calendar.getByRole("heading")).toHaveText("2024年2月")

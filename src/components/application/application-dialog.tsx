@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -246,6 +247,8 @@ export default function ApplicationDialog<RouteId extends string>({
   accentColor: string
   children: ReactNode
 }) {
+  const applicationNode = useRef<HTMLDivElement>(null)
+  const pointerStartedInside = useRef(false)
   const [navNode, setNavNode] = useState<HTMLDivElement | null>(null)
   const [mobileActionsNode, setMobileActionsNode] =
     useState<HTMLDivElement | null>(null)
@@ -254,8 +257,33 @@ export default function ApplicationDialog<RouteId extends string>({
     .flatMap((group) => group.items)
     .find((item) => item.id === activeRoute)
 
+  useEffect(() => {
+    if (!open) return
+    const trackPointerOrigin = (event: PointerEvent) => {
+      pointerStartedInside.current =
+        event.target instanceof Node &&
+        !!applicationNode.current?.contains(event.target)
+    }
+    document.addEventListener("pointerdown", trackPointerOrigin, true)
+    return () =>
+      document.removeEventListener("pointerdown", trackPointerOrigin, true)
+  }, [open])
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} disablePointerDismissal>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen, eventDetails) => {
+        if (
+          !nextOpen &&
+          eventDetails.reason === "outside-press" &&
+          pointerStartedInside.current
+        ) {
+          pointerStartedInside.current = false
+          return
+        }
+        onOpenChange(nextOpen)
+      }}
+    >
       <DialogContent
         showCloseButton={false}
         overlayClassName="bg-black/10 backdrop-blur-xl"
@@ -265,6 +293,7 @@ export default function ApplicationDialog<RouteId extends string>({
         <DialogDescription className="sr-only">{description}</DialogDescription>
         <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
           <div
+            ref={applicationNode}
             role="application"
             aria-label={title}
             data-application={applicationId}

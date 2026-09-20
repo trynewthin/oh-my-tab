@@ -85,7 +85,7 @@ export type MinimalSearchItem = {
   id: string
   kind: "search-minimal"
   name: string
-  size: "small"
+  size: "compact" | "medium" | "small"
   color: string
   dynamicEffect?: boolean
 }
@@ -108,6 +108,23 @@ export type TemplateItem = {
   dynamicEffect?: boolean
 }
 
+export type ButtonAction =
+  | "toggle-theme"
+  | "tidy-grid"
+  | "toggle-selection"
+  | "open-settings"
+  | "open-components"
+
+export type ButtonItem = {
+  id: string
+  kind: "button"
+  name: string
+  size: "small"
+  color: string
+  action: ButtonAction
+  dynamicEffect?: boolean
+}
+
 export type GridItem =
   | TabItem
   | FolderItem
@@ -118,6 +135,7 @@ export type GridItem =
   | MinimalSearchItem
   | FullSearchItem
   | TemplateItem
+  | ButtonItem
 
 export function normalizeTabUrl(value: string): string | null {
   try {

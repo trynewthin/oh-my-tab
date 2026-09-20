@@ -221,15 +221,21 @@ test.describe("names across a language change", () => {
     await page
       .getByRole("button", { name: EN.moreActions, exact: true })
       .click()
-    await page.getByRole("button", { name: "Add component", exact: true }).click()
-    const catalog = page.getByRole("dialog", { name: "Components", exact: true })
+    await page
+      .getByRole("button", { name: "Add component", exact: true })
+      .click()
+    const catalog = page.getByRole("dialog", {
+      name: "Components",
+      exact: true,
+    })
+    await catalog
+      .getByRole("button", { name: "Productivity", exact: true })
+      .click()
     await catalog
       .getByRole("button", { name: "Select To-do", exact: true })
       .click()
     // Selecting opens a second dialog with the direct-add confirmation.
-    await page
-      .getByRole("button", { name: "Confirm add", exact: true })
-      .click()
+    await page.getByRole("button", { name: "Add", exact: true }).click()
 
     // The write is asynchronous, so poll until the item lands rather than
     // reading once and racing it.

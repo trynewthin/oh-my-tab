@@ -18,6 +18,7 @@ import {
 import { useEffect, useRef, useState } from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
+import { useComponentsApplicationStore } from "@/stores/components-application-store"
 import DraggableGridItem from "./draggable-grid-item"
 import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
@@ -436,7 +437,9 @@ export default function TabGrid({
         </DndContext>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => setEditor({})}>
+        <ContextMenuItem
+          onClick={() => useComponentsApplicationStore.getState().setOpen(true)}
+        >
           <Plus />
           {t("grid.chrome.addComponent")}
         </ContextMenuItem>

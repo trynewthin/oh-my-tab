@@ -11,6 +11,7 @@ import { i18n } from "@/i18n"
 import type {
   FolderItem,
   GridItem,
+  ButtonItem,
   TabEntry,
   TabItem,
   TemplateItem,
@@ -35,6 +36,7 @@ export function configureComponent({
   size,
   color,
   url,
+  action,
 }: {
   existing?: ConfigurableItem
   id: string
@@ -43,6 +45,7 @@ export function configureComponent({
   size: GridItemSize
   color: string
   url?: string
+  action?: ButtonItem["action"]
 }): ConfigurableItem {
   if (!isComponentSize(kind, size))
     throw new Error(`Unsupported ${kind} size: ${size}`)
@@ -97,6 +100,18 @@ export function configureComponent({
       size: size as Extract<GridItem, { kind: "todo" }>["size"],
       tasks: existing?.kind === "todo" ? existing.tasks : [],
       dynamicEffect: existing?.dynamicEffect ?? false,
+    }
+  if (kind === "button")
+    return {
+      id,
+      kind,
+      name,
+      color,
+      size: "small",
+      action:
+        action ??
+        (existing?.kind === "button" ? existing.action : "toggle-theme"),
+      dynamicEffect: false,
     }
   assertNever(kind)
 }
@@ -163,8 +178,14 @@ export function createCatalogComponent(
     color: definition.defaultColor,
   }
 
-  if (kind === "search-minimal") return { ...shared, kind, size: "small" }
-  if (kind === "search-full") return { ...shared, kind, size: "medium" }
+  if (kind === "search-minimal")
+    return {
+      ...shared,
+      kind,
+      size: size as Extract<GridItem, { kind: "search-minimal" }>["size"],
+    }
+  if (kind === "button")
+    return { ...shared, kind, size: "small", action: "toggle-theme" }
 
   if (kind === "todo") return { ...shared, kind, size: "large", tasks: [] }
   if (kind === "calendar")

@@ -1,6 +1,19 @@
 import { validGardenPlant } from "@/lib/garden"
 import { isComponentSize, isGridItemKind } from "@/lib/grid/registry"
-import { normalizeTabUrl, type GridItem, type TabEntry } from "@/lib/grid/types"
+import {
+  normalizeTabUrl,
+  type ButtonAction,
+  type GridItem,
+  type TabEntry,
+} from "@/lib/grid/types"
+
+const buttonActions = new Set<ButtonAction>([
+  "toggle-theme",
+  "tidy-grid",
+  "toggle-selection",
+  "open-settings",
+  "open-components",
+])
 
 function validDynamicEffect(value: unknown) {
   return value === undefined || typeof value === "boolean"
@@ -52,6 +65,7 @@ export function validGridItem(value: unknown): value is GridItem {
       new Set(typed.tasks.map((task) => task.id)).size === typed.tasks.length
     )
   if (typed.kind === "calendar") return true
+  if (typed.kind === "button") return buttonActions.has(typed.action)
   if (typed.kind === "ecosystem")
     return (
       ["flowers", "ferns"].includes(typed.species) &&

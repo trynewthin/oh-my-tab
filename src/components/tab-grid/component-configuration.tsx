@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl } from "@/lib/grid/types"
+import { normalizeTabUrl, type ButtonAction } from "@/lib/grid/types"
 import {
   componentDefaultName,
   componentLabel,
@@ -29,11 +29,9 @@ import {
   sizeLabel,
   type GridItemSize,
 } from "@/lib/grid/registry"
-import {
-  configureComponent,
-  type ConfigurableItem,
-} from "@/lib/grid/factory"
+import { configureComponent, type ConfigurableItem } from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
+import { buttonActionLabelKeys, buttonActions } from "@/lib/grid/button-actions"
 
 export default function ComponentConfiguration({
   item,
@@ -52,6 +50,9 @@ export default function ComponentConfiguration({
   const definition = getComponentDefinition(kind)
   const [name, setName] = useState(item?.name ?? "")
   const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
+  const [action, setAction] = useState<ButtonAction>(
+    item?.kind === "button" ? item.action : "toggle-theme"
+  )
   const [size, setSize] = useState<GridItemSize>(
     item?.size ?? definition.defaultSize
   )
@@ -82,6 +83,7 @@ export default function ComponentConfiguration({
         size: resolvedSize,
         color,
         url: normalized ?? undefined,
+        action,
       })
     )
     onSaved()
@@ -111,6 +113,35 @@ export default function ComponentConfiguration({
             onChange={(event) => setUrl(event.target.value)}
           />
         </label>
+      )}
+      {kind === "button" && (
+        <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
+          <label htmlFor="button-action">{t("grid.editor.buttonAction")}</label>
+          <Select
+            value={action}
+            onValueChange={(value) => {
+              if (value && value in buttonActionLabelKeys)
+                setAction(value as ButtonAction)
+            }}
+          >
+            <SelectTrigger id="button-action" className="w-full">
+              <SelectValue>
+                {t(
+                  `grid.editor.buttonActions.${buttonActionLabelKeys[action]}`
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {buttonActions.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {t(
+                    `grid.editor.buttonActions.${buttonActionLabelKeys[option]}`
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
       {sizeOptions.length > 0 && (
         <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">

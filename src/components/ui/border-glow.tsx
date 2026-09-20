@@ -89,7 +89,7 @@ export default function BorderGlow({
   className = "",
   edgeSensitivity = 30,
   glowColor = "270 90 75",
-  backgroundColor = "#15151a",
+  backgroundColor = "var(--card)",
   borderRadius = 24,
   glowRadius = 36,
   glowIntensity = 0.8,
@@ -185,7 +185,7 @@ export default function BorderGlow({
       className={`relative isolate grid border ${className}`}
       style={{
         background: backgroundColor,
-        borderColor: "rgb(255 255 255 / 15%)",
+        borderColor: "color-mix(in srgb, var(--foreground) 15%, transparent)",
         borderRadius,
         transform: "translate3d(0, 0, 0.01px)",
         boxShadow: "rgb(0 0 0 / 10%) 0 2px 4px, rgb(0 0 0 / 14%) 0 16px 40px",
@@ -247,7 +247,7 @@ export default function BorderGlow({
           inset: -glowRadius,
           maskImage: `conic-gradient(from ${angle} at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%)`,
           opacity: glowOpacity,
-          mixBlendMode: "plus-lighter",
+          mixBlendMode: "normal",
           transition,
         }}
       >

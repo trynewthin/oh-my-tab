@@ -76,11 +76,18 @@ export default function DraggableGridItem({
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
         gridRow: `${placement.y + 1} / span ${placement.height}`,
       }}
-      onMouseDown={(event) => {
-        if (event.button !== 0) return
+      onMouseDownCapture={(event) => {
         if (
-          (item.kind === "search-minimal" || item.kind === "search-full") &&
-          !(event.target as Element).closest("[data-grid-drag-handle]")
+          event.button === 0 &&
+          (item.kind === "search-minimal" || item.kind === "search-full")
+        )
+          listeners?.onMouseDown?.(event)
+      }}
+      onMouseDown={(event) => {
+        if (
+          event.button !== 0 ||
+          item.kind === "search-minimal" ||
+          item.kind === "search-full"
         )
           return
         listeners?.onMouseDown?.(event)

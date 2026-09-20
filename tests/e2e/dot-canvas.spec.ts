@@ -11,9 +11,12 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "点阵", exact: true }).click()
   await page.getByRole("button", { name: "选择点阵画布" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page.getByRole("button", { name: "确认添加 · 4×4", exact: true }).click()
+  await page
+    .getByRole("button", { name: "添加", exact: true })
+    .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑点阵画布 点阵画布" }).click()
   const dialog = page.getByRole("dialog", { name: "编辑点阵画布" })

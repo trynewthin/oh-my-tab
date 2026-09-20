@@ -13,10 +13,11 @@ test("plant care, naming, time accumulation and album persist", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "趣味", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
   await page
-    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .getByRole("button", { name: "添加", exact: true })
     .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
@@ -94,7 +95,9 @@ test("plant care, naming, time accumulation and album persist", async ({
   ).toHaveCount(1)
 })
 
-test("plant families animate without pointer interaction", async ({ page }, testInfo) => {
+test("plant families animate without pointer interaction", async ({
+  page,
+}, testInfo) => {
   await page.addInitScript(() => {
     localStorage.setItem(
       "omt.onboarding",
@@ -157,10 +160,11 @@ test("daily check-in grants 100 points once and survives reload", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "趣味", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
   await page
-    .getByRole("button", { name: "确认添加 · 4×4", exact: true })
+    .getByRole("button", { name: "添加", exact: true })
     .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()

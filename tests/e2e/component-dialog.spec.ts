@@ -1,5 +1,28 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Locator } from "@playwright/test"
 import { readStoredState } from "../helpers/storage"
+
+async function expectCatalogPreviews(catalog: Locator, count: number) {
+  const stages = catalog.locator("[data-catalog-preview-stage]")
+  await expect(stages).toHaveCount(count)
+  const metrics = await stages.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const stage = node.getBoundingClientRect()
+      const content = node
+        .querySelector("[data-catalog-preview-content]")!
+        .getBoundingClientRect()
+      return {
+        height: Math.round(stage.height),
+        contained:
+          content.left >= stage.left - 1 &&
+          content.right <= stage.right + 1 &&
+          content.top >= stage.top - 1 &&
+          content.bottom <= stage.bottom + 1,
+      }
+    })
+  )
+  expect(new Set(metrics.map((entry) => entry.height)).size).toBe(1)
+  expect(metrics.every((entry) => entry.contained)).toBe(true)
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() =>
@@ -28,9 +51,16 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await expect(
     catalog.getByRole("button", { name: "添加文件夹", exact: true })
   ).toHaveCount(0)
+  await expectCatalogPreviews(catalog, 2)
+  await catalog.getByRole("button", { name: "效率", exact: true }).click()
+  await expectCatalogPreviews(catalog, 2)
+  await catalog.getByRole("button", { name: "点阵", exact: true }).click()
+  await expectCatalogPreviews(catalog, 1)
   await expect(
     catalog.getByRole("button", { name: "选择点阵画布" })
   ).toBeVisible()
+  await catalog.getByRole("button", { name: "趣味", exact: true }).click()
+  await expectCatalogPreviews(catalog, 1)
   await expect(
     catalog.getByRole("button", { name: "选择像素花盆" })
   ).toBeVisible()
@@ -107,9 +137,10 @@ test("dot canvas catalog preview keeps square proportions", async ({
 }) => {
   await page.getByRole("button", { name: "更多操作" }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "点阵", exact: true }).click()
   const preview = page
     .getByRole("button", { name: "选择点阵画布" })
-    .getByRole("img", { name: "点阵画布" })
+    .locator("svg[role=img]")
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 969 })
     await expect

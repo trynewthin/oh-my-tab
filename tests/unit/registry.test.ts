@@ -1,11 +1,14 @@
 import { describe, expect, test } from "vitest"
 import {
   GRID_OCCUPANCY,
+  catalogComponentKinds,
   componentRegistry,
   getItemGridDimensions,
   occupancyMark,
   sizeLabel,
 } from "@/lib/grid/registry"
+import { createCatalogComponent } from "@/lib/grid/factory"
+import { validGridItem } from "@/lib/grid/validation"
 
 describe("component occupancy registration", () => {
   test("every size picks a unique occupancy from the shared scale", () => {
@@ -40,6 +43,38 @@ describe("component occupancy registration", () => {
     }
   })
 
+  test("every catalog component belongs to one catalog section", () => {
+    expect(
+      Object.fromEntries(
+        catalogComponentKinds.map((kind) => [
+          kind,
+          componentRegistry[kind].catalogSection,
+        ])
+      )
+    ).toEqual({
+      button: "common",
+      "dot-canvas": "dots",
+      todo: "productivity",
+      calendar: "productivity",
+      "search-minimal": "common",
+      ecosystem: "fun",
+    })
+  })
+
+  test.each([
+    ["compact", 4],
+    ["medium", 8],
+    ["small", 12],
+  ] as const)(
+    "search size %s survives creation and validation",
+    (size, width) => {
+      const item = createCatalogComponent("search-minimal", size)
+      expect(item.size).toBe(size)
+      expect(validGridItem(JSON.parse(JSON.stringify(item)))).toBe(true)
+      expect(getItemGridDimensions(item)).toEqual({ width, height: 1 })
+    }
+  )
+
   test("1×1 is the square unit and template uses the scale", () => {
     expect(GRID_OCCUPANCY["1x1"]).toEqual({ width: 1, height: 1 })
     expect(getItemGridDimensions({ kind: "template", size: "small" })).toEqual({
@@ -50,6 +85,14 @@ describe("component occupancy registration", () => {
       width: 4,
       height: 1,
     })
+    const button = createCatalogComponent("button")
+    expect(button).toMatchObject({
+      kind: "button",
+      size: "small",
+      action: "toggle-theme",
+    })
+    expect(validGridItem(button)).toBe(true)
+    expect(getItemGridDimensions(button)).toEqual({ width: 1, height: 1 })
     expect(getItemGridDimensions({ kind: "calendar", size: "medium" })).toEqual(
       {
         width: 2,

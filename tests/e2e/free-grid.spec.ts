@@ -80,9 +80,34 @@ test("free grid replaces the fixed header with responsive search components", as
   const initialCellSize = await track.evaluate((node) =>
     parseFloat(getComputedStyle(node).gridTemplateColumns.split(" ")[0])
   )
-  await expect(page.getByRole("combobox", { name: "搜索" })).toHaveCount(1)
-  await expect(page.getByRole("combobox", { name: "对话输入" })).toHaveCount(1)
-  const minimalInput = page.getByRole("combobox", { name: "搜索" })
+  await expect(
+    page.getByRole("combobox", { name: "搜索", exact: true })
+  ).toHaveCount(2)
+  await expect(page.getByRole("combobox", { name: "对话输入" })).toHaveCount(0)
+  const minimalTile = page.locator('[data-grid-item-id="minimal-search"]')
+  await expect(
+    minimalTile.getByRole("button", { name: "更多操作", exact: true })
+  ).toHaveCount(0)
+  await expect(
+    minimalTile.getByRole("button", { name: "打开设置", exact: true })
+  ).toHaveCount(0)
+  const engine = minimalTile.getByRole("button", {
+    name: "搜索引擎：Google",
+    exact: true,
+  })
+  await expect(engine).toBeVisible()
+  const inputShell = minimalTile.locator("[data-search-input-shell]")
+  await expect
+    .poll(async () => {
+      const shell = (await inputShell.boundingBox())!
+      const selector = (await engine.boundingBox())!
+      return (
+        selector.x >= shell.x &&
+        selector.x + selector.width <= shell.x + shell.width
+      )
+    })
+    .toBe(true)
+  const minimalInput = minimalTile.getByRole("combobox", { name: "搜索" })
   await minimalInput.fill("oh my tab")
   await expect(minimalInput).toHaveValue("oh my tab")
 

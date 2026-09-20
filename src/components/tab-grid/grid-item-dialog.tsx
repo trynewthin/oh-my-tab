@@ -2,12 +2,20 @@ import { useState } from "react"
 import { WidgetEditor } from "./widget-ui"
 import CatalogComponentPreview from "./catalog-component-preview"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { BookmarkSimple } from "@phosphor-icons/react"
+import {
+  CalendarCheck,
+  DotsNine,
+  MagnifyingGlass,
+  PottedPlant,
+  Plus,
+} from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import ApplicationDialog, {
+  type ApplicationNavigationGroup,
+} from "@/components/application/application-dialog"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
@@ -20,162 +28,207 @@ import {
   getComponentSizeOptions,
   occupancyMark,
   type CatalogComponentKind,
+  type CatalogSection,
   type GridItemSize,
 } from "@/lib/grid/registry"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
+
+type CatalogRoute = CatalogSection
 
 export default function GridItemDialog({
   item,
   onClose,
+  open = true,
 }: {
   item?: GridItem
   onClose: () => void
+  open?: boolean
 }) {
   const [selected, setSelected] = useState<CatalogComponentKind | null>(null)
   const [confirmSize, setConfirmSize] = useState<GridItemSize | false>(false)
+  const [route, setRoute] = useState<CatalogRoute>("common")
   const { t } = useTranslation()
   const saveItem = useTabGridStore((state) => state.saveItem)
-  function addComponent(kind: CatalogComponentKind, size?: GridItemSize) {
-    saveItem(createCatalogComponent(kind, size))
+  const accentColor = useHomeSettingsStore((state) => state.color)
+  const navigation: ApplicationNavigationGroup<CatalogRoute>[] = [
+    {
+      id: "basic",
+      label: t("grid.dialog.categoryBasic"),
+      items: [
+        {
+          id: "common",
+          label: t("grid.dialog.categoryCommon"),
+          icon: <MagnifyingGlass />,
+        },
+        {
+          id: "productivity",
+          label: t("grid.dialog.categoryProductivity"),
+          icon: <CalendarCheck />,
+        },
+      ],
+    },
+    {
+      id: "creative",
+      label: t("grid.dialog.categoryCreative"),
+      items: [
+        {
+          id: "dots",
+          label: t("grid.dialog.categoryDots"),
+          icon: <DotsNine />,
+        },
+        {
+          id: "fun",
+          label: t("grid.dialog.categoryFun"),
+          icon: <PottedPlant />,
+        },
+      ],
+    },
+  ]
+  const visibleKinds = catalogComponentKinds.filter(
+    (kind) => getComponentDefinition(kind).catalogSection === route
+  )
+  function closeCatalog() {
+    setSelected(null)
+    setConfirmSize(false)
+    setRoute("common")
     onClose()
   }
-  if (item) return <WidgetEditor item={item} onClose={onClose} onSaved={onClose} />
+  function addComponent(kind: CatalogComponentKind, size?: GridItemSize) {
+    saveItem(createCatalogComponent(kind, size))
+    closeCatalog()
+  }
+  if (item)
+    return <WidgetEditor item={item} onClose={onClose} onSaved={onClose} />
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
+    <ApplicationDialog
+      applicationId="components"
+      open={open}
+      onOpenChange={(open: boolean) => {
+        if (!open) closeCatalog()
       }}
+      title={t("grid.dialog.catalogTitle")}
+      description={t("grid.dialog.catalogDescription")}
+      closeLabel={t("shell.common.close")}
+      closeAriaLabel={t("shell.common.close")}
+      navigationAriaLabel={t("grid.dialog.catalogNav")}
+      navigationProgressAriaLabel={t("grid.dialog.catalogScrollProgress")}
+      navigation={navigation}
+      activeRoute={route}
+      onRouteChange={(nextRoute) => {
+        setRoute(nextRoute)
+        setSelected(null)
+        setConfirmSize(false)
+      }}
+      accentColor={accentColor}
     >
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-3xl">
-        <div className="flex h-[min(560px,80svh)] min-h-0 min-w-0">
-          <aside className="flex w-24 shrink-0 flex-col p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
-            <DialogHeader className="px-2 pb-6 text-left">
-              <DialogTitle>{t("grid.dialog.catalogTitle")}</DialogTitle>
-              <DialogDescription className="sr-only">
-                {t("grid.dialog.catalogDescription")}
-              </DialogDescription>
-            </DialogHeader>
-            <nav aria-label={t("grid.dialog.catalogNav")}>
-              <Button
-                variant="secondary"
-                aria-current="page"
-                className="w-full justify-start px-2"
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {visibleKinds.map((kind) => {
+          return (
+            <div key={kind} className="min-w-0">
+              <button
+                type="button"
+                aria-label={t("grid.dialog.selectComponent", {
+                  label: componentLabel(kind, t),
+                })}
+                aria-haspopup="dialog"
+                className="w-full min-w-0 rounded-2xl border border-border bg-card p-1.5 text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:bg-zinc-900 dark:hover:border-white/30"
+                onClick={() => {
+                  if (selected !== kind) {
+                    setSelected(kind)
+                    setConfirmSize(false)
+                  } else {
+                    setSelected(null)
+                    setConfirmSize(false)
+                  }
+                }}
               >
-                <BookmarkSimple />
-                {t("grid.dialog.allComponents")}
-              </Button>
-            </nav>
-          </aside>
-          <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-3 pt-16 pb-6 sm:p-6 sm:pt-16">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {catalogComponentKinds.map((kind) => {
-                return (
-                  <div key={kind} className="min-w-0">
-                    <button
-                      type="button"
-                      aria-label={t("grid.dialog.selectComponent", {
-                        label: componentLabel(kind, t),
-                      })}
-                      aria-haspopup="dialog"
-                      className="w-full min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() => {
-                        if (selected !== kind) {
-                          setSelected(kind)
-                          setConfirmSize(false)
-                        } else {
-                          setSelected(null)
-                          setConfirmSize(false)
-                        }
-                      }}
-                    >
-                      <CatalogComponentPreview kind={kind} />
-                      <span className="block px-4 pb-4 text-center text-sm font-medium">
-                        {componentLabel(kind, t)}
-                      </span>
-                    </button>
-                  </div>
-                )
-              })}
-              {selected && (
-                <Dialog
-                  open
-                  onOpenChange={(open) => {
-                    if (!open) {
-                      setSelected(null)
-                      setConfirmSize(false)
-                    }
-                  }}
-                >
-                  <DialogContent
-                    className={`grid grid-cols-1 items-center gap-6 p-6 ${getComponentDefinition(selected).detailPreviewWidth === "wide" ? "sm:max-w-xl sm:grid-cols-[240px_minmax(0,1fr)]" : "sm:max-w-lg sm:grid-cols-[160px_minmax(0,1fr)]"}`}
-                  >
-                    <CatalogComponentPreview
-                      kind={selected}
-                      detail
-                      size={
-                        confirmSize ||
-                        getComponentDefinition(selected).defaultSize
-                      }
-                    />
-                    <div className="min-w-0 space-y-3">
-                      <DialogTitle className="font-semibold">
-                        {componentLabel(selected, t)}
-                      </DialogTitle>
-                      <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                        {componentDescription(selected, t)}
-                      </DialogDescription>
-                      {getComponentDefinition(selected).catalogDirectAdd ? (
-                        <Button onClick={() => addComponent(selected)}>
-                          {t("grid.dialog.confirmAdd")}
-                        </Button>
-                      ) : (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">
-                            {t("grid.dialog.availableSizes")}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {getComponentSizeOptions(selected, "catalog").map(
-                              (option) => (
-                                <Button
-                                  key={option.value}
-                                  variant={
-                                    confirmSize === option.value
-                                      ? "default"
-                                      : "outline"
-                                  }
-                                  onClick={() => {
-                                    if (confirmSize === option.value)
-                                      addComponent(selected, option.value)
-                                    else setConfirmSize(option.value)
-                                  }}
-                                >
-                                  {confirmSize === option.value
-                                    ? t("grid.dialog.confirmAddWithSize", {
-                                        size: occupancyMark(
-                                          option.width,
-                                          option.height
-                                        ),
-                                      })
-                                    : occupancyMark(
-                                        option.width,
-                                        option.height
-                                      )}
-                                </Button>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+                <CatalogComponentPreview kind={kind} />
+                <span className="block px-3 py-3 text-sm font-medium">
+                  {componentLabel(kind, t)}
+                </span>
+                <span className="block truncate px-3 pb-3 text-xs leading-relaxed text-muted-foreground">
+                  {componentDescription(kind, t)}
+                </span>
+              </button>
             </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+          )
+        })}
+        {selected && (
+          <Dialog
+            open
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelected(null)
+                setConfirmSize(false)
+              }
+            }}
+          >
+            <DialogContent className="max-h-[90svh] gap-5 overflow-y-auto p-5 sm:max-w-xl sm:p-6">
+              <CatalogComponentPreview
+                kind={selected}
+                detail
+                size={
+                  confirmSize || getComponentDefinition(selected).defaultSize
+                }
+              />
+              <div className="min-w-0 space-y-3">
+                <DialogTitle className="pr-8 text-xl font-semibold">
+                  {componentLabel(selected, t)}
+                </DialogTitle>
+                <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
+                  {componentDescription(selected, t)}
+                </DialogDescription>
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <div
+                    role="group"
+                    aria-label={t("grid.dialog.availableSizes")}
+                    className="flex min-w-0 items-center gap-2 overflow-x-auto py-1"
+                  >
+                    {getComponentSizeOptions(selected, "catalog").map(
+                      (option) => (
+                        <Button
+                          key={option.value}
+                          className="shrink-0"
+                          variant={
+                            (confirmSize ||
+                              getComponentDefinition(selected).defaultSize) ===
+                            option.value
+                              ? "default"
+                              : "outline"
+                          }
+                          aria-pressed={
+                            (confirmSize ||
+                              getComponentDefinition(selected).defaultSize) ===
+                            option.value
+                          }
+                          onClick={() => setConfirmSize(option.value)}
+                        >
+                          {occupancyMark(option.width, option.height)}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                  <Button
+                    className="shrink-0"
+                    onClick={() =>
+                      addComponent(
+                        selected,
+                        confirmSize ||
+                          getComponentDefinition(selected).defaultSize
+                      )
+                    }
+                  >
+                    <Plus />
+                    {t("grid.dialog.add")}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </ApplicationDialog>
   )
 }

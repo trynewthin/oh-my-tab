@@ -15,6 +15,7 @@ export const GRID_OCCUPANCY = {
   "2x2": { width: 2, height: 2 },
   "4x1": { width: 4, height: 1 },
   "4x2": { width: 4, height: 2 },
+  "8x1": { width: 8, height: 1 },
   "4x4": { width: 4, height: 4 },
   "4x8": { width: 4, height: 8 },
   "8x4": { width: 8, height: 4 },
@@ -61,6 +62,8 @@ export type ComponentSizeDefinition = {
   height: number
 }
 
+export type CatalogSection = "common" | "productivity" | "dots" | "fun"
+
 export function gridSize(
   value: GridItemSize,
   occupancy: GridOccupancyId,
@@ -92,6 +95,7 @@ export type ComponentDefinition = {
   editorSizes: readonly GridItemSize[]
   catalogSizes: readonly GridItemSize[]
   catalogDirectAdd: boolean
+  catalogSection?: CatalogSection
   detailPreviewWidth: "compact" | "wide"
   showNameInEditor: boolean
   tileBorder: boolean
@@ -155,6 +159,30 @@ export const componentRegistry = {
       expandable: true,
     },
   },
+  button: {
+    labelKey: "grid.component.button.label",
+    descriptionKey: "grid.component.button.description",
+    defaultNameKey: "grid.component.button.defaultName",
+    defaultColor: "#6c63ff",
+    defaultSize: "small",
+    sizes: [gridSize("small", "1x1")],
+    menuSizes: [],
+    editorSizes: [],
+    catalogSizes: ["small"],
+    catalogDirectAdd: true,
+    catalogSection: "common",
+    detailPreviewWidth: "compact",
+    showNameInEditor: false,
+    tileBorder: true,
+    openAction: "edit",
+    actions: {
+      resize: false,
+      randomColor: true,
+      dynamicEffect: false,
+      groupable: false,
+      expandable: false,
+    },
+  },
   "dot-canvas": {
     labelKey: "grid.component.dotCanvas.label",
     descriptionKey: "grid.component.dotCanvas.description",
@@ -171,6 +199,7 @@ export const componentRegistry = {
     editorSizes: ["large", "tall", "wide", "wide-tall"],
     catalogSizes: ["large", "tall", "wide", "wide-tall"],
     catalogDirectAdd: false,
+    catalogSection: "dots",
     detailPreviewWidth: "compact",
     showNameInEditor: true,
     tileBorder: false,
@@ -194,6 +223,7 @@ export const componentRegistry = {
     editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: false,
+    catalogSection: "fun",
     detailPreviewWidth: "compact",
     showNameInEditor: true,
     tileBorder: false,
@@ -221,6 +251,7 @@ export const componentRegistry = {
     editorSizes: ["small", "medium", "large"],
     catalogSizes: ["large", "small", "medium"],
     catalogDirectAdd: false,
+    catalogSection: "productivity",
     detailPreviewWidth: "wide",
     showNameInEditor: false,
     tileBorder: true,
@@ -239,17 +270,22 @@ export const componentRegistry = {
     defaultNameKey: "grid.component.searchMinimal.defaultName",
     defaultColor: "#6c8bd4",
     defaultSize: "small",
-    sizes: [gridSize("small", "12x1")],
-    menuSizes: [],
+    sizes: [
+      gridSize("compact", "4x1"),
+      gridSize("medium", "8x1"),
+      gridSize("small", "12x1"),
+    ],
+    menuSizes: ["compact", "medium", "small"],
     editorSizes: [],
-    catalogSizes: ["small"],
+    catalogSizes: ["compact", "medium", "small"],
     catalogDirectAdd: true,
+    catalogSection: "common",
     detailPreviewWidth: "wide",
     showNameInEditor: false,
     tileBorder: false,
     openAction: "none",
     actions: {
-      resize: false,
+      resize: true,
       randomColor: false,
       dynamicEffect: false,
       groupable: false,
@@ -267,6 +303,7 @@ export const componentRegistry = {
     editorSizes: [],
     catalogSizes: ["medium"],
     catalogDirectAdd: true,
+    catalogSection: "common",
     detailPreviewWidth: "wide",
     showNameInEditor: false,
     tileBorder: false,
@@ -322,6 +359,7 @@ export const componentRegistry = {
     editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: true,
+    catalogSection: "productivity",
     detailPreviewWidth: "wide",
     showNameInEditor: true,
     tileBorder: true,
@@ -337,11 +375,11 @@ export const componentRegistry = {
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
 export const catalogComponentKinds = [
+  "button",
   "dot-canvas",
   "todo",
   "calendar",
   "search-minimal",
-  "search-full",
   "ecosystem",
 ] as const satisfies readonly GridItemKind[]
 

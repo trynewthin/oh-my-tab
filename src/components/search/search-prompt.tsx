@@ -170,7 +170,7 @@ export default function SearchPrompt({
   return (
     <div
       ref={root}
-      className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto mt-6 max-w-3xl"} ${searchBoxStyle === "minimal" ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : embedded ? "flex flex-col" : ""}`}
+      className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto mt-6 max-w-3xl"} ${searchBoxStyle === "minimal" ? (embedded ? "flex items-center" : "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2") : embedded ? "flex flex-col" : ""}`}
       style={!embedded && width ? { width } : undefined}
       data-tour={searchBoxStyle === "minimal" ? "search" : undefined}
       onMouseDown={embedded ? (event) => event.stopPropagation() : undefined}
@@ -180,14 +180,18 @@ export default function SearchPrompt({
         <div
           className={`contents ${embedded ? "[&>div:last-child]:h-full" : ""}`}
         >
-          <div className="flex shrink-0 items-center gap-2">
-            <MoreActions compact />
-            <SettingsButton compact />
-            <SearchEngineSelect compact />
-          </div>
+          {!embedded && (
+            <div className="flex shrink-0 items-center gap-2">
+              <MoreActions compact />
+              <SettingsButton compact />
+              <SearchEngineSelect compact />
+            </div>
+          )}
           <div
+            data-search-input-shell
             className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           >
+            {embedded && <SearchEngineSelect inset />}
             <input
               value={draft}
               type="text"
@@ -203,7 +207,7 @@ export default function SearchPrompt({
               aria-activedescendant={
                 selected >= 0 ? `${listId}-${selected}` : undefined
               }
-              className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-muted-foreground"
+              className={`h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground ${embedded ? "px-2" : "px-4"}`}
               onChange={(event) => {
                 setDraft(event.target.value)
                 setActive(-1)
@@ -256,13 +260,13 @@ export default function SearchPrompt({
               aria-label={t("shell.home.searchButton")}
               title={t("shell.home.searchButtonTitle")}
               disabled={!query || !onSubmit}
-              className="mr-1 rounded-full text-muted-foreground transition-[color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:text-foreground enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
+              className={`rounded-full text-muted-foreground transition-[color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:text-foreground enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none ${embedded ? "mr-1.5 size-10 bg-transparent hover:bg-transparent dark:hover:bg-transparent" : "mr-1"}`}
               onClick={(event) => {
                 event.stopPropagation()
                 search()
               }}
             >
-              <MagnifyingGlass />
+              <MagnifyingGlass className={embedded ? "size-5" : undefined} />
             </Button>
           </div>
         </div>
@@ -362,7 +366,7 @@ export default function SearchPrompt({
           id={listId}
           role="listbox"
           aria-label={t("shell.home.suggestions")}
-          className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" ? "col-start-2 col-end-3" : ""}`}
+          className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" && !embedded ? "col-start-2 col-end-3" : ""}`}
           style={embedded ? { zIndex: 60 } : undefined}
           onMouseDown={(event) => event.preventDefault()}
         >

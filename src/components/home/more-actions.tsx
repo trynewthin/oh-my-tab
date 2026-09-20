@@ -1,7 +1,4 @@
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
-import { toast } from "@/stores/toast-store"
-import { lazy, Suspense, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   SquaresFour,
@@ -24,13 +21,8 @@ import {
 import ComponentConfiguration from "@/components/tab-grid/component-configuration"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
-
-// The component catalog previews the shared search prompt, which renders this
-// control. A deferred import keeps that edge out of the static module graph
-// (the module is already in the eager graph via the grid), avoiding a cycle.
-const GridItemDialog = lazy(
-  () => import("@/components/tab-grid/grid-item-dialog")
-)
+import { useComponentsApplicationStore } from "@/stores/components-application-store"
+import { runSystemAction } from "@/application/system-actions"
 
 const themeOptions = [
   { value: "light", labelKey: "themeLight", icon: Sun },
@@ -49,11 +41,8 @@ export default function MoreActions({
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [adding, setAdding] = useState<"tab" | "folder" | "component" | null>(
-    null
-  )
+  const [adding, setAdding] = useState<"tab" | "folder" | null>(null)
   const selecting = useGridSelectionStore((state) => state.active)
-  const toggleSelection = useGridSelectionStore((state) => state.toggleMode)
   const theme = useThemeStore((state) => state.theme)
   const setTheme = useThemeStore((state) => state.setTheme)
   return (
@@ -133,7 +122,7 @@ export default function MoreActions({
             className="w-full justify-start"
             onClick={() => {
               setOpen(false)
-              setAdding("component")
+              useComponentsApplicationStore.getState().setOpen(true)
             }}
           >
             <Plus />
@@ -144,24 +133,7 @@ export default function MoreActions({
             className="w-full justify-start"
             onClick={() => {
               setOpen(false)
-              const state = useTabGridStore.getState()
-              const columns = state.lastLayoutColumns
-              if (!columns || !state.items.length) return
-              const previous = state.layouts[columns] ?? {}
-              const ordered = [...state.items].sort((a, b) => {
-                const left = previous[a.id] ?? { x: 0, y: 0 }
-                const right = previous[b.id] ?? { x: 0, y: 0 }
-                return left.y - right.y || left.x - right.x
-              })
-              state.setLayout(
-                columns,
-                positionsOnly(placeItems(ordered, columns, {}))
-              )
-              toast(t("shell.moreActions.tidyDone"), "success", {
-                label: t("shell.moreActions.undo"),
-                run: () =>
-                  useTabGridStore.getState().setLayout(columns, previous),
-              })
+              runSystemAction("tidy-grid")
             }}
           >
             <GridFour />
@@ -173,7 +145,7 @@ export default function MoreActions({
             aria-pressed={selecting}
             onClick={() => {
               setOpen(false)
-              toggleSelection()
+              runSystemAction("toggle-selection")
             }}
           >
             <Checks />
@@ -186,18 +158,12 @@ export default function MoreActions({
           </Button>
         </PopoverContent>
       </Popover>
-      {adding === "component" ? (
-        <Suspense fallback={null}>
-          <GridItemDialog onClose={() => setAdding(null)} />
-        </Suspense>
-      ) : (
-        adding && (
-          <ComponentConfiguration
-            initialKind={adding}
-            onClose={() => setAdding(null)}
-            onSaved={() => setAdding(null)}
-          />
-        )
+      {adding && (
+        <ComponentConfiguration
+          initialKind={adding}
+          onClose={() => setAdding(null)}
+          onSaved={() => setAdding(null)}
+        />
       )}
     </div>
   )

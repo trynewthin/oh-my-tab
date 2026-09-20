@@ -11,6 +11,12 @@ const grid = {
     month: "Month",
   },
   component: {
+    button: {
+      label: "Button",
+      description:
+        "A 1×1 shortcut that runs a system function or opens an app.",
+      defaultName: "Button",
+    },
     tab: {
       label: "Tab",
       description: "Open a site you use often.",
@@ -81,10 +87,17 @@ const grid = {
   dialog: {
     catalogTitle: "Components",
     catalogDescription:
-      "Pick a component and size; click again to confirm adding it to your page.",
+      "Pick a component and size, then click Add to place it on your page.",
     catalogNav: "Component categories",
-    allComponents: "All components",
+    catalogScrollProgress: "Component category scroll progress",
+    categoryBasic: "Basics",
+    categoryCommon: "Common",
+    categoryProductivity: "Productivity",
+    categoryCreative: "Creative",
+    categoryDots: "Dot matrix",
+    categoryFun: "Fun",
     selectComponent: "Select {{label}}",
+    add: "Add",
     confirmAdd: "Confirm add",
     confirmAddWithSize: "Confirm add · {{size}}",
     availableSizes: "Available sizes",
@@ -99,6 +112,14 @@ const grid = {
     displaySize: "Display size",
     folderColor: "Folder color",
     backgroundColor: "Background color",
+    buttonAction: "Assigned action",
+    buttonActions: {
+      toggleTheme: "Toggle light/dark",
+      tidyGrid: "Tidy up",
+      toggleSelection: "Multi-select",
+      openSettings: "Open settings",
+      openComponents: "Open components",
+    },
     cancel: "Cancel",
     save: "Save",
     confirmAdd: "Confirm add",

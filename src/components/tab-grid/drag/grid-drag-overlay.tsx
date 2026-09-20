@@ -97,6 +97,9 @@ export default function GridDragOverlay({
     dragging && compactSize && fullHeight !== undefined
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
+  const searchWidget =
+    dragging?.item.kind === "search-minimal" ||
+    dragging?.item.kind === "search-full"
   const contentScale = preview ? previewScale : 1
   const contentWidth =
     overlayWidth === undefined ? undefined : overlayWidth / contentScale
@@ -129,7 +132,7 @@ export default function GridDragOverlay({
           style={{ width: overlayWidth, height: overlayHeight }}
         >
           <div
-            className="absolute top-0 left-0 isolate overflow-hidden rounded-2xl"
+            className={`absolute top-0 left-0 isolate overflow-hidden ${searchWidget ? "rounded-full [&_[data-search-input-shell]]:border-transparent [&_[data-search-input-shell]]:ring-0" : "rounded-2xl"}`}
             style={{
               width: contentWidth,
               height: contentHeight,
@@ -144,13 +147,15 @@ export default function GridDragOverlay({
                 !preview && releaseProgress > 0
                   ? `0 10px 15px -3px rgb(0 0 0 / ${0.1 * releaseProgress}), 0 4px 6px -4px rgb(0 0 0 / ${0.1 * releaseProgress})`
                   : undefined,
-              borderWidth: preview
-                ? getComponentDefinition(dragging.item.kind).tileBorder
-                  ? 1
-                  : 0
-                : releaseProgress > 0
-                  ? 1
-                  : 0,
+              borderWidth: searchWidget
+                ? 0
+                : preview
+                  ? getComponentDefinition(dragging.item.kind).tileBorder
+                    ? 1
+                    : 0
+                  : releaseProgress > 0
+                    ? 1
+                    : 0,
               borderStyle: "solid",
               borderColor: preview
                 ? "var(--tile-border)"

@@ -12,12 +12,13 @@ test("todo supports adding, completing, size options and persistence", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "更多操作", exact: true }).click()
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
+  await page.getByRole("button", { name: "效率", exact: true }).click()
   await page.getByRole("button", { name: "选择待办", exact: true }).click()
   const detail = page.getByRole("dialog", { name: "待办", exact: true })
   await expect(
     detail.getByRole("button", { name: "4×4", exact: true })
-  ).toHaveCount(0)
-  await detail.getByRole("button", { name: "确认添加", exact: true }).click()
+  ).toHaveAttribute("aria-pressed", "true")
+  await detail.getByRole("button", { name: "添加", exact: true }).click()
   const region = page.getByRole("region", { name: "待办", exact: true })
   await expect(region.getByRole("textbox", { name: "新待办" })).toHaveCount(0)
   for (const text of ["完成今天的计划", "阅读"]) {

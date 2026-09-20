@@ -8,136 +8,32 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu"
 import {
-  findVacancy,
   gridMetrics,
   gridOccupancyBox,
   itemHeight,
   itemWidth,
   placeItems,
-  positionsOnly,
-  type GridPlacement,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
 import { useEffect, useRef, useState } from "react"
-import {
-  DndContext,
-  MouseSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragMoveEvent,
-  type KeyboardCoordinateGetter,
-} from "@dnd-kit/core"
+import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import DraggableGridItem from "./draggable-grid-item"
-import GridTileContent from "./grid-tile-content"
 import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
 import { getComponentDefinition } from "@/lib/grid/registry"
 import type { GridItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
-import { ItemGlow } from "./grid-dnd-overlay"
 import { useGridDrag } from "./use-grid-drag"
 import GridDragOverlay from "./drag/grid-drag-overlay"
 import useGridMeasurement from "./use-grid-measurement"
+import GridSelectionItem from "./grid-selection-item"
+import { resolvePreviewDrop } from "./preview-drop"
+import useGridSensors from "./use-grid-sensors"
 import { previewFolderTabs, previewTodoTasks } from "./drag/model"
-import type { GridPosition } from "@/lib/grid/grid-layout"
 
 const emptyPositions: GridPositions = {}
 
-
-// Preview drops resolve by re-homing overlapped tiles into freed cells, and
-// when that cannot fit the fixed area, by reflowing every tile in reading
-// order. A drop that still overflows is rejected — the caller keeps the
-// settled layout so tiles spring back instead of clipping out of view.
-function resolvePreviewDrop(
-  items: GridItem[],
-  columns: number,
-  rows: number | undefined,
-  positions: GridPositions,
-  target: { id: string; position: GridPosition }
-): GridPositions | null {
-  const item = items.find((entry) => entry.id === target.id)
-  if (!item) return null
-  const width = itemWidth(item, columns)
-  const height = itemHeight(item)
-  const targetPlacement: GridPlacement = {
-    x: Math.max(0, Math.min(columns - width, Math.round(target.position.x))),
-    y: Math.max(
-      0,
-      Math.min(
-        Math.max(0, (rows ?? height) - height),
-        Math.round(target.position.y)
-      )
-    ),
-    width,
-    height,
-  }
-  const ordered = items
-    .filter((entry) => positions[entry.id])
-    .sort(
-      (a, b) =>
-        positions[a.id].y - positions[b.id].y ||
-        positions[a.id].x - positions[b.id].x
-    )
-  const placementOf = (entry: GridItem): GridPlacement => ({
-    ...(positions[entry.id] ?? { x: 0, y: 0 }),
-    width: itemWidth(entry, columns),
-    height: itemHeight(entry),
-  })
-  const displaced = ordered.filter(
-    (entry) =>
-      entry.id !== item.id &&
-      placementsOverlap(targetPlacement, placementOf(entry))
-  )
-  const next: Record<string, GridPlacement> = { [item.id]: targetPlacement }
-  for (const entry of ordered) {
-    if (entry.id === item.id || displaced.includes(entry)) continue
-    next[entry.id] = placementOf(entry)
-  }
-  const fits = (p: GridPlacement) =>
-    rows === undefined || (p.y + p.height <= rows && p.x + p.width <= columns)
-  let passOk = true
-  for (const entry of displaced) {
-    const free = findVacancy(
-      Object.values(next),
-      columns,
-      itemHeight(entry),
-      itemWidth(entry, columns)
-    )
-    if (!fits(free)) {
-      passOk = false
-      break
-    }
-    next[entry.id] = free
-  }
-  if (passOk) return positionsOnly(next)
-
-  const reflowed: Record<string, GridPlacement> = {
-    [item.id]: targetPlacement,
-  }
-  for (const entry of ordered) {
-    if (entry.id === item.id) continue
-    const free = findVacancy(
-      Object.values(reflowed),
-      columns,
-      itemHeight(entry),
-      itemWidth(entry, columns)
-    )
-    if (!fits(free)) return null
-    reflowed[entry.id] = free
-  }
-  return positionsOnly(reflowed)
-}
-
-function placementsOverlap(a: GridPlacement, b: GridPlacement) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  )
-}
 
 export default function TabGrid({
   preview = false,
@@ -306,28 +202,7 @@ export default function TabGrid({
     ensureLayout(columns)
   }, [preview, columns, width, items, layouts, dragging, ensureLayout])
 
-
-  const keyboardCoordinates: KeyboardCoordinateGetter = (
-    event,
-    { currentCoordinates }
-  ) => {
-    const delta = {
-      ArrowLeft: [-columnStep, 0],
-      ArrowRight: [columnStep, 0],
-      ArrowUp: [0, -rowStep],
-      ArrowDown: [0, rowStep],
-    }[event.code]
-    if (!delta) return undefined
-    event.preventDefault()
-    return {
-      x: currentCoordinates.x + delta[0],
-      y: currentCoordinates.y + delta[1],
-    }
-  }
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: keyboardCoordinates })
-  )
+  const sensors = useGridSensors({ columnStep, rowStep })
 
   const overlay = (
     <GridDragOverlay
@@ -420,42 +295,16 @@ export default function TabGrid({
             >
               {(width > 0 && layouts[columns] ? items : []).map((item) =>
                 selecting ? (
-                  <div
+                  <GridSelectionItem
                     key={item.id}
-                    data-grid-item-id={item.id}
-                    className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? "border border-tile-border" : ""}`}
-                    style={{
-                      gridColumn: `${placements[item.id].x + 1} / span ${itemWidth(item, columns)}`,
-                      gridRow: `${placements[item.id].y + 1} / span ${placements[item.id].height}`,
-                    }}
-                  >
-                    {selectedIds.includes(item.id) && (
-                      <ItemGlow color={item.color} />
-                    )}
-                    <div
-                      inert
-                      className="pointer-events-none relative z-10 h-full overflow-hidden rounded-[inherit]"
-                    >
-                      <GridTileContent
-                        item={{
-                          ...item,
-                          dynamicEffect: selectedIds.includes(item.id),
-                        }}
-                        onOpen={() => {}}
-                        preview
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={selectedIds.includes(item.id)}
-                      aria-label={t("grid.chrome.selectItem", {
-                        name: item.name,
-                      })}
-                      className="absolute inset-0 z-30 cursor-pointer appearance-none rounded-[inherit] border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() => toggleSelection(item.id)}
-                    />
-                  </div>
+                    item={item}
+                    placement={placements[item.id]}
+                    selected={selectedIds.includes(item.id)}
+                    onToggle={() => toggleSelection(item.id)}
+                    selectAriaLabel={t("grid.chrome.selectItem", {
+                      name: item.name,
+                    })}
+                  />
                 ) : (
                   <DraggableGridItem
                     key={item.id}

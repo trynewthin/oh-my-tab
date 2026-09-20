@@ -39,50 +39,88 @@ for (const size of ["large", "tall"] as const) {
     await page.goto("/")
     const region = page.getByRole("region", { name: "资料内的标签" })
     await expect(region).toBeVisible()
-    const count = await region.evaluate((element) => {
-      const row = element.querySelector("[data-stack-row]")!
-      const height =
-        element.clientHeight - parseFloat(getComputedStyle(element).paddingTop)
-      return Math.min(
-        10,
-        Math.floor((height + 8) / (row.getBoundingClientRect().height + 8))
+    // The preview renders as many whole rows as the region's available height
+    // allows. The row pitch is measured from the live stack rather than
+    // assumed: the implementation deliberately tightens the inter-row gap
+    // down to 4px to fit one more row, so the old hard-coded 8px gap
+    // under-counted (3 instead of 4, 8 instead of 9).
+    const geometry = await region.evaluate((element) => {
+      const available =
+        element.clientHeight -
+        parseFloat(getComputedStyle(element).paddingTop)
+      const rows = Array.from(
+        element.querySelectorAll<HTMLElement>("[data-stack-row]")
       )
+      const rowHeight = rows[0]?.getBoundingClientRect().height ?? 0
+      const step =
+        rows.length > 1
+          ? rows[1].getBoundingClientRect().top -
+            rows[0].getBoundingClientRect().top
+          : rowHeight
+      // Both sizes land exactly on a row boundary ((199 - 46) / 51 = 3 and
+      // (458 - 46) / 51.5 = 8), so nudge by a relative epsilon before flooring.
+      const fitted =
+        step > 0
+          ? Math.max(
+              1,
+              Math.min(
+                rows.length,
+                Math.floor((available - rowHeight) / step + 1e-6) + 1
+              )
+            )
+          : rows.length
+      return { available, rowHeight, step, fitted, total: rows.length }
     })
-    await expect(region.getByRole("link")).toHaveCount(count)
-    const bounds = await region.boundingBox()
-    for (const link of await region.getByRole("link").all()) {
-      const box = await link.boundingBox()
-      expect(box!.y).toBeGreaterThanOrEqual(bounds!.y)
-      expect(box!.y + box!.height).toBeLessThanOrEqual(
-        bounds!.y + bounds!.height
+    await expect(region.getByRole("link")).toHaveCount(geometry.fitted)
+    const bounds = (await region.boundingBox())!
+    const boxes = await region
+      .getByRole("link")
+      .evaluateAll((elements) =>
+        elements.map((element) => element.getBoundingClientRect())
       )
+    expect(boxes).toHaveLength(geometry.fitted)
+    // Every shown row must be complete: fully inside the region, never clipped
+    // by its top or bottom edge.
+    for (const box of boxes) {
+      expect(box.top).toBeGreaterThanOrEqual(bounds.y - 0.5)
+      expect(box.bottom).toBeLessThanOrEqual(bounds.y + bounds.height + 0.5)
     }
+    // The stack must consume the available height: no further full row fits.
+    const lowest = Math.max(...boxes.map((box) => box.bottom))
+    expect(bounds.y + bounds.height - lowest).toBeLessThan(geometry.step)
+    // Large and tall previews are multi-row, and their ten bookmarks exceed
+    // what fits, so the scroll path below is genuinely exercised.
+    expect(geometry.fitted).toBeGreaterThan(1)
+    expect(geometry.fitted).toBeLessThan(geometry.total)
     await page.getByRole("button", { name: "资料", exact: true }).click()
     const expanded = page.getByRole("dialog", { name: "资料", exact: true })
     const links = expanded.getByRole("link")
-    await expect
-      .poll(async () => {
-        const first = (await links.nth(0).boundingBox())!
-        const second = (await links.nth(1).boundingBox())!
-        return Math.abs(first.y - second.y) < 1 && second.x > first.x
-      })
-      .toBe(true)
+    // The expanded dialog reflows between two columns on narrow viewports and
+    // three on wide ones. Measure each rendered column count and assert the
+    // first row is laid out left-to-right at that width.
+    const firstRow = async (columns: number) => {
+      const boxes = await links.evaluateAll(
+        (elements, limit) =>
+          elements
+            .slice(0, limit)
+            .map((element) => element.getBoundingClientRect()),
+        columns + 1
+      )
+      if (boxes.length < columns) return false
+      const row = boxes.slice(0, columns)
+      const alignedTop = row.every((box) => Math.abs(box.top - row[0].top) < 1)
+      const increasing = row.every(
+        (box, index) => index === 0 || box.left > row[index - 1].left
+      )
+      const wrapped =
+        boxes.length > columns ? boxes[columns].top > row[0].top + 1 : true
+      return alignedTop && increasing && wrapped
+    }
+    await expect.poll(() => firstRow(3)).toBe(true)
     await page.setViewportSize({ width: 390, height: 969 })
-    await expect
-      .poll(async () => {
-        const first = (await links.nth(0).boundingBox())!
-        const second = (await links.nth(1).boundingBox())!
-        return Math.abs(first.x - second.x) < 1 && second.y > first.y
-      })
-      .toBe(true)
+    await expect.poll(() => firstRow(2)).toBe(true)
     await page.setViewportSize({ width: 1440, height: 1000 })
-    await expect
-      .poll(async () => {
-        const first = (await links.nth(0).boundingBox())!
-        const second = (await links.nth(1).boundingBox())!
-        return Math.abs(first.y - second.y) < 1 && second.x > first.x
-      })
-      .toBe(true)
+    await expect.poll(() => firstRow(3)).toBe(true)
     const folder = page.locator('[data-grid-item-id="folder"]')
     const content = expanded.locator("[data-expansion-content]")
     const expandedGrid = expanded.locator("[data-expanded-folder-grid]")

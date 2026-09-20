@@ -77,21 +77,39 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
 
   await dialog.getByRole("button", { name: "保存" }).click()
   const tile = page.getByRole("button", { name: "编辑点阵画布 点阵画布" })
+  const track = page.locator("[data-tab-grid-track]")
   await expect(tile).toBeVisible()
-  const article = tile.locator("..")
+  // A 4x4 dot canvas must render as a square occupying four grid tracks in
+  // both axes. Derive that footprint from the live grid geometry instead of
+  // pinning a parent's inline style, and re-sync on the rendered tile after
+  // each viewport change because the grid renders nothing until it has both a
+  // measured width and a layout for the new column count.
   for (const width of [1440, 1030, 390]) {
     await page.setViewportSize({ width, height: 969 })
+    await expect(tile).toBeVisible()
     await expect
       .poll(async () => {
-        const bounds = (await tile.boundingBox())!
-        return Math.abs(bounds.width - bounds.height)
+        const bounds = await tile.boundingBox()
+        if (!bounds) return Number.POSITIVE_INFINITY
+        const span = await track.evaluate((node) => {
+          const style = getComputedStyle(node)
+          const columns = style.gridTemplateColumns
+            .split(" ")
+            .filter(Boolean).length
+          const gap = Number.parseFloat(style.columnGap) || 0
+          const step = (node.getBoundingClientRect().width + gap) / columns
+          // gridMetrics uses the same step, so a 4-track span is 4*step - gap.
+          return 4 * step - gap
+        })
+        return Math.max(
+          Math.abs(bounds.width - bounds.height),
+          Math.abs(bounds.width - span),
+          Math.abs(bounds.height - span)
+        )
       })
       .toBeLessThan(1)
   }
 
-  expect(
-    await article.evaluate((node) => (node as HTMLElement).style.gridRow)
-  ).toContain("span 4")
   await page.reload()
   await expect(tile.locator('rect[fill="#ff0000"]')).toHaveCount(576)
   await tile.click()

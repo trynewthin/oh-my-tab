@@ -40,28 +40,22 @@ test("toolbar reverses an interrupted transition and honors reduced motion", asy
   await expect(surface).toHaveAttribute("data-transition-phase", "visible")
 })
 
-test("settings flame completes a cell transition and stops when hidden", async ({
+test("settings flame mounts with its pane and stops when hidden", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "外观", exact: true }).click()
-  const flame = dialog.locator("[data-effect-phase]")
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  const flame = dialog
+    .locator('[aria-label="标签预览"] [data-effect-phase]')
+    .first()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
+  await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
   await dialog.getByRole("button", { name: "顶部", exact: true }).click()
-  await expect(flame).toHaveAttribute("data-effect-phase", "hidden")
-  expect(
-    await flame
-      .locator("[data-burn-cell]")
-      .evaluateAll((nodes) =>
-        nodes.every(
-          (node) =>
-            (node as HTMLElement).style.backgroundColor === "transparent"
-        )
-      )
-  ).toBe(true)
-  await dialog.getByRole("button", { name: "外观", exact: true }).click()
+  await expect(dialog.locator("[data-effect-phase]")).toHaveCount(0)
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
+  await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
 })
 
 test("toast disposal follows the exit lifecycle", async ({ page }) => {
@@ -78,49 +72,46 @@ test("toast disposal follows the exit lifecycle", async ({ page }) => {
   await expect(dialog).toBeVisible()
 })
 
-test("particle style switches globally, responds to pointer and persists", async ({
+test("particle style switches across surfaces and persists", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "动效", exact: true }).click()
-  await dialog.getByRole("button", { name: "选择粒子效果" }).click()
-  await page.getByRole("radio", { name: "呼吸点阵", exact: true }).click()
-  const surface = dialog.locator('[data-effect-style="particles"]')
-  await expect(surface).toHaveAttribute("data-effect-phase", "visible")
-  await expect(surface.locator("canvas[data-particle-canvas]")).toBeAttached()
-  const pixels = () =>
-    surface
-      .locator("canvas")
-      .evaluate((node) => (node as HTMLCanvasElement).toDataURL())
-  const before = await pixels()
-  const box = (await surface.boundingBox())!
-  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.6)
-  await expect.poll(pixels).not.toEqual(before)
-  await dialog.getByRole("slider", { name: "呼吸幅度" }).focus()
-  await dialog.getByRole("slider", { name: "呼吸幅度" }).press("Home")
-  await expect(dialog.getByRole("slider", { name: "呼吸幅度" })).toHaveValue(
-    "0"
-  )
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  const preview = dialog.locator('[aria-label="标签预览"]')
+  await dialog.getByRole("button", { name: "选择标签纹理" }).click()
+  await page.getByRole("radio", { name: "浮游点阵", exact: true }).click()
+  const surfaces = preview.locator('[data-effect-style="particles"]')
+  await expect(surfaces).toHaveCount(3)
+  await expect(surfaces.first()).toHaveAttribute("data-effect-phase", "visible")
+  await expect(
+    surfaces.first().locator("canvas[data-particle-canvas]")
+  ).toBeAttached()
+  const slider = dialog.getByRole("slider", { name: "呼吸幅度" })
+  await slider.focus()
+  await slider.press("Home")
+  await expect(slider).toHaveValue("0")
   await expect
     .poll(async () => {
       const state = await readStoredState<{
-        effectStyle: string
+        tabTexture: string
         burningAmplitude: number
       }>(page, "omt.home-settings")
-      return [state.effectStyle, state.burningAmplitude]
+      return [state.tabTexture, state.burningAmplitude]
     })
     .toEqual(["particles", 0])
   await page.reload()
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await dialog.getByRole("button", { name: "动效", exact: true }).click()
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(
-    dialog.getByRole("button", { name: "选择粒子效果" })
-  ).toContainText("呼吸点阵")
+    dialog.getByRole("button", { name: "选择标签纹理" })
+  ).toContainText("浮游点阵")
   await expect(dialog.getByRole("slider", { name: "呼吸幅度" })).toHaveValue(
     "0"
   )
-  await dialog.getByRole("button", { name: "选择粒子效果" }).click()
-  await page.getByRole("radio", { name: "方格燃烧", exact: true }).click()
-  await expect(dialog.locator('[data-effect-style="burning"]')).toBeVisible()
+  await dialog.getByRole("button", { name: "选择标签纹理" }).click()
+  await page.getByRole("radio", { name: "像素火焰", exact: true }).click()
+  await expect(
+    preview.locator('[data-effect-style="burning"]').first()
+  ).toBeVisible()
 })

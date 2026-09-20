@@ -1,4 +1,4 @@
-import { useRef, useState, type MutableRefObject } from "react"
+import { useCallback, useRef, useState, type MutableRefObject } from "react"
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 
 import { itemWidth, placeItems } from "@/lib/grid/grid-layout"
@@ -205,10 +205,14 @@ export function useGridDrag({
     publish({ kind: "none" })
     setDialogSuspended(false)
   }
-  function cancelTimers() {
+  // Stable identity: the pointer-tracking effect depends on this to cancel the
+  // rAF chains only on teardown. A fresh identity every render would cancel
+  // them from the effect cleanup, freezing the release animation and the
+  // folder-charge tick whenever the component re-rendered without a mousemove.
+  const cancelTimers = useCallback(() => {
     if (hover.current) cancelAnimationFrame(hover.current.frame)
     if (release.current) cancelAnimationFrame(release.current.frame)
-  }
+  }, [])
 
   function folderBounds(id: string): Bounds | null {
     const element = Array.from(gridRef.current?.children ?? []).find(

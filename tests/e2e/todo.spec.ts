@@ -34,6 +34,7 @@ test("todo supports adding, completing, size options and persistence", async ({
   await region.click({ button: "right" })
   await expect(page.getByRole("menuitemradio")).toHaveCount(0)
   await page.keyboard.press("Escape")
+  await expect(page.getByRole("menu")).toHaveCount(0)
   await region.getByRole("checkbox", { name: "完成 阅读", exact: true }).check()
   await expect
     .poll(() =>

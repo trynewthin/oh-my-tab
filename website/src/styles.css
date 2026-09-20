@@ -110,18 +110,6 @@ a {
   margin-left: auto;
 }
 
-.header-download {
-  display: inline-flex;
-  height: var(--header-control-height);
-  align-items: center;
-  padding: 0 8px;
-  color: #b9bbc8;
-  font-size: 13px;
-}
-
-.header-download:hover {
-  color: #fff;
-}
 
 .header-github {
   display: inline-flex;
@@ -803,9 +791,6 @@ button:focus-visible {
   .brand {
     font-size: 14px;
     gap: 7px;
-  }
-  .header-download {
-    display: none;
   }
   .header-actions {
     --header-control-height: 32px;

@@ -78,9 +78,6 @@ export function SiteHeader({ language, page }: SiteChromeProps) {
         >
           <GitHubIcon />
         </a>
-        <a className="header-download" href={releaseUrl}>
-          {t("header.download")}
-        </a>
         <a className="header-action" href={chromeStoreUrl}>
           {t("header.chromeStore")}
         </a>

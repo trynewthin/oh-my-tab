@@ -49,6 +49,7 @@ export function useGridDrag({
   widthColumns,
   width,
   gridGap,
+  coordinateScale = 1,
   gridRef,
   pointer,
   closeFolder,
@@ -62,6 +63,7 @@ export function useGridDrag({
   /** Container width in px; steps are derived from it and the active columns. */
   width: number
   gridGap: number
+  coordinateScale?: number
   gridRef: MutableRefObject<HTMLDivElement | null>
   pointer: MutableRefObject<Point | null>
   closeFolder: () => void
@@ -100,7 +102,7 @@ export function useGridDrag({
 
   // Frozen while a drag session is live; otherwise the width-derived count.
   const columns = dragging?.columns ?? widthColumns
-  const columnStep = (width + gridGap) / columns
+  const columnStep = ((width + gridGap) / columns) * coordinateScale
   const rowStep = columnStep
 
   function publish(next: Intent) {

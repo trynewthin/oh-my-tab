@@ -7,11 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import TabGrid from "@/components/tab-grid/tab-grid"
 import { createFolderItem } from "@/lib/grid/factory"
 import type { FolderItem, GridItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { settingsControlClassName } from "../shared/control-styles"
+import ScaledGridPreview from "./scaled-grid-preview"
 
 const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
 
@@ -89,15 +89,12 @@ export default function FolderPane() {
   return (
     <>
       {trackWidth > 0 && (
-        <div className="flex justify-center">
-          <TabGrid
-            preview
-            items={preview.items}
-            trackWidth={trackWidth}
-            area={preview.area}
-            previewPositions={preview.positions}
-          />
-        </div>
+        <ScaledGridPreview
+          items={preview.items}
+          trackWidth={trackWidth}
+          area={preview.area}
+          positions={preview.positions}
+        />
       )}
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <label htmlFor="folder-style" className="text-sm">

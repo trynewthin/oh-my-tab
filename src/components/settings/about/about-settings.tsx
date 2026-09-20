@@ -1,27 +1,20 @@
 import { GithubLogo } from "@phosphor-icons/react"
 import PrivacySettings from "./privacy-settings"
 import ProjectSupport from "./project-support"
-import { useTranslation } from "react-i18next"
 
 export default function AboutSettings({
   pane,
 }: {
   pane: "project" | "privacy"
 }) {
-  const { t } = useTranslation()
   return (
-    <section className="space-y-5" aria-labelledby="about-settings-title">
-      <h2 id="about-settings-title" className="text-base leading-6 font-medium">
-        {pane === "privacy"
-          ? t("settings.nav.aboutPrivacy")
-          : t("settings.nav.aboutProject")}
-      </h2>
+    <section className="space-y-5">
       {pane === "privacy" ? (
         <PrivacySettings />
       ) : (
         <>
           <ProjectSupport />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex min-w-0 items-center gap-4 p-4">
               <img
                 src={`${import.meta.env.BASE_URL}icons/icon-128.png`}

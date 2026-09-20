@@ -115,6 +115,67 @@ test("personalization persists global burning controls", async ({ page }) => {
   await expect(entrance).toBeChecked()
 })
 
+test("switching from a dragged folder preview keeps settings open", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  await dialog.getByRole("button", { name: "文件夹", exact: true }).click()
+
+  const previewItems = dialog.locator(
+    "[data-scaled-grid-preview] [data-grid-item-id]"
+  )
+  const source = await previewItems.nth(0).boundingBox()
+  const target = await previewItems.nth(1).boundingBox()
+  if (!source || !target) throw new Error("folder preview was not measurable")
+
+  await page.mouse.move(
+    source.x + source.width / 2,
+    source.y + source.height / 2
+  )
+  await page.mouse.down()
+  await page.mouse.move(
+    target.x + target.width / 2,
+    target.y + target.height / 2,
+    { steps: 8 }
+  )
+  await page.mouse.up()
+
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole("slider", { name: "燃烧幅度" })).toBeVisible()
+})
+
+test("mobile settings uses full-screen application navigation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  const bounds = await dialog.boundingBox()
+  expect(bounds).not.toBeNull()
+  expect(bounds!.x).toBeCloseTo(0, 0)
+  expect(bounds!.y).toBeCloseTo(0, 0)
+  expect(bounds!.width).toBeCloseTo(390, 0)
+  expect(bounds!.height).toBeCloseTo(844, 0)
+  await expect(
+    dialog.locator("header").getByRole("button", { name: "添加", exact: true })
+  ).toBeVisible()
+
+  await dialog.getByRole("button", { name: "设置分类", exact: true }).click()
+  const navigation = page.getByRole("navigation", { name: "设置分类" })
+  await expect(navigation).toBeVisible()
+  await navigation.getByRole("button", { name: "文件夹", exact: true }).click()
+
+  await expect(
+    dialog.locator("header").getByText("文件夹", { exact: true })
+  ).toBeVisible()
+  await expect(navigation).not.toBeVisible()
+  await expect(dialog).toBeVisible()
+})
+
 test("bookmark entrance settles into its saved static background", async ({
   page,
 }) => {

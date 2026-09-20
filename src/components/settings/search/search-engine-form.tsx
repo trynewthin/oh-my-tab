@@ -69,7 +69,7 @@ export default function SearchEngineForm({
       </p>
 
       {inDialog ? (
-        <DialogFooter>
+        <DialogFooter className="flex-row justify-end">
           <Button type="button" variant="outline" onClick={onClose}>
             {t("settings.common.cancel")}
           </Button>

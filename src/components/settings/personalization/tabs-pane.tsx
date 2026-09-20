@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import TabGrid from "@/components/tab-grid/tab-grid"
 import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
+import ScaledGridPreview from "./scaled-grid-preview"
 import { Switch } from "@/components/ui/switch"
 import type { GridItem, TabItem } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
@@ -70,15 +70,12 @@ export default function TabsPane() {
   return (
     <>
       {trackWidth > 0 && (
-        <div className="flex justify-center">
-          <TabGrid
-            preview
-            items={preview.items}
-            trackWidth={trackWidth}
-            area={preview.area}
-            previewPositions={preview.positions}
-          />
-        </div>
+        <ScaledGridPreview
+          items={preview.items}
+          trackWidth={trackWidth}
+          area={preview.area}
+          positions={preview.positions}
+        />
       )}
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <span className="text-sm">{t("settings.tabs.texture")}</span>

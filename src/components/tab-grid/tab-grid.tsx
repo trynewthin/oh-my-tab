@@ -41,6 +41,7 @@ export default function TabGrid({
   trackWidth,
   area,
   previewPositions,
+  previewScale = 1,
   fullViewport = false,
 }: {
   preview?: boolean
@@ -48,6 +49,7 @@ export default function TabGrid({
   trackWidth?: number
   area?: { columns: number; rows: number }
   previewPositions?: GridPositions
+  previewScale?: number
   fullViewport?: boolean
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
@@ -78,6 +80,7 @@ export default function TabGrid({
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
+  const coordinateScale = preview ? previewScale : 1
   const [settledTarget, setSettledTarget] = useState<
     | {
         id: string
@@ -106,6 +109,7 @@ export default function TabGrid({
     widthColumns,
     width,
     gridGap,
+    coordinateScale,
     gridRef,
     pointer,
     closeFolder: () => setFolderId(null),
@@ -137,8 +141,8 @@ export default function TabGrid({
   // The drag session freezes its own column count and positions snapshot, so
   // geometry must be recomputed against the session's columns while dragging.
   const columns = dragging?.columns ?? widthColumns
-  const columnStep = metrics.columnStep
-  const rowStep = metrics.rowStep
+  const columnStep = metrics.columnStep * coordinateScale
+  const rowStep = metrics.rowStep * coordinateScale
 
   const positions =
     heldLayout ??
@@ -239,7 +243,8 @@ export default function TabGrid({
       columns={columns}
       columnStep={columnStep}
       rowStep={rowStep}
-      gridGap={gridGap}
+      gridGap={gridGap * coordinateScale}
+      previewScale={coordinateScale}
     />
   )
 

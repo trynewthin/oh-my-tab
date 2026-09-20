@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
+import { ApplicationHeaderActions } from "@/components/application/application-dialog"
 import { Badge } from "@/components/ui/badge"
 import EngineIcon from "@/components/search/engine-icon"
 import {
@@ -33,25 +34,19 @@ export default function SearchEngineSettings() {
   const [editing, setEditing] = useState<SearchEngine | null>(null)
 
   return (
-    <section className="space-y-5" aria-labelledby="search-settings-title">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2
-            id="search-settings-title"
-            className="text-base leading-6 font-medium"
+    <section className="space-y-5">
+      <div className="hidden justify-end sm:flex">
+        <ApplicationHeaderActions>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setEditing({ id: crypto.randomUUID(), name: "", url: "" })
+            }
           >
-            {t("settings.nav.search")}
-          </h2>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() =>
-            setEditing({ id: crypto.randomUUID(), name: "", url: "" })
-          }
-        >
-          <Plus />
-          {t("settings.searchEngines.add")}
-        </Button>
+            <Plus />
+            {t("settings.searchEngines.add")}
+          </Button>
+        </ApplicationHeaderActions>
       </div>
       <div className="min-h-14 divide-y rounded-2xl border">
         {engines.map((engine) => (

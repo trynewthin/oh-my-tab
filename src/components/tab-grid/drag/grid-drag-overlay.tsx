@@ -33,6 +33,7 @@ export default function GridDragOverlay({
   columnStep,
   rowStep,
   gridGap,
+  previewScale = 1,
 }: {
   dragging: DragSession | null
   intent: Intent
@@ -41,6 +42,7 @@ export default function GridDragOverlay({
   columnStep: number
   rowStep: number
   gridGap: number
+  previewScale?: number
 }) {
   const releaseProgress =
     dragging &&
@@ -95,6 +97,11 @@ export default function GridDragOverlay({
     dragging && compactSize && fullHeight !== undefined
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
+  const contentScale = preview ? previewScale : 1
+  const contentWidth =
+    overlayWidth === undefined ? undefined : overlayWidth / contentScale
+  const contentHeight =
+    overlayHeight === undefined ? undefined : overlayHeight / contentScale
 
   return createPortal(
     <DragOverlay
@@ -122,8 +129,12 @@ export default function GridDragOverlay({
           style={{ width: overlayWidth, height: overlayHeight }}
         >
           <div
-            className="relative isolate h-full overflow-hidden rounded-2xl"
+            className="absolute top-0 left-0 isolate overflow-hidden rounded-2xl"
             style={{
+              width: contentWidth,
+              height: contentHeight,
+              transform: `scale(${contentScale})`,
+              transformOrigin: "top left",
               // Previews keep the resting look: no lift shadow, and the
               // overlay carries the same border as the settled tile so the
               // padding box (and every inset-0/right-anchored child) stays

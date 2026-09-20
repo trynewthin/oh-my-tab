@@ -11,18 +11,7 @@ import DataSettings from "./data-settings"
 export default function GeneralSettings({ pane }: { pane: "basic" | "data" }) {
   const { t } = useTranslation()
   return (
-    <section
-      className="relative isolate min-h-full space-y-5"
-      aria-labelledby="general-settings-title"
-    >
-      <h2
-        id="general-settings-title"
-        className="text-base leading-6 font-medium"
-      >
-        {pane === "basic"
-          ? t("settings.nav.generalBasic")
-          : t("settings.nav.generalData")}
-      </h2>
+    <section className="relative isolate min-h-full space-y-5">
       {pane === "basic" ? (
         <>
           <LanguageSetting />

@@ -32,7 +32,7 @@ import {
 import {
   configureComponent,
   type ConfigurableItem,
-} from "@/components/tab-grid/factory"
+} from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
 
 export default function ComponentConfiguration({

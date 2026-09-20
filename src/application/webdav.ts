@@ -1,6 +1,6 @@
 import { extensionApi } from "@/stores/privacy-store"
 import { i18n } from "@/i18n"
-import { MAX_BACKUP_BYTES } from "./backup"
+import { MAX_BACKUP_BYTES } from "@/application/backup"
 
 export type WebdavSettings = { url: string; username: string }
 export type WebdavConnection = WebdavSettings & { password: string }

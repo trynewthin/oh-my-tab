@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dialog"
 import { useSettingsStore } from "@/stores/settings-store"
 
-import { defaultSettingsSection, settingsViews } from "./settings-views"
+import { defaultSettingsSection } from "@/lib/settings-sections"
+import { settingsViews } from "./settings-views"
 import { SettingsSectionSelect, SettingsSidebar } from "./settings-sidebar"
 
 function scrollPercent(node: HTMLElement) {

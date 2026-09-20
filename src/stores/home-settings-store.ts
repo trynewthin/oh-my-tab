@@ -1,9 +1,6 @@
 import { storageOptions } from "@/lib/storage"
-import {
-  isMatrixPet,
-  type MatrixPet,
-} from "@/components/dot-matrix/pet-catalog"
-export type { MatrixPet } from "@/components/dot-matrix/pet-catalog"
+import { isMatrixPet, type MatrixPet } from "@/lib/matrix-pets"
+export type { MatrixPet } from "@/lib/matrix-pets"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import {

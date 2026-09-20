@@ -1,4 +1,4 @@
-import { replaceData, flushStorage } from "./storage"
+import { replaceData, flushStorage } from "@/lib/storage"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import {
   useGardenStore,
@@ -6,16 +6,16 @@ import {
   migrateGarden,
 } from "@/stores/garden-store"
 import { GRID_COLUMNS, itemWidth } from "@/lib/grid/grid-layout"
-import { isMatrixPet } from "@/components/dot-matrix/pet-catalog"
+import { isMatrixPet } from "@/lib/matrix-pets"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
-import { validGridItem } from "@/components/tab-grid/validation"
+import { validGridItem } from "@/lib/grid/validation"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
-import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
-import { decodeConfig } from "./config-codec"
-import { isBackgroundPaletteId } from "./background-palettes"
+import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
+import { decodeConfig } from "@/lib/config-codec"
+import { isBackgroundPaletteId } from "@/lib/background-palettes"
 import { i18n } from "@/i18n"
 
 export function snapshot() {

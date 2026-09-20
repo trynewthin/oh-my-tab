@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Application code lives in `src/`. Page composition belongs in `src/pages/`, reusable controls in `src/components/ui/`, grid widgets and drag behavior in `src/components/tab-grid/`, state actions in `src/stores/`, and storage, backup, import, and synchronization logic in `src/lib/`. Treat `src/components/tab-grid/model/registry.ts` as the source of truth for widget metadata, sizes, and capabilities.
+Application code lives in `src/`. Page composition belongs in `src/pages/`, reusable controls in `src/components/ui/`, grid widgets and drag behavior in `src/components/tab-grid/`, state actions in `src/stores/`, application orchestration in `src/application/`, and pure models plus browser/storage adapters in `src/lib/`. Treat `src/lib/grid/registry.ts` as the source of truth for widget metadata, sizes, and capabilities.
 
 Browser entries and icons live in `public/`; store assets live in `docs/`. Automation is grouped under `scripts/assets/`, `scripts/release/`, and `scripts/verification/`. Tests use `tests/unit/`, `tests/e2e/`, and `tests/helpers/`. Generated results belong only in `tests/results/`.
 
@@ -15,6 +15,7 @@ The product website and hosted privacy policy are maintained as the `website/` w
 - `npm run build`: type-check and build the extension into `dist/`.
 - `npm run lint`: run ESLint across the repository.
 - `npm run test:unit`: run the Vitest unit suite in `tests/unit/` (the Vite config is shared, so `@/` imports and `import.meta.env` work).
+- `npm run verify:architecture`: enforce import directions and reject static source cycles.
 - `npm test`: run Playwright tests against an existing build; run `npm run build` first.
 - `npm run test:extension`: validate the unpacked extension and CSP behavior.
 - `npm run test:webdav`: run the Docker-backed WebDAV integration check while the development server is running.

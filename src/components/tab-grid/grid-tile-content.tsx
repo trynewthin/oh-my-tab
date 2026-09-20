@@ -1,6 +1,6 @@
 import Todo from "./todo"
 import Calendar from "./calendar"
-import { canvasDimensions, resizeDots, displayDots } from "./dot-canvas-data"
+import { canvasDimensions, resizeDots, displayDots } from "@/lib/grid/dot-canvas-data"
 import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
 import TabBackground from "./tab-background"

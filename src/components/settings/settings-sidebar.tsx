@@ -17,7 +17,7 @@ import {
   settingsNav,
   type SettingsNavNode,
 } from "./settings-routes"
-import { isSettingsSection, type SettingsSection } from "./settings-views"
+import { isSettingsSection, type SettingsSection } from "@/lib/settings-sections"
 
 function SettingsIcon({
   name,

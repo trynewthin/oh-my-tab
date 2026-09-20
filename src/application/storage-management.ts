@@ -3,8 +3,8 @@ import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGardenStore } from "@/stores/garden-store"
-import { editStoredEntries } from "./storage"
-import { categoryFor, storedState, type StorageCategory } from "./storage-usage"
+import { editStoredEntries } from "@/lib/storage"
+import { categoryFor, storedState, type StorageCategory } from "@/lib/storage-usage"
 
 export async function clearStorageCategories(categories: StorageCategory[]) {
   const selected = new Set<StorageCategory>(

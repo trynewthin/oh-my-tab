@@ -6,10 +6,10 @@ import "./index.css"
 import { i18n } from "@/i18n"
 import App from "./App.tsx"
 
-import { startThemeSync } from "@/lib/theme"
-import { startLanguageSync } from "@/lib/language"
+import { startThemeSync } from "@/application/theme"
+import { startLanguageSync } from "@/application/language"
 
-import { prepareData } from "@/lib/hydrate"
+import { prepareData } from "@/application/hydrate"
 
 async function start() {
   const stopData = await prepareData()

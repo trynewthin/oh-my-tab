@@ -15,7 +15,6 @@ export type SettingsNavNode = {
 }
 
 export const settingsNav = config.nav as SettingsNavNode[]
-export const defaultSettingsSection = config.defaultSection
 
 export const settingsIcons = {
   gear: Gear,

@@ -5,8 +5,8 @@ import {
   blobToDataUrl,
   dataUrlToBlob,
   subscribeStorage,
-} from "./storage"
-import { networkAllowed } from "../stores/privacy-store"
+} from "@/lib/storage"
+import { networkAllowed } from "@/stores/privacy-store"
 const RETRY_DELAY = 15 * 60 * 1000
 const MAX_BYTES = 2 * 1024 * 1024
 

@@ -1,5 +1,5 @@
 import { flushStorage } from "@/lib/storage"
-import { rehydrateData } from "@/lib/hydrate"
+import { rehydrateData } from "@/application/hydrate"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import PopupBackground from "./popup-background"
 import { useEffect, useState, type ReactNode, type FormEvent } from "react"

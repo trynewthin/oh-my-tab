@@ -1,5 +1,5 @@
-import type { Backup } from "@/lib/backup"
-import type { WebdavConnection } from "@/lib/webdav"
+import type { Backup } from "@/application/backup"
+import type { WebdavConnection } from "@/application/webdav"
 
 export type Pending =
   | {

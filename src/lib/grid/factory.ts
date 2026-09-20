@@ -1,4 +1,4 @@
-import { blankDots, canvasDimensions } from "./dot-canvas-data"
+import { blankDots, canvasDimensions } from "@/lib/grid/dot-canvas-data"
 import {
   componentDefaultName,
   getComponentDefinition,

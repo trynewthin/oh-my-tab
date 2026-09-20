@@ -1,4 +1,4 @@
-import { rehydrateData } from "./hydrate"
+import { rehydrateData } from "@/application/hydrate"
 import { i18n } from "@/i18n"
 import {
   snapshot,
@@ -6,16 +6,16 @@ import {
   parseConfig,
   importConfig,
   type Config,
-} from "./config-transfer"
+} from "@/application/config-transfer"
 import {
   getAsset,
   putAsset,
   flushStorage,
   dataUrlToBlob,
   storageRevision,
-} from "./storage"
-import { encodeBackup, decodeBackup, MAX_BACKUP_BYTES } from "./backup-codec"
-export { MAX_BACKUP_BYTES } from "./backup-codec"
+} from "@/lib/storage"
+import { encodeBackup, decodeBackup, MAX_BACKUP_BYTES } from "@/lib/backup-codec"
+export { MAX_BACKUP_BYTES } from "@/lib/backup-codec"
 export type Backup = { config: Config; image?: Blob }
 export async function createBackup(): Promise<Blob> {
   await flushStorage()

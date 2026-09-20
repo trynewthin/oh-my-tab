@@ -1,5 +1,5 @@
 import { decodeSprite, type Bitmap } from "./bitmap-font"
-import type { MatrixPet } from "./pet-catalog"
+import type { MatrixPet } from "@/lib/matrix-pets"
 
 const glyphs: Record<string, string> = {
   "(": "01/10/10/10/01",

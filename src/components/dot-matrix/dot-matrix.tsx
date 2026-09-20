@@ -1,7 +1,7 @@
 import PixiMatrix from "./pixi-matrix"
 import { useMatrixRendererStore } from "@/stores/matrix-renderer-store"
 import { fitBitmap, textBitmap } from "./bitmap-font"
-import { matrixPets } from "./pet-catalog"
+import { matrixPets } from "@/lib/matrix-pets"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"

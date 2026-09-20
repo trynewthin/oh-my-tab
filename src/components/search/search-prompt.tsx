@@ -1,5 +1,3 @@
-import MoreActions from "./more-actions"
-import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowUp, Check, MagnifyingGlass } from "@phosphor-icons/react"
@@ -14,12 +12,14 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import TabBackground from "@/components/tab-grid/tab-background"
 import type { TabItem } from "@/lib/grid/types"
-import SearchEngineSelect from "@/pages/home/components/search-engine-select"
-import SettingsButton from "@/pages/home/components/settings-button"
+import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
+import MoreActions from "@/components/home/more-actions"
+import SettingsButton from "@/components/home/settings-button"
+import SearchEngineSelect from "@/components/search/search-engine-select"
 
 import type { SearchBoxStyle } from "@/stores/home-settings-store"
 
-type HomePromptInputProps = {
+type SearchPromptProps = {
   onSubmit?: (message: string) => void
   style?: SearchBoxStyle
   embedded?: boolean
@@ -37,11 +37,11 @@ function readableForeground(hex: string) {
   return luminance > 0.179 ? "#18181b" : "#ffffff"
 }
 
-export default function HomePromptInput({
+export default function SearchPrompt({
   onSubmit,
   style,
   embedded = false,
-}: HomePromptInputProps) {
+}: SearchPromptProps) {
   const { t } = useTranslation()
   const draft = usePromptStore((state) => state.draft)
   const setDraft = usePromptStore((state) => state.setDraft)

@@ -20,6 +20,7 @@
     "preview": "vite preview",
     "test": "playwright test",
     "icons": "node scripts/assets/generate-icons.mjs",
+    "verify:architecture": "node scripts/verification/verify-architecture.mjs",
     "test:extension": "node scripts/verification/verify-extension.mjs",
     "test:icons": "vitest run tests/unit/favicon-cache.test.ts",
     "test:unit": "vitest run",

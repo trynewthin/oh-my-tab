@@ -1,4 +1,4 @@
-import { refreshFavicon } from "@/lib/favicon-cache"
+import { refreshFavicon } from "@/application/favicon-cache"
 import { ArrowClockwise } from "@phosphor-icons/react"
 import { useCallback, useRef, useState } from "react"
 import { useDraggable } from "@dnd-kit/core"

@@ -53,7 +53,7 @@ function stubBrowserApis() {
   vi.stubGlobal("DOMParser", FakeDOMParser)
 }
 
-const freshCache = () => import("@/lib/favicon-cache")
+const freshCache = () => import("@/application/favicon-cache")
 
 describe("favicon-cache", () => {
   beforeEach(() => {

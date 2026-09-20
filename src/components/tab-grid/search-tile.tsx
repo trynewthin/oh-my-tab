@@ -1,6 +1,6 @@
 import { DotsSix } from "@phosphor-icons/react"
-import HomePromptInput from "@/pages/home/components/home-prompt-input"
-import { runHomeSearch } from "@/lib/home-search"
+import SearchPrompt from "@/components/search/search-prompt"
+import { runHomeSearch } from "@/application/home-search"
 import type { GridItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 
@@ -26,7 +26,7 @@ export default function SearchTile({
           <DotsSix className="size-3.5" />
         </span>
       )}
-      <HomePromptInput
+      <SearchPrompt
         embedded
         style={item.kind === "search-minimal" ? "minimal" : "full"}
         onSubmit={(query) => runHomeSearch(query, t)}

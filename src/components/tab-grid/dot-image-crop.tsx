@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { blankDots } from "./dot-canvas-data"
+import { blankDots } from "@/lib/grid/dot-canvas-data"
 import { useTranslation } from "react-i18next"
 
 export default function DotImageCrop({

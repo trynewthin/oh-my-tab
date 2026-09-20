@@ -287,10 +287,10 @@ try {
   // Exercise real conditional PUT against Apache; do not mock fetch.
   const conditional = await a.evaluate(
     async ({ url, password }) => {
-      const dav = await import("/src/lib/webdav.ts")
+      const dav = await import("/src/application/webdav.ts")
       const connection = { url, username: "omt-test", password }
       const old = await dav.fetchRemoteBackup(connection)
-      const data = await (await import("/src/lib/backup.ts")).createBackup()
+      const data = await (await import("/src/application/backup.ts")).createBackup()
       await dav.uploadRemoteBackup(connection, data, old.etag, true)
       try {
         await dav.uploadRemoteBackup(connection, data, old.etag, true)
@@ -306,7 +306,7 @@ try {
   const remoteBefore = await a.evaluate(
     async ({ url, password }) => {
       const remote = await (
-        await import("/src/lib/webdav.ts")
+        await import("/src/application/webdav.ts")
       ).fetchRemoteBackup({ url, username: "omt-test", password })
       return [...new Uint8Array(await remote.blob.arrayBuffer())]
     },
@@ -329,7 +329,7 @@ try {
   const remoteAfter = await a.evaluate(
     async ({ url, password }) => {
       const remote = await (
-        await import("/src/lib/webdav.ts")
+        await import("/src/application/webdav.ts")
       ).fetchRemoteBackup({ url, username: "omt-test", password })
       return [...new Uint8Array(await remote.blob.arrayBuffer())]
     },

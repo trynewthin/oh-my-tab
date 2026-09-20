@@ -1,7 +1,7 @@
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
-import { useState } from "react"
+import { lazy, Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   SquaresFour,
@@ -22,9 +22,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import ComponentConfiguration from "@/components/tab-grid/component-configuration"
-import GridItemDialog from "@/components/tab-grid/grid-item-dialog"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
+
+// The component catalog previews the shared search prompt, which renders this
+// control. A deferred import keeps that edge out of the static module graph
+// (the module is already in the eager graph via the grid), avoiding a cycle.
+const GridItemDialog = lazy(
+  () => import("@/components/tab-grid/grid-item-dialog")
+)
 
 const themeOptions = [
   { value: "light", labelKey: "themeLight", icon: Sun },
@@ -181,7 +187,9 @@ export default function MoreActions({
         </PopoverContent>
       </Popover>
       {adding === "component" ? (
-        <GridItemDialog onClose={() => setAdding(null)} />
+        <Suspense fallback={null}>
+          <GridItemDialog onClose={() => setAdding(null)} />
+        </Suspense>
       ) : (
         adding && (
           <ComponentConfiguration

@@ -10,9 +10,9 @@ import {
   type StorageCategory,
   type StorageUsageRow,
 } from "@/lib/storage-usage"
-import { clearStorageCategories } from "@/lib/storage-management"
-import { rehydrateData } from "@/lib/hydrate"
-import { reloadVisibleFavicons } from "@/lib/favicon-cache"
+import { clearStorageCategories } from "@/application/storage-management"
+import { rehydrateData } from "@/application/hydrate"
+import { reloadVisibleFavicons } from "@/application/favicon-cache"
 import { toast } from "@/stores/toast-store"
 
 export default function CacheDialog({

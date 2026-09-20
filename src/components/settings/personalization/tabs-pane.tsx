@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import TabGrid from "@/components/tab-grid/tab-grid"
-import { createTabItem } from "@/components/tab-grid/factory"
+import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
 import { Switch } from "@/components/ui/switch"
 import type { GridItem, TabItem } from "@/lib/grid/types"

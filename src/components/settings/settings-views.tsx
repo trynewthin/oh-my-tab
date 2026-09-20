@@ -1,11 +1,15 @@
+import type { ReactElement } from "react"
+import type { SettingsSection } from "@/lib/settings-sections"
 import AboutSettings from "./about/about-settings"
 import GeneralSettings from "./general/general-settings"
 import HomeSettings from "./home/home-settings"
 import PersonalizationSettings from "./personalization/personalization-settings"
 import SearchEngineSettings from "./search/search-engine-settings"
-import { defaultSettingsSection as defaultRouteId } from "./settings-routes"
 
-export const settingsViews = {
+export const settingsViews: Record<
+  SettingsSection,
+  () => ReactElement
+> = {
   "general-basic": () => <GeneralSettings pane="basic" />,
   "general-data": () => <GeneralSettings pane="data" />,
   "home-top": () => <HomeSettings />,
@@ -17,12 +21,4 @@ export const settingsViews = {
   "personalization-folders": () => <PersonalizationSettings pane="folders" />,
   "about-project": () => <AboutSettings pane="project" />,
   "about-privacy": () => <AboutSettings pane="privacy" />,
-} as const
-
-export type SettingsSection = keyof typeof settingsViews
-
-export const defaultSettingsSection = defaultRouteId as SettingsSection
-
-export function isSettingsSection(value: string): value is SettingsSection {
-  return Object.hasOwn(settingsViews, value)
 }

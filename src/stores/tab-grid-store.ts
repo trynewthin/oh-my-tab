@@ -17,8 +17,8 @@ import {
   type TabEntry,
   type TodoTask,
 } from "@/lib/grid/types"
-import { validGridItem } from "@/components/tab-grid/validation"
-import { bookmarkItemFactory } from "@/components/tab-grid/factory"
+import { validGridItem } from "@/lib/grid/validation"
+import { bookmarkItemFactory } from "@/lib/grid/factory"
 import {
   addFolderTab,
   describeRemoval,
@@ -33,8 +33,8 @@ import {
   upsertItem,
 } from "@/lib/grid/operations"
 
-import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
-import { mockGridItems } from "@/components/tab-grid/mock-data"
+import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
+import { mockGridItems } from "@/lib/grid/mock-data"
 
 // Kept as a function so production builds can tree-shake the mock item list
 // entirely: a top-level `import.meta.env.DEV ? mockGridItems : []` constant is

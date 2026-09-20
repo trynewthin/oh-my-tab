@@ -2,7 +2,7 @@ import { create } from "zustand"
 import {
   defaultSettingsSection,
   type SettingsSection,
-} from "@/components/settings/settings-views"
+} from "@/lib/settings-sections"
 
 export type { SettingsSection }
 

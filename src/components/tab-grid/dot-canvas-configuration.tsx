@@ -15,7 +15,7 @@ import {
   dotDimensions,
   displayDots,
   isDotVisible,
-} from "./dot-canvas-data"
+} from "@/lib/grid/dot-canvas-data"
 import type { DotCanvasItem } from "@/lib/grid/types"
 import { componentDefaultName, componentLabel, getComponentDefinition } from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"

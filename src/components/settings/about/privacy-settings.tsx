@@ -1,4 +1,4 @@
-import { reloadVisibleFavicons } from "@/lib/favicon-cache"
+import { reloadVisibleFavicons } from "@/application/favicon-cache"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import {

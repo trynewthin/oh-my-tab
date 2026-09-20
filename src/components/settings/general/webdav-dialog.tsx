@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { createBackup, readBackup } from "@/lib/backup"
+import { createBackup, readBackup } from "@/application/backup"
 import { storageRevision, writeEntries } from "@/lib/storage"
-import { fetchRemoteBackup, uploadRemoteBackup } from "@/lib/webdav"
+import { fetchRemoteBackup, uploadRemoteBackup } from "@/application/webdav"
 import type { DataSettingsState } from "./use-data-settings"
 
 export default function WebdavDialog({

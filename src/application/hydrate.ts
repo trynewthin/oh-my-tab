@@ -12,7 +12,7 @@ import {
   subscribeStorage,
   putAsset,
   dataUrlToBlob,
-} from "./storage"
+} from "@/lib/storage"
 import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
 const stores = [

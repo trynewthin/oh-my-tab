@@ -22,9 +22,9 @@ vi.mock("@/lib/storage", async (importOriginal) => {
 
 const { summarizeStorage, storedState, valueBytes, formatStorageBytes } =
   await import("@/lib/storage-usage")
-const { clearStorageCategories } = await import("@/lib/storage-management")
+const { clearStorageCategories } = await import("@/application/storage-management")
 const { MOCK_DATA_VERSION } = await import(
-  "@/components/tab-grid/mock-version"
+  "@/lib/grid/mock-version"
 )
 
 function setup() {

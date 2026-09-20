@@ -7,11 +7,11 @@ import {
   backgroundPaletteStyle,
   getBackgroundPalette,
 } from "@/lib/background-palettes"
-import { runHomeSearch } from "@/lib/home-search"
+import { runHomeSearch } from "@/application/home-search"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import HomeContentContainer from "@/pages/home/components/home-content-container"
-import HomePromptInput from "@/pages/home/components/home-prompt-input"
+import SearchPrompt from "@/components/search/search-prompt"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
 // off the initial page for everyone else.
@@ -61,7 +61,7 @@ export default function HomeUI() {
                 <DotMatrix />
               </HomeContentContainer>
             )}
-            <HomePromptInput onSubmit={search} />
+            <SearchPrompt onSubmit={search} />
           </div>
         )}
         <div

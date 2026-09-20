@@ -1,5 +1,5 @@
-import { isDotVisible } from "./dot-canvas-data"
-import { dotDimensions, displayDots } from "./dot-canvas-data"
+import { isDotVisible } from "@/lib/grid/dot-canvas-data"
+import { dotDimensions, displayDots } from "@/lib/grid/dot-canvas-data"
 import { useLayoutEffect, useRef, useState, type PointerEvent } from "react"
 import { useTranslation } from "react-i18next"
 

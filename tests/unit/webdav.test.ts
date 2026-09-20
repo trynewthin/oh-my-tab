@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
-import * as webdav from "@/lib/webdav"
+import * as webdav from "@/application/webdav"
 
 const connection = {
   url: "https://dav.example.com/backup",

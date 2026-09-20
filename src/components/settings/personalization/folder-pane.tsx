@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import TabGrid from "@/components/tab-grid/tab-grid"
-import { createFolderItem } from "@/components/tab-grid/factory"
+import { createFolderItem } from "@/lib/grid/factory"
 import type { FolderItem, GridItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { settingsControlClassName } from "../shared/control-styles"

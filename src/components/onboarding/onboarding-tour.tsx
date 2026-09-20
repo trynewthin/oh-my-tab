@@ -1,5 +1,5 @@
 import { applyNetworkChoices, usePrivacyStore } from "@/stores/privacy-store"
-import { reloadVisibleFavicons } from "@/lib/favicon-cache"
+import { reloadVisibleFavicons } from "@/application/favicon-cache"
 import { toast } from "@/stores/toast-store"
 import PrivacySettings from "@/components/settings/about/privacy-settings"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"

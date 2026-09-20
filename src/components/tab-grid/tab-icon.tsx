@@ -4,7 +4,7 @@ import {
   getCachedFavicon,
   peekCachedFavicon,
   subscribeFavicon,
-} from "@/lib/favicon-cache"
+} from "@/application/favicon-cache"
 
 export default function TabIcon({
   url,

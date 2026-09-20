@@ -7,7 +7,7 @@ import {
   normalizeWebdav,
   testWebdav,
   type WebdavConnection,
-} from "@/lib/webdav"
+} from "@/application/webdav"
 import type { Pending } from "./data-settings-types"
 
 export type SyncProvider = "local" | "webdav"

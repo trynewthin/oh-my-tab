@@ -4,7 +4,7 @@
 
 ## 总体边界
 
-Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负责搜索、组件网格和设置；工具栏弹窗只负责收藏当前网页。浏览器权限、持久化和联网能力通过 `src/lib/` 封装，界面组件不直接实现平台差异。
+Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负责搜索、组件网格和设置；工具栏弹窗只负责收藏当前网页。跨 store 的用例编排放在 `src/application/`，浏览器权限、持久化和联网能力由 `src/lib/` 的适配器封装，界面组件不直接实现平台差异。
 
 | 入口                   | 职责                             |
 | ---------------------- | -------------------------------- |
@@ -21,11 +21,12 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 | `src/components/ui/`                  | 通用基础控件                                 |
 | `src/components/effects/`             | 与业务数据无关的视觉效果底层                 |
 | `src/components/tab-grid/`            | 网格组件、拖拽和组件编辑界面                 |
-| `src/components/tab-grid/model/`      | 组件注册、创建和数据校验                     |
+| `src/lib/grid/`                       | 组件注册、创建、数据校验、布局与领域操作     |
 | `src/components/tab-grid/collection/` | 文件夹与待办共用的标题、列表、滚动和展开结构 |
 | `src/components/tab-grid/shared/`     | 多种网格组件共用的视觉表面                   |
 | `src/stores/`                         | 状态操作、持久化入口和跨组件状态             |
-| `src/lib/`                            | 存储、备份、同步、导入和领域计算             |
+| `src/application/`                    | 启动恢复、备份、同步、搜索等应用用例编排     |
+| `src/lib/`                            | 纯模型、领域计算及浏览器和存储基础设施适配器 |
 | `scripts/`                            | 素材生成、发布校验和集成验证脚本             |
 | `tests/`                              | 端到端测试、单元测试、辅助代码和测试产物     |
 | `website/`                            | 产品官网与隐私政策独立前端                   |
@@ -34,9 +35,11 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 1. 页面负责组合，不复制组件内部行为或状态操作。
 2. 组件通过 store action 修改持久化状态，不在视图里拼接新的全局状态对象。
-3. 可独立计算的布局、校验、导入和领域规则放在 model 或 `src/lib/`，保持无 React 依赖。
-4. 多个业务组件需要相同行为时，先抽到 `collection/`、`shared/` 或 `components/ui/`，再由业务组件组合。
-5. 平台存储和浏览器 API 只通过 `src/lib/` 的适配层访问。
+3. 可独立计算的布局、校验、导入和领域规则放在 `src/lib/`，保持无 React 和 store 依赖。
+4. 跨 store、存储与网络适配器的流程放在 `src/application/`；application 不依赖页面或组件。
+5. 多个业务组件需要相同行为时，先抽到 `collection/`、`shared/` 或 `components/ui/`，再由业务组件组合。
+6. 平台存储和浏览器 API 只通过 `src/lib/` 的适配层访问。
+7. `npm run verify:architecture` 强制上述导入方向并拒绝静态循环依赖。
 
 ## 网格组件
 
@@ -65,7 +68,7 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 `src/lib/storage.ts` 统一持久化接口：扩展使用 `chrome.storage.local`，开发预览使用 IndexedDB。应用完成数据恢复后再显示主要界面，跨页面写入带版本检查。
 
-`backup-codec.ts` 负责 ZIP 格式和完整性校验，`backup.ts` 组织资源与状态快照，`config-transfer.ts` 校验并恢复配置，`webdav.ts` 只负责远端读写协议。
+`src/lib/backup-codec.ts` 负责 ZIP 格式和完整性校验；`src/application/backup.ts` 组织资源与状态快照，`src/application/config-transfer.ts` 校验并恢复配置，`src/application/webdav.ts` 编排远端备份协议与授权状态。
 
 更改持久化字段时必须同时更新：
 

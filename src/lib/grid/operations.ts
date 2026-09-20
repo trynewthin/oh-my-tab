@@ -6,7 +6,7 @@ import {
   isComponentSize,
   supportsComponentAction,
 } from "./registry"
-import { createTabItem } from "@/components/tab-grid/factory"
+import { createTabItem } from "@/lib/grid/factory"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { normalizeTabUrl } from "./types"
 

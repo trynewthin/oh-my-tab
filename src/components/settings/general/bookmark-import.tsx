@@ -14,7 +14,7 @@ import {
   supportsBrowserBookmarks,
 } from "@/lib/browser-bookmarks"
 import { flushStorage } from "@/lib/storage"
-import { rehydrateData } from "@/lib/hydrate"
+import { rehydrateData } from "@/application/hydrate"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
 

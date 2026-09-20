@@ -26,7 +26,7 @@ describe("persist registration", () => {
       persisted.push({ file, hook: hook?.[1] })
     }
 
-    const hydrate = await read("src/lib/hydrate.ts")
+    const hydrate = await read("src/application/hydrate.ts")
     const registered = new Set(
       [...hydrate.matchAll(/^\s*(use\w+Store),?\s*$/gm)].map((m) => m[1])
     )

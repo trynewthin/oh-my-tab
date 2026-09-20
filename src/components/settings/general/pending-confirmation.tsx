@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { restoreBackup } from "@/lib/backup"
+import { restoreBackup } from "@/application/backup"
 import { storageRevision } from "@/lib/storage"
-import { uploadRemoteBackup } from "@/lib/webdav"
+import { uploadRemoteBackup } from "@/application/webdav"
 import type { Pending } from "./data-settings-types"
 
 export default function PendingConfirmation({

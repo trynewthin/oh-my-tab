@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { createCatalogComponent } from "../../src/components/tab-grid/factory"
+import { createCatalogComponent } from "../../src/lib/grid/factory"
 import {
   GRID_OCCUPANCY,
   catalogComponentKinds,
@@ -11,7 +11,7 @@ import {
   sizeLabel,
   supportsComponentAction,
 } from "../../src/lib/grid/registry"
-import { validGridItem } from "../../src/components/tab-grid/validation"
+import { validGridItem } from "../../src/lib/grid/validation"
 
 test("component registry is the shared source for sizes and capabilities", () => {
   for (const definition of Object.values(componentRegistry)) {

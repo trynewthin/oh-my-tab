@@ -1,4 +1,4 @@
-import { matrixPets, isMatrixPet } from "@/components/dot-matrix/pet-catalog"
+import { matrixPets, isMatrixPet } from "@/lib/matrix-pets"
 import { Input } from "@/components/ui/input"
 import {
   Select,

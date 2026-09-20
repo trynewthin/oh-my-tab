@@ -30,7 +30,7 @@ import {
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
-import { createCatalogComponent } from "@/components/tab-grid/factory"
+import { createCatalogComponent } from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
 
 function PreviewContent({

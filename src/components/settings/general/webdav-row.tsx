@@ -1,4 +1,5 @@
 import { Info } from "@phosphor-icons/react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Popover,
@@ -15,6 +16,7 @@ export default function WebdavRow({
   disabled: boolean
   onManage: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
       <div className="flex items-center gap-1">
@@ -24,7 +26,7 @@ export default function WebdavRow({
             openOnHover
             delay={150}
             closeDelay={100}
-            aria-label="WebDAV 说明与配置"
+            aria-label={t("settings.webdav.infoAria")}
             render={
               <Button
                 variant="ghost"
@@ -38,21 +40,15 @@ export default function WebdavRow({
           <PopoverContent
             align="start"
             className="w-80 max-w-[calc(100vw-2rem)] gap-3 rounded-xl p-3"
-            aria-label="WebDAV 说明与配置"
+            aria-label={t("settings.webdav.infoAria")}
           >
             <PopoverDescription className="text-xs leading-5">
-              WebDAV
-              是一种远程文件存储协议，可将备份保存到你指定的服务器，供多台设备手动同步。
+              {t("settings.webdav.intro")}
             </PopoverDescription>
             <ol className="list-decimal space-y-2 pl-4 text-xs leading-5 text-muted-foreground">
-              <li>
-                准备支持 WebDAV 的服务，创建备份目录，获取 HTTPS
-                目录地址、用户名和密码。
-              </li>
-              <li>点击「管理」，填写上述信息，再点击「连接」。</li>
-              <li>
-                连接成功后点击「上传」保存本机备份；其他设备填写同一目录，连接后点击「下载」并确认恢复。
-              </li>
+              <li>{t("settings.webdav.step1")}</li>
+              <li>{t("settings.webdav.step2")}</li>
+              <li>{t("settings.webdav.step3")}</li>
             </ol>
           </PopoverContent>
         </Popover>
@@ -63,7 +59,7 @@ export default function WebdavRow({
         disabled={disabled}
         onClick={onManage}
       >
-        管理
+        {t("settings.common.manage")}
       </Button>
     </div>
   )

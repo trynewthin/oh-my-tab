@@ -35,4 +35,4 @@ Follow the existing Conventional Commit style: `feat:`, `fix:`, `refactor:`, or 
 
 ## Security & Configuration
 
-Do not commit `.env` files, signing keys, backups, WebDAV credentials, or generated packages. Changes to permissions, network services, or stored data must also update `website/src/content/privacy.ts` and the publishing guide.
+Do not commit `.env` files, signing keys, backups, WebDAV credentials, or generated packages. Changes to permissions, network services, or stored data must also update the privacy policy copy in `website/src/i18n/locales/` and the publishing guide.

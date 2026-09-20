@@ -1,5 +1,6 @@
 import { canSelectBrowserSearch, usePrivacyStore } from "@/stores/privacy-store"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import EngineIcon from "@/components/search/engine-icon"
 import {
   defaultSearchEngines,
   isPresetEngine,
+  searchEngineLabel,
   type SearchEngine,
 } from "@/lib/search-engines"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
@@ -18,6 +20,7 @@ import AddSearchEngineDialog from "./add-search-engine-dialog"
 import DeleteSearchEngineDialog from "./delete-search-engine-dialog"
 
 export default function SearchEngineSettings() {
+  const { t } = useTranslation()
   const available = canSelectBrowserSearch()
   const browserSearch =
     usePrivacyStore((state) => state.browserSearch) && available
@@ -37,7 +40,7 @@ export default function SearchEngineSettings() {
             id="search-settings-title"
             className="text-base leading-6 font-medium"
           >
-            搜索
+            {t("settings.nav.search")}
           </h2>
         </div>
         <Button
@@ -47,7 +50,7 @@ export default function SearchEngineSettings() {
           }
         >
           <Plus />
-          添加
+          {t("settings.searchEngines.add")}
         </Button>
       </div>
       <div className="min-h-14 divide-y rounded-2xl border">
@@ -55,7 +58,7 @@ export default function SearchEngineSettings() {
           <div key={engine.id} className="flex items-center gap-3 p-3">
             <EngineIcon icon={engine.icon} />
             <span className="min-w-0 flex-1 truncate text-sm font-medium">
-              {engine.name}
+              {searchEngineLabel(engine, t)}
             </span>
             <div className="flex shrink-0 items-center gap-1">
               <Button
@@ -65,7 +68,9 @@ export default function SearchEngineSettings() {
                     : "ghost"
                 }
                 size="icon-sm"
-                aria-label={`使用 ${engine.name}`}
+                aria-label={t("settings.searchEngines.useAria", {
+                  name: searchEngineLabel(engine, t),
+                })}
                 aria-pressed={!browserSearch && selectedId === engine.id}
                 onClick={() => selectEngine(engine.id)}
               >
@@ -75,7 +80,9 @@ export default function SearchEngineSettings() {
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`编辑 ${engine.name}`}
+                  aria-label={t("settings.searchEngines.editAria", {
+                    name: searchEngineLabel(engine, t),
+                  })}
                   onClick={() => setEditing(engine)}
                 >
                   <PencilSimple />
@@ -84,7 +91,12 @@ export default function SearchEngineSettings() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`${isPresetEngine(engine.id) ? "移除" : "删除"} ${engine.name}`}
+                aria-label={t(
+                  isPresetEngine(engine.id)
+                    ? "settings.searchEngines.removeAria"
+                    : "settings.searchEngines.deleteAria",
+                  { name: searchEngineLabel(engine, t) }
+                )}
                 disabled={engines.length === 1}
                 onClick={() => setDeleting(engine)}
               >
@@ -96,7 +108,7 @@ export default function SearchEngineSettings() {
       </div>
       <section className="space-y-3" aria-labelledby="preset-engines-title">
         <h3 id="preset-engines-title" className="text-sm font-medium">
-          预设
+          {t("settings.searchEngines.presets")}
         </h3>
         <div className="flex flex-wrap gap-2">
           {defaultSearchEngines.map((engine) => {
@@ -107,11 +119,13 @@ export default function SearchEngineSettings() {
                 variant={enrolled ? "secondary" : "outline"}
                 className="h-8 gap-2 px-3 disabled:cursor-default disabled:opacity-50"
                 render={<button type="button" disabled={enrolled} />}
-                aria-label={`加入 ${engine.name}`}
+                aria-label={t("settings.searchEngines.addPresetAria", {
+                  name: searchEngineLabel(engine, t),
+                })}
                 onClick={() => addPreset(engine.id)}
               >
                 <EngineIcon icon={engine.icon} />
-                {engine.name}
+                {searchEngineLabel(engine, t)}
               </Badge>
             )
           })}

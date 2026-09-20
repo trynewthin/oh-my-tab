@@ -1,5 +1,6 @@
 import { canSelectBrowserSearch, usePrivacyStore } from "@/stores/privacy-store"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { CaretDown, Check, Plus, Globe } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import EngineIcon from "@/components/search/engine-icon"
+import { searchEngineLabel } from "@/lib/search-engines"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useSettingsStore } from "@/stores/settings-store"
 
@@ -17,6 +19,7 @@ export default function SearchEngineSelect({
 }: {
   compact?: boolean
 }) {
+  const { t } = useTranslation()
   const available = canSelectBrowserSearch()
   const browserSearch =
     usePrivacyStore((state) => state.browserSearch) && available
@@ -25,9 +28,12 @@ export default function SearchEngineSelect({
   const searchEngine = useSearchEngineStore((state) => state.selectedId)
   const setSearchEngine = useSearchEngineStore((state) => state.selectEngine)
   const openSettings = useSettingsStore((state) => state.openSettings)
-  const selected = browserSearch
-    ? { name: "浏览器默认", icon: undefined }
-    : searchEngines.find((engine) => engine.id === searchEngine)!
+  const selectedEngine = browserSearch
+    ? undefined
+    : searchEngines.find((item) => item.id === searchEngine)
+  const selectedName = selectedEngine
+    ? searchEngineLabel(selectedEngine, (key) => t(key))
+    : t("shell.engineSelect.browserDefault")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -44,21 +50,21 @@ export default function SearchEngineSelect({
             }
           />
         }
-        aria-label={`搜索引擎：${selected.name}`}
+        aria-label={t("shell.engineSelect.triggerLabel", { name: selectedName })}
         onClick={(event) => event.stopPropagation()}
       >
-        <EngineIcon icon={selected.icon} size={compact ? 20 : 16} />
+        <EngineIcon icon={selectedEngine?.icon} size={compact ? 20 : 16} />
         {!compact && (
           <>
             <span className="hidden max-w-32 truncate sm:inline">
-              {selected.name}
+              {selectedName}
             </span>
             <CaretDown className="size-3 text-muted-foreground" />
           </>
         )}
       </PopoverTrigger>
       <PopoverContent
-        aria-label="选择搜索引擎"
+        aria-label={t("shell.engineSelect.menuLabel")}
         align="end"
         className="w-48 gap-1 p-2"
         onClick={(event) => event.stopPropagation()}
@@ -76,7 +82,7 @@ export default function SearchEngineSelect({
             }}
           >
             <EngineIcon icon={engine.icon} />
-            {engine.name}
+            {searchEngineLabel(engine, (key) => t(key))}
             {!browserSearch && engine.id === searchEngine && (
               <Check className="ml-auto" />
             )}
@@ -94,7 +100,8 @@ export default function SearchEngineSelect({
             }}
           >
             <Globe />
-            浏览器默认{browserSearch && <Check className="ml-auto" />}
+            {t("shell.engineSelect.browserDefault")}
+            {browserSearch && <Check className="ml-auto" />}
           </Button>
         )}
         <Button
@@ -106,7 +113,7 @@ export default function SearchEngineSelect({
           }}
         >
           <Plus />
-          自定义搜索引擎
+          {t("shell.engineSelect.custom")}
         </Button>
       </PopoverContent>
     </Popover>

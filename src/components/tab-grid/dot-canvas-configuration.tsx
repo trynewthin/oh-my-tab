@@ -17,7 +17,8 @@ import {
   isDotVisible,
 } from "./dot-canvas-data"
 import type { DotCanvasItem } from "@/lib/grid/types"
-import { getComponentDefinition } from "@/lib/grid/registry"
+import { componentDefaultName, componentLabel, getComponentDefinition } from "@/lib/grid/registry"
+import { useTranslation } from "react-i18next"
 
 export default function DotCanvasConfiguration({
   item,
@@ -33,9 +34,11 @@ export default function DotCanvasConfiguration({
   )
   const pixelColumns = item?.pixelColumns ?? 24
   const { columns, rows } = dotDimensions(pixels, pixelColumns)
-  const definition = getComponentDefinition("dot-canvas")
+  const { t } = useTranslation()
   const size = item?.size ?? "large"
-  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
+  const [color, setColor] = useState(
+    item?.color ?? getComponentDefinition("dot-canvas").defaultColor
+  )
   const [tool, setTool] = useState<"draw" | "erase" | "pick">("draw")
   const [history, setHistory] = useState<string[][]>([])
   const [importing, setImporting] = useState(false)
@@ -65,7 +68,7 @@ export default function DotCanvasConfiguration({
           return
         const picked = pixels[y * columns + x]
         if (!picked) {
-          toast("这个格子还没有颜色", "info")
+          toast(t("grid.dotCanvas.noColor"), "info")
           return
         }
         setColor(picked)
@@ -100,7 +103,7 @@ export default function DotCanvasConfiguration({
   async function importImage(file?: File) {
     if (!file) return
     if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
-      toast("请选择 20 MB 以内的图片", "error")
+      toast(t("grid.dotCanvas.imageTooLarge"), "error")
       return
     }
     setImporting(true)
@@ -108,7 +111,7 @@ export default function DotCanvasConfiguration({
       const image = await createImageBitmap(file)
       setCropImage(image)
     } catch {
-      toast("无法读取这张图片，请更换图片", "error")
+      toast(t("grid.dotCanvas.imageReadError"), "error")
     } finally {
       setImporting(false)
     }
@@ -123,19 +126,24 @@ export default function DotCanvasConfiguration({
       <DialogContent className="flex h-[min(720px,90svh)] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="shrink-0">
           <DialogTitle>
-            {item ? "编辑" : "配置"}
-            {definition.label}
+            {item
+              ? t("grid.editor.editTitle", {
+                  label: componentLabel("dot-canvas", t),
+                })
+              : t("grid.editor.configTitle", {
+                  label: componentLabel("dot-canvas", t),
+                })}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid min-h-0 flex-1 grid-cols-[5rem_minmax(0,1fr)] gap-3 sm:gap-5">
           <div
             role="toolbar"
-            aria-label="点阵绘制工具"
+            aria-label={t("grid.dotCanvas.toolbar")}
             className="flex flex-col gap-2"
           >
             <input
-              aria-label="画笔颜色"
+              aria-label={t("grid.dotCanvas.brushColor")}
               type="color"
               value={color}
               onChange={(e) => {
@@ -149,21 +157,21 @@ export default function DotCanvasConfiguration({
               aria-pressed={tool === "draw"}
               onClick={() => setTool("draw")}
             >
-              画笔
+              {t("grid.dotCanvas.brush")}
             </Button>
             <Button
               variant={tool === "erase" ? "secondary" : "outline"}
               aria-pressed={tool === "erase"}
               onClick={() => setTool("erase")}
             >
-              橡皮
+              {t("grid.dotCanvas.eraser")}
             </Button>
             <Button
               variant={tool === "pick" ? "secondary" : "outline"}
               aria-pressed={tool === "pick"}
               onClick={() => setTool("pick")}
             >
-              取色
+              {t("grid.dotCanvas.picker")}
             </Button>
             <Button
               variant="outline"
@@ -173,7 +181,7 @@ export default function DotCanvasConfiguration({
                 setHistory(history.slice(0, -1))
               }}
             >
-              撤销
+              {t("grid.dotCanvas.undo")}
             </Button>
             <Button
               variant="outline"
@@ -183,18 +191,20 @@ export default function DotCanvasConfiguration({
                 setPixels(blankDots(columns, rows))
               }}
             >
-              清空
+              {t("grid.dotCanvas.clear")}
             </Button>
             <Button
               variant="outline"
               disabled={importing}
               onClick={() => fileRef.current?.click()}
             >
-              {importing ? "转换中…" : "导入图片"}
+              {importing
+                ? t("grid.dotCanvas.convertPending")
+                : t("grid.dotCanvas.importImage")}
             </Button>
             <input
               ref={fileRef}
-              aria-label="导入点阵图片"
+              aria-label={t("grid.dotCanvas.importImageLabel")}
               className="hidden"
               type="file"
               accept="image/*"
@@ -231,7 +241,7 @@ export default function DotCanvasConfiguration({
         </div>
         <div className="flex shrink-0 justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            取消
+            {t("grid.dotCanvas.cancel")}
           </Button>
           <Button
             disabled={importing}
@@ -239,7 +249,7 @@ export default function DotCanvasConfiguration({
               useTabGridStore.getState().saveItem({
                 id: item?.id ?? crypto.randomUUID(),
                 kind: "dot-canvas",
-                name: item?.name ?? definition.defaultName,
+                name: item?.name ?? componentDefaultName("dot-canvas", t),
                 size,
                 color,
                 pixels,
@@ -248,7 +258,7 @@ export default function DotCanvasConfiguration({
               onSaved()
             }}
           >
-            {item ? "保存" : "确认添加"}
+            {item ? t("grid.dotCanvas.save") : t("grid.dotCanvas.confirmAdd")}
           </Button>
         </div>
         {cropImage && (

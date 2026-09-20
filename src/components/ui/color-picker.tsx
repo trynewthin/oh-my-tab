@@ -5,19 +5,20 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { useId } from "react"
+import { useTranslation } from "react-i18next"
 import { Check } from "@phosphor-icons/react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
 const presets = [
-  { color: "#3478f6", name: "蓝色" },
-  { color: "#a58bc6", name: "紫色" },
-  { color: "#42b883", name: "绿色" },
-  { color: "#50b7bb", name: "青色" },
-  { color: "#e5a449", name: "琥珀" },
-  { color: "#e58d70", name: "珊瑚" },
-  { color: "#d783ab", name: "粉色" },
-  { color: "#9297a5", name: "灰色" },
+  { color: "#3478f6", nameKey: "blue" },
+  { color: "#a58bc6", nameKey: "purple" },
+  { color: "#42b883", nameKey: "green" },
+  { color: "#50b7bb", nameKey: "cyan" },
+  { color: "#e5a449", nameKey: "amber" },
+  { color: "#e58d70", nameKey: "coral" },
+  { color: "#d783ab", nameKey: "pink" },
+  { color: "#9297a5", nameKey: "gray" },
 ]
 export default function ColorPicker({
   value,
@@ -30,6 +31,7 @@ export default function ColorPicker({
   label: string
   className?: string
 }) {
+  const { t } = useTranslation()
   const id = useId()
   return (
     <Popover>
@@ -43,7 +45,7 @@ export default function ColorPicker({
             )}
           />
         }
-        aria-label={`选择${label}`}
+        aria-label={t("shell.colorPicker.select", { label })}
       >
         <span
           className="h-4 w-7 shrink-0 rounded-full"
@@ -56,14 +58,14 @@ export default function ColorPicker({
       <PopoverContent align="end" className="w-64 gap-4 p-4">
         <div
           role="group"
-          aria-label={`${label}预设`}
+          aria-label={t("shell.colorPicker.presets", { label })}
           className="grid grid-cols-4 place-items-center gap-3"
         >
           {presets.map((preset) => (
             <button
               key={preset.color}
               type="button"
-              aria-label={preset.name}
+              aria-label={t(`shell.colorPicker.colors.${preset.nameKey}`)}
               aria-pressed={value.toLowerCase() === preset.color}
               className="flex size-8 items-center justify-center rounded-full border border-black/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               style={{ backgroundColor: preset.color }}
@@ -88,7 +90,7 @@ export default function ColorPicker({
           />
           <Input
             key={value}
-            aria-label={`${label}十六进制值`}
+            aria-label={t("shell.colorPicker.hexValue", { label })}
             defaultValue={value}
             maxLength={7}
             spellCheck={false}

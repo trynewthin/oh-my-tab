@@ -5,6 +5,7 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useGardenStore, initializeGarden } from "@/stores/garden-store"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import { usePrivacyStore } from "@/stores/privacy-store"
+import { useLocaleStore } from "@/stores/locale-store"
 import {
   flushStorage,
   initializeStorage,
@@ -12,6 +13,7 @@ import {
   putAsset,
   dataUrlToBlob,
 } from "./storage"
+import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
 const stores = [
   usePrivacyStore,
@@ -21,12 +23,14 @@ const stores = [
   useTabGridStore,
   useGardenStore,
   useOnboardingStore,
+  useLocaleStore,
 ]
 async function rehydrateStores(keys?: ReadonlySet<string>) {
   for (const store of stores) {
     if (keys && !keys.has(store.persist.getOptions().name ?? "")) continue
     await store.persist.rehydrate()
-    if (!store.persist.hasHydrated()) throw new Error("本地数据读取失败")
+    if (!store.persist.hasHydrated())
+      throw new Error(i18n.t("core.hydrate.readFailed"))
   }
 }
 
@@ -73,13 +77,13 @@ export async function prepareData() {
   })
   const unsubscribe = subscribeStorage((keys) => {
     void rehydrateData(keys).catch(() =>
-      toast("读取更新失败，请重新打开页面", "error")
+      toast(i18n.t("core.hydrate.updateFailed"), "error")
     )
   })
   const onError = (event: Event) =>
     toast(
       (event as CustomEvent<string>).detail ||
-        "数据保存失败，请检查浏览器存储空间并重试",
+        i18n.t("core.storage.persistFailed"),
       "error"
     )
   window.addEventListener("omt-storage-error", onError)

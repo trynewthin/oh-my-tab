@@ -1,6 +1,7 @@
 
 import { X } from "@phosphor-icons/react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import {
@@ -21,6 +22,7 @@ function scrollPercent(node: HTMLElement) {
 }
 
 export default function SettingsDialog() {
+  const { t } = useTranslation()
   const open = useSettingsStore((state) => state.open)
   const setOpen = useSettingsStore((state) => state.setOpen)
   const section = useSettingsStore((state) => state.section)
@@ -53,18 +55,22 @@ export default function SettingsDialog() {
         overlayClassName="bg-black/10 backdrop-blur-xl"
         className="h-[calc(100svh-1rem)] w-[calc(100%-1rem)] max-w-none gap-0 overflow-hidden p-0 ring-0 sm:h-auto sm:w-full sm:max-w-3xl"
       >
-        <DialogTitle className="sr-only">设置</DialogTitle>
+        <DialogTitle className="sr-only">
+          {t("settings.dialog.title")}
+        </DialogTitle>
         <DialogDescription className="sr-only">
-          选择分类，管理对应设置。
+          {t("settings.dialog.description")}
         </DialogDescription>
         <div className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row">
           <div className="flex shrink-0 items-center justify-between px-4 pt-4 pb-2 sm:hidden">
-            <span className="text-base font-medium">设置</span>
+            <span className="text-base font-medium">
+              {t("settings.dialog.title")}
+            </span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label="关闭设置"
+              aria-label={t("settings.dialog.closeAria")}
               className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
               onClick={() => setOpen(false)}
             >
@@ -77,7 +83,7 @@ export default function SettingsDialog() {
           <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent px-4 pt-6 pb-4">
               <div className="text-left text-base leading-6 font-medium">
-                设置
+                {t("settings.dialog.title")}
               </div>
             </div>
             <div
@@ -102,11 +108,11 @@ export default function SettingsDialog() {
                   onClick={() => setOpen(false)}
                 >
                   <X />
-                  关闭
+                  {t("settings.common.close")}
                 </Button>
                 <span
                   role="progressbar"
-                  aria-label="设置列表滚动进度"
+                  aria-label={t("settings.dialog.sidebarScrollProgress")}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={navProgress}

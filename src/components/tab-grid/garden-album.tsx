@@ -11,6 +11,7 @@ import { plantSeed, plantName } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
 import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 import Ecosystem from "./ecosystem"
+import { useTranslation } from "react-i18next"
 const keyOf = (plant: GardenPlant) => `${plantSeed(plant)}-${plant.plantedAt}`
 export default function GardenAlbum({
   value,
@@ -23,6 +24,7 @@ export default function GardenAlbum({
   onDisplay: (plant: GardenPlant) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const album = useGardenStore((state) => state.album)
   const [selecting, setSelecting] = useState(false)
   const [selected, setSelected] = useState<string[]>([])
@@ -34,8 +36,8 @@ export default function GardenAlbum({
       album: current.filter((plant) => !selected.includes(keyOf(plant))),
     })
     setSelected([])
-    toast(`已删除 ${removed.length} 株图鉴植物`, "success", {
-      label: "撤销",
+    toast(t("grid.ecosystem.albumRemoved", { count: removed.length }), "success", {
+      label: t("grid.notify.undo"),
       run: () => {
         const latest = useGardenStore.getState().album
         useGardenStore.setState({
@@ -58,7 +60,7 @@ export default function GardenAlbum({
     >
       <DialogContent className="flex max-h-[80svh] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader className="pr-32">
-          <DialogTitle>植物图鉴</DialogTitle>
+          <DialogTitle>{t("grid.ecosystem.albumTitle")}</DialogTitle>
         </DialogHeader>
         <Button
           variant="outline"
@@ -68,13 +70,13 @@ export default function GardenAlbum({
             setSelected([])
           }}
         >
-          {selecting ? "完成" : "批量管理"}
+          {selecting ? t("grid.ecosystem.albumDone") : t("grid.ecosystem.albumManage")}
         </Button>
         {selecting && (
           <div
             className="flex shrink-0 flex-wrap gap-2"
             role="toolbar"
-            aria-label="图鉴管理"
+            aria-label={t("grid.ecosystem.albumToolbar")}
           >
             {selecting && (
               <>
@@ -87,15 +89,19 @@ export default function GardenAlbum({
                   }
                 >
                   {selected.length === album.length && album.length
-                    ? "取消全选"
-                    : "全选"}
+                    ? t("grid.ecosystem.deselectAll")
+                    : t("grid.ecosystem.selectAll")}
                 </Button>
                 <Button
                   variant="destructive"
                   disabled={!selected.length}
                   onClick={removeSelected}
                 >
-                  删除{selected.length ? ` ${selected.length}` : ""}
+                  {selected.length
+                    ? t("grid.ecosystem.albumDelete", {
+                        count: selected.length,
+                      })
+                    : t("grid.bulk.delete")}
                 </Button>
               </>
             )}
@@ -107,7 +113,7 @@ export default function GardenAlbum({
         >
           {!album.length ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              成熟后收入图鉴
+              {t("grid.ecosystem.albumEmpty")}
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -122,7 +128,7 @@ export default function GardenAlbum({
                   disabled={!selecting && !canDisplay}
                   title={
                     !selecting && !canDisplay
-                      ? "当前植物成熟后可切换"
+                      ? t("grid.ecosystem.albumSwitchHint")
                       : undefined
                   }
                   onClick={() =>

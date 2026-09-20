@@ -10,6 +10,7 @@ import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
+import { useTranslation } from "react-i18next"
 
 export default function GridTileContent({
   item,
@@ -26,6 +27,7 @@ export default function GridTileContent({
   folderTabs?: TabEntry[]
   todoTasks?: TodoTask[]
 }) {
+  const { t } = useTranslation()
   if (item.kind === "todo")
     return <Todo item={item} preview={preview} tasks={todoTasks} />
   if (item.kind === "calendar")
@@ -38,7 +40,7 @@ export default function GridTileContent({
     return (
       <button
         type="button"
-        aria-label={`编辑点阵画布 ${item.name}`}
+        aria-label={t("grid.dotCanvas.editCanvas", { name: item.name })}
         onClick={onOpen}
         className="flex h-full w-full flex-col rounded-[inherit] bg-transparent text-left"
       >

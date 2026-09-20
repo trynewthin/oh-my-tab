@@ -3,7 +3,11 @@
   "private": true,
   "version": "1.5.2",
   "type": "module",
-  "sideEffects": ["**/*.css", "src/main.tsx", "src/popup.tsx"],
+  "sideEffects": [
+    "**/*.css",
+    "src/main.tsx",
+    "src/popup.tsx"
+  ],
   "workspaces": [
     "website"
   ],
@@ -38,9 +42,11 @@
     "cn": "^0.2.5",
     "fflate": "^0.8.3",
     "gsap": "^3.15.0",
+    "i18next": "^26.4.2",
     "pixi.js": "^8.20.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-i18next": "^17.0.14",
     "react-router": "^8.3.1",
     "shadcn": "^4.21.0",
     "tailwindcss": "^4",

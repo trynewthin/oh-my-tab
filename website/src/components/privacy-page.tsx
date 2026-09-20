@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react"
-import { policySections } from "../content/privacy"
+import { useTranslation } from "react-i18next"
+import { privacySectionIds, privacySummaryIds } from "../i18n/types"
 
 export function PrivacyContent() {
-  const [activeSection, setActiveSection] = useState(policySections[0].id)
+  const { t } = useTranslation()
+  const [activeSection, setActiveSection] = useState<string>(privacySectionIds[0])
 
   useEffect(() => {
     const updateSection = () => {
-      let current = policySections[0].id
-      for (const section of policySections) {
-        const element = document.getElementById(section.id)
-        if (element && element.getBoundingClientRect().top <= 180)
-          current = section.id
+      let current: string = privacySectionIds[0]
+      for (const id of privacySectionIds) {
+        const element = document.getElementById(id)
+        if (element && element.getBoundingClientRect().top <= 180) current = id
       }
       setActiveSection(current)
     }
@@ -22,54 +23,48 @@ export function PrivacyContent() {
   return (
     <main className="policy-page">
       <header className="policy-hero">
-        <h1>隐私政策</h1>
-        <p>
-          Oh My Tab 不运营收集扩展数据的服务器，也不集成广告或分析追踪服务。
-          这里说明哪些数据留在本地，以及你主动启用联网功能时会发生什么。
-        </p>
-        <time dateTime="2026-09-13">更新日期：2026 年 9 月 13 日</time>
+        <h1>{t("privacy.title")}</h1>
+        <p>{t("privacy.intro")}</p>
+        <time dateTime="2026-09-13">{t("privacy.updatedLabel")}</time>
       </header>
 
-      <section className="policy-summary" aria-label="隐私摘要">
-        <article>
-          <strong>默认留在本地</strong>
-          <p>书签、布局、设置和图片保存在当前设备。</p>
-        </article>
-        <article>
-          <strong>联网需要主动开启</strong>
-          <p>联想、图标和 WebDAV 都由你选择并授权。</p>
-        </article>
-        <article>
-          <strong>随时可以停止</strong>
-          <p>你可以关闭服务、撤销权限或清除本地数据。</p>
-        </article>
+      <section className="policy-summary" aria-label={t("privacy.summaryLabel")}>
+        {privacySummaryIds.map((id) => (
+          <article key={id}>
+            <strong>{t(`privacy.summary.${id}.title`)}</strong>
+            <p>{t(`privacy.summary.${id}.text`)}</p>
+          </article>
+        ))}
       </section>
 
       <div className="policy-layout">
         <aside>
-          <nav aria-label="隐私政策目录">
-            {policySections.map((section) => (
+          <nav aria-label={t("privacy.tocLabel")}>
+            {privacySectionIds.map((id) => (
               <a
-                href={`#${section.id}`}
-                key={section.id}
-                aria-current={
-                  activeSection === section.id ? "location" : undefined
-                }
+                href={`#${id}`}
+                key={id}
+                aria-current={activeSection === id ? "location" : undefined}
               >
-                {section.title}
+                {t(`privacy.sections.${id}.title`)}
               </a>
             ))}
           </nav>
         </aside>
         <div className="policy-body">
-          {policySections.map((section) => (
-            <section id={section.id} key={section.id}>
-              <h2>{section.title}</h2>
-              {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </section>
-          ))}
+          {privacySectionIds.map((id) => {
+            const paragraphs = t(`privacy.sections.${id}.paragraphs`, {
+              returnObjects: true,
+            }) as string[]
+            return (
+              <section id={id} key={id}>
+                <h2>{t(`privacy.sections.${id}.title`)}</h2>
+                {paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </section>
+            )
+          })}
         </div>
       </div>
     </main>

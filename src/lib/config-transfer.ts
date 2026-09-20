@@ -16,6 +16,7 @@ import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/components/tab-grid/mock-version"
 import { decodeConfig } from "./config-codec"
 import { isBackgroundPaletteId } from "./background-palettes"
+import { i18n } from "@/i18n"
 
 export function snapshot() {
   const home = useHomeSettingsStore.getState()
@@ -56,7 +57,8 @@ export async function parseConfig(text: string): Promise<Config> {
 }
 
 export function validateConfig(value: unknown): Config {
-  if (!value || typeof value !== "object") throw new Error("数据内容无效")
+  if (!value || typeof value !== "object")
+    throw new Error(i18n.t("settings.errors.invalidContent"))
   const config = value as Config
   const { home, theme, search, grid } = config
   const hex = (v: unknown) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)
@@ -121,13 +123,14 @@ export function validateConfig(value: unknown): Config {
     typeof grid.layouts !== "object" ||
     Array.isArray(grid.layouts)
   )
-    throw new Error("数据内容无效或缺少必要设置")
+    throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]
       : [item.id]
   )
-  if (new Set(ids).size !== ids.length) throw new Error("标签或文件夹标识重复")
+  if (new Set(ids).size !== ids.length)
+    throw new Error(i18n.t("settings.errors.duplicateIds"))
   for (const [columns, positions] of Object.entries(grid.layouts)) {
     if (
       !GRID_COLUMNS.some((value) => String(value) === columns) ||
@@ -151,7 +154,7 @@ export function validateConfig(value: unknown): Config {
           p.y <= 500
       )
     )
-      throw new Error("网格布局无效")
+      throw new Error(i18n.t("settings.errors.invalidGrid"))
   }
   // Older exports carried the material as `effectStyle`; fold it into
   // tabTexture when the new key is absent.

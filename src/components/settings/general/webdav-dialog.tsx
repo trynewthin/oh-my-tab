@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -14,6 +15,7 @@ export default function WebdavDialog({
   state: DataSettingsState
   confirmation: ReactNode
 }) {
+  const { t } = useTranslation()
   const {
     busy,
     ready,
@@ -47,7 +49,7 @@ export default function WebdavDialog({
           >
             <div className="space-y-2">
               <label className="text-xs" htmlFor="webdav-url">
-                服务器目录
+                {t("settings.webdav.url")}
               </label>
               <Input
                 id="webdav-url"
@@ -60,7 +62,7 @@ export default function WebdavDialog({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-xs" htmlFor="webdav-user">
-                  用户名
+                  {t("settings.webdav.username")}
                 </label>
                 <Input
                   id="webdav-user"
@@ -73,7 +75,7 @@ export default function WebdavDialog({
               </div>
               <div className="space-y-2">
                 <label className="text-xs" htmlFor="webdav-password">
-                  密码
+                  {t("settings.webdav.password")}
                 </label>
                 <Input
                   id="webdav-password"
@@ -102,7 +104,7 @@ export default function WebdavDialog({
               className="space-y-3 rounded-xl border border-border bg-muted p-3"
             >
               <p className="text-sm leading-6">
-                删除只会关闭连接，不会删除本地数据或云端备份。
+                {t("settings.webdav.disconnectNotice")}
               </p>
               <div className="flex justify-end gap-2">
                 <Button
@@ -110,7 +112,7 @@ export default function WebdavDialog({
                   disabled={busy}
                   onClick={() => setConfirmDisconnect(false)}
                 >
-                  取消
+                  {t("settings.common.cancel")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -129,7 +131,7 @@ export default function WebdavDialog({
                     })
                   }
                 >
-                  确认删除
+                  {t("settings.webdav.confirmRemove")}
                 </Button>
               </div>
             </div>
@@ -146,14 +148,14 @@ export default function WebdavDialog({
                       aria-hidden="true"
                       className="size-1.5 rounded-full bg-emerald-500"
                     />
-                    已连接
+                    {t("settings.webdav.connected")}
                   </span>
                   <Button
                     variant="outline"
                     disabled={busy || !!pending || confirmDisconnect}
                     onClick={() => setConfirmDisconnect(true)}
                   >
-                    删除
+                    {t("settings.webdav.remove")}
                   </Button>
                 </>
               ) : (
@@ -166,7 +168,9 @@ export default function WebdavDialog({
                     })
                   }
                 >
-                  {busy ? "连接中…" : "连接"}
+                  {busy
+                    ? t("settings.webdav.connecting")
+                    : t("settings.webdav.connect")}
                 </Button>
               )}
             </div>
@@ -179,15 +183,14 @@ export default function WebdavDialog({
                 onClick={() =>
                   void run(async () => {
                     const current = activeConnection
-                    if (!current) throw new Error("请先连接 WebDAV")
+                    if (!current)
+                      throw new Error(t("settings.webdav.notConnected"))
                     const remote = await fetchRemoteBackup(current)
                     const revision = await storageRevision()
                     const blob = await createBackup()
                     if (remote) {
                       if (!remote.etag || remote.etag.startsWith("W/"))
-                        throw new Error(
-                          "服务器须支持强 ETag 才能安全覆盖云端备份"
-                        )
+                        throw new Error(t("settings.webdav.weakEtag"))
                       setPending({
                         kind: "upload",
                         blob,
@@ -198,15 +201,15 @@ export default function WebdavDialog({
                     } else {
                       if ((await storageRevision()) !== revision) {
                         setPending(null)
-                        throw new Error("本机数据已变化，请重新上传")
+                        throw new Error(t("settings.webdav.dataChanged"))
                       }
                       await uploadRemoteBackup(current, blob, null, false)
-                      setStatus("已上传本机数据，其他设备可下载恢复")
+                      setStatus(t("settings.webdav.uploaded"))
                     }
                   })
                 }
               >
-                上传
+                {t("settings.webdav.upload")}
               </Button>
               <Button
                 variant="outline"
@@ -217,21 +220,22 @@ export default function WebdavDialog({
                   void run(async () => {
                     const revision = await storageRevision()
                     const current = activeConnection
-                    if (!current) throw new Error("请先连接 WebDAV")
+                    if (!current)
+                      throw new Error(t("settings.webdav.notConnected"))
                     const remote = await fetchRemoteBackup(current)
                     if (!remote)
-                      throw new Error("该目录还没有备份，请先在另一台设备上传")
+                      throw new Error(t("settings.webdav.noRemoteBackup"))
                     setPending({
                       kind: "restore",
                       backup: await readBackup(remote.blob),
                       revision,
-                      source: "WebDAV 云端备份",
+                      source: t("settings.webdav.remoteSource"),
                       remote: true,
                     })
                   })
                 }
               >
-                下载
+                {t("settings.webdav.download")}
               </Button>
             </div>
           </div>

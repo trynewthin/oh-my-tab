@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useTranslation } from "react-i18next"
 import {
   findSettingsRoute,
   settingsIcon,
@@ -77,11 +78,12 @@ function NavGroup({
   current: string
   onSelect: (id: SettingsSection) => void
 }) {
+  const { t } = useTranslation()
   if (!node.children?.length) {
     return (
       <NavButton
         id={node.id}
-        label={node.label}
+        label={t(node.labelKey)}
         icon={node.icon}
         current={current}
         onSelect={onSelect}
@@ -91,13 +93,13 @@ function NavGroup({
   return (
     <div className="space-y-1">
       <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
-        {node.label}
+        {t(node.labelKey)}
       </div>
       {node.children.map((child) => (
         <NavButton
           key={child.id}
           id={child.id}
-          label={child.label}
+          label={t(child.labelKey)}
           current={current}
           onSelect={onSelect}
         />
@@ -113,10 +115,11 @@ export function SettingsSidebar({
   section: SettingsSection
   onSelect: (id: SettingsSection) => void
 }) {
+  const { t } = useTranslation()
   const color = useHomeSettingsStore((state) => state.color)
   return (
     <nav
-      aria-label="设置分类"
+      aria-label={t("settings.sidebar.categoriesAria")}
       className="space-y-4"
       style={{ "--settings-accent": color } as CSSProperties}
     >
@@ -139,6 +142,7 @@ export function SettingsSectionSelect({
   section: SettingsSection
   onSelect: (id: SettingsSection) => void
 }) {
+  const { t } = useTranslation()
   const current = findSettingsRoute(section)
   return (
     <Select
@@ -148,29 +152,29 @@ export function SettingsSectionSelect({
       }}
     >
       <SelectTrigger
-        aria-label="设置分类"
+        aria-label={t("settings.sidebar.categoriesAria")}
         className="w-full border-border bg-muted"
       >
         <SelectValue>
           <SettingsIcon name={current?.route.icon} />
-          {current?.route.label}
+          {current && t(current.route.labelKey)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent side="bottom" align="start" alignItemWithTrigger={false}>
         {settingsNav.map((node) =>
           node.children?.length ? (
             <SelectGroup key={node.id}>
-              <SelectLabel>{node.label}</SelectLabel>
+              <SelectLabel>{t(node.labelKey)}</SelectLabel>
               {node.children.map((child) => (
                 <SelectItem key={child.id} value={child.id}>
-                  {child.label}
+                  {t(child.labelKey)}
                 </SelectItem>
               ))}
             </SelectGroup>
           ) : (
             <SelectItem key={node.id} value={node.id}>
               <SettingsIcon name={node.icon} />
-              {node.label}
+              {t(node.labelKey)}
             </SelectItem>
           )
         )}

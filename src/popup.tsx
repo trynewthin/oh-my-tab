@@ -2,14 +2,18 @@ import { IconContext } from "@phosphor-icons/react"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
+import { i18n } from "@/i18n"
 import Popup from "./pages/popup/popup"
 import { startThemeSync } from "./lib/theme"
+import { startLanguageSync } from "./lib/language"
 import { prepareData } from "./lib/hydrate"
 async function start() {
   const stopData = await prepareData()
   if (import.meta.hot) import.meta.hot.dispose(stopData)
   const stop = startThemeSync()
   if (import.meta.hot) import.meta.hot.dispose(stop)
+  const stopLanguageSync = startLanguageSync("popup")
+  if (import.meta.hot) import.meta.hot.dispose(stopLanguageSync)
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <IconContext.Provider
@@ -26,6 +30,7 @@ async function start() {
   )
 }
 void start().catch(() => {
-  document.getElementById("root")!.textContent =
-    "数据读取失败，请重新打开扩展。"
+  document.getElementById("root")!.textContent = i18n.t(
+    "core.startup.popupError"
+  )
 })

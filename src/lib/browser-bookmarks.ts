@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n"
 import type { ImportedBookmark } from "./bookmark-import"
 
 export type BrowserBookmarkNode = {
@@ -52,14 +53,15 @@ export function parseBookmarkTree(tree: BrowserBookmarkNode[]) {
 
 export async function readBrowserBookmarks() {
   if (!supportsBrowserBookmarks())
-    throw new Error("请在 Chrome 或 Edge 扩展中导入浏览器书签")
+    throw new Error(i18n.t("settings.bookmarkImport.infoUnsupported"))
   // Request directly from the click handler to preserve the user gesture.
   const granted = await browserApi()!.permissions!.request({
     permissions: ["bookmarks"],
   })
-  if (!granted) throw new Error("未获得书签访问权限，未导入任何书签")
+  if (!granted)
+    throw new Error(i18n.t("settings.bookmarkImport.permissionDenied"))
   const bookmarks = browserApi()?.bookmarks
   if (!bookmarks?.getTree)
-    throw new Error("书签读取功能不可用，请重新加载扩展后重试")
+    throw new Error(i18n.t("settings.bookmarkImport.unavailable"))
   return parseBookmarkTree(await bookmarks.getTree())
 }

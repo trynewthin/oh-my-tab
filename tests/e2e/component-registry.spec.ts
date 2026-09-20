@@ -8,6 +8,7 @@ import {
   getComponentSizeOptions,
   getItemGridDimensions,
   occupancyMark,
+  sizeLabel,
   supportsComponentAction,
 } from "../../src/lib/grid/registry"
 import { validGridItem } from "../../src/components/tab-grid/validation"
@@ -30,7 +31,10 @@ test("component registry is the shared source for sizes and capabilities", () =>
         width: size.width,
         height: size.height,
       })
-      expect(size.menuLabel).toBe(occupancyMark(size.width, size.height))
+      const mark = occupancyMark(size.width, size.height)
+      expect(sizeLabel(size, (key) => key)).toBe(
+        size.roleKey ? `${size.roleKey} · ${mark}` : mark
+      )
     }
   }
 

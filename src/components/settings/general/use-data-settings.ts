@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
 import { readEntries, writeEntries, subscribeStorage } from "@/lib/storage"
 import {
@@ -60,7 +61,7 @@ export function useDataSettingsState() {
         }
       })
       .catch(() => {
-        if (active) setStatus("连接设置读取失败，请重新填写")
+        if (active) setStatus(i18n.t("settings.data.loadFailed"))
       })
       .finally(() => {
         if (active) setReady(true)
@@ -99,7 +100,9 @@ export function useDataSettingsState() {
       await action()
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : "操作失败，请重试",
+        error instanceof Error
+          ? error.message
+          : i18n.t("settings.data.actionFailed"),
         "error"
       )
     } finally {

@@ -1,9 +1,12 @@
+import { i18n } from "@/i18n"
+
 const PREFIX = "OMT1:"
 const MAX_BYTES = 8 * 1024 * 1024
 
 export async function encodeConfig(value: unknown): Promise<string> {
   const raw = new TextEncoder().encode(JSON.stringify(value))
-  if (raw.byteLength > MAX_BYTES) throw new Error("数据过大")
+  if (raw.byteLength > MAX_BYTES)
+    throw new Error(i18n.t("settings.errors.dataTooLarge"))
   const compressed = new Uint8Array(
     await new Response(
       new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"))
@@ -17,8 +20,10 @@ export async function encodeConfig(value: unknown): Promise<string> {
 
 export async function decodeConfig(text: string): Promise<unknown> {
   const input = text.replace(/\s/g, "")
-  if (!input.startsWith(PREFIX)) throw new Error("无法识别数据格式或版本")
-  if (input.length > MAX_BYTES * 2) throw new Error("数据过大")
+  if (!input.startsWith(PREFIX))
+    throw new Error(i18n.t("settings.errors.unrecognizedData"))
+  if (input.length > MAX_BYTES * 2)
+    throw new Error(i18n.t("settings.errors.dataTooLarge"))
   try {
     const bytes = Uint8Array.from(atob(input.slice(PREFIX.length)), (c) =>
       c.charCodeAt(0)
@@ -36,7 +41,7 @@ export async function decodeConfig(text: string): Promise<unknown> {
         length += value.length
         if (length > MAX_BYTES) {
           await reader.cancel()
-          throw new Error("数据过大")
+          throw new Error(i18n.t("settings.errors.dataTooLarge"))
         }
         chunks.push(value)
       }
@@ -51,6 +56,6 @@ export async function decodeConfig(text: string): Promise<unknown> {
     }
     return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(raw))
   } catch {
-    throw new Error("数据文本不完整、已损坏或超过大小限制")
+    throw new Error(i18n.t("settings.errors.damagedData"))
   }
 }

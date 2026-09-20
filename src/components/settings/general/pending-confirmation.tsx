@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { restoreBackup } from "@/lib/backup"
 import { storageRevision } from "@/lib/storage"
@@ -17,6 +18,7 @@ export default function PendingConfirmation({
   setStatus: (status: string) => void
   run: (action: () => Promise<void>) => Promise<void>
 }) {
+  const { t } = useTranslation()
   if (!pending) return null
   return (
     <div
@@ -26,9 +28,9 @@ export default function PendingConfirmation({
       <p className="text-sm">
         {pending.kind === "restore"
           ? pending.remote
-            ? "云端数据将替换本地数据，是否继续？"
-            : `已校验「${pending.source}」。恢复将覆盖本机数据，建议先导出备份。`
-          : "云端已有备份。上传将用本机数据覆盖云端备份。"}
+            ? t("settings.pending.remoteRestore")
+            : t("settings.pending.restore", { source: pending.source })
+          : t("settings.pending.upload")}
       </p>
       <div className="flex gap-2">
         <Button
@@ -38,14 +40,14 @@ export default function PendingConfirmation({
               if (pending.kind === "restore") {
                 if ((await storageRevision()) !== pending.revision) {
                   setPending(null)
-                  throw new Error("本机数据已变化，请重新选择备份后确认")
+                  throw new Error(t("settings.pending.changedRestore"))
                 }
                 await restoreBackup(pending.backup, pending.revision)
                 window.location.reload()
               } else {
                 if ((await storageRevision()) !== pending.revision) {
                   setPending(null)
-                  throw new Error("本机数据已变化，请重新上传")
+                  throw new Error(t("settings.webdav.dataChanged"))
                 }
                 await uploadRemoteBackup(
                   pending.connection,
@@ -54,19 +56,21 @@ export default function PendingConfirmation({
                   true
                 )
                 setPending(null)
-                setStatus("已上传本机数据，其他设备可下载恢复")
+                setStatus(t("settings.webdav.uploaded"))
               }
             })
           }
         >
-          确认覆盖{pending.kind === "restore" ? "本机" : "云端"}
+          {pending.kind === "restore"
+            ? t("settings.pending.confirmLocal")
+            : t("settings.pending.confirmRemote")}
         </Button>
         <Button
           variant="outline"
           disabled={busy}
           onClick={() => setPending(null)}
         >
-          取消
+          {t("settings.common.cancel")}
         </Button>
       </div>
     </div>

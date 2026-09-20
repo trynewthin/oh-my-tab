@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useTranslation } from "react-i18next"
 import { settingsControlClassName } from "../shared/control-styles"
 import type { Pending } from "./data-settings-types"
 import type { SyncProvider } from "./use-data-settings"
@@ -22,6 +23,7 @@ export default function SyncProviderSelect({
   pending: Pending | null
   onSelect: (provider: SyncProvider) => Promise<void>
 }) {
+  const { t } = useTranslation()
   return (
     <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
       <label
@@ -29,7 +31,7 @@ export default function SyncProviderSelect({
         htmlFor="sync-provider"
         className="text-sm"
       >
-        多端同步
+        {t("settings.sync.label")}
       </label>
       <Select
         value={provider}
@@ -43,10 +45,12 @@ export default function SyncProviderSelect({
           id="sync-provider"
           className={`w-full ${settingsControlClassName}`}
         >
-          <SelectValue>{provider === "webdav" ? "WebDAV" : "关闭"}</SelectValue>
+          <SelectValue>
+            {provider === "webdav" ? "WebDAV" : t("settings.sync.off")}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="local">关闭</SelectItem>
+          <SelectItem value="local">{t("settings.sync.off")}</SelectItem>
           <SelectItem value="webdav">WebDAV</SelectItem>
         </SelectContent>
       </Select>

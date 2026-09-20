@@ -5,6 +5,7 @@ import DraggableFolderTab from "./draggable-folder-tab"
 import FolderTabRow from "./folder-tab-row"
 import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useTranslation } from "react-i18next"
 
 export default function FolderTabStack({
   folder,
@@ -22,6 +23,7 @@ export default function FolderTabStack({
   tabs?: TabEntry[]
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const { t } = useTranslation()
   const glass = backgroundType !== "solid"
   const visibleTabs = tabs ?? folder.tabs
   const wide =
@@ -137,7 +139,7 @@ export default function FolderTabStack({
       data-folder-columns={draggable ? innerColumns : undefined}
       data-folder-row-height={draggable ? rowHeight : undefined}
       role="region"
-      aria-label={`${folder.name}内的标签`}
+      aria-label={t("grid.folder.tabsInside", { name: folder.name })}
       tabIndex={0}
       style={{ marginTop: -topBleed, paddingTop: topBleed }}
       className={`relative min-h-0 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-scrollbar]:hidden ${className}`}

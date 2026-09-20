@@ -3,6 +3,7 @@ import { useMatrixRendererStore } from "@/stores/matrix-renderer-store"
 import { fitBitmap, textBitmap } from "./bitmap-font"
 import { matrixPets } from "./pet-catalog"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { petBitmap } from "./pet-frames"
 import { breathingWave, oceanCellColor } from "./breathing-wave"
@@ -14,6 +15,7 @@ import {
 } from "./responsive-layout"
 
 function MatrixContent({ columns }: { columns: number }) {
+  const { t } = useTranslation()
   const renderer = useMatrixRendererStore((state) => state.renderer)
   const [failed, setFailed] = useState(false)
   const usePixi = renderer === "pixi" && !failed
@@ -55,14 +57,15 @@ function MatrixContent({ columns }: { columns: number }) {
         : content === "breathing"
           ? breathingWave(columns, 7, frame)
           : fitBitmap(textPixels, columns, frame)
+  const petLabel = matrixPets.find((item) => item.id === pet)?.labelKey
   const label =
     content === "time"
-      ? `时间 ${time}`
+      ? t("shell.dotMatrix.time", { time })
       : content === "text"
-        ? text || "空白点阵"
+        ? text || t("shell.dotMatrix.blank")
         : content === "breathing"
-          ? "呼吸海浪点阵"
-          : `颜文字宠物 ${matrixPets.find((item) => item.id === pet)?.label}`
+          ? t("shell.dotMatrix.breathing")
+          : t("shell.dotMatrix.pet", { name: petLabel ? t(petLabel) : "" })
   return (
     <div className="w-full">
       <div

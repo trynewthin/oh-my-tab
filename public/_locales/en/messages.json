@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Oh My Tab · New Tab",
+    "description": "Extension name shown in the browser toolbar, extension list and store."
+  },
+  "extensionDescription": {
+    "message": "Customizable new tab page: drag-and-drop bookmark grid, folders, multi-select organizing, live search suggestions and effects.",
+    "description": "Extension description shown in the browser extension list and store."
+  },
+  "actionTitle": {
+    "message": "Quick Add to Oh My Tab",
+    "description": "Tooltip of the toolbar action that adds the current page to the grid."
+  }
+}

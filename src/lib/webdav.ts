@@ -1,4 +1,5 @@
 import { extensionApi } from "@/stores/privacy-store"
+import { i18n } from "@/i18n"
 import { MAX_BACKUP_BYTES } from "./backup"
 
 export type WebdavSettings = { url: string; username: string }
@@ -9,7 +10,7 @@ export function normalizeWebdav(settings: WebdavSettings): WebdavSettings {
   try {
     url = new URL(settings.url.trim())
   } catch {
-    throw new Error("请输入完整的 HTTPS WebDAV 目录地址")
+    throw new Error(i18n.t("settings.webdav.addressInvalid"))
   }
   if (
     url.protocol !== "https:" ||
@@ -18,8 +19,9 @@ export function normalizeWebdav(settings: WebdavSettings): WebdavSettings {
     url.search ||
     url.hash
   )
-    throw new Error("WebDAV 地址须使用 HTTPS，且不能包含凭据、查询参数或片段")
-  if (settings.username.includes(":")) throw new Error("用户名不能包含冒号")
+    throw new Error(i18n.t("settings.webdav.addressInsecure"))
+  if (settings.username.includes(":"))
+    throw new Error(i18n.t("settings.webdav.usernameColon"))
   url.pathname = url.pathname.replace(/\/*$/, "/")
   return { url: url.href, username: settings.username.trim() }
 }
@@ -32,7 +34,7 @@ export async function authorizeWebdav(settings: WebdavSettings) {
       origins: [new URL(normalized.url).origin + "/*"],
     }))
   )
-    throw new Error("未获得服务器访问权限")
+    throw new Error(i18n.t("settings.webdav.permissionDenied"))
   return normalized
 }
 function authorization(connection: WebdavConnection) {
@@ -71,17 +73,18 @@ async function request(
       signal: AbortSignal.timeout(120000),
     })
   } catch {
-    throw new Error(
-      "无法连接 WebDAV，请检查地址、证书和网络；网页版还需服务器允许跨域请求，且地址不能重定向"
-    )
+    throw new Error(i18n.t("settings.webdav.networkFailed"))
   }
 }
 function checkResponse(response: Response) {
   if (response.status === 401 || response.status === 403)
-    throw new Error("WebDAV 认证失败或没有访问权限")
+    throw new Error(i18n.t("settings.webdav.authFailed"))
   if (response.status === 412)
-    throw new Error("云端数据已变化，请重新获取后再操作")
-  if (!response.ok) throw new Error(`WebDAV 请求失败（${response.status}）`)
+    throw new Error(i18n.t("settings.webdav.conflict"))
+  if (!response.ok)
+    throw new Error(
+      i18n.t("settings.webdav.requestFailed", { status: response.status })
+    )
 }
 export async function testWebdav(connection: WebdavConnection) {
   const response = await request(connection, "PROPFIND", {
@@ -100,7 +103,7 @@ export async function fetchRemoteBackup(
     return null
   }
   checkResponse(response)
-  if (!response.body) throw new Error("云端备份为空")
+  if (!response.body) throw new Error(i18n.t("settings.webdav.emptyRemote"))
   const reader = response.body.getReader()
   const chunks: Uint8Array<ArrayBuffer>[] = []
   let size = 0
@@ -111,7 +114,7 @@ export async function fetchRemoteBackup(
       size += value.byteLength
       if (size > MAX_BACKUP_BYTES) {
         await reader.cancel()
-        throw new Error("云端备份超过 64 MB")
+        throw new Error(i18n.t("settings.webdav.remoteTooLarge"))
       }
       chunks.push(new Uint8Array(value))
     }
@@ -130,9 +133,7 @@ export async function uploadRemoteBackup(
   exists: boolean
 ) {
   if (exists && (!etag || etag.startsWith("W/")))
-    throw new Error(
-      "服务器未提供强 ETag，无法安全覆盖；请启用 ETag，网页版还需暴露 ETag 响应头"
-    )
+    throw new Error(i18n.t("settings.webdav.weakEtagServer"))
   const response = await request(connection, "PUT", {
     headers: {
       "Content-Type": "application/zip",

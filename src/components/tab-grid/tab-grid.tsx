@@ -39,6 +39,7 @@ import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
 import { getComponentDefinition } from "@/lib/grid/registry"
 import type { GridItem } from "@/lib/grid/types"
+import { useTranslation } from "react-i18next"
 import { mixHexColor } from "./folder-drop"
 import EffectSurface from "@/components/effects/effect-surface"
 import { ItemGlow } from "./grid-dnd-overlay"
@@ -167,6 +168,7 @@ export default function TabGrid({
   previewPositions?: GridPositions
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
+  const { t } = useTranslation()
   const selectedIds = useGridSelectionStore((state) => state.ids)
   const toggleSelection = useGridSelectionStore((state) => state.toggle)
   const storeItems = useTabGridStore((state) => state.items)
@@ -502,7 +504,7 @@ export default function TabGrid({
       >
         <div
           ref={gridRef}
-          aria-label="标签预览"
+          aria-label={t("grid.chrome.preview")}
           className={`relative grid min-h-11 overflow-hidden ${compactGrid ? "gap-3" : "gap-4"}`}
           style={{
             width: box?.width,
@@ -539,7 +541,7 @@ export default function TabGrid({
       <ContextMenuTrigger
         render={<section />}
         data-tour="grid"
-        aria-label="标签网格"
+        aria-label={t("grid.chrome.grid")}
         className="mx-auto min-h-0 w-full max-w-[1280px]"
       >
         <DndContext
@@ -596,7 +598,9 @@ export default function TabGrid({
                       type="button"
                       role="checkbox"
                       aria-checked={selectedIds.includes(item.id)}
-                      aria-label={`选择${item.name}`}
+                      aria-label={t("grid.chrome.selectItem", {
+                        name: item.name,
+                      })}
                       className="absolute inset-0 z-30 cursor-pointer appearance-none rounded-[inherit] border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       onClick={() => toggleSelection(item.id)}
                     />
@@ -713,7 +717,7 @@ export default function TabGrid({
       <ContextMenuContent>
         <ContextMenuItem onClick={() => setEditor({})}>
           <Plus />
-          添加组件
+          {t("grid.chrome.addComponent")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

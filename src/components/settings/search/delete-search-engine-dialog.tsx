@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ export default function DeleteSearchEngineDialog({
   onCancel,
   onConfirm,
 }: DeleteSearchEngineDialogProps) {
+  const { t } = useTranslation()
   const preset = isPresetEngine(engine.id)
   return (
     <AlertDialog
@@ -32,18 +34,22 @@ export default function DeleteSearchEngineDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {preset ? "移除搜索引擎？" : "删除搜索引擎？"}
+            {preset
+              ? t("settings.searchEngines.removeTitle")
+              : t("settings.searchEngines.deleteTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {preset
-              ? `将“${engine.name}”从列表中移除，可从预设中重新添加。`
-              : `确定删除“${engine.name}”及其自定义配置？`}
+              ? t("settings.searchEngines.removeBody", { name: engine.name })
+              : t("settings.searchEngines.deleteBody", { name: engine.name })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogCancel>{t("settings.common.cancel")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            {preset ? "确认移除" : "确认删除"}
+            {preset
+              ? t("settings.searchEngines.confirmRemove")
+              : t("settings.searchEngines.confirmDelete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

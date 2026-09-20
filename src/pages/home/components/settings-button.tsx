@@ -1,4 +1,5 @@
 import { GearSix } from "@phosphor-icons/react"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { useSettingsStore } from "@/stores/settings-store"
@@ -8,6 +9,7 @@ export default function SettingsButton({
 }: {
   compact?: boolean
 }) {
+  const { t } = useTranslation()
   const setOpen = useSettingsStore((state) => state.setOpen)
 
   return (
@@ -21,8 +23,8 @@ export default function SettingsButton({
           : undefined
       }
       data-tour="settings"
-      aria-label="打开设置"
-      title="设置"
+      aria-label={t("shell.settingsButton.open")}
+      title={t("shell.settingsButton.title")}
       onClick={(event) => {
         event.stopPropagation()
         setOpen(true)

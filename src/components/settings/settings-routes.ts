@@ -9,7 +9,7 @@ import config from "./settings-nav.json"
 
 export type SettingsNavNode = {
   id: string
-  label: string
+  labelKey: string
   icon?: string
   children?: SettingsNavNode[]
 }

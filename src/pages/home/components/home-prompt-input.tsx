@@ -1,6 +1,7 @@
 import MoreActions from "./more-actions"
 import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ArrowUp, Check, MagnifyingGlass } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +32,7 @@ function readableForeground(hex: string) {
 }
 
 export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
+  const { t } = useTranslation()
   const draft = usePromptStore((state) => state.draft)
   const setDraft = usePromptStore((state) => state.setDraft)
   const items = useTabGridStore((state) => state.items)
@@ -171,8 +173,8 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
               type="text"
               inputMode="search"
               autoComplete="off"
-              aria-label="搜索"
-              placeholder="搜索点什么…"
+              aria-label={t("shell.home.searchInput")}
+              placeholder={t("shell.home.searchPlaceholder")}
               role="combobox"
               aria-autocomplete="list"
               aria-haspopup="listbox"
@@ -231,8 +233,8 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
               type="button"
               variant="ghost"
               size="icon"
-              aria-label="搜索"
-              title="在新标签页搜索"
+              aria-label={t("shell.home.searchButton")}
+              title={t("shell.home.searchButtonTitle")}
               disabled={!query || !onSubmit}
               className="mr-1 rounded-full text-muted-foreground transition-[color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:text-foreground enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
               onClick={(event) => {
@@ -262,8 +264,8 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
           data-tour="search"
         >
           <PromptInputTextarea
-            aria-label="对话输入"
-            placeholder="搜索点什么…"
+            aria-label={t("shell.home.conversationInput")}
+            placeholder={t("shell.home.searchPlaceholder")}
             role="combobox"
             aria-autocomplete="list"
             aria-haspopup="listbox"
@@ -316,8 +318,8 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
             <Button
               type="button"
               size="icon"
-              aria-label="搜索"
-              title="在新标签页搜索"
+              aria-label={t("shell.home.searchButton")}
+              title={t("shell.home.searchButtonTitle")}
               disabled={!query || !onSubmit}
               className="transition-[filter,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:brightness-110 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
               style={{
@@ -335,20 +337,20 @@ export default function HomePromptInput({ onSubmit }: HomePromptInputProps) {
         </PromptInput>
       )}
       <span role="status" className="sr-only">
-        {submitted ? "已在新标签页打开" : ""}
+        {submitted ? t("shell.home.openedInNewTab") : ""}
       </span>
       {expanded && (
         <div
           id={listId}
           role="listbox"
-          aria-label="搜索建议"
+          aria-label={t("shell.home.suggestions")}
           className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" ? "col-start-2 col-end-3" : ""}`}
           onMouseDown={(event) => event.preventDefault()}
         >
           {matches.length > 0 && (
             <div
               role="group"
-              aria-label="匹配书签"
+              aria-label={t("shell.home.matchedBookmarks")}
               className="grid auto-rows-[44px] grid-cols-1 gap-3 p-1.5 min-[480px]:grid-cols-2 min-[720px]:grid-cols-3"
             >
               {matches.map((tab, index) => (

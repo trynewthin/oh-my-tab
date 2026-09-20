@@ -1,38 +1,24 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
+import { landingDetailIds, type LandingDetailId } from "../i18n/types"
 import { chromeStoreUrl, releaseUrl } from "./site-frame"
 
-const details = [
-  {
-    title: "颜色，藏在细节里。",
-    text: "柔和底色、细密点阵，给每组收藏一点自己的辨识度。",
-    image: "home-dark",
-    view: "28 270 290 300",
-    tone: "lilac",
-  },
-  {
-    title: "把今天，轻轻勾掉。",
-    text: "待办也有圆润的轮廓。完成一项，就留下一枚小小的对勾。",
-    image: "widgets",
-    view: "310 100 300 310",
-    tone: "blue",
-  },
-  {
-    title: "日子有自己的颜色。",
-    text: "月份、日期、今天的位置，安安静静地排好。",
-    image: "widgets",
-    view: "24 100 300 310",
-    tone: "rose",
-  },
-  {
-    title: "养朵花，画朵花。",
-    text: "一盆像素植物，一张点阵画布。忙完了，也可以玩一会儿。",
-    image: "widgets",
-    view: "608 90 570 320",
-    tone: "green",
-  },
-]
+type DetailVisual = {
+  image: "home-dark" | "widgets"
+  view: string
+  tone: string
+}
+
+// Structural presentation stays stable across languages; only copy is localized.
+const detailVisuals: Record<LandingDetailId, DetailVisual> = {
+  colors: { image: "home-dark", view: "28 270 290 300", tone: "lilac" },
+  todos: { image: "widgets", view: "310 100 300 310", tone: "blue" },
+  calendar: { image: "widgets", view: "24 100 300 310", tone: "rose" },
+  plant: { image: "widgets", view: "608 90 570 320", tone: "green" },
+}
 
 export function LandingContent() {
+  const { t } = useTranslation()
   const [theme, setTheme] = useState<"dark" | "light">("dark")
 
   return (
@@ -40,33 +26,37 @@ export function LandingContent() {
       <section className="hero">
         <div className="hero-copy">
           <h1>
-            打开新的一页，
-            <span>回到自己的节奏。</span>
+            {t("landing.hero.titleLead")}
+            <span>{t("landing.hero.titleTail")}</span>
           </h1>
           <div className="hero-actions">
             <a className="button button--primary" href={chromeStoreUrl}>
-              前往 Chrome 商店
+              {t("landing.hero.chromeStore")}
             </a>
             <a className="button button--quiet" href={releaseUrl}>
-              下载最新版本
+              {t("landing.hero.release")}
             </a>
           </div>
         </div>
         <div className="preview-toolbar">
-          <div className="theme-switch" role="group" aria-label="预览主题">
+          <div
+            className="theme-switch"
+            role="group"
+            aria-label={t("landing.hero.themeLabel")}
+          >
             <button
               type="button"
               aria-pressed={theme === "dark"}
               onClick={() => setTheme("dark")}
             >
-              ☾ 深色
+              ☾ {t("landing.hero.themeDark")}
             </button>
             <button
               type="button"
               aria-pressed={theme === "light"}
               onClick={() => setTheme("light")}
             >
-              ☼ 浅色
+              ☼ {t("landing.hero.themeLight")}
             </button>
           </div>
         </div>
@@ -80,50 +70,58 @@ export function LandingContent() {
             width="2400"
             height="1840"
             src={`/showcase/home-${theme}.webp`}
-            alt={`Oh My Tab ${theme === "dark" ? "深色" : "浅色"}主题，包含书签文件夹、日历和像素组件`}
+            alt={t(
+              theme === "dark"
+                ? "landing.hero.previewAltDark"
+                : "landing.hero.previewAltLight"
+            )}
           />
         </div>
       </section>
 
       <section className="feature-section" id="features">
         <div className="section-heading">
-          <h2>凑近一点看。</h2>
+          <h2>{t("landing.features.heading")}</h2>
         </div>
         <div className="detail-grid">
-          {details.map((detail) => (
-            <article
-              className={`detail-card detail-card--${detail.tone}`}
-              key={detail.title}
-            >
-              <div className="detail-art">
-                <svg viewBox={detail.view} role="img" aria-label={detail.title}>
-                  <image
-                    href={`/showcase/${detail.image}.webp`}
-                    width="1200"
-                    height={detail.image === "home-dark" ? 920 : 460}
-                  />
-                </svg>
-              </div>
-              <div className="detail-copy">
-                <h3>{detail.title}</h3>
-                <p>{detail.text}</p>
-              </div>
-            </article>
-          ))}
+          {landingDetailIds.map((id) => {
+            const visual = detailVisuals[id]
+            const title = t(`landing.features.details.${id}.title`)
+            return (
+              <article
+                className={`detail-card detail-card--${visual.tone}`}
+                key={id}
+              >
+                <div className="detail-art">
+                  <svg viewBox={visual.view} role="img" aria-label={title}>
+                    <image
+                      href={`/showcase/${visual.image}.webp`}
+                      width="1200"
+                      height={visual.image === "home-dark" ? 920 : 460}
+                    />
+                  </svg>
+                </div>
+                <div className="detail-copy">
+                  <h3>{title}</h3>
+                  <p>{t(`landing.features.details.${id}.text`)}</p>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </section>
 
       <section className="showcase-section" id="showcase">
         <div className="section-heading section-heading--split">
           <div>
-            <h2>井井有条，也有一点可爱。</h2>
+            <h2>{t("landing.showcase.heading")}</h2>
           </div>
         </div>
         <div className="showcase-list">
           <article className="showcase-item">
             <div className="showcase-copy">
-              <h3>常用网站，各有位置</h3>
-              <p>用文件夹收起一组站点，展开后依然可以直接浏览和打开。</p>
+              <h3>{t("landing.showcase.organize.title")}</h3>
+              <p>{t("landing.showcase.organize.text")}</p>
             </div>
             <div className="showcase-shot">
               <img
@@ -131,14 +129,14 @@ export function LandingContent() {
                 width="2400"
                 height="920"
                 src="/showcase/organize.webp"
-                alt="展开文件夹浏览常用网站的产品界面"
+                alt={t("landing.showcase.organizeAlt")}
               />
             </div>
           </article>
           <article className="showcase-item showcase-item--reverse">
             <div className="showcase-copy">
-              <h3>每天，也留一点小爱好</h3>
-              <p>日历、待办、像素花盆和点阵画布，共享同一张自由画布。</p>
+              <h3>{t("landing.showcase.widgets.title")}</h3>
+              <p>{t("landing.showcase.widgets.text")}</p>
             </div>
             <div className="showcase-shot">
               <img
@@ -146,7 +144,7 @@ export function LandingContent() {
                 width="2400"
                 height="920"
                 src="/showcase/widgets.webp"
-                alt="日历、待办、像素花盆和点阵画布组件"
+                alt={t("landing.showcase.widgetsAlt")}
               />
             </div>
           </article>

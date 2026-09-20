@@ -1,9 +1,14 @@
 <!doctype html>
-<html lang="zh-CN">
+<html>
+  <!--
+    The runtime owns <html lang> and <title> for this entry: `startLanguageSync`
+    applies the persisted `omt.locale` preference after hydration, so neither is
+    pinned to a language here.
+  -->
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>快速添加 · Oh My Tab</title>
+    <title>Oh My Tab</title>
   </head>
   <body>
     <div id="root"></div>

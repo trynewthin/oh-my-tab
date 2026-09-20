@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Oh My Tab · 新标签页",
+    "description": "Extension name shown in the browser toolbar, extension list and store."
+  },
+  "extensionDescription": {
+    "message": "自定义浏览器新标签页：拖拽书签网格、文件夹与多选整理、实时搜索联想、电子点阵和粒子效果。",
+    "description": "Extension description shown in the browser extension list and store."
+  },
+  "actionTitle": {
+    "message": "快速添加到 Oh My Tab",
+    "description": "Tooltip of the toolbar action that adds the current page to the grid."
+  }
+}

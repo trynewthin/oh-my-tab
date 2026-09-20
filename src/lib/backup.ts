@@ -1,4 +1,5 @@
 import { rehydrateData } from "./hydrate"
+import { i18n } from "@/i18n"
 import {
   snapshot,
   validateConfig,
@@ -31,21 +32,22 @@ export async function createBackup(): Promise<Blob> {
   }
   const result = await encodeBackup(config, image)
   if ((await storageRevision()) !== revision)
-    throw new Error("备份期间数据发生变化，请重新导出")
+    throw new Error(i18n.t("settings.errors.backupChanged"))
   return result
 }
 export async function readBackup(file: Blob): Promise<Backup> {
   if (!file.size || file.size > MAX_BACKUP_BYTES)
-    throw new Error("请选择不超过 64 MB 的备份")
+    throw new Error(i18n.t("settings.errors.backupFileSizeLimit"))
   const signature = new Uint8Array(await file.slice(0, 2).arrayBuffer())
   if (signature[0] !== 0x50 || signature[1] !== 0x4b) {
-    if (file.size > 16 * 1024 * 1024) throw new Error("旧版备份过大")
+    if (file.size > 16 * 1024 * 1024)
+      throw new Error(i18n.t("settings.errors.legacyBackupTooLarge"))
     return { config: await parseConfig(await file.text()) }
   }
   const decoded = await decodeBackup(file)
   const config = validateConfig(decoded.config)
   if (config.home.backgroundImage !== null)
-    throw new Error("ZIP 图片必须通过资源清单引用")
+    throw new Error(i18n.t("settings.errors.zipImageReference"))
   if (decoded.image) {
     const bitmap = await createImageBitmap(decoded.image)
     bitmap.close()

@@ -1,7 +1,8 @@
+import { i18n } from "@/i18n"
 import type { GridItem, TabEntry, TodoTask } from "./types"
 import type { GridPositions } from "./grid-layout"
 import {
-  getComponentDefinition,
+  componentLabel,
   isComponentSize,
   supportsComponentAction,
 } from "./registry"
@@ -158,9 +159,13 @@ export function restoreItems(
 }
 
 export function describeRemoval(removed: GridItem[]): string {
-  return removed.length === 1
-    ? `已删除${getComponentDefinition(removed[0].kind).label}「${removed[0].name}」`
-    : `已删除 ${removed.length} 个组件`
+  if (removed.length !== 1)
+    return i18n.t("grid.notify.removedCount", { count: removed.length })
+  const [item] = removed
+  return i18n.t("grid.notify.removedItem", {
+    label: componentLabel(item.kind, (key) => i18n.t(key)),
+    name: item.name,
+  })
 }
 
 export type UpsertBookmarkResult =

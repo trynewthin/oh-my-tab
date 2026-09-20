@@ -1,4 +1,5 @@
 import { useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/stores/toast-store"
 import { createBackup, readBackup, downloadBackup } from "@/lib/backup"
@@ -17,11 +18,12 @@ export default function LocalBackup({
   setPending: (pending: Pending | null) => void
   run: (action: () => Promise<void>) => Promise<void>
 }) {
+  const { t } = useTranslation()
   const input = useRef<HTMLInputElement>(null)
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span className="text-sm">备份与恢复</span>
+        <span className="text-sm">{t("settings.backup.title")}</span>
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
@@ -30,11 +32,11 @@ export default function LocalBackup({
             onClick={() =>
               void run(async () => {
                 downloadBackup(await createBackup())
-                toast("ZIP 备份已生成", "success")
+                toast(t("settings.backup.created"), "success")
               })
             }
           >
-            备份
+            {t("settings.backup.backup")}
           </Button>
           <Button
             variant="outline"
@@ -42,7 +44,7 @@ export default function LocalBackup({
             disabled={busy || !!pending}
             onClick={() => input.current?.click()}
           >
-            恢复
+            {t("settings.backup.restore")}
           </Button>
         </div>
       </div>
@@ -51,7 +53,7 @@ export default function LocalBackup({
         type="file"
         accept=".zip,.txt,application/zip,text/plain"
         className="sr-only"
-        aria-label="导入数据备份"
+        aria-label={t("settings.backup.importAria")}
         disabled={busy || !!pending}
         onChange={(event) => {
           const file = event.currentTarget.files?.[0]

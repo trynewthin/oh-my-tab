@@ -5,6 +5,7 @@ import {
   CollectionRow,
   CollectionViewport,
 } from "./collection/layout"
+import { useTranslation } from "react-i18next"
 
 export default function FolderExpandedGrid({
   folder,
@@ -13,13 +14,14 @@ export default function FolderExpandedGrid({
   folder: FolderItem
   tabs?: TabEntry[]
 }) {
+  const { t } = useTranslation()
   const visibleTabs = tabs ?? folder.tabs
   return (
     <CollectionViewport
       expanded
       data-folder-surface="dialog"
       data-folder-id={folder.id}
-      label={`${folder.name}内的标签`}
+      label={t("grid.folder.tabsInside", { name: folder.name })}
     >
       <CollectionGrid
         expanded

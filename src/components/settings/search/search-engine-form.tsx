@@ -1,5 +1,6 @@
 import { toast } from "@/stores/toast-store"
 import { useState, type FormEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,7 @@ export default function SearchEngineForm({
   onClose: () => void
   inDialog?: boolean
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState(engine.name)
   const [url, setUrl] = useState(engine.url)
   const saveEngine = useSearchEngineStore((state) => state.saveEngine)
@@ -22,7 +24,7 @@ export default function SearchEngineForm({
   function save(event: FormEvent) {
     event.preventDefault()
     if (!name.trim() || !isSearchUrl(url.trim())) {
-      toast("请输入名称，以及包含 {query} 的 http / https 搜索地址。", "error")
+      toast(t("settings.searchEngines.invalid"), "error")
       return
     }
     saveEngine({ ...engine, name: name.trim(), url: url.trim() })
@@ -36,22 +38,24 @@ export default function SearchEngineForm({
     >
       {!inDialog && (
         <h3 className="text-sm font-medium">
-          {engine.name ? "编辑搜索引擎" : "添加搜索引擎"}
+          {engine.name
+            ? t("settings.searchEngines.editTitle")
+            : t("settings.searchEngines.addTitle")}
         </h3>
       )}
       <label className="grid gap-2 text-sm">
-        名称
+        {t("settings.searchEngines.name")}
         <Input
           autoFocus
           required
           maxLength={40}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="例如 DuckDuckGo"
+          placeholder={t("settings.searchEngines.namePlaceholder")}
         />
       </label>
       <label className="grid gap-2 text-sm">
-        搜索地址
+        {t("settings.searchEngines.url")}
         <Input
           required
           value={url}
@@ -61,22 +65,22 @@ export default function SearchEngineForm({
         />
       </label>
       <p id="search-url-hint" className="text-xs text-muted-foreground">
-        用 {"{query}"} 表示搜索关键词。
+        {t("settings.searchEngines.urlHint")}
       </p>
 
       {inDialog ? (
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
-            取消
+            {t("settings.common.cancel")}
           </Button>
-          <Button type="submit">保存</Button>
+          <Button type="submit">{t("settings.common.save")}</Button>
         </DialogFooter>
       ) : (
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose}>
-            取消
+            {t("settings.common.cancel")}
           </Button>
-          <Button type="submit">保存</Button>
+          <Button type="submit">{t("settings.common.save")}</Button>
         </div>
       )}
     </form>

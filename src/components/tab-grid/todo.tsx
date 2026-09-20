@@ -24,6 +24,7 @@ import type { TodoItem, TodoTask } from "@/lib/grid/types"
 import { useDraggable } from "@dnd-kit/core"
 import type { TodoTaskDragData } from "./drag-types"
 import { TODO_GAP_ID } from "./use-grid-drag"
+import { useTranslation } from "react-i18next"
 
 function focusDraft(node: HTMLInputElement | null) {
   if (node) {
@@ -113,6 +114,7 @@ function TodoList({
   draftRow?: ReactNode
 }) {
   const cards = item.size === "large" && !showInput && !showDelete
+  const { t } = useTranslation()
   const topBleed = cards ? 28 : 0
   const viewportRef = useRef<HTMLDivElement>(null)
   const [rowHeight, setRowHeight] = useState(44)
@@ -151,7 +153,7 @@ function TodoList({
       <CollectionViewport
         ref={viewportRef}
         expanded={showDelete}
-        label={showDelete ? `${item.name}列表` : undefined}
+        label={showDelete ? t("grid.todo.listLabel", { name: item.name }) : undefined}
         style={
           cards ? { marginTop: -topBleed, paddingTop: topBleed } : undefined
         }
@@ -176,7 +178,7 @@ function TodoList({
           {item.tasks.length === 0 && !draftRow && (
             <div
               role="status"
-              aria-label="暂无待办"
+              aria-label={t("grid.todo.empty")}
               className="flex h-full items-center justify-center text-muted-foreground/50"
             >
               <Tray size={40} aria-hidden="true" />
@@ -230,7 +232,9 @@ function TodoList({
                     </div>
                   )}
                   <Checkbox
-                    aria-label={`完成 ${task.text}`}
+                    aria-label={t("grid.todo.completeTask", {
+                      text: task.text,
+                    })}
                     checked={task.done}
                     disabled={preview}
                     onCheckedChange={() =>
@@ -250,7 +254,13 @@ function TodoList({
                   {showDelete && (
                     <button
                       type="button"
-                      aria-label={`${confirmDelete === task.id ? "确认删除" : "删除"} ${task.text}`}
+                      aria-label={
+                        confirmDelete === task.id
+                          ? t("grid.todo.confirmDeleteTask", {
+                              text: task.text,
+                            })
+                          : t("grid.todo.deleteTask", { text: task.text })
+                      }
                       disabled={preview}
                       onClick={() => {
                         if (confirmDelete !== task.id) {
@@ -271,7 +281,7 @@ function TodoList({
                     >
                       {confirmDelete === task.id ? (
                         <span className="px-1 text-xs font-medium text-destructive">
-                          确认删除
+                          {t("grid.todo.confirmDelete")}
                         </span>
                       ) : (
                         <Trash size={16} />
@@ -290,9 +300,11 @@ function TodoList({
           className="mt-1 flex shrink-0 items-center gap-1 border-t border-border/50 pt-2"
         >
           <input
-            aria-label="新待办"
+            aria-label={t("grid.todo.newTodo")}
             placeholder={
-              item.tasks.length >= 200 ? "已达到 200 项上限" : "添加待办…"
+              item.tasks.length >= 200
+                ? t("grid.todo.limitReached")
+                : t("grid.todo.addPlaceholder")
             }
             disabled={preview || item.tasks.length >= 200}
             value={text}
@@ -302,7 +314,7 @@ function TodoList({
           />
           <button
             type="submit"
-            aria-label="添加待办"
+            aria-label={t("grid.todo.addTodo")}
             disabled={preview || !text.trim() || item.tasks.length >= 200}
             className="rounded p-1 hover:bg-muted disabled:opacity-40"
           >
@@ -324,6 +336,7 @@ export default function Todo({
   tasks?: TodoTask[]
 }) {
   const displayItem = tasks ? { ...item, tasks } : item
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [adding, setAdding] = useState(false)
   const [draft, setDraft] = useState("")
@@ -349,7 +362,7 @@ export default function Todo({
       <EffectSurface color={item.color} textureId={`${item.id}-draft`} />
       <input
         ref={focusDraft}
-        aria-label="新待办"
+        aria-label={t("grid.todo.newTodo")}
         maxLength={200}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
@@ -369,7 +382,7 @@ export default function Todo({
       />
       <button
         type="submit"
-        aria-label="确认添加"
+        aria-label={t("grid.todo.confirmAdd")}
         disabled={!draft.trim()}
         className="relative z-10 rounded-full p-1 hover:bg-muted disabled:opacity-40"
       >
@@ -377,7 +390,7 @@ export default function Todo({
       </button>
       <button
         type="button"
-        aria-label="取消添加"
+        aria-label={t("grid.todo.cancelAdd")}
         onClick={() => {
           setAdding(false)
           setDraft("")
@@ -422,7 +435,7 @@ export default function Todo({
             <>
               {next && (
                 <Checkbox
-                  aria-label={`完成 ${next.text}`}
+                  aria-label={t("grid.todo.completeTask", { text: next.text })}
                   checked={false}
                   disabled={preview}
                   onCheckedChange={() =>
@@ -440,16 +453,19 @@ export default function Todo({
                 disabled={preview}
                 onClick={() => setOpen(true)}
                 data-todo-drag-surface
-                aria-label={`打开${item.name}`}
+                aria-label={t("grid.todo.openTodo", { name: item.name })}
                 className="min-w-0 flex-1 truncate text-left text-[13px] font-medium sm:text-sm"
               >
-                {next?.text ?? (item.tasks.length ? "全部完成" : "添加待办…")}
+                {next?.text ??
+                  (item.tasks.length
+                    ? t("grid.todo.allDone")
+                    : t("grid.todo.addPlaceholder"))}
               </button>
               <button
                 type="button"
                 disabled={preview}
                 onClick={() => setOpen(true)}
-                aria-label="查看待办清单"
+                aria-label={t("grid.todo.viewList")}
                 className="flex shrink-0 items-center gap-1 rounded p-1 text-xs text-muted-foreground hover:bg-muted"
               >
                 <ListChecks size={16} />
@@ -464,13 +480,13 @@ export default function Todo({
                   disabled={preview}
                   onClick={() => setOpen(true)}
                   className="font-semibold"
-                  aria-label={`打开${item.name}`}
+                  aria-label={t("grid.todo.openTodo", { name: item.name })}
                 >
                   {item.name}
                 </CollectionTitleButton>
                 {item.size === "large" ? (
                   <CollectionHeaderAction
-                    label="添加待办"
+                    label={t("grid.todo.addTodo")}
                     disabled={preview || item.tasks.length >= 200}
                     onClick={() => {
                       if (!adding) setDraft("")
@@ -482,7 +498,9 @@ export default function Todo({
                   </CollectionHeaderAction>
                 ) : (
                   <span className="shrink-0 text-[10px] text-muted-foreground">
-                    {remaining.length} 项待办
+                    {t("grid.todo.tasksRemaining", {
+                      count: remaining.length,
+                    })}
                   </span>
                 )}
               </CollectionCardHeader>
@@ -509,7 +527,7 @@ export default function Todo({
           }}
           headerActions={
             <CollectionHeaderAction
-              label="添加待办"
+              label={t("grid.todo.addTodo")}
               disabled={preview || item.tasks.length >= 200}
               onClick={() => {
                 if (!adding) setDraft("")

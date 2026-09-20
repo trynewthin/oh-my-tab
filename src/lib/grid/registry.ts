@@ -38,11 +38,23 @@ export function occupancyPreviewStyle(width: number, height: number) {
 export type ComponentAction =
   "resize" | "randomColor" | "dynamicEffect" | "groupable" | "expandable"
 
+// Occupancy role vocabulary. The role is the word shown before the size mark
+// ("Small · 4×1"); the mark itself is numeric and locale-independent.
+export type SizeRole =
+  | "small"
+  | "medium"
+  | "large"
+  | "tall"
+  | "wide"
+  | "wideTall"
+  | "week"
+  | "day"
+  | "month"
+
 export type ComponentSizeDefinition = {
   value: GridItemSize
   occupancy: GridOccupancyId
-  label: string
-  menuLabel: string
+  roleKey?: string
   width: number
   height: number
 }
@@ -50,24 +62,27 @@ export type ComponentSizeDefinition = {
 export function gridSize(
   value: GridItemSize,
   occupancy: GridOccupancyId,
-  role?: string
+  role?: SizeRole
 ): ComponentSizeDefinition {
   const { width, height } = GRID_OCCUPANCY[occupancy]
-  const mark = occupancyMark(width, height)
   return {
     value,
     occupancy,
-    label: role ? `${role} · ${mark}` : mark,
-    menuLabel: mark,
+    roleKey: role ? `grid.sizeRole.${role}` : undefined,
     width,
     height,
   }
 }
 
-type ComponentDefinition = {
-  label: string
-  description: string
-  defaultName: string
+/** Minimal shape of `i18n.t`/`useTranslation().t` this module needs. */
+export type Translator = (key: string) => string
+
+// Registry entries carry translation keys, never display text: the same
+// definition must render in every language without being rebuilt.
+export type ComponentDefinition = {
+  labelKey: string
+  descriptionKey: string
+  defaultNameKey: string
   defaultColor: string
   defaultSize: GridItemSize
   sizes: readonly ComponentSizeDefinition[]
@@ -84,12 +99,12 @@ type ComponentDefinition = {
 
 export const componentRegistry = {
   tab: {
-    label: "标签",
-    description: "打开常用网站。",
-    defaultName: "新标签",
+    labelKey: "grid.component.tab.label",
+    descriptionKey: "grid.component.tab.description",
+    defaultNameKey: "grid.component.tab.defaultName",
     defaultColor: "#6c8bd4",
     defaultSize: "small",
-    sizes: [gridSize("small", "4x1", "小"), gridSize("medium", "4x2", "中")],
+    sizes: [gridSize("small", "4x1", "small"), gridSize("medium", "4x2", "medium")],
     menuSizes: ["medium", "small"],
     editorSizes: ["small", "medium"],
     catalogSizes: [],
@@ -107,17 +122,17 @@ export const componentRegistry = {
     },
   },
   folder: {
-    label: "文件夹",
-    description: "集中收纳标签。",
-    defaultName: "新文件夹",
+    labelKey: "grid.component.folder.label",
+    descriptionKey: "grid.component.folder.description",
+    defaultNameKey: "grid.component.folder.defaultName",
     defaultColor: "#6c8bd4",
     defaultSize: "large",
     sizes: [
-      gridSize("small", "4x2", "小"),
-      gridSize("large", "4x4", "大"),
-      gridSize("tall", "4x8", "高"),
-      gridSize("wide", "8x4", "宽"),
-      gridSize("wide-tall", "8x8", "宽高"),
+      gridSize("small", "4x2", "small"),
+      gridSize("large", "4x4", "large"),
+      gridSize("tall", "4x8", "tall"),
+      gridSize("wide", "8x4", "wide"),
+      gridSize("wide-tall", "8x8", "wideTall"),
     ],
     menuSizes: ["wide-tall", "wide", "tall", "large"],
     editorSizes: ["large", "tall", "wide", "wide-tall"],
@@ -136,16 +151,16 @@ export const componentRegistry = {
     },
   },
   "dot-canvas": {
-    label: "点阵画布",
-    description: "绘制像素图案，或导入图片生成专属点阵装饰。",
-    defaultName: "点阵画布",
+    labelKey: "grid.component.dotCanvas.label",
+    descriptionKey: "grid.component.dotCanvas.description",
+    defaultNameKey: "grid.component.dotCanvas.defaultName",
     defaultColor: "#3291ff",
     defaultSize: "large",
     sizes: [
-      gridSize("large", "4x4", "大"),
-      gridSize("tall", "4x8", "高"),
-      gridSize("wide", "8x4", "宽"),
-      gridSize("wide-tall", "8x8", "宽高"),
+      gridSize("large", "4x4", "large"),
+      gridSize("tall", "4x8", "tall"),
+      gridSize("wide", "8x4", "wide"),
+      gridSize("wide-tall", "8x8", "wideTall"),
     ],
     menuSizes: [],
     editorSizes: ["large", "tall", "wide", "wide-tall"],
@@ -164,12 +179,12 @@ export const componentRegistry = {
     },
   },
   ecosystem: {
-    label: "像素花盆",
-    description: "播种、浇水并陪伴植物成长，收集到你的植物图鉴。",
-    defaultName: "像素花盆",
+    labelKey: "grid.component.ecosystem.label",
+    descriptionKey: "grid.component.ecosystem.description",
+    defaultNameKey: "grid.component.ecosystem.defaultName",
     defaultColor: "#42b883",
     defaultSize: "large",
-    sizes: [gridSize("large", "4x4", "大")],
+    sizes: [gridSize("large", "4x4", "large")],
     menuSizes: [],
     editorSizes: [],
     catalogSizes: ["large"],
@@ -187,15 +202,15 @@ export const componentRegistry = {
     },
   },
   calendar: {
-    label: "日历",
-    description: "查看月历，切换月份，快速回到今天。",
-    defaultName: "日历",
+    labelKey: "grid.component.calendar.label",
+    descriptionKey: "grid.component.calendar.description",
+    defaultNameKey: "grid.component.calendar.defaultName",
     defaultColor: "#3478f6",
     defaultSize: "large",
     sizes: [
-      gridSize("small", "4x1", "周"),
-      gridSize("medium", "2x2", "日"),
-      gridSize("large", "4x4", "月"),
+      gridSize("small", "4x1", "week"),
+      gridSize("medium", "2x2", "day"),
+      gridSize("large", "4x4", "month"),
     ],
     menuSizes: ["large", "medium", "small"],
     editorSizes: ["small", "medium", "large"],
@@ -214,9 +229,9 @@ export const componentRegistry = {
     },
   },
   template: {
-    label: "模板",
-    description: "标准占位格。1×1 是正方形单位，其它尺寸都是它的整数倍。",
-    defaultName: "模板",
+    labelKey: "grid.component.template.label",
+    descriptionKey: "grid.component.template.description",
+    defaultNameKey: "grid.component.template.defaultName",
     defaultColor: "#8a90a0",
     defaultSize: "small",
     sizes: [
@@ -242,15 +257,15 @@ export const componentRegistry = {
     },
   },
   todo: {
-    label: "待办",
-    description: "记录事项，勾选完成。",
-    defaultName: "待办",
+    labelKey: "grid.component.todo.label",
+    descriptionKey: "grid.component.todo.description",
+    defaultNameKey: "grid.component.todo.defaultName",
     defaultColor: "#6c8bd4",
     defaultSize: "large",
     sizes: [
-      gridSize("small", "4x1", "小"),
-      gridSize("medium", "4x2", "中"),
-      gridSize("large", "4x4", "大"),
+      gridSize("small", "4x1", "small"),
+      gridSize("medium", "4x2", "medium"),
+      gridSize("large", "4x4", "large"),
     ],
     menuSizes: [],
     editorSizes: [],
@@ -291,6 +306,39 @@ export function getComponentDefinition(
   kind: GridItemKind
 ): ComponentDefinition {
   return componentRegistry[kind]
+}
+
+/**
+ * Resolves registry display metadata through the active language. Every
+ * consumer renders these at call time so a language switch re-renders chrome
+ * without rebuilding the registry.
+ */
+export function componentLabel(kind: GridItemKind, t: Translator): string {
+  return t(getComponentDefinition(kind).labelKey)
+}
+
+export function componentDescription(
+  kind: GridItemKind,
+  t: Translator
+): string {
+  return t(getComponentDefinition(kind).descriptionKey)
+}
+
+/** Product-owned default name, in the language active at creation time. */
+export function componentDefaultName(
+  kind: GridItemKind,
+  t: Translator
+): string {
+  return t(getComponentDefinition(kind).defaultNameKey)
+}
+
+/** "Small · 4×1" — role word first when the size has one, else the mark. */
+export function sizeLabel(
+  size: Pick<ComponentSizeDefinition, "roleKey" | "width" | "height">,
+  t: Translator
+): string {
+  const mark = occupancyMark(size.width, size.height)
+  return size.roleKey ? `${t(size.roleKey)} · ${mark}` : mark
 }
 
 export function getComponentSize(

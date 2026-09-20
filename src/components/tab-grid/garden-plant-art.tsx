@@ -1,8 +1,25 @@
 import type { CSSProperties } from "react"
 import type { GardenPlant } from "@/lib/grid/types"
-import { growth, plantSeed, randomGene, plantName } from "@/lib/garden"
+import {
+  growth,
+  plantSeed,
+  randomGene,
+  plantName,
+  plantFamilyName,
+  plantStageName,
+} from "@/lib/garden"
+import { useTranslation } from "react-i18next"
 
-const FAMILIES = ["雏菊", "向日葵", "风铃草", "穗花", "蕨叶", "多肉"]
+// Stable structural ids keep `data-family` hooks (and any CSS keyed off them)
+// language-independent; the display name comes from the locale resources.
+const FAMILY_IDS = [
+  "daisy",
+  "sunflower",
+  "bellflower",
+  "wheat",
+  "fern",
+  "succulent",
+]
 function Flower({
   x,
   y,
@@ -106,10 +123,12 @@ export default function GardenPlantArt({
   plant: GardenPlant
   now: number
 }) {
+  // Subscribes to language changes so the generated title re-renders in place.
+  const { t } = useTranslation()
   const seed = plantSeed(plant)
   const gene = (index: number) => randomGene(seed, index)
   const { progress, level } = growth(plant, now)
-  const kind = Math.floor(gene(50) * FAMILIES.length)
+  const kind = Math.floor(gene(50) * FAMILY_IDS.length)
   const varied = plant.appearanceVersion === 2
   const height = Math.round(
     4 + progress * (varied ? 12 + gene(1) * 13 : 17 + gene(1) * 5)
@@ -142,7 +161,7 @@ export default function GardenPlantArt({
     <g
       className="ecosystem-plant"
       data-stage={level}
-      data-family={FAMILIES[kind]}
+      data-family={FAMILY_IDS[kind]}
       style={
         {
           "--plant-period": `${3.5 + gene(6) * 3}s`,
@@ -151,7 +170,13 @@ export default function GardenPlantArt({
         } as CSSProperties
       }
     >
-      <title>{`${plantName(plant)} · ${FAMILIES[kind]} · ${["萌芽", "幼苗", "生长", "花期", "成熟"][level]}`}</title>
+      <title>
+        {t("grid.garden.artTitle", {
+          name: plantName(plant),
+          family: plantFamilyName(seed),
+          stage: plantStageName(level),
+        })}
+      </title>
       <g key={level} className="garden-growth">
         {kind === 5 && level >= 1 ? (
           <>

@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import TabGrid from "@/components/tab-grid/tab-grid"
 import { createTabItem } from "@/components/tab-grid/factory"
 import EffectStylePicker from "./effect-style-picker"
@@ -19,11 +20,11 @@ function previewTab(name: string, size: "small" | "medium"): TabItem {
 
 // One 4x2 tab on the left, two 4x1 tabs stacked on the right — centered
 // as a group under the select row.
-const preview = (() => {
+function buildPreview(t: (key: string) => string) {
   const [medium, smallA, smallB] = [
     previewTab("Oh My Tab", "medium"),
-    previewTab("新标签页", "small"),
-    previewTab("扩展", "small"),
+    previewTab(t("settings.previews.newTab"), "small"),
+    previewTab(t("settings.previews.extensions"), "small"),
   ]
   return {
     items: [medium, smallA, smallB] satisfies GridItem[],
@@ -34,7 +35,7 @@ const preview = (() => {
       [smallB.id]: { x: 4, y: 1 },
     },
   }
-})()
+}
 
 function homeGridTrackWidth() {
   return (
@@ -44,6 +45,7 @@ function homeGridTrackWidth() {
 }
 
 export default function TabsPane() {
+  const { t } = useTranslation()
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
   const setTabTexture = useHomeSettingsStore((state) => state.setTabTexture)
   const amplitude = useHomeSettingsStore((state) => state.burningAmplitude)
@@ -56,6 +58,7 @@ export default function TabsPane() {
   )
   const color = useHomeSettingsStore((state) => state.color)
   const [trackWidth, setTrackWidth] = useState(homeGridTrackWidth)
+  const preview = useMemo(() => buildPreview(t), [t])
 
   useLayoutEffect(() => {
     const measure = () => setTrackWidth(homeGridTrackWidth())
@@ -78,19 +81,21 @@ export default function TabsPane() {
         </div>
       )}
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span className="text-sm">标签纹理</span>
+        <span className="text-sm">{t("settings.tabs.texture")}</span>
         <EffectStylePicker
           value={tabTexture}
           color={color}
           onChange={setTabTexture}
-          label="标签纹理"
+          labelKey="settings.tabs.texture"
         />
       </div>
       {tabTexture !== "none" && (
         <>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
             <label htmlFor="burning-amplitude" className="text-sm">
-              {tabTexture === "burning" ? "燃烧幅度" : "呼吸幅度"}
+              {tabTexture === "burning"
+                ? t("settings.tabs.burningAmplitude")
+                : t("settings.tabs.breathingAmplitude")}
             </label>
             <div
               className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
@@ -117,9 +122,9 @@ export default function TabsPane() {
             </div>
           </div>
           <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <span className="text-sm">过渡效果</span>
+            <span className="text-sm">{t("settings.tabs.transition")}</span>
             <Switch
-              aria-label="过渡效果"
+              aria-label={t("settings.tabs.transition")}
               checked={entrance}
               className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
               style={{ backgroundColor: entrance ? color : undefined }}

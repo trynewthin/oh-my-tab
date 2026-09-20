@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ export default function AddSearchEngineDialog({
   engine,
   onClose,
 }: AddSearchEngineDialogProps) {
+  const { t } = useTranslation()
   return (
     <Dialog
       open
@@ -25,7 +27,7 @@ export default function AddSearchEngineDialog({
     >
       <DialogContent showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>添加搜索引擎</DialogTitle>
+          <DialogTitle>{t("settings.searchEngines.addTitle")}</DialogTitle>
         </DialogHeader>
         <SearchEngineForm engine={engine} onClose={onClose} inDialog />
       </DialogContent>

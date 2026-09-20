@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Oh My Tab · 新标签页",
+  "default_locale": "zh_CN",
+  "name": "__MSG_extensionName__",
   "version": "1.5.2",
-  "description": "自定义浏览器新标签页：拖拽书签网格、文件夹与多选整理、实时搜索联想、电子点阵和粒子效果。",
+  "description": "__MSG_extensionDescription__",
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
@@ -21,7 +22,7 @@
     "unlimitedStorage"
   ],
   "action": {
-    "default_title": "快速添加到 Oh My Tab",
+    "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",

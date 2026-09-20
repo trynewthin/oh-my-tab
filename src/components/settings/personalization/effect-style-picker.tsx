@@ -7,12 +7,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useTranslation } from "react-i18next"
 import type { EffectStyle } from "@/stores/home-settings-store"
 
 const options = [
-  { value: "burning", label: "像素火焰" },
-  { value: "particles", label: "浮游点阵" },
-  { value: "none", label: "无" },
+  { value: "burning", labelKey: "settings.effects.burning" },
+  { value: "particles", labelKey: "settings.effects.particles" },
+  { value: "none", labelKey: "settings.effects.none" },
 ] as const
 
 function EffectPreview({
@@ -38,19 +39,21 @@ export default function EffectStylePicker({
   value,
   color,
   onChange,
-  label = "粒子效果",
+  labelKey = "settings.effects.label",
 }: {
   value: EffectStyle
   color: string
   onChange: (value: EffectStyle) => void
-  label?: string
+  labelKey?: string
 }) {
+  const { t } = useTranslation()
+  const label = t(labelKey)
   const current = options.find((option) => option.value === value) ?? options[0]
 
   return (
     <Popover>
       <PopoverTrigger
-        aria-label={`选择${label}`}
+        aria-label={t("settings.effects.selectAria", { label })}
         render={
           <Button
             variant="outline"
@@ -58,7 +61,7 @@ export default function EffectStylePicker({
           />
         }
       >
-        <span className="truncate text-xs">{current.label}</span>
+        <span className="truncate text-xs">{t(current.labelKey)}</span>
         <CaretDown className="size-4 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent
@@ -84,7 +87,7 @@ export default function EffectStylePicker({
                   textureId={`effect-option-${option.value}`}
                 />
                 <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3 text-sm font-medium">
-                  {option.label}
+                  {t(option.labelKey)}
                   {selected && <Check className="size-4" />}
                 </span>
               </button>

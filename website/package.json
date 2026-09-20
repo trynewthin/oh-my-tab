@@ -9,13 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "i18next": "^26.4.2",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-i18next": "^17.0.14"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6",
     "typescript": "~6",
     "vite": "^8"
   }

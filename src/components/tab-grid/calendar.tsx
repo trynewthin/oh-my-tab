@@ -2,6 +2,34 @@ import ComponentBackground from "./shared/component-background"
 import { useEffect, useState } from "react"
 import { CaretLeft, CaretRight } from "@phosphor-icons/react"
 import type { CalendarItem } from "@/lib/grid/types"
+import { useTranslation } from "react-i18next"
+
+// Monday-first week. The index is the column position, so index 0 is always
+// Monday regardless of the resolved language's weekend convention.
+const WEEK_START = 1
+
+function weekdayOrder(locale: string) {
+  const format = new Intl.DateTimeFormat(locale, { weekday: "short" })
+  const reference = new Date(Date.UTC(2024, 0, 1)) // Monday
+  return Array.from({ length: 7 }, (_, index) =>
+    format.format(new Date(reference.getTime() + index * 86400000))
+  )
+}
+
+function monthTitle(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long",
+  }).format(date)
+}
+
+function dateTitle(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date)
+}
 
 function CalendarContent({
   item,
@@ -10,6 +38,8 @@ function CalendarContent({
   item: CalendarItem
   preview?: boolean
 }) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language || "zh-CN"
   const [today, setToday] = useState(() => new Date())
   const [offset, setOffset] = useState(0)
   useEffect(() => {
@@ -22,8 +52,10 @@ function CalendarContent({
     }
   }, [])
   const month = new Date(today.getFullYear(), today.getMonth() + offset, 1)
-  const start = (month.getDay() + 6) % 7
+  // Shift so the week starts on Monday: getDay() is 0 for Sunday.
+  const start = (month.getDay() - WEEK_START + 7) % 7
   const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
+  const weekdays = weekdayOrder(locale)
   if (item.size === "medium")
     return (
       <section
@@ -38,7 +70,7 @@ function CalendarContent({
           {today.getDate()}
         </div>
         <div className="text-sm text-muted-foreground">
-          星期{["日", "一", "二", "三", "四", "五", "六"][today.getDay()]}
+          {weekdays[(today.getDay() - WEEK_START + 7) % 7]}
         </div>
       </section>
     )
@@ -52,7 +84,7 @@ function CalendarContent({
           const date = new Date(
             today.getFullYear(),
             today.getMonth(),
-            today.getDate() - ((today.getDay() + 6) % 7) + index
+            today.getDate() - ((today.getDay() - WEEK_START + 7) % 7) + index
           )
           const active =
             date.getTime() ===
@@ -67,7 +99,7 @@ function CalendarContent({
               className="flex min-w-0 items-center justify-center"
             >
               <span
-                aria-label={`${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`}
+                aria-label={dateTitle(date, locale)}
                 aria-current={active ? "date" : undefined}
                 className="flex aspect-square w-full max-w-7 items-center justify-center rounded-full text-sm font-medium tabular-nums sm:max-w-8 sm:text-base"
                 style={
@@ -76,9 +108,7 @@ function CalendarContent({
                     : undefined
                 }
               >
-                {active
-                  ? ["一", "二", "三", "四", "五", "六", "日"][index]
-                  : date.getDate()}
+                {active ? weekdays[index] : date.getDate()}
               </span>
             </div>
           )
@@ -93,7 +123,7 @@ function CalendarContent({
       <header className="mb-2 flex flex-wrap items-center justify-between gap-1">
         <div className="min-w-0">
           <h3 aria-live="polite" className="text-sm font-semibold tabular-nums">
-            {month.getFullYear()}年{month.getMonth() + 1}月
+            {monthTitle(month, locale)}
           </h3>
         </div>
         <div
@@ -103,7 +133,7 @@ function CalendarContent({
           <button
             type="button"
             disabled={preview}
-            aria-label="上个月"
+            aria-label={t("grid.calendar.previousMonth")}
             onClick={() => setOffset((v) => v - 1)}
             className="rounded-md p-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
@@ -118,12 +148,12 @@ function CalendarContent({
             }}
             className="rounded-md px-1 py-1 text-[10px] hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
-            今天
+            {t("grid.calendar.today")}
           </button>
           <button
             type="button"
             disabled={preview}
-            aria-label="下个月"
+            aria-label={t("grid.calendar.nextMonth")}
             onClick={() => setOffset((v) => v + 1)}
             className="rounded-md p-1 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
@@ -132,8 +162,8 @@ function CalendarContent({
         </div>
       </header>
       <div className="grid grid-cols-7 text-center text-[10px] text-muted-foreground">
-        {["一", "二", "三", "四", "五", "六", "日"].map((day) => (
-          <span key={day} className="py-1">
+        {weekdays.map((day, index) => (
+          <span key={index} className="py-1">
             {day}
           </span>
         ))}
@@ -145,6 +175,14 @@ function CalendarContent({
           return (
             <span
               key={index}
+              aria-label={
+                day > 0 && day <= days
+                  ? dateTitle(
+                      new Date(month.getFullYear(), month.getMonth(), day),
+                      locale
+                    )
+                  : undefined
+              }
               aria-current={active ? "date" : undefined}
               className={`flex aspect-square w-full max-w-6 items-center justify-center rounded-full ${active ? "font-semibold text-white" : index % 7 >= 5 ? "text-muted-foreground" : ""}`}
               style={

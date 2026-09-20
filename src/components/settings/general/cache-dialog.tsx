@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -7,6 +8,7 @@ import {
   formatStorageBytes,
   summarizeStorage,
   type StorageCategory,
+  type StorageUsageRow,
 } from "@/lib/storage-usage"
 import { clearStorageCategories } from "@/lib/storage-management"
 import { rehydrateData } from "@/lib/hydrate"
@@ -24,7 +26,8 @@ export default function CacheDialog({
   busy: boolean
   setBusy: (busy: boolean) => void
 }) {
-  const [rows, setRows] = useState<ReturnType<typeof summarizeStorage>>([])
+  const { t } = useTranslation()
+  const [rows, setRows] = useState<StorageUsageRow[]>([])
   const [selected, setSelected] = useState<StorageCategory[]>([])
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState("")
@@ -47,7 +50,7 @@ export default function CacheDialog({
         setError("")
       })
       .catch(() => {
-        if (active) setError("无法读取存储用量，请关闭后重试")
+        if (active) setError(t("settings.cache.readError"))
       })
       .finally(() => {
         if (active) setBusy(false)
@@ -55,7 +58,7 @@ export default function CacheDialog({
     return () => {
       active = false
     }
-  }, [open, refresh, setBusy])
+  }, [open, refresh, setBusy, t])
 
   async function clear() {
     setBusy(true)
@@ -66,10 +69,10 @@ export default function CacheDialog({
       setRows(await refresh())
       setSelected([])
       setConfirming(false)
-      toast("已清除所选数据", "success")
+      toast(t("settings.cache.cleared"), "success")
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : "清除失败，请重试",
+        error instanceof Error ? error.message : t("settings.cache.clearFailed"),
         "error"
       )
     } finally {
@@ -88,7 +91,7 @@ export default function CacheDialog({
         className="max-h-[85svh] overflow-y-auto sm:max-w-md"
         aria-describedby={undefined}
       >
-        <DialogTitle>管理</DialogTitle>
+        <DialogTitle>{t("settings.common.manage")}</DialogTitle>
         {error && (
           <p role="alert" className="text-xs text-destructive">
             {error}
@@ -101,7 +104,9 @@ export default function CacheDialog({
               className="flex items-center gap-3 py-3 text-sm"
             >
               <Checkbox
-                aria-label={`选择${row.label}`}
+                aria-label={t("settings.cache.selectAria", {
+                  name: t(row.labelKey),
+                })}
                 disabled={
                   busy ||
                   confirming ||
@@ -118,10 +123,10 @@ export default function CacheDialog({
                 }
               />
               <span className="flex-1">
-                {row.label}
+                {t(row.labelKey)}
                 {!row.clearable && (
                   <span className="ml-2 text-xs text-muted-foreground">
-                    保留
+                    {t("settings.cache.retained")}
                   </span>
                 )}
               </span>
@@ -133,19 +138,21 @@ export default function CacheDialog({
         </div>
         {confirming && (
           <p role="alert" className="text-sm leading-6">
-            将清除
+            {t("settings.cache.confirmPrefix")}
             {rows
               .filter((row) => selected.includes(row.id))
-              .map((row) => `「${row.label}」`)
-              .join("、")}
-            。此操作无法撤销。
+              .map((row) =>
+                t("settings.cache.confirmItem", { name: t(row.labelKey) })
+              )
+              .join(t("settings.cache.confirmSeparator"))}
+            {t("settings.cache.confirmSuffix")}
             {selected.includes("preferences") &&
-              "个性化与搜索设置将恢复默认值。"}
+              t("settings.cache.confirmPreferences")}
           </p>
         )}
         <div className="flex items-center gap-2">
           <span className="mr-auto text-xs text-muted-foreground tabular-nums">
-            用量估算：
+            {t("settings.cache.estimatedUsage")}
             {formatStorageBytes(rows.reduce((sum, row) => sum + row.bytes, 0))}
           </span>
           {confirming && (
@@ -154,7 +161,7 @@ export default function CacheDialog({
               disabled={busy}
               onClick={() => setConfirming(false)}
             >
-              取消
+              {t("settings.common.cancel")}
             </Button>
           )}
           <Button
@@ -162,7 +169,11 @@ export default function CacheDialog({
             disabled={busy || !selected.length || !!error}
             onClick={() => (confirming ? void clear() : setConfirming(true))}
           >
-            {busy ? "处理中…" : confirming ? "确认清除" : "清除所选"}
+            {busy
+              ? t("settings.common.processing")
+              : confirming
+                ? t("settings.cache.confirmClear")
+                : t("settings.cache.clearSelected")}
           </Button>
         </div>
       </DialogContent>

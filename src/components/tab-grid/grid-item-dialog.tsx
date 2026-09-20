@@ -20,12 +20,17 @@ import type { ComponentProps } from "react"
 import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
+  componentDefaultName,
+  componentDescription,
+  componentLabel,
   getComponentDefinition,
   getComponentSizeOptions,
+  occupancyMark,
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
 import { createCatalogComponent } from "@/components/tab-grid/factory"
+import { useTranslation } from "react-i18next"
 
 function PreviewContent({
   kind,
@@ -36,6 +41,7 @@ function PreviewContent({
   size?: GridItemSize
   detail?: boolean
 }) {
+  const { t } = useTranslation()
   const resolved = size ?? getComponentDefinition(kind).defaultSize
   if (kind === "todo")
     return (
@@ -47,15 +53,15 @@ function PreviewContent({
           item={{
             id: "todo-preview",
             kind: "todo",
-            name: getComponentDefinition(kind).defaultName,
+            name: componentDefaultName(kind, t),
             size:
               resolved === "small" || resolved === "medium"
                 ? resolved
                 : "large",
             color: getComponentDefinition(kind).defaultColor,
             tasks: [
-              { id: "1", text: "整理今天的计划", done: true },
-              { id: "2", text: "读几页喜欢的书", done: false },
+              { id: "1", text: t("grid.dialog.previewTaskPlan"), done: true },
+              { id: "2", text: t("grid.dialog.previewTaskRead"), done: false },
             ],
           }}
         />
@@ -71,7 +77,7 @@ function PreviewContent({
           item={{
             id: "calendar-preview",
             kind: "calendar",
-            name: getComponentDefinition(kind).defaultName,
+            name: componentDefaultName(kind, t),
             size:
               resolved === "small" || resolved === "medium"
                 ? resolved
@@ -95,7 +101,7 @@ function PreviewContent({
         item={{
           id: "ecosystem-preview",
           kind: "ecosystem",
-          name: getComponentDefinition(kind).defaultName,
+          name: componentDefaultName(kind, t),
           size: "large",
           color: getComponentDefinition(kind).defaultColor,
           species: "flowers",
@@ -148,6 +154,7 @@ export default function GridItemDialog({
 }) {
   const [selected, setSelected] = useState<CatalogComponentKind | null>(null)
   const [confirmSize, setConfirmSize] = useState<GridItemSize | false>(false)
+  const { t } = useTranslation()
   const saveItem = useTabGridStore((state) => state.saveItem)
   function addComponent(kind: CatalogComponentKind, size?: GridItemSize) {
     saveItem(createCatalogComponent(kind, size))
@@ -176,31 +183,32 @@ export default function GridItemDialog({
         <div className="flex h-[min(560px,80svh)] min-h-0 min-w-0">
           <aside className="flex w-24 shrink-0 flex-col p-2 pt-6 sm:w-44 sm:p-4 sm:pt-6">
             <DialogHeader className="px-2 pb-6 text-left">
-              <DialogTitle>组件</DialogTitle>
+              <DialogTitle>{t("grid.dialog.catalogTitle")}</DialogTitle>
               <DialogDescription className="sr-only">
-                选择组件和大小，再次点击确认添加到主页。
+                {t("grid.dialog.catalogDescription")}
               </DialogDescription>
             </DialogHeader>
-            <nav aria-label="组件分类">
+            <nav aria-label={t("grid.dialog.catalogNav")}>
               <Button
                 variant="secondary"
                 aria-current="page"
                 className="w-full justify-start px-2"
               >
                 <BookmarkSimple />
-                全部组件
+                {t("grid.dialog.allComponents")}
               </Button>
             </nav>
           </aside>
           <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-3 pt-16 pb-6 sm:p-6 sm:pt-16">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {catalogComponentKinds.map((kind) => {
-                const entry = getComponentDefinition(kind)
                 return (
                   <div key={kind} className="min-w-0">
                     <button
                       type="button"
-                      aria-label={`选择${entry.label}`}
+                      aria-label={t("grid.dialog.selectComponent", {
+                        label: componentLabel(kind, t),
+                      })}
                       aria-haspopup="dialog"
                       className="w-full min-w-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       onClick={() => {
@@ -215,7 +223,7 @@ export default function GridItemDialog({
                     >
                       <ComponentPreview kind={kind} />
                       <span className="block px-4 pb-4 text-center text-sm font-medium">
-                        {entry.label}
+                        {componentLabel(kind, t)}
                       </span>
                     </button>
                   </div>
@@ -244,19 +252,19 @@ export default function GridItemDialog({
                     />
                     <div className="min-w-0 space-y-3">
                       <DialogTitle className="font-semibold">
-                        {getComponentDefinition(selected).label}
+                        {componentLabel(selected, t)}
                       </DialogTitle>
                       <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                        {getComponentDefinition(selected).description}
+                        {componentDescription(selected, t)}
                       </DialogDescription>
                       {getComponentDefinition(selected).catalogDirectAdd ? (
                         <Button onClick={() => addComponent(selected)}>
-                          确认添加
+                          {t("grid.dialog.confirmAdd")}
                         </Button>
                       ) : (
                         <div className="space-y-2">
                           <p className="text-xs text-muted-foreground">
-                            可选大小
+                            {t("grid.dialog.availableSizes")}
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {getComponentSizeOptions(selected, "catalog").map(
@@ -275,8 +283,10 @@ export default function GridItemDialog({
                                   }}
                                 >
                                   {confirmSize === option.value
-                                    ? `确认添加 · ${option.menuLabel}`
-                                    : option.menuLabel}
+                                    ? t("grid.dialog.confirmAddWithSize", {
+                                        size: occupancyMark(option.width, option.height),
+                                      })
+                                    : occupancyMark(option.width, option.height)}
                                 </Button>
                               )
                             )}

@@ -1,4 +1,5 @@
 import { Star } from "@phosphor-icons/react"
+import { useTranslation } from "react-i18next"
 
 const starPixels = [
   "00000100000",
@@ -63,6 +64,7 @@ function PixelStar() {
 }
 
 export default function ProjectSupport() {
+  const { t } = useTranslation()
   return (
     <section
       aria-labelledby="project-support-title"
@@ -77,13 +79,12 @@ export default function ProjectSupport() {
           id="project-support-title"
           className="text-xl leading-snug font-semibold tracking-tight sm:text-2xl"
         >
-          为下一次打开，
+          {t("settings.about.supportTitleLine1")}
           <br />
-          点亮一颗星。
+          {t("settings.about.supportTitleLine2")}
         </h3>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          如果这里让你的主页更顺手，欢迎送上一颗 Star。
-          新点子、使用反馈和代码贡献，也都欢迎。
+          {t("settings.about.supportBody")}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <a
@@ -93,7 +94,7 @@ export default function ProjectSupport() {
             className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-amber-500/25 bg-amber-100 px-3 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-200 focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none dark:border-amber-200/30 dark:bg-amber-200 dark:hover:bg-amber-100"
           >
             <Star weight="fill" className="size-4" aria-hidden="true" />
-            点个 Star
+            {t("settings.about.star")}
           </a>
           <a
             href="https://github.com/trynewthin/oh-my-tab/issues/new"
@@ -101,7 +102,7 @@ export default function ProjectSupport() {
             rel="noopener noreferrer"
             className="inline-flex h-9 items-center gap-2 rounded-full px-2 text-sm text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none"
           >
-            分享想法
+            {t("settings.about.shareIdea")}
           </a>
         </div>
       </div>

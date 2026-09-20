@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { normalizeTabUrl, type TabEntry } from "@/lib/grid/types"
+import { useTranslation } from "react-i18next"
 
 export default function FolderTabEditor({
   folderId,
@@ -21,6 +22,7 @@ export default function FolderTabEditor({
   tab: TabEntry
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState(tab.name)
   const [url, setUrl] = useState(tab.url)
   const updateFolderTab = useTabGridStore((state) => state.updateFolderTab)
@@ -28,7 +30,7 @@ export default function FolderTabEditor({
     event.preventDefault()
     const normalized = normalizeTabUrl(url)
     if (!name.trim() || !normalized) {
-      toast("请输入名称和有效的 http / https 网址。", "error")
+      toast(t("grid.folder.invalidTab"), "error")
       return
     }
     updateFolderTab(folderId, tab.id, { name: name.trim(), url: normalized })
@@ -47,11 +49,11 @@ export default function FolderTabEditor({
         overlayClassName="z-[80]"
       >
         <DialogHeader>
-          <DialogTitle>编辑标签</DialogTitle>
+          <DialogTitle>{t("grid.folder.editTabTitle")}</DialogTitle>
         </DialogHeader>
         <form className="space-y-4" onSubmit={save}>
           <label className="grid grid-cols-2 items-center gap-3">
-            名称
+            {t("grid.folder.name")}
             <Input
               autoFocus
               required
@@ -61,7 +63,7 @@ export default function FolderTabEditor({
             />
           </label>
           <label className="grid grid-cols-2 items-center gap-3">
-            网址
+            {t("grid.folder.url")}
             <Input
               required
               value={url}
@@ -71,9 +73,9 @@ export default function FolderTabEditor({
 
           <DialogFooter>
             <Button variant="outline" type="button" onClick={onClose}>
-              取消
+              {t("grid.folder.cancel")}
             </Button>
-            <Button type="submit">保存</Button>
+            <Button type="submit">{t("grid.folder.save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

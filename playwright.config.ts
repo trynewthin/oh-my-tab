@@ -8,6 +8,11 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     viewport: { width: 1440, height: 1000 },
+    // The UI language is a runtime preference that follows the browser, so an
+    // unpinned context resolves `system` to en-US and every zh-CN label
+    // assertion in the suite fails. Pin Simplified Chinese here, at the
+    // harness level, and let the i18n spec opt into English explicitly.
+    locale: "zh-CN",
     launchOptions: {
       executablePath:
         process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ??

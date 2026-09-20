@@ -21,6 +21,7 @@ import { buildSearchUrl } from "@/lib/search-engines"
 
 import TabGrid from "@/components/tab-grid/tab-grid"
 import { lazy, Suspense } from "react"
+import { useTranslation } from "react-i18next"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
@@ -30,6 +31,7 @@ const OnboardingTour = lazy(
 )
 
 export default function HomeUI() {
+  const { t } = useTranslation()
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
   const needsTour = useOnboardingStore((state) => !state.seen || state.replay)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
@@ -41,8 +43,8 @@ export default function HomeUI() {
       if (api?.search)
         void api.search
           .query({ text: query, disposition: "NEW_TAB" })
-          .catch(() => toast("搜索失败，请重试", "error"))
-      else toast("开发预览：已选择浏览器默认。实际搜索请在扩展中测试。")
+          .catch(() => toast(t("shell.home.searchFailed"), "error"))
+      else toast(t("shell.home.previewBrowserDefault"))
       return
     }
     const { engines, selectedId } = useSearchEngineStore.getState()
@@ -62,7 +64,7 @@ export default function HomeUI() {
       <div
         data-grid-scroll
         tabIndex={0}
-        aria-label="滚动标签网格"
+        aria-label={t("shell.home.gridScroll")}
         className="h-full [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="sticky top-0 isolate z-40 px-6 pt-6 pb-3 sm:px-10 xl:px-12">

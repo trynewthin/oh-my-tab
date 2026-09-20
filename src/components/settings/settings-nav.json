@@ -3,35 +3,44 @@
   "nav": [
     {
       "id": "general",
-      "label": "常规",
+      "labelKey": "settings.nav.general",
       "children": [
-        { "id": "general-basic", "label": "基础" },
-        { "id": "general-data", "label": "数据" }
+        { "id": "general-basic", "labelKey": "settings.nav.generalBasic" },
+        { "id": "general-data", "labelKey": "settings.nav.generalData" }
       ]
     },
     {
       "id": "home",
-      "label": "主页",
+      "labelKey": "settings.nav.home",
       "children": [
-        { "id": "home-top", "label": "顶部" },
-        { "id": "search-engines", "label": "搜索" }
+        { "id": "home-top", "labelKey": "settings.nav.homeTop" },
+        { "id": "search-engines", "labelKey": "settings.nav.search" }
       ]
     },
     {
       "id": "personalization",
-      "label": "个性化",
+      "labelKey": "settings.nav.personalization",
       "children": [
-        { "id": "personalization-appearance", "label": "外观" },
-        { "id": "personalization-tabs", "label": "标签" },
-        { "id": "personalization-folders", "label": "文件夹" }
+        {
+          "id": "personalization-appearance",
+          "labelKey": "settings.nav.personalizationAppearance"
+        },
+        {
+          "id": "personalization-tabs",
+          "labelKey": "settings.nav.personalizationTabs"
+        },
+        {
+          "id": "personalization-folders",
+          "labelKey": "settings.nav.personalizationFolders"
+        }
       ]
     },
     {
       "id": "about",
-      "label": "关于",
+      "labelKey": "settings.nav.about",
       "children": [
-        { "id": "about-project", "label": "项目" },
-        { "id": "about-privacy", "label": "隐私" }
+        { "id": "about-project", "labelKey": "settings.nav.aboutProject" },
+        { "id": "about-privacy", "labelKey": "settings.nav.aboutPrivacy" }
       ]
     }
   ]

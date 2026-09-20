@@ -1,11 +1,13 @@
 import { blankDots, canvasDimensions } from "./dot-canvas-data"
 import {
+  componentDefaultName,
   getComponentDefinition,
   getComponentSizeOptions,
   isComponentSize,
   type CatalogComponentKind,
   type GridItemSize,
 } from "@/lib/grid/registry"
+import { i18n } from "@/i18n"
 import type {
   FolderItem,
   GridItem,
@@ -149,7 +151,8 @@ export function createCatalogComponent(
     definition.defaultSize
   const shared = {
     id: crypto.randomUUID(),
-    name: definition.defaultName,
+    // Resolved at creation: a later language change never renames this item.
+    name: componentDefaultName(kind, (key) => i18n.t(key)),
     color: definition.defaultColor,
   }
 

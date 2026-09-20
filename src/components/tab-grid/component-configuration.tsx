@@ -20,16 +20,20 @@ import {
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { normalizeTabUrl } from "@/lib/grid/types"
 import {
+  componentDefaultName,
+  componentLabel,
   getComponentDefinition,
   getComponentSize,
   getComponentSizeOptions,
   isComponentSize,
+  sizeLabel,
   type GridItemSize,
 } from "@/lib/grid/registry"
 import {
   configureComponent,
   type ConfigurableItem,
 } from "@/components/tab-grid/factory"
+import { useTranslation } from "react-i18next"
 
 export default function ComponentConfiguration({
   item,
@@ -42,6 +46,7 @@ export default function ComponentConfiguration({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { t } = useTranslation()
   const [id] = useState(() => item?.id ?? crypto.randomUUID())
   const kind = item?.kind ?? initialKind
   const definition = getComponentDefinition(kind)
@@ -53,18 +58,19 @@ export default function ComponentConfiguration({
   const [color, setColor] = useState(item?.color ?? definition.defaultColor)
   const saveItem = useTabGridStore((state) => state.saveItem)
   const sizeOptions = getComponentSizeOptions(kind, "editor", item?.size)
+  const currentSize = getComponentSize(kind, size)
 
   function save(event: FormEvent) {
     event.preventDefault()
     const normalized = normalizeTabUrl(url)
     const resolvedName = definition.showNameInEditor
       ? name.trim()
-      : item?.name || definition.defaultName
+      : item?.name || componentDefaultName(kind, t)
     const resolvedSize = isComponentSize(kind, size)
       ? size
       : definition.defaultSize
     if (!resolvedName || (kind === "tab" && !normalized)) {
-      toast("请输入名称和有效的 http / https 网址。", "error")
+      toast(t("grid.editor.invalidTab"), "error")
       return
     }
     saveItem(
@@ -85,7 +91,7 @@ export default function ComponentConfiguration({
     <form className="space-y-4" onSubmit={save}>
       {definition.showNameInEditor && (
         <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          名称
+          {t("grid.editor.name")}
           <Input
             autoFocus
             required
@@ -97,7 +103,7 @@ export default function ComponentConfiguration({
       )}
       {kind === "tab" && (
         <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          网址
+          {t("grid.editor.url")}
           <Input
             required
             placeholder="https://example.com"
@@ -108,7 +114,7 @@ export default function ComponentConfiguration({
       )}
       {sizeOptions.length > 0 && (
         <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          <label htmlFor="grid-size">显示大小</label>
+          <label htmlFor="grid-size">{t("grid.editor.displaySize")}</label>
           <Select
             value={size}
             onValueChange={(value) => {
@@ -116,12 +122,14 @@ export default function ComponentConfiguration({
             }}
           >
             <SelectTrigger id="grid-size" className="w-full">
-              <SelectValue>{getComponentSize(kind, size)?.label}</SelectValue>
+              <SelectValue>
+                {currentSize ? sizeLabel(currentSize, t) : undefined}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {sizeOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {sizeLabel(option, t)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -129,7 +137,9 @@ export default function ComponentConfiguration({
         </div>
       )}
       <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-        {kind === "folder" ? "文件夹颜色" : "背景颜色"}
+        {kind === "folder"
+          ? t("grid.editor.folderColor")
+          : t("grid.editor.backgroundColor")}
         <input
           type="color"
           className="h-8 w-full cursor-pointer rounded border"
@@ -140,9 +150,11 @@ export default function ComponentConfiguration({
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>
-          取消
+          {t("grid.editor.cancel")}
         </Button>
-        <Button type="submit">{item ? "保存" : "确认添加"}</Button>
+        <Button type="submit">
+          {item ? t("grid.editor.save") : t("grid.editor.confirmAdd")}
+        </Button>
       </DialogFooter>
     </form>
   )
@@ -157,13 +169,16 @@ export default function ComponentConfiguration({
       <DialogContent className="max-h-[85svh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {item ? "编辑" : "配置"}
-            {definition.label}
+            {item
+              ? t("grid.editor.editTitle", { label: componentLabel(kind, t) })
+              : t("grid.editor.configTitle", {
+                  label: componentLabel(kind, t),
+                })}
           </DialogTitle>
           <DialogDescription className="sr-only">
             {definition.showNameInEditor
-              ? "填写名称和可用设置后确认。"
-              : "选择可用设置后确认。"}
+              ? t("grid.editor.descriptionWithName")
+              : t("grid.editor.descriptionOptions")}
           </DialogDescription>
         </DialogHeader>
         {form}

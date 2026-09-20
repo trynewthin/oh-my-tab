@@ -1,11 +1,12 @@
 import AppearancePane from "./appearance-pane"
 import FolderPane from "./folder-pane"
 import TabsPane from "./tabs-pane"
+import { useTranslation } from "react-i18next"
 
-const paneTitle = {
-  appearance: "外观",
-  tabs: "标签",
-  folders: "文件夹",
+const paneTitleKeys = {
+  appearance: "settings.nav.personalizationAppearance",
+  tabs: "settings.nav.personalizationTabs",
+  folders: "settings.nav.personalizationFolders",
 } as const
 
 const panes = {
@@ -19,6 +20,7 @@ export default function PersonalizationSettings({
 }: {
   pane: keyof typeof panes
 }) {
+  const { t } = useTranslation()
   const Pane = panes[pane]
   return (
     <section
@@ -29,7 +31,7 @@ export default function PersonalizationSettings({
         id="personalization-title"
         className="text-base leading-6 font-medium"
       >
-        {paneTitle[pane]}
+        {t(paneTitleKeys[pane])}
       </h2>
       <Pane />
     </section>

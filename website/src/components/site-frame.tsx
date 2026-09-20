@@ -1,10 +1,22 @@
+import { useTranslation } from "react-i18next"
 import logoUrl from "../../../public/icons/icon-128.png"
+import {
+  pathFor,
+  supportedLanguages,
+  type AppLanguage,
+  type PageId,
+} from "../i18n/language"
 
 const repositoryUrl = "https://github.com/trynewthin/oh-my-tab"
 const releaseUrl = `${repositoryUrl}/releases/latest`
 const chromeStoreUrl =
   "https://chromewebstore.google.com/detail/oh-my-tab-%C2%B7-%E6%96%B0%E6%A0%87%E7%AD%BE%E9%A1%B5/aihmkimlgdondkkeghfnkiknnocoiioa"
-const privacyUrl = "/privacy"
+
+// Each language names itself; never translate these labels.
+const languageLabels: Record<AppLanguage, string> = {
+  "zh-CN": "中文",
+  en: "English",
+}
 
 function GitHubIcon() {
   return (
@@ -17,32 +29,61 @@ function GitHubIcon() {
   )
 }
 
-export function SiteHeader() {
+type SiteChromeProps = {
+  language: AppLanguage
+  page: PageId
+}
+
+function LanguageSwitcher({ language, page }: SiteChromeProps) {
+  const { t } = useTranslation()
+
+  return (
+    <nav className="language-switch" aria-label={t("language.switchLabel")}>
+      {supportedLanguages.map((supported) =>
+        supported === language ? (
+          <span key={supported} lang={supported} aria-current="page">
+            {languageLabels[supported]}
+          </span>
+        ) : (
+          <a key={supported} lang={supported} href={pathFor(page, supported)}>
+            {languageLabels[supported]}
+          </a>
+        )
+      )}
+    </nav>
+  )
+}
+
+export function SiteHeader({ language, page }: SiteChromeProps) {
+  const { t } = useTranslation()
+  const homePath = pathFor("home", language)
+
   return (
     <header className="site-header">
-      <a className="brand" href="/" aria-label="Oh My Tab 首页">
+      <a className="brand" href={homePath} aria-label={t("header.brandLabel")}>
         <img src={logoUrl} alt="" />
         <span>Oh My Tab</span>
       </a>
-      <nav aria-label="主导航">
-        <a href="/#features">功能</a>
-        <a href="/#showcase">界面</a>
-        <a href={privacyUrl}>隐私</a>
+      <nav aria-label={t("header.navLabel")}>
+        <a href={`${homePath}#features`}>{t("header.features")}</a>
+        <a href={`${homePath}#showcase`}>{t("header.showcase")}</a>
+        <a href={pathFor("privacy", language)}>{t("header.privacy")}</a>
       </nav>
       <div className="header-actions">
         <a className="header-download" href={releaseUrl}>
-          下载
+          {t("header.download")}
         </a>
         <a className="header-action" href={chromeStoreUrl}>
-          Chrome 商店
+          {t("header.chromeStore")}
         </a>
         <a
           className="header-github"
           href={repositoryUrl}
-          aria-label="访问 GitHub"
+          aria-label={t("header.githubLabel")}
         >
           <GitHubIcon />
         </a>
+        <LanguageSwitcher language={language} page={page} />
       </div>
     </header>
   )
@@ -59,22 +100,24 @@ const glyphs: Record<string, string[]> = {
 }
 
 export function SiteFooter() {
+  const { t } = useTranslation()
+
   return (
     <footer className="site-footer">
       <div className="footer-invitation">
-        <h2>随你怎么摆。</h2>
+        <h2>{t("footer.invitation")}</h2>
         <a
           className="footer-install"
           href={chromeStoreUrl}
-          aria-label="前往 Chrome 商店安装 Oh My Tab"
+          aria-label={t("footer.installLabel")}
         >
-          开始布置 <span aria-hidden="true">↗</span>
+          {t("footer.install")} <span aria-hidden="true">↗</span>
         </a>
       </div>
       <a
         className="footer-stage"
         href={repositoryUrl}
-        aria-label="Oh My Tab · 查看开源项目"
+        aria-label={t("footer.stageLabel")}
       >
         <svg viewBox="0 0 530 90" role="img" aria-label="OH MY TAB">
           {Array.from("OH MY TAB").flatMap((letter, index) =>

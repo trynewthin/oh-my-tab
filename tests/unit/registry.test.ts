@@ -4,6 +4,7 @@ import {
   componentRegistry,
   getItemGridDimensions,
   occupancyMark,
+  sizeLabel,
 } from "@/lib/grid/registry"
 
 describe("component occupancy registration", () => {
@@ -18,8 +19,24 @@ describe("component occupancy registration", () => {
             height: size.height,
           }
         )
-        expect(size.menuLabel).toBe(occupancyMark(size.width, size.height))
+        // Display text is resolved from `roleKey`, never stored: the label is
+        // the translated role word plus the numeric mark.
+        const expected = occupancyMark(size.width, size.height)
+        expect(sizeLabel(size, (key) => key)).toBe(
+          size.roleKey ? `${size.roleKey} · ${expected}` : expected
+        )
       }
+    }
+  })
+
+  test("registry display metadata is translation keys, not literals", () => {
+    for (const [kind, definition] of Object.entries(componentRegistry)) {
+      for (const key of [
+        definition.labelKey,
+        definition.descriptionKey,
+        definition.defaultNameKey,
+      ])
+        expect(key, kind).toMatch(/^grid\.component\./)
     }
   })
 

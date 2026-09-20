@@ -17,9 +17,10 @@ import ComponentBackground from "../shared/component-background"
 import FolderExpandedGrid from "../folder-expanded-grid"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import {
-  getComponentDefinition,
+  componentLabel,
   supportsComponentAction,
 } from "@/lib/grid/registry"
+import { useTranslation } from "react-i18next"
 
 function expandedBounds() {
   const width = Math.min(
@@ -175,6 +176,7 @@ export default function CollectionExpansion({
   folderTabs?: TabEntry[]
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const { t } = useTranslation()
   const collection = useTabGridStore((state) =>
     state.items.find((item) => item.id === itemId)
   )
@@ -551,7 +553,6 @@ export default function CollectionExpansion({
 
   if (!collection || !supportsComponentAction(collection.kind, "expandable"))
     return null
-  const definition = getComponentDefinition(collection.kind)
 
   return createPortal(
     <section
@@ -590,7 +591,9 @@ export default function CollectionExpansion({
             <Button
               variant="ghost"
               size="icon"
-              aria-label={`关闭${definition.label}`}
+              aria-label={t("grid.chrome.closeComponent", {
+                label: componentLabel(collection.kind, t),
+              })}
               className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
               onClick={close}
             >

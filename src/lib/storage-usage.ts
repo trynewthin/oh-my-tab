@@ -9,17 +9,45 @@ export type StorageCategory =
   | "system"
 export const storageCategories: {
   id: StorageCategory
-  label: string
+  labelKey: string
   clearable: boolean
 }[] = [
-  { id: "icons", label: "网站图标", clearable: true },
-  { id: "unused-images", label: "闲置图片", clearable: true },
-  { id: "background", label: "当前背景图片", clearable: true },
-  { id: "bookmarks", label: "书签、组件与布局", clearable: true },
-  { id: "preferences", label: "个性化与搜索设置", clearable: true },
-  { id: "garden", label: "植物积分与图鉴", clearable: true },
-  { id: "webdav", label: "WebDAV 连接设置", clearable: true },
-  { id: "system", label: "系统与授权记录", clearable: false },
+  { id: "icons", labelKey: "settings.cache.categories.icons", clearable: true },
+  {
+    id: "unused-images",
+    labelKey: "settings.cache.categories.unusedImages",
+    clearable: true,
+  },
+  {
+    id: "background",
+    labelKey: "settings.cache.categories.background",
+    clearable: true,
+  },
+  {
+    id: "bookmarks",
+    labelKey: "settings.cache.categories.bookmarks",
+    clearable: true,
+  },
+  {
+    id: "preferences",
+    labelKey: "settings.cache.categories.preferences",
+    clearable: true,
+  },
+  {
+    id: "garden",
+    labelKey: "settings.cache.categories.garden",
+    clearable: true,
+  },
+  {
+    id: "webdav",
+    labelKey: "settings.cache.categories.webdav",
+    clearable: true,
+  },
+  {
+    id: "system",
+    labelKey: "settings.cache.categories.system",
+    clearable: false,
+  },
 ]
 export function storedState(value: unknown): Record<string, unknown> {
   if (typeof value !== "string") return {}
@@ -60,7 +88,18 @@ export function valueBytes(value: unknown): number {
     )
   return new TextEncoder().encode(JSON.stringify(value) ?? "").length
 }
-export function summarizeStorage(entries: Record<string, unknown>) {
+export type StorageUsageRow = {
+  id: StorageCategory
+  labelKey: string
+  clearable: boolean
+  bytes: number
+  count: number
+  clearableBytes: number
+}
+
+export function summarizeStorage(
+  entries: Record<string, unknown>
+): StorageUsageRow[] {
   const background = storedState(entries["omt.home-settings"]).backgroundImage
   const rows = storageCategories.map((category) => ({
     ...category,

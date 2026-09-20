@@ -31,7 +31,7 @@ export const defaultSearchEngines: SearchEngine[] = [
   },
   {
     id: "bingcn",
-    name: "Bing 中国版",
+    name: "Bing China",
     icon: "bing.svg",
     url: "https://cn.bing.com/search?q={query}",
   },
@@ -75,6 +75,21 @@ export const defaultSearchEngines: SearchEngine[] = [
 
 export function isPresetEngine(id: string) {
   return defaultSearchEngines.some((engine) => engine.id === id)
+}
+
+// Preset names are proper nouns and stay in the persisted data as-is; only
+// the localized variant of a preset needs a translation key. Persisted engines
+// are never rewritten, so a customized name keeps rendering unchanged.
+const presetEngineNameKeys: Record<string, string> = {
+  bingcn: "settings.searchEngines.engineBingCn",
+}
+
+export function searchEngineLabel(
+  engine: SearchEngine,
+  t: (key: string) => string
+) {
+  const key = presetEngineNameKeys[engine.id]
+  return key ? t(key) : engine.name
 }
 
 export function buildSearchUrl(template: string, query: string): string | null {

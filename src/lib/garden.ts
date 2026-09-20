@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n"
 import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 export const HOUR = 3600000
 export function plantSeed(plant: GardenPlant) {
@@ -79,41 +80,42 @@ export function validGardenPlant(value: unknown): value is GardenPlant {
   )
 }
 
+// Default literal older versions persisted for unnamed plants. It stays
+// "unnamed" so those plants keep a generated display name; nothing rewrites
+// the stored string.
+const LEGACY_UNNAMED = "未命名植物"
+
+function localeNamePool(key: string) {
+  const value = i18n.t(key, { returnObjects: true })
+  return Array.isArray(value) ? (value as string[]) : []
+}
+
+/**
+ * Generated display name for a plant, deterministic per seed within the
+ * current language. An explicit user name always wins and never changes with
+ * the language.
+ */
 export function plantName(plant: GardenPlant) {
-  if (plant.name?.trim() && plant.name !== "未命名植物") return plant.name
+  if (plant.name?.trim() && plant.name !== LEGACY_UNNAMED) return plant.name
+  const first = localeNamePool("grid.garden.nameFirst")
+  const last = localeNamePool("grid.garden.nameLast")
+  if (!first.length || !last.length) return LEGACY_UNNAMED
   const seed = plantSeed(plant)
-  const first = [
-    "晴",
-    "暮",
-    "月",
-    "星",
-    "云",
-    "雨",
-    "霜",
-    "晓",
-    "青",
-    "暖",
-    "风",
-    "露",
-  ]
-  const last = [
-    "芽",
-    "葵",
-    "铃",
-    "苔",
-    "穗",
-    "棠",
-    "枝",
-    "禾",
-    "萤",
-    "蕊",
-    "叶",
-    "兰",
-  ]
-  return (
-    first[Math.floor(randomGene(seed, 40) * first.length)] +
-    last[Math.floor(randomGene(seed, 41) * last.length)]
-  )
+  return i18n.t("grid.garden.namePattern", {
+    first: first[Math.floor(randomGene(seed, 40) * first.length)],
+    last: last[Math.floor(randomGene(seed, 41) * last.length)],
+  })
+}
+
+/** Plant family and growth stage, localized for the current language. */
+export function plantFamilyName(seed: number) {
+  const pool = localeNamePool("grid.garden.family")
+  return pool[plantFamily(seed)] ?? ""
+}
+
+export function plantStageName(level: number) {
+  const pool = localeNamePool("grid.garden.stage")
+  return pool[level] ?? ""
 }
 
 export function gardenDay(now: number) {

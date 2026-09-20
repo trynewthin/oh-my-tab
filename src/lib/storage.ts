@@ -1,5 +1,7 @@
 import { createJSONStorage, type StateStorage } from "zustand/middleware"
 
+import { i18n } from "@/i18n"
+
 const DATABASE = "oh-my-tab-data"
 const TABLE = "entries"
 export const DATA_KEYS = [
@@ -14,6 +16,7 @@ export const DEVICE_KEYS = [
   "omt.privacy",
   "omt.webdav",
   "omt.sync-provider",
+  "omt.locale",
 ] as const
 const REVISION = "omt.revision"
 type ChromeStorage = {
@@ -33,7 +36,9 @@ export const chromeStorage = () =>
       ).chrome?.storage
     : undefined
 export const storageLabel = () =>
-  chromeStorage() ? "Chrome 本地存储" : "IndexedDB 本地存储"
+  chromeStorage()
+    ? i18n.t("core.storage.chromeLabel")
+    : i18n.t("core.storage.indexedDbLabel")
 let dbPromise: Promise<IDBDatabase> | undefined
 function database() {
   return (dbPromise ??= new Promise((resolve, reject) => {
@@ -41,7 +46,7 @@ function database() {
     request.onupgradeneeded = () => request.result.createObjectStore(TABLE)
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
-    request.onblocked = () => reject(new Error("请关闭其他旧版页面后重试"))
+    request.onblocked = () => reject(new Error(i18n.t("core.storage.blocked")))
   }))
 }
 export async function readEntries(
@@ -88,7 +93,7 @@ export function writeEntries(
     if (expected) {
       const current = await readEntries(Object.keys(expected))
       if (Object.keys(expected).some((key) => current[key] !== expected[key]))
-        throw new Error("数据已在其他页面更新，请重新操作")
+        throw new Error(i18n.t("core.storage.staleWrite"))
     }
     const entries = keys.some((key) =>
       (DATA_KEYS as readonly string[]).includes(key)
@@ -116,7 +121,7 @@ export function writeEntries(
     writeError = error
     window.dispatchEvent(
       new CustomEvent("omt-storage-error", {
-        detail: error instanceof Error ? error.message : "保存失败",
+        detail: error instanceof Error ? error.message : i18n.t("core.storage.saveFailed"),
       })
     )
     listeners.forEach((listener) => listener(Object.keys(values)))
@@ -130,7 +135,7 @@ export async function flushStorage() {
     writeError = undefined
     throw error instanceof Error
       ? error
-      : new Error("数据保存失败，请检查浏览器存储空间后重试")
+      : new Error(i18n.t("core.storage.persistFailed"))
   }
 }
 export async function storageRevision() {
@@ -139,7 +144,7 @@ export async function storageRevision() {
 }
 export async function initializeStorage() {
   if (location.protocol === "chrome-extension:" && !chromeStorage())
-    throw new Error("请重新加载扩展以启用 Chrome 存储权限")
+    throw new Error(i18n.t("core.storage.permission"))
   await chromeStorage()?.local.setAccessLevel?.({
     accessLevel: "TRUSTED_CONTEXTS",
   })
@@ -194,7 +199,7 @@ export async function getAsset(id: string): Promise<Blob> {
   if (value instanceof Blob) return value
   if (typeof value === "string" && value.startsWith("data:image/"))
     return dataUrlToBlob(value)
-  throw new Error("图片资源缺失，请重新导入备份或上传图片")
+  throw new Error(i18n.t("core.storage.missingAsset"))
 }
 export async function blobToDataUrl(blob: Blob): Promise<string> {
   const bytes = new Uint8Array(await blob.arrayBuffer())
@@ -205,7 +210,7 @@ export async function blobToDataUrl(blob: Blob): Promise<string> {
 }
 export function dataUrlToBlob(value: string): Blob {
   const match = /^data:([^;,]+);base64,(.*)$/s.exec(value)
-  if (!match) throw new Error("图片数据无效")
+  if (!match) throw new Error(i18n.t("core.storage.invalidImage"))
   const binary = atob(match[2])
   return new Blob([Uint8Array.from(binary, (char) => char.charCodeAt(0))], {
     type: match[1],

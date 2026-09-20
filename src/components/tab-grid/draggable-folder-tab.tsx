@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/context-menu"
 import FolderTabEditor from "./folder-tab-editor"
 import FolderTabRow from "./folder-tab-row"
+import { useTranslation } from "react-i18next"
 import type { TabEntry } from "@/lib/grid/types"
 import type { FolderTabDragData } from "./drag-types"
 
@@ -35,6 +36,7 @@ export default function DraggableFolderTab({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
+  const { t } = useTranslation()
   const node = useRef<HTMLDivElement | null>(null)
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `folder-tab:${surface}:${folderId}:${tab.id}`,
@@ -61,7 +63,7 @@ export default function DraggableFolderTab({
         ref={ref}
         {...attributes}
         role="group"
-        aria-label={`拖动 ${tab.name}`}
+        aria-label={t("grid.folder.dragTab", { name: tab.name })}
         className="relative h-full cursor-grab rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onMouseDown={(event) => {
           if (event.button !== 0) return
@@ -91,11 +93,11 @@ export default function DraggableFolderTab({
       <ContextMenuContent positionerClassName="z-[80]">
         <ContextMenuItem onClick={() => void refreshFavicon(tab.url)}>
           <ArrowClockwise />
-          刷新图标
+          {t("grid.menu.refreshIcon")}
         </ContextMenuItem>
         <ContextMenuItem onClick={() => setEditing(true)}>
           <PencilSimple />
-          编辑
+          {t("grid.menu.edit")}
         </ContextMenuItem>
       </ContextMenuContent>
       {editing && (

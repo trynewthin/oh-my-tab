@@ -5,6 +5,8 @@ import {
 import { putAsset } from "@/lib/storage"
 import { useImageAsset } from "@/lib/use-image-asset"
 import { useState } from "react"
+import { i18n } from "@/i18n"
+import { useTranslation } from "react-i18next"
 import { ImageSquare } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -16,21 +18,22 @@ import {
 import { toast } from "@/stores/toast-store"
 
 const backgroundTypes = [
-  { value: "solid", label: "纯色" },
-  { value: "image", label: "图片" },
+  { value: "solid", labelKey: "settings.background.solid" },
+  { value: "image", labelKey: "settings.background.image" },
 ] as const
 
 async function prepareImage(file: File) {
   if (!["image/png", "image/jpeg", "image/webp"].includes(file.type))
-    throw new Error("请选择 PNG、JPEG 或 WebP 图片")
+    throw new Error(i18n.t("settings.background.invalidType"))
   if (file.size > 50 * 1024 * 1024)
-    throw new Error("图片超过 50 MB，请选择更小的文件")
+    throw new Error(i18n.t("settings.background.tooLarge"))
   const bitmap = await createImageBitmap(file)
   bitmap.close()
   return putAsset(file)
 }
 
 function ImageBackgroundPicker() {
+  const { t } = useTranslation()
   const image = useHomeSettingsStore((state) => state.backgroundImage)
   const imageUrl = useImageAsset(image)
   const setImage = useHomeSettingsStore((state) => state.setBackgroundImage)
@@ -53,7 +56,11 @@ function ImageBackgroundPicker() {
         <ImageSquare className="size-4" />
       )}
       <span className="relative z-10 truncate text-xs">
-        {busy ? "处理中…" : image ? "更换图片" : "选择图片"}
+        {busy
+          ? t("settings.common.processing")
+          : image
+            ? t("settings.background.changeImage")
+            : t("settings.background.chooseImage")}
       </span>
       <input
         type="file"
@@ -69,7 +76,9 @@ function ImageBackgroundPicker() {
             .then(setImage)
             .catch((error) =>
               toast(
-                error instanceof Error ? error.message : "图片处理失败",
+                error instanceof Error
+                  ? error.message
+                  : t("settings.background.processFailed"),
                 "error"
               )
             )
@@ -81,6 +90,7 @@ function ImageBackgroundPicker() {
 }
 
 export default function BackgroundSettings() {
+  const { t } = useTranslation()
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const setBackgroundType = useHomeSettingsStore(
     (state) => state.setBackgroundType
@@ -96,7 +106,7 @@ export default function BackgroundSettings() {
     <>
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <span id="background-type-label" className="text-sm">
-          当前背景
+          {t("settings.background.current")}
         </span>
         <ToggleGroup
           aria-labelledby="background-type-label"
@@ -110,7 +120,7 @@ export default function BackgroundSettings() {
         >
           {backgroundTypes.map((option) => (
             <ToggleGroupItem key={option.value} value={option.value}>
-              {option.label}
+              {t(option.labelKey)}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -118,7 +128,7 @@ export default function BackgroundSettings() {
       {backgroundType === "solid" ? (
         <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
           <span id="background-color-label" className="text-sm">
-            背景色
+            {t("settings.background.color")}
           </span>
           <ToggleGroup
             aria-labelledby="background-color-label"
@@ -136,8 +146,8 @@ export default function BackgroundSettings() {
               <ToggleGroupItem
                 key={palette.id}
                 value={palette.id}
-                aria-label={palette.label}
-                title={palette.label}
+                aria-label={t(palette.labelKey)}
+                title={t(palette.labelKey)}
                 data-background-swatch
                 className="size-6 flex-none rounded-full border-2 border-foreground/10 p-0 shadow-sm aria-pressed:border-foreground"
                 style={
@@ -147,14 +157,14 @@ export default function BackgroundSettings() {
                   } as React.CSSProperties
                 }
               >
-                <span className="sr-only">{palette.label}</span>
+                <span className="sr-only">{t(palette.labelKey)}</span>
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </div>
       ) : (
         <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-          <span className="text-sm">背景图片</span>
+          <span className="text-sm">{t("settings.background.imageLabel")}</span>
           <ImageBackgroundPicker />
         </div>
       )}

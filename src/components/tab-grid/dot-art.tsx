@@ -1,6 +1,7 @@
 import { isDotVisible } from "./dot-canvas-data"
 import { dotDimensions, displayDots } from "./dot-canvas-data"
 import { useLayoutEffect, useRef, useState, type PointerEvent } from "react"
+import { useTranslation } from "react-i18next"
 
 export default function DotArt({
   pixels,
@@ -16,6 +17,7 @@ export default function DotArt({
   onPointerUp?: (event: PointerEvent<SVGSVGElement>) => void
 }) {
   const dots = displayDots(pixels)
+  const { t } = useTranslation()
   const { columns, rows } = dotDimensions(dots, pixelColumns)
   const ref = useRef<SVGSVGElement>(null)
   const [size, setSize] = useState({ width: 240, height: 160 })
@@ -40,7 +42,7 @@ export default function DotArt({
       viewBox={`0 0 ${size.width} ${size.height}`}
       preserveAspectRatio="none"
       role="img"
-      aria-label="点阵画布"
+      aria-label={t("grid.dotCanvas.canvasLabel")}
       className="h-full w-full overflow-hidden rounded-2xl"
       style={{ touchAction: onPointerDown ? "none" : undefined }}
       onPointerDown={onPointerDown}

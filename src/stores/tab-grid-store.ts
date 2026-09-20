@@ -40,7 +40,7 @@ import { mockGridItems } from "@/components/tab-grid/mock-data"
 // entirely: a top-level `import.meta.env.DEV ? mockGridItems : []` constant is
 // captured by `merge` below and survives dead-code elimination.
 const devInitialItems = (): GridItem[] =>
-  import.meta.env.DEV ? mockGridItems : []
+  import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : []
 
 import type { GridPosition, GridPositions } from "@/lib/grid/grid-layout"
 
@@ -50,6 +50,7 @@ import {
 } from "@/lib/grid/tab-transfer"
 
 import { randomComponentColor } from "@/lib/component-colors"
+import { i18n } from "@/i18n"
 
 type TabGridState = {
   updateTodoTasks: (
@@ -95,7 +96,7 @@ function sanitizePersisted(persisted: unknown): {
 } {
   const items = (persisted as { items?: unknown } | null)?.items
   if (items !== undefined && (!Array.isArray(items) || !items.every(validGridItem))) {
-    throw new Error("组件数据无效，已停止加载以保留原始数据")
+    throw new Error(i18n.t("grid.error.corruptGrid"))
   }
   const storedItems: GridItem[] = Array.isArray(items) ? items : []
   const savedLayouts = (
@@ -164,10 +165,10 @@ export const useTabGridStore = create<TabGridState>()(
         const removed = result.removed
         set({ items: result.items, layouts: result.layouts })
         toast(describeRemoval(removed), "warning", {
-          label: "撤销",
+          label: i18n.t("grid.notify.undo"),
           run: () => {
             set((state) => restoreItems(state, removed, previous))
-            toast(`已恢复 ${removed.length} 个组件`, "success")
+            toast(i18n.t("grid.notify.restoredCount", { count: removed.length }), "success")
           },
         })
       },
@@ -181,10 +182,19 @@ export const useTabGridStore = create<TabGridState>()(
         if (action.kind === "move") {
           const folder = selected.find((item) => item.id === action.folderId)
           toast(
-            `已将标签移入「${folder && folder.kind === "folder" ? folder.name : "文件夹"}」`,
+            i18n.t("grid.notify.movedIntoFolder", {
+              name:
+                folder && folder.kind === "folder"
+                  ? folder.name
+                  : i18n.t("grid.component.folder.label"),
+            }),
             "success"
           )
-        } else toast(`已创建文件夹「${(name ?? "").trim()}」`, "success")
+        } else
+          toast(
+            i18n.t("grid.notify.createdFolder", { name: (name ?? "").trim() }),
+            "success"
+          )
         return true
       },
       importBookmarks: (bookmarks) => {
@@ -199,7 +209,7 @@ export const useTabGridStore = create<TabGridState>()(
       upsertBookmark: (name, url) => {
         const { items, result } = upsertBookmark(get().items, name, url)
         if (result.kind === "invalid")
-          throw new Error("请输入名称和有效网址")
+          throw new Error(i18n.t("grid.notify.invalidBookmark"))
         set({ items })
       },
       saveItem: (item) =>

@@ -2,6 +2,7 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   SquaresFour,
   GridFour,
@@ -26,15 +27,21 @@ import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
 
 const themeOptions = [
-  { value: "light", label: "浅色", icon: Sun },
-  { value: "dark", label: "深色", icon: Moon },
-  { value: "system", label: "系统", ariaLabel: "跟随系统", icon: Desktop },
+  { value: "light", labelKey: "themeLight", icon: Sun },
+  { value: "dark", labelKey: "themeDark", icon: Moon },
+  {
+    value: "system",
+    labelKey: "themeSystem",
+    ariaKey: "themeSystemAria",
+    icon: Desktop,
+  },
 ] as const
 export default function MoreActions({
   compact = false,
 }: {
   compact?: boolean
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [adding, setAdding] = useState<"tab" | "folder" | "component" | null>(
     null
@@ -48,8 +55,8 @@ export default function MoreActions({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           data-tour="more"
-          aria-label="更多操作"
-          title="更多操作"
+          aria-label={t("shell.moreActions.trigger")}
+          title={t("shell.moreActions.trigger")}
           render={
             <Button
               variant={selecting ? "secondary" : "ghost"}
@@ -66,12 +73,12 @@ export default function MoreActions({
         </PopoverTrigger>
         <PopoverContent
           align="start"
-          aria-label="更多操作菜单"
+          aria-label={t("shell.moreActions.menuLabel")}
           className="w-56 gap-1 p-2"
         >
           <div className="mb-1 pb-1">
             <ToggleGroup
-              aria-label="深浅色模式"
+              aria-label={t("shell.moreActions.themeGroup")}
               value={[theme]}
               onValueChange={(values) => {
                 const value = values[0]
@@ -83,23 +90,23 @@ export default function MoreActions({
                 <ToggleGroupItem
                   key={option.value}
                   value={option.value}
-                  aria-label={
-                    "ariaLabel" in option ? option.ariaLabel : option.label
-                  }
-                  title={
-                    "ariaLabel" in option ? option.ariaLabel : option.label
-                  }
+                  aria-label={t(
+                    `shell.moreActions.${"ariaKey" in option ? option.ariaKey : option.labelKey}`
+                  )}
+                  title={t(
+                    `shell.moreActions.${"ariaKey" in option ? option.ariaKey : option.labelKey}`
+                  )}
                 >
                   <option.icon weight="bold" />
-                  <span>{option.label}</span>
+                  <span>{t(`shell.moreActions.${option.labelKey}`)}</span>
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
           </div>
           {(
             [
-              { kind: "tab", label: "添加标签", icon: BookmarkSimple },
-              { kind: "folder", label: "添加文件夹", icon: FolderPlus },
+              { kind: "tab", labelKey: "addTab", icon: BookmarkSimple },
+              { kind: "folder", labelKey: "addFolder", icon: FolderPlus },
             ] as const
           ).map((entry) => (
             <Button
@@ -112,7 +119,7 @@ export default function MoreActions({
               }}
             >
               <entry.icon />
-              {entry.label}
+              {t(`shell.moreActions.${entry.labelKey}`)}
             </Button>
           ))}
           <Button
@@ -124,7 +131,7 @@ export default function MoreActions({
             }}
           >
             <Plus />
-            添加组件
+            {t("shell.moreActions.addComponent")}
           </Button>
           <Button
             variant="ghost"
@@ -144,15 +151,15 @@ export default function MoreActions({
                 columns,
                 positionsOnly(placeItems(ordered, columns, {}))
               )
-              toast("已整理网格", "success", {
-                label: "撤销",
+              toast(t("shell.moreActions.tidyDone"), "success", {
+                label: t("shell.moreActions.undo"),
                 run: () =>
                   useTabGridStore.getState().setLayout(columns, previous),
               })
             }}
           >
             <GridFour />
-            一键整理
+            {t("shell.moreActions.tidy")}
           </Button>
           <Button
             variant="ghost"
@@ -164,10 +171,10 @@ export default function MoreActions({
             }}
           >
             <Checks />
-            批量操作
+            {t("shell.moreActions.batch")}
             {selecting && (
               <span className="ml-auto text-xs text-muted-foreground">
-                已开启
+                {t("shell.moreActions.batchOn")}
               </span>
             )}
           </Button>

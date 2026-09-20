@@ -2,6 +2,8 @@ import { mountPixiGarden } from "./pixi-garden"
 import GardenPlantArt from "./garden-plant-art"
 import { useEffect, useRef, useState } from "react"
 import type { EcosystemItem } from "@/lib/grid/types"
+import { componentLabel } from "@/lib/grid/registry"
+import { useTranslation } from "react-i18next"
 import "./ecosystem.css"
 
 export default function Ecosystem({
@@ -16,6 +18,7 @@ export default function Ecosystem({
   onEdit?: () => void
 }) {
   const [now, setNow] = useState(() => Date.now())
+  const { t } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
   const visible = useRef(true)
   const plantsKey = JSON.stringify(item.plants)
@@ -56,7 +59,7 @@ export default function Ecosystem({
     <svg
       viewBox="0 0 64 64"
       className="h-full w-full"
-      aria-label="像素花盆"
+      aria-label={componentLabel("ecosystem", t)}
       shapeRendering="crispEdges"
     >
       <g transform="translate(0 6)">
@@ -92,7 +95,9 @@ export default function Ecosystem({
       ) : (
         <button
           type="button"
-          aria-label="编辑像素花盆"
+          aria-label={t("grid.chrome.editComponent", {
+            label: componentLabel("ecosystem", t),
+          })}
           className="h-full w-full cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onEdit}
         >

@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Select,
   SelectContent,
@@ -26,26 +27,26 @@ function previewTab(name: string): TabEntry {
 // Two 4x4 folders side by side in the 8x4 area. The left one carries enough
 // tabs to overflow its four visible rows (it scrolls natively); the right
 // one holds a single tab so the contrast reads at a glance.
-const preview = (() => {
+function buildPreview(t: (key: string) => string) {
   const many: FolderItem = {
     ...createFolderItem({
-      name: "收藏",
+      name: t("settings.previews.favorites"),
       tabs: [
         previewTab("Oh My Tab"),
-        previewTab("新标签页"),
-        previewTab("扩展"),
-        previewTab("设置"),
-        previewTab("书签"),
-        previewTab("历史记录"),
-        previewTab("下载内容"),
-        previewTab("打印"),
+        previewTab(t("settings.previews.newTab")),
+        previewTab(t("settings.previews.extensions")),
+        previewTab(t("settings.previews.settings")),
+        previewTab(t("settings.previews.bookmarks")),
+        previewTab(t("settings.previews.history")),
+        previewTab(t("settings.previews.downloads")),
+        previewTab(t("settings.previews.print")),
       ],
     }),
   }
   const single: FolderItem = {
     ...createFolderItem({
-      name: "稍后阅读",
-      tabs: [previewTab("设计稿")],
+      name: t("settings.previews.readLater"),
+      tabs: [previewTab(t("settings.previews.designDoc"))],
     }),
   }
   return {
@@ -56,7 +57,13 @@ const preview = (() => {
       [single.id]: { x: 4, y: 0 },
     },
   }
-})()
+}
+
+const folderStyleKeys = {
+  classic: "settings.folders.classic",
+  noise: "settings.folders.noise",
+  none: "settings.folders.none",
+} as const
 
 function homeGridTrackWidth() {
   return (
@@ -66,9 +73,11 @@ function homeGridTrackWidth() {
 }
 
 export default function FolderPane() {
+  const { t } = useTranslation()
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
   const setFolderStyle = useHomeSettingsStore((state) => state.setFolderStyle)
   const [trackWidth, setTrackWidth] = useState(homeGridTrackWidth)
+  const preview = useMemo(() => buildPreview(t), [t])
 
   useLayoutEffect(() => {
     const measure = () => setTrackWidth(homeGridTrackWidth())
@@ -92,7 +101,7 @@ export default function FolderPane() {
       )}
       <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <label htmlFor="folder-style" className="text-sm">
-          文件夹纹理
+          {t("settings.folders.texture")}
         </label>
         <Select
           value={folderStyle}
@@ -105,20 +114,14 @@ export default function FolderPane() {
             id="folder-style"
             className={`w-full ${settingsControlClassName}`}
           >
-            <SelectValue>
-              {
-                {
-                  classic: "经典光晕",
-                  noise: "噪点渐变",
-                  none: "无效果",
-                }[folderStyle]
-              }
-            </SelectValue>
+            <SelectValue>{t(folderStyleKeys[folderStyle])}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="classic">经典光晕</SelectItem>
-            <SelectItem value="noise">噪点渐变</SelectItem>
-            <SelectItem value="none">无效果</SelectItem>
+            <SelectItem value="classic">
+              {t("settings.folders.classic")}
+            </SelectItem>
+            <SelectItem value="noise">{t("settings.folders.noise")}</SelectItem>
+            <SelectItem value="none">{t("settings.folders.none")}</SelectItem>
           </SelectContent>
         </Select>
       </div>

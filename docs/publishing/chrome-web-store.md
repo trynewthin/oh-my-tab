@@ -11,7 +11,7 @@
 | 完整商品说明     | `docs/store-assets/description.txt`       |
 | 功能截图与宣传图 | `docs/store-assets/`                      |
 | 扩展图标源文件   | `docs/brand/oh-my-tab-icon.png`           |
-| 隐私政策         | `website/src/content/privacy.ts`          |
+| 隐私政策         | `website/src/i18n/locales/{zh-CN,en}.ts`  |
 | 扩展清单与权限   | `public/manifest.json`                    |
 | 待上传扩展包     | `packages/` 中当前版本的 Chrome Store ZIP |
 

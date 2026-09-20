@@ -3,6 +3,7 @@ import { rehydrateData } from "@/lib/hydrate"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import PopupBackground from "./popup-background"
 import { useEffect, useState, type ReactNode, type FormEvent } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -16,6 +17,8 @@ interface TabAPI {
     }): Promise<Array<{ url?: string; title?: string }>>
   }
 }
+
+type PopupError = "" | "extensionOnly" | "readCurrentPageFailed" | "saveFailed"
 
 function PopupSurface({
   children,
@@ -36,6 +39,7 @@ function PopupSurface({
 }
 
 export default function Popup() {
+  const { t } = useTranslation()
   const [name, setName] = useState("")
   const [url, setUrl] = useState("")
   const items = useTabGridStore((state) => state.items)
@@ -44,14 +48,20 @@ export default function Popup() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState<PopupError>("")
   useEffect(() => {
     let cancelled = false
     async function load() {
       try {
         const api = (globalThis as typeof globalThis & { chrome?: TabAPI })
           .chrome
-        if (!api?.tabs) throw new Error("请从浏览器扩展图标打开")
+        if (!api?.tabs) {
+          if (!cancelled) {
+            setError("extensionOnly")
+            setLoading(false)
+          }
+          return
+        }
         const [tab] = await api.tabs.query({
           active: true,
           currentWindow: true,
@@ -75,9 +85,8 @@ export default function Popup() {
         setName(
           match?.entry.name || tab.title?.trim() || new URL(address).hostname
         )
-      } catch (e) {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : "读取当前页面失败")
+      } catch {
+        if (!cancelled) setError("readCurrentPageFailed")
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -99,7 +108,7 @@ export default function Popup() {
       await flushStorage()
       setSuccess(true)
     } catch {
-      setError("保存失败，请重试")
+      setError("saveFailed")
     } finally {
       setSaving(false)
     }
@@ -111,7 +120,7 @@ export default function Popup() {
           role="status"
           className="flex min-h-[72px] items-center justify-center text-sm text-muted-foreground"
         >
-          当前标签不支持
+          {t("shell.popup.unsupported")}
         </p>
       </PopupSurface>
     )
@@ -122,7 +131,7 @@ export default function Popup() {
       <form className="space-y-4" onSubmit={(event) => void submit(event)}>
         <div className="space-y-3">
           <label htmlFor="tab-name" className="block text-sm">
-            名称
+            {t("shell.popup.nameLabel")}
           </label>
           <Input
             id="tab-name"
@@ -138,7 +147,7 @@ export default function Popup() {
         </div>
         <div className="space-y-3">
           <label htmlFor="tab-url" className="block text-sm">
-            链接
+            {t("shell.popup.urlLabel")}
           </label>
           <Input
             id="tab-url"
@@ -169,20 +178,20 @@ export default function Popup() {
           aria-live="polite"
         >
           {success
-            ? "成功"
+            ? t("shell.popup.success")
             : loading
-              ? "读取中…"
+              ? t("shell.popup.loading")
               : saving
                 ? existing
-                  ? "更新中…"
-                  : "添加中…"
+                  ? t("shell.popup.updating")
+                  : t("shell.popup.adding")
                 : existing
-                  ? "更新"
-                  : "添加"}
+                  ? t("shell.popup.update")
+                  : t("shell.popup.add")}
         </Button>
         {error && (
           <p role="alert" className="text-xs text-destructive">
-            {error}
+            {t(`shell.popup.${error}`)}
           </p>
         )}
       </form>

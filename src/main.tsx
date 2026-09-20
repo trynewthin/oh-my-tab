@@ -3,9 +3,11 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
 import "./index.css"
+import { i18n } from "@/i18n"
 import App from "./App.tsx"
 
 import { startThemeSync } from "@/lib/theme"
+import { startLanguageSync } from "@/lib/language"
 
 import { prepareData } from "@/lib/hydrate"
 
@@ -14,6 +16,8 @@ async function start() {
   if (import.meta.hot) import.meta.hot.dispose(stopData)
   const stopThemeSync = startThemeSync()
   if (import.meta.hot) import.meta.hot.dispose(stopThemeSync)
+  const stopLanguageSync = startLanguageSync("newTab")
+  if (import.meta.hot) import.meta.hot.dispose(stopLanguageSync)
 
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
@@ -31,6 +35,7 @@ async function start() {
   )
 }
 void start().catch(() => {
-  document.getElementById("root")!.textContent =
-    "数据读取失败，请检查浏览器存储权限后刷新页面。"
+  document.getElementById("root")!.textContent = i18n.t(
+    "core.startup.newTabError"
+  )
 })

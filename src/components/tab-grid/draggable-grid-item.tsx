@@ -17,10 +17,13 @@ import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import {
+  componentLabel,
   getComponentDefinition,
   getComponentSizeOptions,
+  occupancyMark,
   supportsComponentAction,
 } from "@/lib/grid/registry"
+import { useTranslation } from "react-i18next"
 
 export default function DraggableGridItem({
   item,
@@ -42,6 +45,7 @@ export default function DraggableGridItem({
   // Preview grids keep drag+FLIP but drop the context menu and dialog hooks.
   interactive?: boolean
 }) {
+  const { t } = useTranslation()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const removeItem = useTabGridStore((state) => state.removeItem)
   const setItemDynamicEffect = useTabGridStore(
@@ -66,7 +70,7 @@ export default function DraggableGridItem({
       data-grid-item-id={item.id}
       {...attributes}
       role="group"
-      aria-label={`拖动 ${item.name} 放置`}
+      aria-label={t("grid.chrome.dragItem", { name: item.name })}
       className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border border-tile-border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
       style={{
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
@@ -115,7 +119,9 @@ export default function DraggableGridItem({
               gridTemplateColumns: `repeat(${sizeOptions.length}, minmax(0, 1fr))`,
             }}
             role="group"
-            aria-label={`${definition.label}大小`}
+            aria-label={t("grid.chrome.sizeOptions", {
+              label: componentLabel(item.kind, t),
+            })}
           >
             {sizeOptions.map((option) => (
               <ContextMenuItem
@@ -129,7 +135,7 @@ export default function DraggableGridItem({
                   variant={item.size === option.value ? "default" : "outline"}
                   className="h-7 w-full justify-center px-3"
                 >
-                  {option.menuLabel}
+                  {occupancyMark(option.width, option.height)}
                 </Badge>
               </ContextMenuItem>
             ))}
@@ -138,12 +144,12 @@ export default function DraggableGridItem({
         {item.kind === "tab" && (
           <ContextMenuItem onClick={() => void refreshFavicon(item.url)}>
             <ArrowClockwise />
-            刷新图标
+            {t("grid.menu.refreshIcon")}
           </ContextMenuItem>
         )}
         <ContextMenuItem onClick={onEdit}>
           <PencilSimple />
-          编辑
+          {t("grid.menu.edit")}
         </ContextMenuItem>
         {(supportsComponentAction(item.kind, "randomColor") ||
           supportsComponentAction(item.kind, "dynamicEffect")) && (
@@ -151,7 +157,7 @@ export default function DraggableGridItem({
             {supportsComponentAction(item.kind, "randomColor") && (
               <ContextMenuItem onClick={() => randomizeItemColor(item.id)}>
                 <Shuffle />
-                随机颜色
+                {t("grid.menu.randomColor")}
               </ContextMenuItem>
             )}
             {supportsComponentAction(item.kind, "dynamicEffect") && (
@@ -162,7 +168,7 @@ export default function DraggableGridItem({
                 }
               >
                 <Fire />
-                动态效果
+                {t("grid.menu.dynamicEffect")}
               </ContextMenuCheckboxItem>
             )}
           </>
@@ -177,10 +183,10 @@ export default function DraggableGridItem({
         >
           <Trash />
           <span>
-            {confirmDelete ? "确认删除" : "删除"}
+            {confirmDelete ? t("grid.menu.confirmDelete") : t("grid.menu.delete")}
             {confirmDelete && item.kind === "folder" && (
               <span className="block text-xs opacity-75">
-                包括文件夹内的标签
+                {t("grid.menu.deleteFolderHint")}
               </span>
             )}
           </span>

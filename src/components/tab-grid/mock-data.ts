@@ -1,6 +1,16 @@
 import type { GridItem } from "@/lib/grid/types"
 
-const baseMockGridItems: GridItem[] = [
+// Sample grid content seeded in development. Names are product-owned defaults,
+// so they resolve through the active language when the grid is first seeded,
+// not when this module loads.
+function buildMockGridItems(t: (key: string) => string): GridItem[] {
+  return baseMockGridItems(t).concat(additionalMockGridItems(t))
+}
+
+function baseMockGridItems(
+  t: (key: string) => string
+): GridItem[] {
+  return [
   {
     id: "mock-github",
     kind: "tab",
@@ -28,7 +38,7 @@ const baseMockGridItems: GridItem[] = [
   {
     id: "mock-design",
     kind: "folder",
-    name: "设计灵感",
+    name: t("grid.mock.designFolder"),
     size: "small",
     color: "#b58ac8",
     tabs: [
@@ -39,7 +49,7 @@ const baseMockGridItems: GridItem[] = [
   {
     id: "mock-work",
     kind: "folder",
-    name: "工作台",
+    name: t("grid.mock.workFolder"),
     size: "large",
     color: "#6da99b",
     tabs: [
@@ -67,9 +77,13 @@ const baseMockGridItems: GridItem[] = [
     size: "medium",
     color: "#dc8188",
   },
-]
+  ]
+}
 
-export const additionalMockGridItems: GridItem[] = [
+function additionalMockGridItems(
+  t: (key: string) => string
+): GridItem[] {
+  return [
   {
     id: "mock-more-linear",
     kind: "tab",
@@ -81,7 +95,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-wikipedia",
     kind: "tab",
-    name: "维基百科",
+    name: t("grid.mock.wikipedia"),
     url: "https://www.wikipedia.org",
     size: "medium",
     color: "#bc965d",
@@ -97,7 +111,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-photos",
     kind: "tab",
-    name: "Unsplash · 摄影与视觉素材收藏",
+    name: t("grid.mock.unsplash"),
     url: "https://unsplash.com",
     size: "medium",
     color: "#ce805b",
@@ -113,7 +127,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-figjam",
     kind: "tab",
-    name: "FigJam 灵感白板",
+    name: t("grid.mock.figjam"),
     url: "https://www.figma.com/figjam",
     size: "medium",
     color: "#cda44e",
@@ -121,7 +135,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-reading",
     kind: "folder",
-    name: "阅读清单",
+    name: t("grid.mock.readingFolder"),
     size: "large",
     color: "#cc925b",
     tabs: [
@@ -152,7 +166,7 @@ export const additionalMockGridItems: GridItem[] = [
       },
       {
         id: "mock-reading-webdev",
-        name: "web.dev · 现代 Web 开发指南",
+        name: t("grid.mock.webdev"),
         url: "https://web.dev",
       },
       {
@@ -180,7 +194,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-tools",
     kind: "folder",
-    name: "常用工具",
+    name: t("grid.mock.toolsFolder"),
     size: "large",
     color: "#4e9bba",
     dynamicEffect: true,
@@ -218,7 +232,7 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-music",
     kind: "folder",
-    name: "音乐与播客",
+    name: t("grid.mock.musicFolder"),
     size: "small",
     color: "#c5708d",
     tabs: [
@@ -247,14 +261,12 @@ export const additionalMockGridItems: GridItem[] = [
   {
     id: "mock-more-inbox",
     kind: "folder",
-    name: "稍后整理",
+    name: t("grid.mock.inboxFolder"),
     size: "small",
     color: "#829f59",
     tabs: [],
   },
-]
+  ]
+}
 
-export const mockGridItems: GridItem[] = [
-  ...baseMockGridItems,
-  ...additionalMockGridItems,
-]
+export const mockGridItems = buildMockGridItems

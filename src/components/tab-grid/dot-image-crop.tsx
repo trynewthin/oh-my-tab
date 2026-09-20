@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { blankDots } from "./dot-canvas-data"
+import { useTranslation } from "react-i18next"
 
 export default function DotImageCrop({
   image,
@@ -23,6 +24,7 @@ export default function DotImageCrop({
   onConfirm: (pixels: string[]) => void
 }) {
   const [zoom, setZoom] = useState(1)
+  const { t } = useTranslation()
   const [center, setCenter] = useState({
     x: image.width / 2,
     y: image.height / 2,
@@ -78,14 +80,14 @@ export default function DotImageCrop({
     >
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>调整图片范围</DialogTitle>
+          <DialogTitle>{t("grid.dotCanvas.cropTitle")}</DialogTitle>
         </DialogHeader>
         <canvas
           ref={paintPreview}
           width={480}
           height={480 / ratio}
           role="img"
-          aria-label="拖动图片调整裁剪范围"
+          aria-label={t("grid.dotCanvas.cropAria")}
           className="w-full cursor-move touch-none rounded-2xl border bg-muted"
           style={{ aspectRatio: ratio }}
           onPointerDown={(event) => {
@@ -121,9 +123,9 @@ export default function DotImageCrop({
           }}
         />
         <label className="flex items-center justify-between gap-4">
-          缩放
+          {t("grid.dotCanvas.zoom")}
           <input
-            aria-label="图片缩放"
+            aria-label={t("grid.dotCanvas.zoomAria")}
             className="w-2/3"
             type="range"
             min="1"
@@ -138,9 +140,9 @@ export default function DotImageCrop({
         </label>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            取消
+            {t("grid.dotCanvas.cancel")}
           </Button>
-          <Button onClick={confirm}>确认范围</Button>
+          <Button onClick={confirm}>{t("grid.dotCanvas.confirmCrop")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

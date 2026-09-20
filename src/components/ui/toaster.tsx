@@ -1,6 +1,7 @@
 import MotionPresence from "@/components/effects/motion-presence"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { createPortal } from "react-dom"
 import EffectSurface from "@/components/effects/effect-surface"
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import CloseIcon from "@/components/ui/close-icon"
 import { useToastStore, type ToastMessage } from "@/stores/toast-store"
 
 function ToastCard({ item }: { item: ToastMessage }) {
+  const { t } = useTranslation()
   const color = useHomeSettingsStore((state) => state.color)
   const dismiss = useToastStore((state) => state.dismiss)
   const [hovered, setHovered] = useState(false)
@@ -65,7 +67,7 @@ function ToastCard({ item }: { item: ToastMessage }) {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="关闭通知"
+            aria-label={t("shell.common.dismissNotification")}
             className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
             onClick={() => dismiss(item.id)}
           >
@@ -77,10 +79,11 @@ function ToastCard({ item }: { item: ToastMessage }) {
   )
 }
 export default function Toaster() {
+  const { t } = useTranslation()
   const messages = useToastStore((state) => state.messages)
   return createPortal(
     <section
-      aria-label="操作通知"
+      aria-label={t("shell.common.notifications")}
       aria-live="polite"
       aria-relevant="additions text"
       className="pointer-events-none fixed inset-x-0 top-0 z-[100] mx-auto flex max-h-[55svh] w-auto max-w-[432px] [scrollbar-width:none] flex-col gap-2 overflow-y-auto px-6 pt-6 pb-10 [&>*]:pointer-events-auto"

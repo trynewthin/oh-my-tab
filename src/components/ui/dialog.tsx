@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { cn } from "cn"
+import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
@@ -48,6 +49,7 @@ function DialogContent({
   showCloseButton?: boolean
   overlayClassName?: string
 }) {
+  const { t } = useTranslation()
   const scrollClass = typeof className === "string" ? className : ""
   const internalScroll = scrollClass.includes("overflow-y-auto")
   return (
@@ -83,7 +85,7 @@ function DialogContent({
             }
           >
             <CloseIcon />
-            <span className="sr-only">关闭</span>
+            <span className="sr-only">{t("shell.common.close")}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>

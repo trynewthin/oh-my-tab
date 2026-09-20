@@ -16,8 +16,10 @@ import {
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { resolveGroupAction } from "@/lib/grid/grid-operations"
+import { useTranslation } from "react-i18next"
 
 export default function BulkActions() {
+  const { t } = useTranslation()
   const active = useGridSelectionStore((state) => state.active)
   const ids = useGridSelectionStore((state) => state.ids)
   const finish = useGridSelectionStore((state) => state.finish)
@@ -25,7 +27,7 @@ export default function BulkActions() {
   const selected = items.filter((item) => ids.includes(item.id))
   const groupAction = resolveGroupAction(selected)
   const [dialog, setDialog] = useState<"group" | "delete" | null>(null)
-  const [name, setName] = useState("新文件夹")
+  const [name, setName] = useState("")
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (
@@ -47,7 +49,7 @@ export default function BulkActions() {
           visible={active}
           direction="bottom"
           role="toolbar"
-          aria-label="批量操作"
+          aria-label={t("grid.bulk.toolbar")}
           className="fixed inset-x-4 bottom-6 isolate z-40 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-2xl border bg-popover p-2 text-popover-foreground shadow-xl"
           data-effect={burning ? "burning" : "static"}
         >
@@ -68,7 +70,7 @@ export default function BulkActions() {
                 disabled={groupAction.kind === "disabled"}
                 title={
                   groupAction.kind === "disabled"
-                    ? "仅标签和文件夹可成组"
+                    ? t("grid.bulk.groupDisabled")
                     : undefined
                 }
                 onClick={() => {
@@ -77,22 +79,22 @@ export default function BulkActions() {
                     if (useTabGridStore.getState().groupItems(keys)) finish()
                     return
                   }
-                  setName("新文件夹")
+                  setName(t("grid.component.folder.defaultName"))
                   setDialog("group")
                 }}
               >
-                成组
+                {t("grid.bulk.group")}
               </Button>
               <Button
                 variant="destructive"
                 disabled={!selected.length}
                 onClick={() => setDialog("delete")}
               >
-                删除
+                {t("grid.bulk.delete")}
               </Button>
             </div>
             <Button variant="ghost" onClick={finish}>
-              完成
+              {t("grid.bulk.done")}
             </Button>
           </div>
         </MotionPresence>,
@@ -107,11 +109,13 @@ export default function BulkActions() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialog === "group" ? "文件夹名称" : "删除组件"}
+              {dialog === "group" ? t("grid.bulk.folderName") : t("grid.bulk.deleteTitle")}
             </DialogTitle>
             {dialog !== "group" && (
               <DialogDescription>
-                {`删除选中的 ${selected.length} 个组件，包含文件夹内的书签。删除后可通过通知撤销。`}
+                {t("grid.bulk.deleteDescription", {
+                  count: selected.length,
+                })}
               </DialogDescription>
             )}
           </DialogHeader>
@@ -132,7 +136,7 @@ export default function BulkActions() {
                 autoFocus
                 required
                 maxLength={40}
-                aria-label="文件夹名称"
+                aria-label={t("grid.bulk.folderName")}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
@@ -143,7 +147,7 @@ export default function BulkActions() {
                 variant="outline"
                 onClick={() => setDialog(null)}
               >
-                取消
+                {t("grid.editor.cancel")}
               </Button>
               <Button
                 type="submit"
@@ -153,7 +157,9 @@ export default function BulkActions() {
                     : !selected.length
                 }
               >
-                {dialog === "group" ? "确认成组" : "确认删除"}
+                {dialog === "group"
+                  ? t("grid.bulk.confirmGroup")
+                  : t("grid.bulk.confirmDelete")}
               </Button>
             </DialogFooter>
           </form>

@@ -1,8 +1,17 @@
 import GardenAlbum from "./garden-album"
 import { useGardenStore } from "@/stores/garden-store"
-import { generateGardenSeed } from "@/lib/garden"
-import { pointProgress, gardenDay, checkInGarden } from "@/lib/garden"
-import { plantName } from "@/lib/garden"
+import {
+  careForPlant,
+  checkInGarden,
+  gardenDay,
+  generateGardenSeed,
+  growth,
+  plantName,
+  plantSeed,
+  plantStageName,
+  pointProgress,
+  settleGarden,
+} from "@/lib/garden"
 import { useEffect, useState } from "react"
 import {
   Dialog,
@@ -15,9 +24,13 @@ import { Input } from "@/components/ui/input"
 import Ecosystem from "./ecosystem"
 import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { careForPlant, growth, settleGarden, plantSeed } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
-import { getComponentDefinition } from "@/lib/grid/registry"
+import {
+  componentDefaultName,
+  componentLabel,
+  getComponentDefinition,
+} from "@/lib/grid/registry"
+import { useTranslation } from "react-i18next"
 
 export default function EcosystemConfiguration({
   item,
@@ -34,7 +47,7 @@ export default function EcosystemConfiguration({
   const [now, setNow] = useState(() => Date.now())
   const shared = useGardenStore()
   const [albumOpen, setAlbumOpen] = useState(false)
-  const definition = getComponentDefinition("ecosystem")
+  const { t } = useTranslation()
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
@@ -43,8 +56,8 @@ export default function EcosystemConfiguration({
     id,
     kind: "ecosystem",
     size: "large",
-    name: definition.defaultName,
-    color: definition.defaultColor,
+    name: componentDefaultName("ecosystem", t),
+    color: getComponentDefinition("ecosystem").defaultColor,
     species: "flowers",
     plants: [],
     points: 6,
@@ -104,7 +117,7 @@ export default function EcosystemConfiguration({
     )
       album.push(active)
     save({ ...next, plants: next.plants.slice(1), album })
-    toast("已收纳到图鉴", "success")
+    toast(t("grid.ecosystem.archived"), "success")
   }
   function display(saved: GardenPlant) {
     const next = current()
@@ -130,7 +143,7 @@ export default function EcosystemConfiguration({
     >
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{definition.label}</DialogTitle>
+          <DialogTitle>{componentLabel("ecosystem", t)}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] items-start gap-4">
           <div className="min-w-0">
@@ -138,7 +151,7 @@ export default function EcosystemConfiguration({
               {plant && (
                 <Input
                   key={`${plantSeed(plant)}-${plant.plantedAt}`}
-                  aria-label="植物名称"
+                  aria-label={t("grid.ecosystem.plantName")}
                   className="absolute top-0 left-1/2 z-10 w-2/3 -translate-x-1/2 text-center"
                   defaultValue={plantName(plant)}
                   maxLength={40}
@@ -170,9 +183,13 @@ export default function EcosystemConfiguration({
               {status && (
                 <div
                   className="absolute inset-x-0 top-10 z-10 text-center text-xs text-muted-foreground"
-                  aria-label="植物生长进度"
+                  aria-label={t("grid.ecosystem.growthProgress")}
                 >
-                  {`Lv.${status.level + 1} · ${["萌芽", "幼苗", "生长", "花期", "成熟"][status.level]} · ${Math.floor(status.progress * 100)}%`}
+                  {t("grid.ecosystem.growthStatus", {
+                    level: status.level + 1,
+                    stage: plantStageName(status.level),
+                    percent: Math.floor(status.progress * 100),
+                  })}
                 </div>
               )}
               <Ecosystem item={value} preview />
@@ -181,30 +198,30 @@ export default function EcosystemConfiguration({
           <div
             className="flex flex-col gap-2 self-stretch"
             role="toolbar"
-            aria-label="植物养护"
+            aria-label={t("grid.ecosystem.careToolbar")}
           >
             <Button
               className="w-full"
               variant="outline"
               onClick={() => setAlbumOpen(true)}
             >
-              图鉴
+              {t("grid.ecosystem.album")}
             </Button>
             <Button
               variant="outline"
               disabled={!plant || status?.mature || value.points! < 2}
-              title="加速生长 18 小时"
+              title={t("grid.ecosystem.feedTitle")}
               onClick={() => care("feed")}
             >
-              施肥
+              {t("grid.ecosystem.feed")}
             </Button>
             <Button
               variant="outline"
               disabled={!plant || status?.mature || value.points! < 1}
-              title="加速生长 6 小时"
+              title={t("grid.ecosystem.waterTitle")}
               onClick={() => care("water")}
             >
-              浇水
+              {t("grid.ecosystem.water")}
             </Button>
 
             <Button
@@ -233,20 +250,22 @@ export default function EcosystemConfiguration({
                 })
               }}
             >
-              播种
+              {t("grid.ecosystem.plant")}
             </Button>
-            {status?.mature && <Button onClick={archive}>收入图鉴</Button>}
+            {status?.mature && (
+              <Button onClick={archive}>{t("grid.ecosystem.addToAlbum")}</Button>
+            )}
             <div className="mt-auto w-full pt-4">
               <span className="mb-1.5 block text-center text-xs text-muted-foreground">
-                点数 {value.points}
+                {t("grid.ecosystem.points", { points: value.points })}
               </span>
               <div
                 role="progressbar"
-                aria-label="点数积攒进度"
+                aria-label={t("grid.ecosystem.pointsProgress")}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={pointProgress(value, now)}
-                title="每小时积累 1 点"
+                title={t("grid.ecosystem.pointsPerHour")}
                 className="relative flex h-8 w-full items-center justify-center overflow-hidden rounded-full border bg-muted text-xs"
               >
                 <div
@@ -265,12 +284,12 @@ export default function EcosystemConfiguration({
                   const next = checkInGarden(current(), now)
                   if (!next) return
                   save(next)
-                  toast("签到成功，获得 100 点", "success")
+                  toast(t("grid.ecosystem.checkInSuccess"), "success")
                 }}
               >
                 {value.lastCheckIn && value.lastCheckIn >= gardenDay(now)
-                  ? "今日已签到"
-                  : "每日签到"}
+                  ? t("grid.ecosystem.checkedInToday")
+                  : t("grid.ecosystem.checkIn")}
               </Button>
             </div>
           </div>

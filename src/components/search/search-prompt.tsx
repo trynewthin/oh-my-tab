@@ -23,6 +23,7 @@ type SearchPromptProps = {
   onSubmit?: (message: string) => void
   style?: SearchBoxStyle
   embedded?: boolean
+  width?: number
 }
 
 function readableForeground(hex: string) {
@@ -41,6 +42,7 @@ export default function SearchPrompt({
   onSubmit,
   style,
   embedded = false,
+  width,
 }: SearchPromptProps) {
   const { t } = useTranslation()
   const draft = usePromptStore((state) => state.draft)
@@ -169,6 +171,7 @@ export default function SearchPrompt({
     <div
       ref={root}
       className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto mt-6 max-w-3xl"} ${searchBoxStyle === "minimal" ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : embedded ? "flex flex-col" : ""}`}
+      style={!embedded && width ? { width } : undefined}
       data-tour={searchBoxStyle === "minimal" ? "search" : undefined}
       onMouseDown={embedded ? (event) => event.stopPropagation() : undefined}
       onKeyDown={embedded ? (event) => event.stopPropagation() : undefined}

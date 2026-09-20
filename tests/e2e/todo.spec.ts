@@ -72,6 +72,38 @@ test("todo supports adding, completing, size options and persistence", async ({
   ).toBeChecked()
   await region.getByRole("button", { name: "打开待办", exact: true }).click()
   const expanded = page.getByRole("dialog", { name: "待办", exact: true })
+  const headerButtons = await Promise.all(
+    ["添加待办", "关闭待办"].map((name) =>
+      expanded
+        .getByRole("button", { name, exact: true })
+        .evaluate((element) => {
+          const style = getComputedStyle(element)
+          return {
+            width: style.width,
+            height: style.height,
+            color: style.color,
+            backgroundColor: style.backgroundColor,
+            borderRadius: style.borderRadius,
+            padding: style.padding,
+          }
+        })
+    )
+  )
+  expect(headerButtons[0]).toEqual(headerButtons[1])
+  const headerIcons = await Promise.all(
+    ["添加待办", "关闭待办"].map((name) =>
+      expanded
+        .getByRole("button", { name, exact: true })
+        .locator("svg")
+        .evaluate((element) => ({
+          width: getComputedStyle(element).width,
+          height: getComputedStyle(element).height,
+          strokeWidth: element.getAttribute("stroke-width"),
+          strokeLinecap: element.getAttribute("stroke-linecap"),
+        }))
+    )
+  )
+  expect(headerIcons[0]).toEqual(headerIcons[1])
   await expanded.getByRole("button", { name: "删除 阅读", exact: true }).click()
   await expect(
     expanded.getByRole("checkbox", { name: "完成 阅读", exact: true })

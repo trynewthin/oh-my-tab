@@ -1,4 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
+import AddIcon from "@/components/ui/add-icon"
 import EffectSurface from "@/components/effects/effect-surface"
 import { useState } from "react"
 import { Plus, ListChecks, Check, X } from "@phosphor-icons/react"
@@ -224,17 +226,19 @@ export default function Todo({
             setAdding(false)
           }}
           headerActions={
-            <CollectionHeaderAction
-              label={t("grid.todo.addTodo")}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("grid.todo.addTodo")}
               disabled={preview || item.tasks.length >= 200}
               onClick={() => {
                 if (!adding) setDraft("")
                 setAdding(true)
               }}
-              className="size-8"
+              className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
             >
-              <Plus size={16} />
-            </CollectionHeaderAction>
+              <AddIcon />
+            </Button>
           }
         >
           <div

@@ -11,18 +11,18 @@ export function columnsForWidth(
   width: number,
   mode: GridColumnMode = "standard"
 ): number {
-  if (width <= 0) return 4
+  if (width <= 0) return 8
   const candidates =
     mode === "even-components"
       ? GRID_COLUMNS.filter((columns) => (columns / 4) % 2 === 0)
-      : GRID_COLUMNS
+      : GRID_COLUMNS.filter((columns) => columns >= 8)
   return (
     [...candidates]
       .reverse()
       .find(
         (columns) =>
           columns * GRID_CELL_SIZE + (columns - 1) * GRID_GAP <= width
-      ) ?? 4
+      ) ?? 8
   )
 }
 

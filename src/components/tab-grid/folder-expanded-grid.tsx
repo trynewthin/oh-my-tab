@@ -32,7 +32,7 @@ export default function FolderExpandedGrid({
           <CollectionRow
             key={tab.id}
             data-tab-id={tab.id === "__folder-gap__" ? undefined : tab.id}
-            className="relative after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-2xl after:bg-card/55 after:opacity-[var(--stack-shade,0)]"
+            className="relative h-12 after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-2xl after:bg-card/55 after:opacity-[var(--stack-shade,0)]"
           >
             {tab.id === "__folder-gap__" ? null : (
               <DraggableFolderTab
@@ -40,6 +40,8 @@ export default function FolderExpandedGrid({
                 color={folder.color}
                 folderId={folder.id}
                 index={index}
+                rowPitch={0}
+                textureId={`${folder.id}:${tab.id}`}
                 animated={!!folder.dynamicEffect}
                 surface="dialog"
               />

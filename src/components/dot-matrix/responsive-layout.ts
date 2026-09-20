@@ -26,10 +26,12 @@ function compactTime(value: string): Bitmap {
   }
   return result.map((row) => row.slice(0, -1))
 }
-export function clockBitmap(time: string, columns: number) {
-  const full = textBitmap(time)
-  if (full[0].length <= columns)
-    return { pixels: fitBitmap(full, columns), format: "seconds" }
+export function clockBitmap(time: string, columns: number, showSeconds = true) {
+  if (showSeconds) {
+    const full = textBitmap(time)
+    if (full[0].length <= columns)
+      return { pixels: fitBitmap(full, columns), format: "seconds" }
+  }
   const minutes = time.slice(0, 5)
   const regular = textBitmap(minutes)
   if (regular[0].length <= columns)

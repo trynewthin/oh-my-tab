@@ -93,36 +93,43 @@ for (const [size, expectedRows] of [
     expect(geometry.fitted).toBeLessThan(geometry.total)
     await page.getByRole("button", { name: "资料", exact: true }).click()
     const expanded = page.getByRole("dialog", { name: "资料", exact: true })
-    const links = expanded.getByRole("link")
-    // The expanded dialog reflows between two columns on narrow viewports and
-    // three on wide ones. Measure each rendered column count and assert the
-    // first row is laid out left-to-right at that width.
-    const firstRow = async (columns: number) => {
-      const boxes = await links.evaluateAll(
-        (elements, limit) =>
-          elements
-            .slice(0, limit)
-            .map((element) => element.getBoundingClientRect()),
-        columns + 1
+    const expandedGrid = expanded.locator("[data-expanded-folder-grid]")
+    await expect(
+      expandedGrid.locator("[data-stack-row]").first()
+    ).not.toHaveCSS("position", "fixed")
+    // Expanded folders use the same grid geometry as expanded todos.
+    const columnCount = () =>
+      expandedGrid.evaluate(
+        (element) =>
+          getComputedStyle(element).gridTemplateColumns.split(" ").length
       )
-      if (boxes.length < columns) return false
-      const row = boxes.slice(0, columns)
-      const alignedTop = row.every((box) => Math.abs(box.top - row[0].top) < 1)
-      const increasing = row.every(
-        (box, index) => index === 0 || box.left > row[index - 1].left
+    await expect.poll(columnCount).toBe(3)
+    const expandedTab = (await expandedGrid
+      .locator("[data-stack-row]")
+      .first()
+      .boundingBox())!
+    expect(expandedTab.height).toBeCloseTo(48, 1)
+    await expect
+      .poll(() =>
+        expandedGrid.locator("[data-stack-row]").evaluateAll((rows) =>
+          rows.slice(0, 4).map((row) => {
+            const effect = row.querySelector<HTMLElement>("[data-effect-style]")
+            const cell = effect?.querySelector<HTMLElement>("[data-burn-cell]")
+            if (!effect || !cell) return null
+            return (
+              cell.getBoundingClientRect().top -
+              effect.getBoundingClientRect().top
+            )
+          })
+        )
       )
-      const wrapped =
-        boxes.length > columns ? boxes[columns].top > row[0].top + 1 : true
-      return alignedTop && increasing && wrapped
-    }
-    await expect.poll(() => firstRow(3)).toBe(true)
+      .toEqual([0, 0, 0, 0])
     await page.setViewportSize({ width: 390, height: 969 })
-    await expect.poll(() => firstRow(2)).toBe(true)
+    await expect.poll(columnCount).toBe(2)
     await page.setViewportSize({ width: 1440, height: 1000 })
-    await expect.poll(() => firstRow(3)).toBe(true)
+    await expect.poll(columnCount).toBe(3)
     const folder = page.locator('[data-grid-item-id="folder"]')
     const content = expanded.locator("[data-expansion-content]")
-    const expandedGrid = expanded.locator("[data-expanded-folder-grid]")
     await expanded.getByRole("button", { name: "关闭文件夹" }).click()
     await expect(content).toHaveCSS("opacity", "1")
     await expect(expandedGrid).toHaveAttribute("data-collapsing", "true")

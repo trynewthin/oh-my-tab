@@ -196,7 +196,9 @@ for (const width of [390, 1440]) {
         //    different per-cell fill all exceed 15/255.
         await expect.poll(rasterBox).not.toBeNull()
         const box = (await rasterBox())!
-        expect(maxCentreDelta(rendered, dom, centres, box.scale)).toBeLessThanOrEqual(8)
+        expect(
+          maxCentreDelta(rendered, dom, centres, box.scale)
+        ).toBeLessThanOrEqual(8)
 
         await showCanvas()
         await expect(canvas).toBeVisible()
@@ -233,22 +235,14 @@ for (const width of [390, 1440]) {
           .toBeGreaterThan(4)
         await page.emulateMedia({ reducedMotion: "reduce" })
 
-        // 5. Resizing re-rasterizes the surface: the backing store tracks the
-        //    new region geometry at the active density and the texture still
-        //    matches the DOM layer. The canvas is recreated during the resize,
-        //    so poll until the backing store settles on the new measured box.
-        const oldWidth = box.width
+        // 5. After a viewport resize, the backing store still matches the
+        //    measured region at the active density. Fixed-size grid units may
+        //    keep the same raster width across viewport changes.
         await page.setViewportSize({
           width: width === 1440 ? 1280 : width - 16,
           height: 1000,
         })
         await expect(canvas).toBeVisible()
-        await expect
-          .poll(async () => {
-            const box = await rasterBox()
-            return box ? box.width : oldWidth
-          })
-          .not.toBe(oldWidth)
         await expect
           .poll(async () => {
             const box = await rasterBox()
@@ -277,3 +271,62 @@ for (const width of [390, 1440]) {
     })
   }
 }
+
+test("burning texture falls back to DOM when Pixi rendering fails", async ({
+  page,
+}) => {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+  await page.addInitScript(() => {
+    const original = CanvasRenderingContext2D.prototype.drawImage
+    CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+      if (this.canvas.dataset.burningCanvas !== undefined)
+        throw new Error("forced Pixi presentation failure")
+      return original.apply(this, args as never)
+    }
+    localStorage.setItem(
+      "omt.onboarding",
+      JSON.stringify({ state: { seen: true }, version: 0 })
+    )
+    localStorage.setItem(
+      "omt.home-settings",
+      JSON.stringify({
+        state: {
+          topComponent: "none",
+          effectStyle: "burning",
+          transitionsEnabled: false,
+        },
+        version: 0,
+      })
+    )
+    localStorage.setItem(
+      "omt.tab-grid",
+      JSON.stringify({
+        state: {
+          items: [
+            {
+              id: "flame",
+              kind: "tab",
+              name: "Flame",
+              url: "https://example.com",
+              size: "medium",
+              color: "#3478f6",
+              dynamicEffect: true,
+            },
+          ],
+          layouts: {},
+        },
+        version: 0,
+      })
+    )
+  })
+  await page.goto("/")
+  const surface = page.locator(SURFACE)
+  await expect(surface.locator("[data-burn-cell]").first()).toBeVisible()
+  await expect(surface.locator("canvas[data-burning-canvas]")).toHaveCount(0)
+  for (const width of [900, 1440, 500, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect(page.locator('[data-grid-item-id="flame"]')).toBeVisible()
+  }
+  expect(errors).toEqual([])
+})

@@ -24,8 +24,10 @@ export function createPixiEffect(
   const previous = grid.style.visibility
   const lease = acquirePixiRenderer()
   let stopped = false
+  let failed = false
+  let released = false
   let disposeScene: (() => void) | undefined
-  let draw: (() => void) | undefined
+  let draw: (() => boolean) | undefined
   let latest: [number | undefined, number, number, Point] = [
     undefined,
     1,
@@ -43,6 +45,26 @@ export function createPixiEffect(
   let updateScene:
     | ((previous: { color: string; columns: number; rows: number }) => void)
     | undefined
+  const release = () => {
+    if (released) return
+    released = true
+    lease.release()
+  }
+  const fail = () => {
+    if (failed) return
+    failed = true
+    canvas.remove()
+    canvas.width = canvas.height = 0
+    try {
+      disposeScene?.()
+    } catch {
+      // The shared renderer can leave a scene partially built after a WebGL
+      // failure. The DOM texture below remains the authoritative fallback.
+    }
+    disposeScene = undefined
+    release()
+    grid.style.visibility = previous
+  }
   void Promise.all([lease.ready, import("pixi.js")])
     .then(([renderer, { Container, Sprite, Texture }]) => {
       if (stopped) return
@@ -86,7 +108,8 @@ export function createPixiEffect(
       grid.style.visibility = "hidden"
       disposeScene = () => stage.destroy({ children: true })
       draw = () => {
-        if (stopped || document.hidden) return
+        if (stopped || failed) return false
+        if (document.hidden) return true
         const [time, visibility, amplitude, pointer] = latest
         for (const { x, y, sprite, sample } of cells) {
           const value =
@@ -132,19 +155,23 @@ export function createPixiEffect(
             : "0"
         canvas.style.top =
           mode === "burning" ? `${Math.round(bounds.top) - bounds.top}px` : "0"
-        presentPixi(
-          renderer,
-          stage,
-          canvas,
-          Math.ceil(size.width),
-          Math.ceil(size.height)
-        )
+        try {
+          presentPixi(
+            renderer,
+            stage,
+            canvas,
+            Math.ceil(size.width),
+            Math.ceil(size.height)
+          )
+          return true
+        } catch {
+          fail()
+          return false
+        }
       }
       draw()
     })
-    .catch(() => {
-      grid.style.visibility = previous
-    })
+    .catch(fail)
   return {
     update(
       nextColor: string,
@@ -162,7 +189,7 @@ export function createPixiEffect(
       stepY = nextSteps.stepY
       bounds = region.getBoundingClientRect()
       updateScene?.(previous)
-      draw?.()
+      return draw?.() ?? !failed
     },
     prepare() {
       bounds = region.getBoundingClientRect()
@@ -174,14 +201,19 @@ export function createPixiEffect(
       pointer: Point = null
     ) {
       latest = [time, visibility, amplitude, pointer]
-      draw?.()
+      return draw?.() ?? !failed
     },
     dispose() {
       stopped = true
       canvas.remove()
       canvas.width = canvas.height = 0
-      disposeScene?.()
-      lease.release()
+      try {
+        disposeScene?.()
+      } catch {
+        // A failed Pixi scene may already be partially destroyed.
+      }
+      disposeScene = undefined
+      release()
       grid.style.visibility = previous
     },
   }

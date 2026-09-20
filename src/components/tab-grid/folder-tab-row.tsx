@@ -6,6 +6,7 @@ export default function FolderTabRow({
   tab,
   color,
   folderId,
+  textureId = folderId,
   index = 0,
   rowPitch,
   animated = false,
@@ -15,6 +16,7 @@ export default function FolderTabRow({
   tab: TabEntry
   color: string
   folderId: string
+  textureId?: string
   index?: number
   // Pixel pitch between rows, snapped by the caller to a multiple of the
   // 9px cell step — the burning texture then advances whole cells per row,
@@ -32,7 +34,7 @@ export default function FolderTabRow({
         item={item}
         compact
         coverage={52}
-        textureId={folderId}
+        textureId={textureId}
         offsetY={index * (rowPitch ?? 54)}
         animated={animated}
         entrance={entrance}

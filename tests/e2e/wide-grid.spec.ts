@@ -37,11 +37,11 @@ test("wide grids adapt and keep drag positions after reload", async ({
   await page.goto("/")
   const cards = page.locator("[data-grid-item-id]")
   await expect(cards).toHaveCount(6)
-  for (const [width, count] of [
-    [900, 3],
-    [1200, 4],
-    [1440, 5],
-    [1920, 5],
+  for (const [width, count, searchWidth, timeFormat] of [
+    [900, 2, 588, "minutes"],
+    [1200, 3, 768, "seconds"],
+    [1440, 4, 768, "seconds"],
+    [1920, 4, 768, "seconds"],
   ]) {
     await page.setViewportSize({ width, height: 1000 })
     await expect
@@ -53,7 +53,16 @@ test("wide grids adapt and keep drag positions after reload", async ({
       })
       .toBe(count)
     const search = await page.locator('[data-tour="search"]').boundingBox()
-    expect(search!.width).toBeLessThanOrEqual(768)
+    expect(search!.width).toBeCloseTo(searchWidth, 1)
+    const matrix = await page.locator("[data-home-track-content]").boundingBox()
+    expect(matrix!.width).toBeCloseTo(search!.width, 1)
+    expect(matrix!.x + matrix!.width / 2).toBeCloseTo(
+      search!.x + search!.width / 2,
+      1
+    )
+    await expect(
+      page.locator("[data-home-track-content] [data-time-format]")
+    ).toHaveAttribute("data-time-format", timeFormat)
   }
   const first = cards.first()
   const box = (await first.boundingBox())!
@@ -62,12 +71,54 @@ test("wide grids adapt and keep drag positions after reload", async ({
   await page.mouse.move(box.x + 30, box.y + 140, { steps: 12 })
   await page.mouse.up()
   await expect
-    .poll(async () => (await storedLayouts(page))[20]?.["tab-0"]?.y)
+    .poll(async () => (await storedLayouts(page))[16]?.["tab-0"]?.y)
     .toBeGreaterThan(0)
-  const saved = (await storedLayouts(page))[20]
+  const saved = (await storedLayouts(page))[16]
   await page.reload()
   await expect(cards).toHaveCount(6)
-  expect((await storedLayouts(page))[20]).toEqual(saved)
+  expect((await storedLayouts(page))[16]).toEqual(saved)
+})
+
+test("grid remains rendered while viewport crosses column breakpoints", async ({
+  page,
+}) => {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "omt.onboarding",
+      JSON.stringify({ state: { seen: true }, version: 0 })
+    )
+    localStorage.setItem(
+      "omt.tab-grid",
+      JSON.stringify({
+        state: {
+          items: Array.from({ length: 6 }, (_, index) => ({
+            id: `resize-${index}`,
+            kind: "tab",
+            name: `缩放 ${index}`,
+            url: `https://example.com/resize/${index}`,
+            color: "#6c8bd4",
+            size: "small",
+          })),
+          layouts: {},
+        },
+        version: 0,
+      })
+    )
+  })
+  await page.goto("/")
+  const cards = page.locator("[data-grid-item-id]")
+  await expect(cards).toHaveCount(6)
+  for (const width of [1280, 900, 1440, 500, 1920, 760, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    )
+    expect(await cards.count()).toBe(6)
+  }
+  expect(errors).toEqual([])
 })
 
 test("breakpoint layouts retain gaps and derive visual order only once", async ({
@@ -108,8 +159,8 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
   await expect(page.locator("[data-grid-item-id]")).toHaveCount(3)
   await page.setViewportSize({ width: 900, height: 1000 })
   await expect
-    .poll(async () => (await layouts())[12])
-    .toEqual({ b: { x: 0, y: 0 }, c: { x: 4, y: 0 }, a: { x: 8, y: 0 } })
+    .poll(async () => (await layouts())[8])
+    .toEqual({ b: { x: 0, y: 0 }, c: { x: 4, y: 0 }, a: { x: 0, y: 1 } })
   expect((await layouts())[20]).toEqual(original)
   await page.setViewportSize({ width: 1920, height: 1000 })
   await expect
@@ -118,7 +169,7 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
         .locator('[data-grid-item-id="a"]')
         .evaluate((node) => (node as HTMLElement).style.gridColumn)
     )
-    .toBe("17 / span 4")
+    .toBe("9 / span 4")
   expect((await layouts())[20]).toEqual(original)
   await page.getByRole("button", { name: "更多操作", exact: true }).click()
   await page.getByRole("button", { name: "添加标签", exact: true }).click()
@@ -129,7 +180,7 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
     .fill("https://new.example/")
   await creation.getByRole("button", { name: "确认添加", exact: true }).click()
   await expect
-    .poll(async () => Object.keys((await layouts())[12]).length)
+    .poll(async () => Object.keys((await layouts())[8]).length)
     .toBe(4)
   const updated = await layouts()
   for (const id of ["a", "b", "c"] as const)
@@ -144,6 +195,6 @@ test("breakpoint layouts retain gaps and derive visual order only once", async (
         .locator('[data-grid-item-id="a"]')
         .evaluate((node) => (node as HTMLElement).style.gridColumn)
     )
-    .toBe("9 / span 4")
-  expect((await layouts())[12]).toEqual(updated[12])
+    .toBe("1 / span 4")
+  expect((await layouts())[8]).toEqual(updated[8])
 })

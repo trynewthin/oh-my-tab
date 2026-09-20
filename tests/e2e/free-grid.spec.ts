@@ -89,11 +89,11 @@ test("free grid replaces the fixed header with responsive search components", as
   await page.setViewportSize({ width: 500, height: 900 })
   await expect(page.locator('[data-grid-item-id="minimal-search"]')).toHaveCSS(
     "grid-column-end",
-    "span 4"
+    "span 8"
   )
   await expect(page.locator('[data-grid-item-id="full-search"]')).toHaveCSS(
     "grid-column-end",
-    "span 4"
+    "span 8"
   )
   await expect
     .poll(() =>
@@ -101,7 +101,7 @@ test("free grid replaces the fixed header with responsive search components", as
         (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length
       )
     )
-    .toBe(4)
+    .toBe(8)
   await expect
     .poll(() =>
       track.evaluate((node) =>
@@ -109,6 +109,25 @@ test("free grid replaces the fixed header with responsive search components", as
       )
     )
     .toBe(initialCellSize)
+
+  await page.setViewportSize({ width: 700, height: 900 })
+  await expect
+    .poll(() =>
+      track.evaluate(
+        (node) => getComputedStyle(node).gridTemplateColumns.split(" ").length
+      )
+    )
+    .toBe(8)
+  await expect(track).toHaveCSS("column-gap", "16px")
+  const alignment = await track.evaluate((node) => {
+    const track = node.getBoundingClientRect()
+    const parent = node.parentElement!.getBoundingClientRect()
+    return {
+      left: track.left - parent.left,
+      right: parent.right - track.right,
+    }
+  })
+  expect(Math.abs(alignment.left - alignment.right)).toBeLessThan(1)
 })
 
 test("personalization switches between traditional and free grid layouts", async ({

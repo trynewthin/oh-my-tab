@@ -14,6 +14,11 @@ import CloseIcon from "@/components/ui/close-icon"
 import ComponentBackground from "../shared/component-background"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
+const EXPAND_DURATION = 0.42
+const HEADER_EXIT_DURATION = 0.12
+const HEADER_ENTER_DURATION = 0.38
+const HEADER_OFFSET_Y = 16
+
 export type ExpandedCollection = {
   id: string
   name: string
@@ -284,7 +289,7 @@ export default function CollectionExpansion({
         {
           ...destination,
           opacity: 1,
-          duration: reduced ? 0 : 0.42,
+          duration: reduced ? 0 : EXPAND_DURATION,
           ease: "power3.inOut",
         },
         0
@@ -296,7 +301,7 @@ export default function CollectionExpansion({
             ...destinationFrames[index],
             opacity: 1,
             "--stack-shade": 0,
-            duration: reduced ? 0 : 0.42,
+            duration: reduced ? 0 : EXPAND_DURATION,
             ease: "power3.inOut",
           },
           0
@@ -308,7 +313,7 @@ export default function CollectionExpansion({
           {
             fontSize: expandedTitle.fontSize,
             lineHeight: expandedTitle.lineHeight,
-            duration: reduced ? 0 : 0.42,
+            duration: reduced ? 0 : EXPAND_DURATION,
             ease: "power3.inOut",
           },
           0
@@ -318,22 +323,22 @@ export default function CollectionExpansion({
         timeline.to(
           header,
           {
-            y: -14,
+            y: -HEADER_OFFSET_Y,
             opacity: 0,
-            duration: reduced ? 0 : 0.16,
+            duration: reduced ? 0 : HEADER_EXIT_DURATION,
             ease: "power2.in",
           },
-          reduced ? 0 : 0.06
+          0
         )
         timeline.to(
           header,
           {
             y: 0,
             opacity: 1,
-            duration: reduced ? 0 : 0.18,
+            duration: reduced ? 0 : HEADER_ENTER_DURATION,
             ease: "power2.out",
           },
-          reduced ? 0 : 0.42
+          reduced ? 0 : EXPAND_DURATION
         )
       }
     }

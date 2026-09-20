@@ -87,16 +87,21 @@ describe("grid metrics", () => {
     }
   })
 
+  test("home grids keep at least two four-unit component columns", () => {
+    expect(columnsForWidth(320)).toBe(8)
+    expect(columnsForWidth(320, "even-components")).toBe(8)
+  })
+
   test("free grids expose only an even number of four-unit component columns", () => {
     for (const [width, columns] of [
-      [500, 4],
+      [500, 8],
       [900, 8],
       [1440, 16],
       [1920, 24],
     ] as const) {
       expect(columnsForWidth(width, "even-components")).toBe(columns)
       expect(columns / 4).toBeGreaterThan(0)
-      if (columns > 4) expect((columns / 4) % 2).toBe(0)
+      expect((columns / 4) % 2).toBe(0)
     }
   })
 })

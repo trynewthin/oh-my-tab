@@ -136,13 +136,18 @@ export default function EffectSurface({
   }, [effectStyle, offsetY, hidden, hasGrid, seed, shiftY])
 
   useEffect(() => {
-    pixi.current?.update(
-      color,
-      grid.columns,
-      grid.rows + (shiftY ? 1 : 0),
-      grid,
-      stepsOf(grid)
+    const effect = pixi.current
+    if (
+      effect &&
+      !effect.update(
+        color,
+        grid.columns,
+        grid.rows + (shiftY ? 1 : 0),
+        grid,
+        stepsOf(grid)
+      )
     )
+      pixi.current = null
   }, [color, grid, shiftY])
 
   useEffect(() => {
@@ -178,9 +183,10 @@ export default function EffectSurface({
       pixi.current?.prepare()
     }
     const paint = (time?: number) => {
-      if (pixi.current) {
-        pixi.current.paint(time, reveal.current.value, amplitude, pointer)
-        return
+      const effect = pixi.current
+      if (effect) {
+        if (effect.paint(time, reveal.current.value, amplitude, pointer)) return
+        pixi.current = null
       }
       paintCells(time)
     }

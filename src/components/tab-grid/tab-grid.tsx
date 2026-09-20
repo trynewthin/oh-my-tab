@@ -258,10 +258,11 @@ export default function TabGrid({
         <div
           ref={gridRef}
           aria-label={t("grid.chrome.preview")}
-          className={`relative grid min-h-11 overflow-hidden ${compactGrid ? "gap-3" : "gap-4"}`}
+          className="relative grid min-h-11 overflow-hidden"
           style={{
             width: box?.width,
             height: box?.height,
+            gap: gridGap,
             gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
             gridAutoRows: metrics.rowSize,
           }}
@@ -305,7 +306,7 @@ export default function TabGrid({
           onDragCancel={resetDrag}
         >
           <div
-            className={`${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
+            className={`flex justify-center ${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
             style={{
               margin: fullViewport ? undefined : "0 -20px",
               paddingTop: compactGrid ? 12 : 20,
@@ -314,15 +315,15 @@ export default function TabGrid({
             <div
               ref={gridRef}
               data-tab-grid-track={preview ? undefined : ""}
-              className={`relative grid min-h-11 ${compactGrid ? "gap-3" : "gap-4"}`}
+              className="relative grid min-h-11"
               style={{
                 width: width > 0 ? width : undefined,
-                marginInline: "auto",
+                gap: gridGap,
                 gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
                 gridAutoRows: metrics.rowSize,
               }}
             >
-              {(width > 0 && layouts[columns] ? items : []).map((item) =>
+              {(width > 0 ? items : []).map((item) =>
                 selecting ? (
                   <GridSelectionItem
                     key={item.id}

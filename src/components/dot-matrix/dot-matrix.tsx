@@ -14,7 +14,13 @@ import {
   matrixColumns,
 } from "./responsive-layout"
 
-function MatrixContent({ columns }: { columns: number }) {
+function MatrixContent({
+  columns,
+  showSeconds,
+}: {
+  columns: number
+  showSeconds: boolean
+}) {
   const { t } = useTranslation()
   const renderer = useMatrixRendererStore((state) => state.renderer)
   const [failed, setFailed] = useState(false)
@@ -48,7 +54,7 @@ function MatrixContent({ columns }: { columns: number }) {
   }, [content, columns, textPixels])
 
   const time = clock.toLocaleTimeString("en-GB", { hour12: false })
-  const clockDisplay = clockBitmap(time, columns)
+  const clockDisplay = clockBitmap(time, columns, showSeconds)
   const pixels =
     content === "time"
       ? clockDisplay.pixels
@@ -115,7 +121,11 @@ function MatrixContent({ columns }: { columns: number }) {
   )
 }
 
-export default function DotMatrix() {
+export default function DotMatrix({
+  showSeconds = true,
+}: {
+  showSeconds?: boolean
+}) {
   const container = useRef<HTMLDivElement>(null)
   const [columns, setColumns] = useState(0)
   const content = useHomeSettingsStore((state) => state.content)
@@ -135,6 +145,7 @@ export default function DotMatrix() {
         <MatrixContent
           key={`${columns}-${content}-${text}`}
           columns={columns}
+          showSeconds={showSeconds}
         />
       )}
     </div>

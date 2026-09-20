@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import DotMatrix from "@/components/dot-matrix/dot-matrix"
 import TabGrid from "@/components/tab-grid/tab-grid"
@@ -12,6 +12,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import HomeContentContainer from "@/pages/home/components/home-content-container"
 import SearchPrompt from "@/components/search/search-prompt"
+import { gridMetrics, gridOccupancyBox } from "@/lib/grid/grid-layout"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
 // off the initial page for everyone else.
@@ -27,6 +28,26 @@ export default function HomeUI() {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
   const palette = getBackgroundPalette(paletteId)
+  const traditionalTrack = useRef<HTMLDivElement>(null)
+  const [traditionalWidth, setTraditionalWidth] = useState(0)
+  useLayoutEffect(() => {
+    const element = traditionalTrack.current
+    if (!element || layoutMode !== "traditional") return
+    const update = () =>
+      setTraditionalWidth(element.getBoundingClientRect().width)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [layoutMode])
+  const traditionalMetrics = gridMetrics(traditionalWidth)
+  const traditionalGridWidth =
+    traditionalWidth > 0
+      ? gridOccupancyBox(traditionalWidth, traditionalMetrics.columns, 1).width
+      : undefined
+  const searchWidth = traditionalGridWidth
+    ? Math.min(768, traditionalGridWidth, traditionalWidth)
+    : undefined
   function search(query: string) {
     runHomeSearch(query, t)
   }
@@ -56,12 +77,20 @@ export default function HomeUI() {
                 }}
               />
             )}
-            {topComponent === "dot-matrix" && (
-              <HomeContentContainer>
-                <DotMatrix />
-              </HomeContentContainer>
-            )}
-            <SearchPrompt onSubmit={search} />
+            <div
+              ref={traditionalTrack}
+              className="mx-auto w-full max-w-[1280px]"
+            >
+              {topComponent === "dot-matrix" && (
+                <HomeContentContainer
+                  data-home-track-content
+                  style={searchWidth ? { width: searchWidth } : undefined}
+                >
+                  <DotMatrix showSeconds={traditionalMetrics.columns > 8} />
+                </HomeContentContainer>
+              )}
+              <SearchPrompt onSubmit={search} width={searchWidth} />
+            </div>
           </div>
         )}
         <div

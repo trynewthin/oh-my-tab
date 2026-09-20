@@ -3,18 +3,11 @@ import { useEffect, useState } from "react"
 import { CaretLeft, CaretRight } from "@phosphor-icons/react"
 import type { CalendarItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
+import { weekdayOrder } from "./calendar-utils"
 
 // Monday-first week. The index is the column position, so index 0 is always
 // Monday regardless of the resolved language's weekend convention.
 const WEEK_START = 1
-
-function weekdayOrder(locale: string) {
-  const format = new Intl.DateTimeFormat(locale, { weekday: "short" })
-  const reference = new Date(Date.UTC(2024, 0, 1)) // Monday
-  return Array.from({ length: 7 }, (_, index) =>
-    format.format(new Date(reference.getTime() + index * 86400000))
-  )
-}
 
 function monthTitle(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
@@ -56,6 +49,7 @@ function CalendarContent({
   const start = (month.getDay() - WEEK_START + 7) % 7
   const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
   const weekdays = weekdayOrder(locale)
+  const compactWeekdays = weekdayOrder(locale, "narrow")
   if (item.size === "medium")
     return (
       <section
@@ -108,7 +102,7 @@ function CalendarContent({
                     : undefined
                 }
               >
-                {active ? weekdays[index] : date.getDate()}
+                {active ? compactWeekdays[index] : date.getDate()}
               </span>
             </div>
           )

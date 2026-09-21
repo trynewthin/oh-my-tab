@@ -6,6 +6,7 @@ import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { ApplicationHeaderActions } from "@/components/application/application-dialog"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import EngineIcon from "@/components/search/engine-icon"
 import {
   defaultSearchEngines,
@@ -27,7 +28,9 @@ export default function SearchEngineSettings() {
     usePrivacyStore((state) => state.browserSearch) && available
   const engines = useSearchEngineStore((state) => state.engines)
   const selectedId = useSearchEngineStore((state) => state.selectedId)
+  const openInNewTab = useSearchEngineStore((state) => state.openInNewTab)
   const selectEngine = useSearchEngineStore((state) => state.selectEngine)
+  const setOpenInNewTab = useSearchEngineStore((state) => state.setOpenInNewTab)
   const removeEngine = useSearchEngineStore((state) => state.removeEngine)
   const addPreset = useSearchEngineStore((state) => state.addPreset)
   const [deleting, setDeleting] = useState<SearchEngine | null>(null)
@@ -47,6 +50,22 @@ export default function SearchEngineSettings() {
             {t("settings.searchEngines.add")}
           </Button>
         </ApplicationHeaderActions>
+      </div>
+      <div className="flex items-center gap-4 rounded-2xl border p-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">
+            {t("settings.searchEngines.openInNewTab")}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("settings.searchEngines.openInNewTabHint")}
+          </p>
+        </div>
+        <Switch
+          aria-label={t("settings.searchEngines.openInNewTab")}
+          checked={openInNewTab}
+          className="data-checked:bg-primary"
+          onCheckedChange={setOpenInNewTab}
+        />
       </div>
       <div className="min-h-14 divide-y rounded-2xl border">
         {engines.map((engine) => (

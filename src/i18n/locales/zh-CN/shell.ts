@@ -10,6 +10,7 @@ const shell = {
     searchPlaceholder: "搜索点什么…",
     searchButton: "搜索",
     searchButtonTitle: "在新标签页搜索",
+    searchButtonTitleCurrentTab: "在当前标签页搜索",
     openedInNewTab: "已在新标签页打开",
     suggestions: "搜索建议",
     matchedBookmarks: "匹配书签",
@@ -114,7 +115,7 @@ const shell = {
       },
       settings: {
         title: "设置：按分类管理",
-        text: "点击齿轮进入设置，左侧可选择常规、主页、个性化、搜索和关于。设置会自动保存，点击「关闭」回到主页。",
+        text: "点击齿轮进入设置，左侧按常规、个性化和关于分类管理各项功能。设置会自动保存，点击「关闭」回到主页。",
       },
       dotMatrix: {
         title: "主页：电子点阵",

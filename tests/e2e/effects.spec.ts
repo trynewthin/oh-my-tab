@@ -51,7 +51,7 @@ test("settings flame mounts with its pane and stops when hidden", async ({
     .first()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
-  await dialog.getByRole("button", { name: "顶部", exact: true }).click()
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await expect(dialog.locator("[data-effect-phase]")).toHaveCount(0)
   await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")

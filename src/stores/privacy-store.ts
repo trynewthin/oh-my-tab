@@ -20,7 +20,7 @@ export const extensionApi = () =>
         search?: {
           query: (value: {
             text: string
-            disposition: "NEW_TAB"
+            disposition: "NEW_TAB" | "CURRENT_TAB"
           }) => Promise<void>
         }
       }

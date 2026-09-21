@@ -10,6 +10,7 @@ const shell = {
     searchPlaceholder: "Search for something…",
     searchButton: "Search",
     searchButtonTitle: "Search in a new tab",
+    searchButtonTitleCurrentTab: "Search in the current tab",
     openedInNewTab: "Opened in a new tab",
     suggestions: "Search suggestions",
     matchedBookmarks: "Matching bookmarks",
@@ -71,7 +72,8 @@ const shell = {
     previous: "Previous",
     next: "Next",
     start: "Get started",
-    consentPrompt: "Choose the online services you want, then continue the tour.",
+    consentPrompt:
+      "Choose the online services you want, then continue the tour.",
     decline: "Decline",
     agree: "Agree",
     consentDenied: "Website access was not granted; online services stay off.",
@@ -114,7 +116,7 @@ const shell = {
       },
       settings: {
         title: "Settings: organized by category",
-        text: "Click the gear to open settings; the left side offers General, Home, Personalization, Search, and About. Settings save automatically; click Close to return home.",
+        text: "Click the gear to open settings; the left side groups features under General, Personalization, and About. Settings save automatically; click Close to return home.",
       },
       dotMatrix: {
         title: "Home: dot matrix",

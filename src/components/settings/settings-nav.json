@@ -6,21 +6,15 @@
       "labelKey": "settings.nav.general",
       "children": [
         { "id": "general-basic", "labelKey": "settings.nav.generalBasic" },
+        { "id": "search-engines", "labelKey": "settings.nav.search" },
         { "id": "general-data", "labelKey": "settings.nav.generalData" }
-      ]
-    },
-    {
-      "id": "home",
-      "labelKey": "settings.nav.home",
-      "children": [
-        { "id": "home-top", "labelKey": "settings.nav.homeTop" },
-        { "id": "search-engines", "labelKey": "settings.nav.search" }
       ]
     },
     {
       "id": "personalization",
       "labelKey": "settings.nav.personalization",
       "children": [
+        { "id": "home-top", "labelKey": "settings.nav.home" },
         {
           "id": "personalization-appearance",
           "labelKey": "settings.nav.personalizationAppearance"

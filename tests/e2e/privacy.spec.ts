@@ -45,6 +45,26 @@ test("network features require consent and browser search is the default", async
     )
     .toEqual([{ text: "hello", disposition: "NEW_TAB" }])
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const searchTarget = page.getByRole("switch", {
+    name: "搜索时跳转到新标签",
+    exact: true,
+  })
+  await expect(searchTarget).toBeChecked()
+  await searchTarget.uncheck()
+  await page.getByRole("button", { name: "关闭", exact: true }).click()
+  await input.fill("current")
+  await input.press("Enter")
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { searchCalls: unknown[] }).searchCalls
+      )
+    )
+    .toEqual([
+      { text: "hello", disposition: "NEW_TAB" },
+      { text: "current", disposition: "CURRENT_TAB" },
+    ])
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
   await page.getByRole("button", { name: "隐私", exact: true }).click()
   await expect(
     page.getByRole("link", { name: "隐私政策与数据删除说明" })

@@ -11,7 +11,6 @@ export default {
     generalBasic: "Basic",
     generalData: "Data",
     home: "Home",
-    homeTop: "Top",
     search: "Search",
     personalization: "Personalization",
     personalizationAppearance: "Appearance",
@@ -232,6 +231,9 @@ export default {
   },
   searchEngines: {
     add: "Add",
+    openInNewTab: "Open searches in a new tab",
+    openInNewTabHint:
+      "Turn this off to open search results in the current tab.",
     engineBingCn: "Bing China",
     useAria: "Use {{name}}",
     editAria: "Edit {{name}}",

@@ -13,7 +13,9 @@ import {
 type SearchEngineState = {
   engines: SearchEngine[]
   selectedId: string
+  openInNewTab: boolean
   selectEngine: (id: string) => void
+  setOpenInNewTab: (value: boolean) => void
   addPreset: (id: string) => void
   saveEngine: (engine: SearchEngine) => void
   removeEngine: (id: string) => void
@@ -26,6 +28,7 @@ export const useSearchEngineStore = create<SearchEngineState>()(
         ["google", "bing", "bingcn"].includes(engine.id)
       ),
       selectedId: "google",
+      openInNewTab: true,
       selectEngine: (id) => {
         usePrivacyStore.getState().setBrowserSearch(false)
         set((state) =>
@@ -34,6 +37,7 @@ export const useSearchEngineStore = create<SearchEngineState>()(
             : state
         )
       },
+      setOpenInNewTab: (openInNewTab) => set({ openInNewTab }),
       addPreset: (id) =>
         set((state) => {
           const preset = defaultSearchEngines.find((engine) => engine.id === id)
@@ -65,7 +69,11 @@ export const useSearchEngineStore = create<SearchEngineState>()(
     {
       ...storageOptions(),
       name: "omt.search-engines",
-      partialize: ({ engines, selectedId }) => ({ engines, selectedId }),
+      partialize: ({ engines, selectedId, openInNewTab }) => ({
+        engines,
+        selectedId,
+        openInNewTab,
+      }),
       merge: (persisted, current) => {
         const saved = persisted as Partial<SearchEngineState> | undefined
         const storedEngines = saved?.engines
@@ -94,6 +102,7 @@ export const useSearchEngineStore = create<SearchEngineState>()(
         return {
           ...current,
           engines,
+          openInNewTab: saved?.openInNewTab !== false,
           selectedId: engines.some((engine) => engine.id === saved?.selectedId)
             ? saved!.selectedId!
             : engines[0].id,

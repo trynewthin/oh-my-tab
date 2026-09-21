@@ -42,7 +42,11 @@ export function snapshot() {
       transitionsEnabled: home.transitionsEnabled,
     },
     theme: { theme: useThemeStore.getState().theme },
-    search: { engines: search.engines, selectedId: search.selectedId },
+    search: {
+      engines: search.engines,
+      selectedId: search.selectedId,
+      openInNewTab: search.openInNewTab,
+    },
     grid: {
       items: grid.items,
       layouts: grid.layouts,
@@ -116,6 +120,8 @@ export function validateConfig(value: unknown): Config {
           defaultSearchEngines.some((p) => p.icon === e.icon))
     ) ||
     !search.engines.some((e) => e.id === search.selectedId) ||
+    (search.openInNewTab !== undefined &&
+      typeof search.openInNewTab !== "boolean") ||
     new Set(search.engines.map((e) => e.id)).size !== search.engines.length ||
     !Array.isArray(grid.items) ||
     !grid.items.every(validGridItem) ||
@@ -173,6 +179,7 @@ export function validateConfig(value: unknown): Config {
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=
     (home as { burningEntrance?: unknown }).burningEntrance === true
+  search.openInNewTab ??= true
   home.text = home.text.replace(/[^\x20-\x7e]/g, "")
   grid.mockDataVersion = MOCK_DATA_VERSION
   return config

@@ -11,7 +11,6 @@ export default {
     generalBasic: "基础",
     generalData: "数据",
     home: "主页",
-    homeTop: "顶部",
     search: "搜索",
     personalization: "个性化",
     personalizationAppearance: "外观",
@@ -223,6 +222,8 @@ export default {
   },
   searchEngines: {
     add: "添加",
+    openInNewTab: "搜索时跳转到新标签",
+    openInNewTabHint: "关闭后将在当前标签页打开搜索结果。",
     engineBingCn: "Bing 中国版",
     useAria: "使用 {{name}}",
     editAria: "编辑 {{name}}",

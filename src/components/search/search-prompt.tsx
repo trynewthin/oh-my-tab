@@ -16,6 +16,7 @@ import { useSearchSuggestions } from "@/components/search/use-search-suggestions
 import MoreActions from "@/components/home/more-actions"
 import SettingsButton from "@/components/home/settings-button"
 import SearchEngineSelect from "@/components/search/search-engine-select"
+import { useSearchEngineStore } from "@/stores/search-engine-store"
 
 import type { SearchBoxStyle } from "@/stores/home-settings-store"
 
@@ -50,6 +51,7 @@ export default function SearchPrompt({
   const items = useTabGridStore((state) => state.items)
   const themeColor = useHomeSettingsStore((state) => state.color)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const openInNewTab = useSearchEngineStore((state) => state.openInNewTab)
   const storedSearchBoxStyle = useHomeSettingsStore(
     (state) => state.searchBoxStyle
   )
@@ -258,7 +260,11 @@ export default function SearchPrompt({
               variant="ghost"
               size="icon"
               aria-label={t("shell.home.searchButton")}
-              title={t("shell.home.searchButtonTitle")}
+              title={t(
+                openInNewTab
+                  ? "shell.home.searchButtonTitle"
+                  : "shell.home.searchButtonTitleCurrentTab"
+              )}
               disabled={!query || !onSubmit}
               className={`rounded-full text-muted-foreground transition-[color,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:text-foreground enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none ${embedded ? "mr-1.5 size-10 bg-transparent hover:bg-transparent dark:hover:bg-transparent" : "mr-1"}`}
               onClick={(event) => {
@@ -341,7 +347,11 @@ export default function SearchPrompt({
               type="button"
               size="icon"
               aria-label={t("shell.home.searchButton")}
-              title={t("shell.home.searchButtonTitle")}
+              title={t(
+                openInNewTab
+                  ? "shell.home.searchButtonTitle"
+                  : "shell.home.searchButtonTitleCurrentTab"
+              )}
               disabled={!query || !onSubmit}
               className="transition-[filter,opacity,scale] duration-150 enabled:hover:scale-105 enabled:hover:brightness-110 enabled:active:scale-95 motion-reduce:transform-none motion-reduce:transition-none"
               style={{
@@ -359,7 +369,7 @@ export default function SearchPrompt({
         </PromptInput>
       )}
       <span role="status" className="sr-only">
-        {submitted ? t("shell.home.openedInNewTab") : ""}
+        {submitted && openInNewTab ? t("shell.home.openedInNewTab") : ""}
       </span>
       {expanded && (
         <div

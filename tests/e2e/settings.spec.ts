@@ -17,6 +17,12 @@ test("custom search engines validate URLs and persist selection", async ({
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await dialog.getByRole("button", { name: "搜索", exact: true }).click()
+  const openInNewTab = dialog.getByRole("switch", {
+    name: "搜索时跳转到新标签",
+    exact: true,
+  })
+  await expect(openInNewTab).toBeChecked()
+  await openInNewTab.uncheck()
   await dialog.getByRole("button", { name: "添加", exact: true }).click()
   const add = page.getByRole("dialog", { name: "添加搜索引擎", exact: true })
   await add.getByLabel("名称", { exact: true }).fill("Example Search")
@@ -27,7 +33,7 @@ test("custom search engines validate URLs and persist selection", async ({
   await expect(page.getByRole("alert")).toBeVisible()
   await add
     .getByLabel("搜索地址", { exact: true })
-    .fill("https://example.com/search?q={query}")
+    .fill("http://127.0.0.1:4173/search?q={query}")
   await add.getByRole("button", { name: "保存", exact: true }).click()
   await dialog
     .getByRole("button", { name: "使用 Example Search", exact: true })
@@ -37,18 +43,29 @@ test("custom search engines validate URLs and persist selection", async ({
     .poll(async () => {
       const state = await readStoredState<{
         selectedId: string
+        openInNewTab: boolean
         engines: { id: string; name: string }[]
       }>(page, "omt.search-engines")
       const engine = state.engines.find(
         (item) => item.name === "Example Search"
       )
-      return engine?.id === state.selectedId
+      return {
+        selected: engine?.id === state.selectedId,
+        openInNewTab: state.openInNewTab,
+      }
     })
-    .toBe(true)
+    .toEqual({ selected: true, openInNewTab: false })
   await page.reload()
   await expect(
     page.getByRole("button", { name: "搜索引擎：Example Search", exact: true })
   ).toBeVisible()
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  await expect(openInNewTab).not.toBeChecked()
+  await dialog.getByRole("button", { name: "关闭", exact: true }).click()
+  const input = page.getByRole("combobox", { name: "对话输入" })
+  await input.fill("same tab")
+  await input.press("Enter")
+  await page.waitForURL("**/search?q=same%20tab")
 })
 
 test("personalization persists theme color and home settings filter unsupported text", async ({
@@ -57,12 +74,12 @@ test("personalization persists theme color and home settings filter unsupported 
   await page.goto("/#/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "顶部", exact: true }).click()
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await dialog.getByRole("button", { name: "外观", exact: true }).click()
   await dialog.getByRole("button", { name: "选择主题色", exact: true }).click()
   await page.getByLabel("主题色", { exact: true }).fill("#a855f7")
   await page.keyboard.press("Escape")
-  await dialog.getByRole("button", { name: "顶部", exact: true }).click()
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await dialog.getByLabel("点阵显示内容").click()
   await page.getByRole("option", { name: "字符", exact: true }).click()
   await dialog.getByLabel("显示字符").fill("HELLO中文 2026")

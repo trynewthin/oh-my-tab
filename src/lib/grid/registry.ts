@@ -41,6 +41,9 @@ export function occupancyPreviewStyle(width: number, height: number) {
 export type ComponentAction =
   "resize" | "randomColor" | "dynamicEffect" | "groupable" | "expandable"
 
+export type ComponentMenuOperation =
+  "refreshIcon" | "edit" | "randomColor" | "dynamicEffect"
+
 // Occupancy role vocabulary. The role is the word shown before the size mark
 // ("Small · 4×1"); the mark itself is numeric and locale-independent.
 export type SizeRole =
@@ -91,7 +94,10 @@ export type ComponentDefinition = {
   defaultColor: string
   defaultSize: GridItemSize
   sizes: readonly ComponentSizeDefinition[]
-  menuSizes: readonly GridItemSize[]
+  menu: {
+    sizes: readonly GridItemSize[]
+    operations: readonly ComponentMenuOperation[]
+  }
   editorSizes: readonly GridItemSize[]
   catalogSizes: readonly GridItemSize[]
   catalogDirectAdd: boolean
@@ -114,7 +120,10 @@ export const componentRegistry = {
       gridSize("small", "4x1", "small"),
       gridSize("medium", "4x2", "medium"),
     ],
-    menuSizes: ["medium", "small"],
+    menu: {
+      sizes: ["medium", "small"],
+      operations: ["refreshIcon", "edit", "randomColor", "dynamicEffect"],
+    },
     editorSizes: ["small", "medium"],
     catalogSizes: [],
     catalogDirectAdd: false,
@@ -143,7 +152,10 @@ export const componentRegistry = {
       gridSize("wide", "8x4", "wide"),
       gridSize("wide-tall", "8x8", "wideTall"),
     ],
-    menuSizes: ["wide-tall", "wide", "tall", "large"],
+    menu: {
+      sizes: ["wide-tall", "wide", "tall", "large"],
+      operations: ["edit", "randomColor", "dynamicEffect"],
+    },
     editorSizes: ["large", "tall", "wide", "wide-tall"],
     catalogSizes: [],
     catalogDirectAdd: false,
@@ -166,7 +178,10 @@ export const componentRegistry = {
     defaultColor: "#6c63ff",
     defaultSize: "small",
     sizes: [gridSize("small", "1x1")],
-    menuSizes: [],
+    menu: {
+      sizes: [],
+      operations: ["edit", "randomColor"],
+    },
     editorSizes: [],
     catalogSizes: ["small"],
     catalogDirectAdd: true,
@@ -195,7 +210,10 @@ export const componentRegistry = {
       gridSize("wide", "8x4", "wide"),
       gridSize("wide-tall", "8x8", "wideTall"),
     ],
-    menuSizes: [],
+    menu: {
+      sizes: [],
+      operations: ["edit"],
+    },
     editorSizes: ["large", "tall", "wide", "wide-tall"],
     catalogSizes: ["large", "tall", "wide", "wide-tall"],
     catalogDirectAdd: false,
@@ -219,7 +237,10 @@ export const componentRegistry = {
     defaultColor: "#42b883",
     defaultSize: "large",
     sizes: [gridSize("large", "4x4", "large")],
-    menuSizes: [],
+    menu: {
+      sizes: [],
+      operations: ["edit"],
+    },
     editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: false,
@@ -247,7 +268,10 @@ export const componentRegistry = {
       gridSize("medium", "2x2", "day"),
       gridSize("large", "4x4", "month"),
     ],
-    menuSizes: ["large", "medium", "small"],
+    menu: {
+      sizes: ["large", "medium", "small"],
+      operations: ["edit", "randomColor", "dynamicEffect"],
+    },
     editorSizes: ["small", "medium", "large"],
     catalogSizes: ["large", "small", "medium"],
     catalogDirectAdd: false,
@@ -275,7 +299,10 @@ export const componentRegistry = {
       gridSize("medium", "8x1"),
       gridSize("small", "12x1"),
     ],
-    menuSizes: ["compact", "medium", "small"],
+    menu: {
+      sizes: ["compact", "medium", "small"],
+      operations: [],
+    },
     editorSizes: [],
     catalogSizes: ["compact", "medium", "small"],
     catalogDirectAdd: true,
@@ -299,7 +326,10 @@ export const componentRegistry = {
     defaultColor: "#6c8bd4",
     defaultSize: "medium",
     sizes: [gridSize("medium", "12x2")],
-    menuSizes: [],
+    menu: {
+      sizes: [],
+      operations: [],
+    },
     editorSizes: [],
     catalogSizes: ["medium"],
     catalogDirectAdd: true,
@@ -328,7 +358,10 @@ export const componentRegistry = {
       gridSize("wide", "4x1"),
       gridSize("large", "4x4"),
     ],
-    menuSizes: ["small", "medium", "wide", "large"],
+    menu: {
+      sizes: ["small", "medium", "wide", "large"],
+      operations: ["edit", "randomColor", "dynamicEffect"],
+    },
     editorSizes: ["small", "medium", "wide", "large"],
     catalogSizes: ["small", "medium", "wide", "large"],
     catalogDirectAdd: false,
@@ -355,7 +388,10 @@ export const componentRegistry = {
       gridSize("medium", "4x2", "medium"),
       gridSize("large", "4x4", "large"),
     ],
-    menuSizes: [],
+    menu: {
+      sizes: [],
+      operations: ["edit", "randomColor", "dynamicEffect"],
+    },
     editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: true,
@@ -456,7 +492,7 @@ export function getComponentSizeOptions(
   const definition = getComponentDefinition(kind)
   const configured =
     context === "menu"
-      ? definition.menuSizes
+      ? definition.menu.sizes
       : context === "catalog"
         ? definition.catalogSizes
         : definition.editorSizes
@@ -480,6 +516,12 @@ export function supportsComponentAction(
   action: ComponentAction
 ): boolean {
   return getComponentDefinition(kind).actions[action]
+}
+
+export function getComponentMenuOperations(
+  kind: GridItemKind
+): readonly ComponentMenuOperation[] {
+  return getComponentDefinition(kind).menu.operations
 }
 
 export function getItemGridDimensions(

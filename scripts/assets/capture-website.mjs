@@ -2,7 +2,7 @@ import { chromium } from "@playwright/test"
 import { mkdir } from "node:fs/promises"
 import sharp from "sharp"
 
-const appUrl = process.env.SHOWCASE_URL || "http://127.0.0.1:5173"
+const appUrl = process.env.SHOWCASE_URL || "http://localhost:5173"
 const output = "website/public/showcase"
 const now = new Date("2026-09-13T09:41:00+08:00").getTime()
 
@@ -114,6 +114,9 @@ const widgetItems = [
   },
 ]
 
+// Folders and tabs are separated by an empty grid column so neighbouring
+// tiles never touch in the screenshot — previously adjacent tile borders
+// rendered as stray frames inside other components.
 const organizeLayout = Object.fromEntries([
   ["work", { x: 0, y: 0 }],
   ["ideas", { x: 4, y: 0 }],
@@ -121,16 +124,17 @@ const organizeLayout = Object.fromEntries([
     .slice(2)
     .map((item, index) => [
       item.id,
-      { x: 8 + Math.floor(index / 4) * 4, y: index % 4 },
+      { x: 9 + Math.floor(index / 4) * 4, y: index % 4 },
     ]),
 ])
+// One empty column between each 4-wide widget.
 const widgetLayout = Object.fromEntries(
-  widgetItems.map((item, index) => [item.id, { x: index * 4, y: 0 }])
+  widgetItems.map((item, index) => [item.id, { x: index * 5, y: 0 }])
 )
 const homeLayout = {
   ...organizeLayout,
   ...Object.fromEntries(
-    widgetItems.map((item, index) => [item.id, { x: index * 4, y: 4 }])
+    widgetItems.map((item, index) => [item.id, { x: index * 5, y: 5 }])
   ),
 }
 const layouts = { organize: organizeLayout, widgets: widgetLayout }
@@ -162,7 +166,7 @@ await Promise.all(
 
 async function capture(browser, name, theme, items, positions, action) {
   const context = await browser.newContext({
-    viewport: { width: 1200, height: name.startsWith("home") ? 920 : 460 },
+    viewport: { width: 1500, height: name.startsWith("home") ? 920 : 460 },
     deviceScaleFactor: 2,
     reducedMotion: "reduce",
   })
@@ -195,12 +199,11 @@ async function capture(browser, name, theme, items, positions, action) {
           color: theme === "dark" ? "#9baddd" : "#967cad",
           folderStyle: "noise",
           effectStyle: "burning",
-          burningAmplitude: 0.65,
         },
         "omt.tab-grid": {
           items,
-          layouts: { 16: positions },
-          lastLayoutColumns: 16,
+          layouts: { 20: positions },
+          lastLayoutColumns: 20,
           mockDataVersion: 999,
         },
       }

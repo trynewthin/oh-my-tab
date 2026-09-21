@@ -4,17 +4,17 @@ import { landingDetailIds, type LandingDetailId } from "../i18n/types"
 import { chromeStoreUrl, releaseUrl } from "./site-frame"
 
 type DetailVisual = {
-  image: "home-dark" | "widgets"
-  view: string
+  image: "detail-colors" | "detail-todos" | "detail-calendar" | "detail-plant"
   tone: string
 }
 
-// Structural presentation stays stable across languages; only copy is localized.
+// Each detail card uses a dedicated tightly-framed capture — cropping a wide
+// screenshot used to leak neighbouring tiles' borders into the frame.
 const detailVisuals: Record<LandingDetailId, DetailVisual> = {
-  colors: { image: "home-dark", view: "28 270 290 300", tone: "lilac" },
-  todos: { image: "widgets", view: "310 100 300 310", tone: "blue" },
-  calendar: { image: "widgets", view: "24 100 300 310", tone: "rose" },
-  plant: { image: "widgets", view: "608 90 570 320", tone: "green" },
+  colors: { image: "detail-colors", tone: "lilac" },
+  todos: { image: "detail-todos", tone: "blue" },
+  calendar: { image: "detail-calendar", tone: "rose" },
+  plant: { image: "detail-plant", tone: "green" },
 }
 
 export function LandingContent() {
@@ -93,13 +93,11 @@ export function LandingContent() {
                 key={id}
               >
                 <div className="detail-art">
-                  <svg viewBox={visual.view} role="img" aria-label={title}>
-                    <image
-                      href={`/showcase/${visual.image}.webp`}
-                      width="1200"
-                      height={visual.image === "home-dark" ? 920 : 460}
-                    />
-                  </svg>
+                  <img
+                    loading="lazy"
+                    src={`/showcase/${visual.image}.webp`}
+                    alt={title}
+                  />
                 </div>
                 <div className="detail-copy">
                   <h3>{title}</h3>

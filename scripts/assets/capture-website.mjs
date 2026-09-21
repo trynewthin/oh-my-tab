@@ -164,9 +164,19 @@ await Promise.all(
   })
 )
 
-async function capture(browser, name, theme, items, positions, action) {
+async function capture(
+  browser,
+  name,
+  theme,
+  items,
+  positions,
+  { width, height, clip, columns = 20 } = {}
+) {
   const context = await browser.newContext({
-    viewport: { width: 1500, height: name.startsWith("home") ? 920 : 460 },
+    viewport: {
+      width: width ?? 1500,
+      height: height ?? (name.startsWith("home") ? 920 : 460),
+    },
     deviceScaleFactor: 2,
     reducedMotion: "reduce",
   })
@@ -181,7 +191,7 @@ async function capture(browser, name, theme, items, positions, action) {
     )
   })
   await context.addInitScript(
-    ({ theme, items, positions, name }) => {
+    ({ theme, items, positions, name, columns }) => {
       const states = {
         "omt.onboarding": { seen: true },
         "omt.privacy": {
@@ -202,24 +212,49 @@ async function capture(browser, name, theme, items, positions, action) {
         },
         "omt.tab-grid": {
           items,
-          layouts: { 20: positions },
-          lastLayoutColumns: 20,
+          layouts: { [columns]: positions },
+          lastLayoutColumns: columns,
           mockDataVersion: 999,
         },
       }
       for (const [key, state] of Object.entries(states))
         localStorage.setItem(key, JSON.stringify({ state, version: 0 }))
     },
-    { theme, items, positions, name }
+    { theme, items, positions, name, columns }
   )
   const page = await context.newPage()
   await page.clock.install({ time: now })
   await page.goto(appUrl)
   await page.getByRole("combobox").waitFor()
   await page.evaluate(() => document.fonts.ready)
-  if (action) await action(page)
   await page.waitForTimeout(1800)
-  const screenshot = await page.screenshot()
+  // Detail shots clip to the union of the target tiles' boxes so no
+  // neighbouring chrome (search box, empty track) leaks into the frame.
+  let clipRegion = clip
+  if (clip === "grid") {
+    const box = await page.evaluate((ids) => {
+      const tiles = ids
+        .map((id) =>
+          document
+            .querySelector(`[data-grid-item-id="${id}"]`)
+            ?.getBoundingClientRect()
+        )
+        .filter(Boolean)
+      if (!tiles.length) return null
+      const x = Math.min(...tiles.map((r) => r.x))
+      const y = Math.min(...tiles.map((r) => r.y))
+      return {
+        x,
+        y,
+        width: Math.max(...tiles.map((r) => r.x + r.width)) - x,
+        height: Math.max(...tiles.map((r) => r.y + r.height)) - y,
+      }
+    }, items.map((item) => item.id))
+    clipRegion = box ?? undefined
+  }
+  const screenshot = await page.screenshot(
+    clipRegion ? { clip: clipRegion } : undefined
+  )
   await sharp(screenshot).webp({ quality: 90 }).toFile(`${output}/${name}.webp`)
   await context.close()
 }
@@ -242,6 +277,56 @@ await capture(
   [...organizeItems, ...widgetItems],
   homeLayout
 )
+
+// Detail cards get their own tightly-framed captures so the landing page
+// never crops a wide shot — cropping bled neighbouring tiles' borders into
+// the frame. Each scene uses an 8-column grid at a ~628px viewport.
+const detailScenes = [
+  {
+    name: "detail-colors",
+    theme: "dark",
+    items: [
+      tab("d-github", "GitHub", "https://github.com", "#9788c8"),
+      tab("d-notion", "Notion", "https://notion.so", "#7394ad"),
+      tab("d-spotify", "Spotify", "https://open.spotify.com", "#79ab90"),
+    ],
+    positions: {
+      "d-github": { x: 0, y: 0 },
+      "d-notion": { x: 0, y: 1 },
+      "d-spotify": { x: 0, y: 2 },
+    },
+    columns: 8,
+  },
+  {
+    name: "detail-todos",
+    theme: "dark",
+    items: [widgetItems[1]],
+    positions: { todo: { x: 0, y: 0 } },
+    columns: 8,
+  },
+  {
+    name: "detail-calendar",
+    theme: "dark",
+    items: [widgetItems[0]],
+    positions: { calendar: { x: 0, y: 0 } },
+    columns: 8,
+  },
+  {
+    name: "detail-plant",
+    theme: "dark",
+    items: [widgetItems[2], widgetItems[3]],
+    positions: { garden: { x: 0, y: 0 }, canvas: { x: 4, y: 0 } },
+    columns: 8,
+  },
+]
+for (const scene of detailScenes) {
+  await capture(browser, scene.name, scene.theme, scene.items, scene.positions, {
+    width: 628,
+    height: 460,
+    clip: "grid",
+    columns: scene.columns,
+  })
+}
 await browser.close()
 
-console.log("Created four high-resolution product screenshots.")
+console.log("Created product and detail screenshots.")

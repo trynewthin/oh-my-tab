@@ -133,7 +133,7 @@ export default function GridItemDialog({
                   label: componentLabel(kind, t),
                 })}
                 aria-haspopup="dialog"
-                className="w-full min-w-0 rounded-2xl border border-border bg-card p-1.5 text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:bg-zinc-900 dark:hover:border-white/30"
+                className="relative h-64 w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-zinc-100 text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:bg-zinc-950 dark:hover:border-white/30"
                 onClick={() => {
                   if (selected !== kind) {
                     setSelected(kind)
@@ -144,12 +144,14 @@ export default function GridItemDialog({
                   }
                 }}
               >
-                <CatalogComponentPreview kind={kind} />
-                <span className="block px-3 py-3 text-sm font-medium">
-                  {componentLabel(kind, t)}
-                </span>
-                <span className="block truncate px-3 pb-3 text-xs leading-relaxed text-muted-foreground">
-                  {componentDescription(kind, t)}
+                <CatalogComponentPreview kind={kind} fill />
+                <span className="absolute right-3 bottom-3 left-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-zinc-950 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/80 dark:text-white">
+                  <span className="block text-sm font-medium">
+                    {componentLabel(kind, t)}
+                  </span>
+                  <span className="mt-1 block truncate text-xs leading-relaxed text-zinc-600 dark:text-white/65">
+                    {componentDescription(kind, t)}
+                  </span>
                 </span>
               </button>
             </div>
@@ -165,22 +167,23 @@ export default function GridItemDialog({
               }
             }}
           >
-            <DialogContent className="max-h-[90svh] gap-5 overflow-y-auto p-5 sm:max-w-xl sm:p-6">
+            <DialogContent className="h-[min(36rem,calc(100svh-2rem))] gap-0 overflow-hidden bg-zinc-100 p-0 sm:max-w-xl dark:bg-zinc-950">
               <CatalogComponentPreview
                 kind={selected}
                 detail
+                fill
                 size={
                   confirmSize || getComponentDefinition(selected).defaultSize
                 }
               />
-              <div className="min-w-0 space-y-3">
-                <DialogTitle className="pr-8 text-xl font-semibold">
+              <div className="absolute right-3 bottom-3 left-3 min-w-0 rounded-2xl border border-black/10 bg-white/80 p-4 text-zinc-950 shadow-lg backdrop-blur-md sm:right-4 sm:bottom-4 sm:left-4 dark:border-white/10 dark:bg-zinc-900/80 dark:text-white">
+                <DialogTitle className="text-xl font-semibold">
                   {componentLabel(selected, t)}
                 </DialogTitle>
-                <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
+                <DialogDescription className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-white/65">
                   {componentDescription(selected, t)}
                 </DialogDescription>
-                <div className="flex items-center justify-between gap-3 pt-2">
+                <div className="mt-4 flex items-center justify-between gap-3">
                   <div
                     role="group"
                     aria-label={t("grid.dialog.availableSizes")}

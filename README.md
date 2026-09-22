@@ -13,6 +13,7 @@
 Oh My Tab 会替换 Chrome 或 Edge 的新标签页。你可以拖动卡片安排位置，把相关网站收进文件夹，也可以直接搜索主页和文件夹里的书签。
 
 - **整理常用网站**：添加标签和文件夹，自由拖动、排序与调整大小。
+- **选择网格方式**：使用随宽度调整列数的动态网格，或让静态网格在桌面端保持 4 列、移动端保持 2 列并整体缩放。
 - **快速搜索**：搜索已有书签，或使用你选择的搜索引擎继续搜索网页。支持自由摆放的搜索框组件，可选 4×1、8×1、12×1 三种大小。
 - **快捷按钮**：用 1×1 按钮切换主题、一键整理、进入多选，或打开设置与组件库。
 - **实用小组件**：在主页放置日历、待办、点阵画布和像素花盆。
@@ -22,7 +23,7 @@ Oh My Tab 会替换 Chrome 或 Edge 的新标签页。你可以拖动卡片安�
 
 ## 安装
 
-可以从 [Chrome 应用商店](https://chromewebstore.google.com/detail/aihmkimlgdondkkeghfnkiknnocoiioa)安装，或手动加载发行版：
+可以从 [Chrome 应用商店](https://chromewebstore.google.com/detail/aihmkimlgdondkkeghfnkiknnocoiioa) 安装，或手动加载发行版：
 
 1. 从 [Releases](https://github.com/trynewthin/oh-my-tab/releases) 下载最新的 ZIP 文件并解压。
 2. 在 Chrome 打开 `chrome://extensions/`，或在 Edge 打开 `edge://extensions/`。
@@ -57,9 +58,8 @@ npm run dev
 提交修改前可以运行：
 
 ```bash
+npm run check
 npm run build
-npm run lint
-npm run test:unit
 npm test
 npm run test:extension
 ```
@@ -70,4 +70,4 @@ npm run test:extension
 
 ## 致谢
 
-界面基于 React、shadcn/ui 和 Tailwind CSS，拖拽使用 dnd kit，动画使用 GSAP，图标使用 Phosphor Icons 与 Simple Icons。
+界面基于 React、shadcn/ui 和 Tailwind CSS，拖拽使用 dnd kit，动画使用 GSAP，图标使用 Phosphor Icons。

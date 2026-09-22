@@ -268,11 +268,12 @@ for (const [name, width, height] of [
 await browser.close()
 // Store requires opaque RGB PNGs, including screenshots rendered by Chromium.
 const sharp = (await import("sharp")).default
-for (const name of [
-  ...slides.map((s) => s[0]),
-  "promo-small",
-  "promo-marquee",
-]) {
+const expectedOutputs = [
+  ...slides.map(([name]) => [name, 1280, 800]),
+  ["promo-small", 440, 280],
+  ["promo-marquee", 1400, 560],
+]
+for (const [name, expectedWidth, expectedHeight] of expectedOutputs) {
   const file = `${out}/${name}.png`,
     buffer = await sharp(file)
       .flatten({ background: "#171a23" })
@@ -282,6 +283,8 @@ for (const name of [
   await writeFile(file, buffer)
   const metadata = await sharp(buffer).metadata()
   if (metadata.channels !== 3) throw new Error(`Expected RGB PNG: ${file}`)
+  if (metadata.width !== expectedWidth || metadata.height !== expectedHeight)
+    throw new Error(`Expected ${expectedWidth}×${expectedHeight} PNG: ${file}`)
 }
 await rm(captureOut, { recursive: true, force: true })
 console.log(

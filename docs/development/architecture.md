@@ -4,7 +4,7 @@
 
 ## 总体边界
 
-Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负责搜索、组件网格和设置；工具栏弹窗只负责收藏当前网页。跨 store 的用例编排放在 `src/application/`，浏览器权限、持久化和联网能力由 `src/lib/` 的适配器封装，界面组件不直接实现平台差异。
+Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负责搜索、组件网格和设置；工具栏弹窗只负责收藏当前网页。跨 store 的用例编排放在 `src/application/`。存储和书签适配器位于 `src/lib/`，联网授权与浏览器搜索能力集中在 privacy store，工具栏入口负责读取当前标签页；其他界面组件不再分散实现平台差异。
 
 | 入口                   | 职责                             |
 | ---------------------- | -------------------------------- |
@@ -38,14 +38,14 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 3. 可独立计算的布局、校验、导入和领域规则放在 `src/lib/`，保持无 React 和 store 依赖。
 4. 跨 store、存储与网络适配器的流程放在 `src/application/`；application 不依赖页面或组件。
 5. 多个业务组件需要相同行为时，先抽到 `collection/`、`shared/` 或 `components/ui/`，再由业务组件组合。
-6. 平台存储和浏览器 API 只通过 `src/lib/` 的适配层访问。
-7. `npm run verify:architecture` 强制上述导入方向并拒绝静态循环依赖。
+6. 平台访问集中在现有边界：存储和书签使用 `src/lib/` 适配器，权限与浏览器搜索使用 privacy store，当前标签页读取留在 popup 入口。
+7. `npm run verify:architecture` 检查 `lib`、`stores`、`application`、`components`、`pages` 的导入方向，并拒绝内部静态循环；其余职责约定依靠评审和测试保障。
 
 ## 网格组件
 
 `src/lib/grid/registry.ts` 是组件元数据、尺寸和能力的统一来源。菜单、组件选择页、编辑器、布局计算和右键操作都读取注册表，不各自维护功能判断。
 
-网格占位以 **1×1 为正方形单位**。允许的占格写在 `GRID_OCCUPANCY`：`1×1`、`2×2`、`4×1`、`4×2`、`4×4`、`4×8`、`8×4`、`8×8`。组件用 `gridSize(token, occupancy, role?)` 报名，不能自写宽高。持久化仍用每种组件自己的 `small` / `large` 等令牌，令牌只在该 kind 内有效。`src/components/tab-grid/template/` 是空的标准组件骨架，新组件和标签升级按它接入。
+网格占位以 **1×1 为正方形单位**。允许的占格只在 `GRID_OCCUPANCY` 中维护，组件用 `gridSize(token, occupancy, role?)` 报名，不能自写宽高。持久化仍用每种组件自己的 `small` / `large` 等令牌，令牌只在该 kind 内有效。`src/components/tab-grid/template/` 提供标准模板组件，新组件和标签升级可按它接入。
 
 新增或修改组件时按以下顺序处理：
 

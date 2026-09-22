@@ -15,6 +15,8 @@
 | 扩展清单与权限   | `public/manifest.json`                    |
 | 待上传扩展包     | `packages/` 中当前版本的 Chrome Store ZIP |
 
+`materials/` 是按平台分类的本地准备区，已由 Git 忽略。只有确认需要随仓库维护的商店成品才复制到 `docs/store-assets/`。
+
 ## 单一用途
 
 提供可自定义的新标签页，帮助用户整理和访问常用网站，并从新标签页发起搜索。书签、布局、偏好和图片保存在本地；用户可以导出备份，或主动使用自选 HTTPS WebDAV 服务手动传输。
@@ -36,9 +38,8 @@
 
 1. 启动开发页面：`npm run dev -- --host 127.0.0.1`。
 2. 在另一个终端运行：`npm run store-assets`。
-3. 检查 `01-home.png` 至 `05-play.png` 均为 1280×800 RGB PNG。
-4. 检查 `promo-small.png` 为 440×280，`promo-marquee.png` 为 1400×560。
-5. 确认截图使用当前界面和公开示例数据，没有测试标记或个人信息。
+3. 脚本会验证五张功能图均为 1280×800 RGB PNG，宣传图分别为 440×280 和 1400×560。
+4. 人工确认截图使用当前界面和公开示例数据，没有测试标记或个人信息。
 
 ## 审核验证步骤
 
@@ -53,7 +54,7 @@
 
 ## 提交检查
 
-1. 运行构建、Lint、单元测试、端到端测试和真实扩展验证。
+1. 运行 `npm run check`、`npm run build`、`npm test` 和 `npm run test:extension`。
 2. 确认扩展 ZIP 根目录直接包含 `manifest.json`。
 3. 确认 `https://ohmytab.vercel.app/privacy` 已发布当前政策，并核对后台数据声明。
 4. 上传 `docs/store-assets/description.txt`、五张功能截图和两张宣传图。

@@ -2,9 +2,9 @@
 
 ## Project Structure & Module Organization
 
-Application code lives in `src/`. Page composition belongs in `src/pages/`, reusable controls in `src/components/ui/`, grid widgets and drag behavior in `src/components/tab-grid/`, state actions in `src/stores/`, application orchestration in `src/application/`, and pure models plus browser/storage adapters in `src/lib/`. Treat `src/lib/grid/registry.ts` as the source of truth for widget metadata, sizes, and capabilities.
+Application code lives in `src/`. Page composition belongs in `src/pages/`, reusable controls in `src/components/ui/`, grid widgets and drag behavior in `src/components/tab-grid/`, state actions in `src/stores/`, application orchestration in `src/application/`, and pure models plus browser/storage adapters in `src/lib/`. Treat `src/lib/grid/registry.ts` as the source of truth for widget metadata, sizes, and capabilities. See `docs/development/architecture.md` for the maintained boundaries.
 
-Browser entries and icons live in `public/`; store assets live in `docs/`. Automation is grouped under `scripts/assets/`, `scripts/release/`, and `scripts/verification/`. Tests use `tests/unit/`, `tests/e2e/`, and `tests/helpers/`. Generated results belong only in `tests/results/`.
+Browser entries and icons live in `public/`; canonical store assets live in `docs/`. Automation is grouped under `scripts/assets/`, `scripts/release/`, and `scripts/verification/`. Tests use `tests/unit/`, `tests/e2e/`, and `tests/helpers/`; their generated results belong in `tests/results/`. Local publishing drafts belong in the ignored `materials/` directory and must not be committed.
 
 The product website and hosted privacy policy are maintained as the `website/` workspace and deployed through the root `vercel.json`.
 
@@ -12,19 +12,17 @@ The product website and hosted privacy policy are maintained as the `website/` w
 
 - `npm ci`: install the locked dependency set.
 - `npm run dev`: start the Vite development server.
+- `npm run check`: run formatting, lint, types, architecture, unit tests, and the website build.
 - `npm run build`: type-check and build the extension into `dist/`.
-- `npm run lint`: run ESLint across the repository.
-- `npm run test:unit`: run the Vitest unit suite in `tests/unit/` (the Vite config is shared, so `@/` imports and `import.meta.env` work).
-- `npm run verify:architecture`: enforce import directions and reject static source cycles.
 - `npm test`: run Playwright tests against an existing build; run `npm run build` first.
 - `npm run test:extension`: validate the unpacked extension and CSP behavior.
 - `npm run test:webdav`: run the Docker-backed WebDAV integration check while the development server is running.
-- `npm run website:dev`: start the product website workspace.
-- `npm run website:build`: type-check and build the website for Vercel.
+
+See `docs/development/testing.md` for individual checks, browser setup, and WebDAV requirements.
 
 ## Coding Style & Naming Conventions
 
-Use TypeScript, React function components, strict typing, and the `@/` alias. Prettier enforces two-space indentation, double quotes, no semicolons, trailing ES5 commas, and an 80-column width. Use kebab-case filenames, PascalCase components, and camelCase functions. Keep data transformations outside render components and reuse shared primitives.
+Use TypeScript, React function components, strict typing, and the `@/` alias. Prettier and ESLint own mechanical formatting. Use kebab-case filenames, PascalCase components, and camelCase functions. Keep data transformations outside render components and reuse shared primitives.
 
 ## Testing Guidelines
 
@@ -32,7 +30,7 @@ Name Playwright tests `*.spec.ts` and unit tests `*.test.ts` (Vitest). Test user
 
 ## Commit & Pull Request Guidelines
 
-Follow the existing Conventional Commit style: `feat:`, `fix:`, `refactor:`, or `docs:` followed by a concise imperative summary. Keep commits focused. Pull requests should explain the behavior change, list validation performed, link relevant issues, and include before/after screenshots for visible UI changes. Update documentation, store copy, privacy disclosures, and tests when the corresponding behavior changes.
+Follow the existing Conventional Commit style, including `feat:`, `fix:`, `refactor:`, `docs:`, and `chore:`, followed by a concise imperative summary. Keep commits focused. Pull requests should explain the behavior change, list validation performed, link relevant issues, and include before/after screenshots for visible UI changes. Update documentation, store copy, privacy disclosures, and tests when the corresponding behavior changes.
 
 ## Security & Configuration
 

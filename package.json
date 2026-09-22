@@ -2,6 +2,9 @@
   "name": "oh-my-tab",
   "private": true,
   "version": "1.5.3",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css",

@@ -15,18 +15,17 @@
 
 ## 常用命令
 
-| 命令                     | 用途                                   |
-| ------------------------ | -------------------------------------- |
-| `npm run lint`           | 检查代码规范                           |
-| `npm run typecheck`      | 检查 TypeScript 类型                   |
-| `npm run test:unit`      | 运行 Node 单元测试                     |
-| `npm test`               | 基于已有构建运行 Playwright 端到端测试 |
-| `npm run test:extension` | 在真实扩展环境验证新标签页入口和 CSP   |
-| `npm run test:webdav`    | 验证 WebDAV 连接、上传、恢复和并发保护 |
-| `npm run website:dev`    | 启动产品官网开发服务器                 |
-| `npm run website:build`  | 类型检查并构建产品官网                 |
+| 命令                     | 用途                                                    |
+| ------------------------ | ------------------------------------------------------- |
+| `npm run check`          | 检查格式、Lint、类型、架构、单元测试，并构建产品官网    |
+| `npm run build`          | 类型检查并构建扩展                                      |
+| `npm test`               | 基于已有构建运行 Playwright 端到端测试                  |
+| `npm run test:extension` | 在真实扩展环境验证新标签页入口、语言、浏览器 API 和 CSP |
+| `npm run test:webdav`    | 验证 WebDAV 连接、上传、恢复和并发保护                  |
+| `npm run dev`            | 启动扩展和 WebDAV 集成验证使用的开发服务器              |
+| `npm run website:dev`    | 启动产品官网开发服务器                                  |
 
-提交前至少运行与改动直接相关的测试。修改共享组件、持久化或构建入口时，再运行完整的 `build`、`lint`、单元测试和端到端测试。
+提交前至少运行与改动直接相关的测试，并运行 `npm run check`。修改共享组件、持久化或构建入口时，再运行 `npm run build` 和 `npm test`；修改扩展入口、权限或 CSP 时，补充 `npm run test:extension`。
 
 端到端测试使用 `vite preview`，首次运行或源码变化后先执行 `npm run build`。
 

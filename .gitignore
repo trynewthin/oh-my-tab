@@ -40,3 +40,6 @@ packages/
 *.pem
 *.key
 .vercel/
+
+# Local publishing materials
+materials/

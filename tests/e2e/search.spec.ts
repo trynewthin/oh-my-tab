@@ -206,8 +206,9 @@ test("outdated responses stay hidden and an unavailable provider leaves search u
     .toBe("https://www.google.com/search?q=new")
 })
 
-
-test("suggestions follow the selected engine without retaining the previous results", async ({ page }) => {
+test("suggestions follow the selected engine without retaining the previous results", async ({
+  page,
+}) => {
   const providers: string[] = []
   await page.route("**/__suggestions?**", (route) => {
     const engine = new URL(route.request().url()).searchParams.get("engine")!
@@ -216,12 +217,18 @@ test("suggestions follow the selected engine without retaining the previous resu
   })
   const input = page.getByRole("combobox", { name: "对话输入" })
   await input.fill("hello")
-  await expect(page.getByText("google suggestion", { exact: true })).toBeVisible()
-  await page.getByRole("button", { name: "搜索引擎：Google", exact: true }).click()
+  await expect(
+    page.getByText("google suggestion", { exact: true })
+  ).toBeVisible()
+  await page
+    .getByRole("button", { name: "搜索引擎：Google", exact: true })
+    .click()
   await page.getByRole("button", { name: "Bing", exact: true }).click()
   await input.focus()
   await expect(page.getByText("bing suggestion", { exact: true })).toBeVisible()
-  await expect(page.getByText("google suggestion", { exact: true })).toHaveCount(0)
+  await expect(
+    page.getByText("google suggestion", { exact: true })
+  ).toHaveCount(0)
   expect(providers).toContain("google")
   expect(providers.at(-1)).toBe("bing")
 })

@@ -78,13 +78,22 @@ for (const effectStyle of ["burning", "particles"] as const) {
     await expect.poll(() => changes(first)).toBeGreaterThan(0)
     await expect.poll(() => changes(last)).toBe(0)
     await page.waitForTimeout(1700)
-    const frames = await first.locator("canvas").evaluate((node) => new Promise<number>((resolve) => {
-      const context = (node as HTMLCanvasElement).getContext("2d")!
-      const original = context.clearRect
-      let count = 0
-      context.clearRect = function (...args) { count++; original.apply(this, args) }
-      setTimeout(() => { context.clearRect = original; resolve(count) }, 1000)
-    }))
+    const frames = await first.locator("canvas").evaluate(
+      (node) =>
+        new Promise<number>((resolve) => {
+          const context = (node as HTMLCanvasElement).getContext("2d")!
+          const original = context.clearRect
+          let count = 0
+          context.clearRect = function (...args) {
+            count++
+            original.apply(this, args)
+          }
+          setTimeout(() => {
+            context.clearRect = original
+            resolve(count)
+          }, 1000)
+        })
+    )
     expect(frames).toBeGreaterThan(0)
     expect(frames).toBeLessThanOrEqual(9)
     await last.scrollIntoViewIfNeeded()

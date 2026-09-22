@@ -6,10 +6,7 @@ import HomeSettings from "./home/home-settings"
 import PersonalizationSettings from "./personalization/personalization-settings"
 import SearchEngineSettings from "./search/search-engine-settings"
 
-export const settingsViews: Record<
-  SettingsSection,
-  () => ReactElement
-> = {
+export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   "general-basic": () => <GeneralSettings pane="basic" />,
   "general-data": () => <GeneralSettings pane="data" />,
   "home-top": () => <HomeSettings />,

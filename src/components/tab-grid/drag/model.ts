@@ -5,7 +5,12 @@ export const FOLDER_GAP_ID = "__folder-gap__"
 export const TODO_GAP_ID = "__todo-gap__"
 
 export type Point = { x: number; y: number }
-export type Bounds = { left: number; top: number; width: number; height: number }
+export type Bounds = {
+  left: number
+  top: number
+  width: number
+  height: number
+}
 
 export type DragSession = {
   columns: number

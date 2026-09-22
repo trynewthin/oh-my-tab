@@ -104,9 +104,7 @@ export default function TabsPane() {
                 max="2"
                 step="0.1"
                 value={amplitude}
-                onChange={(event) =>
-                  setAmplitude(Number(event.target.value))
-                }
+                onChange={(event) => setAmplitude(Number(event.target.value))}
                 className="min-w-0 flex-1"
                 style={{ accentColor: color }}
               />

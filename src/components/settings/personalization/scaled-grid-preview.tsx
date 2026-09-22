@@ -1,9 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react"
 import TabGrid from "@/components/tab-grid/tab-grid"
-import {
-  gridOccupancyBox,
-  type GridPositions,
-} from "@/lib/grid/grid-layout"
+import { gridOccupancyBox, type GridPositions } from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 
 const MAX_PREVIEW_WIDTH = 448
@@ -27,10 +24,7 @@ export default function ScaledGridPreview({
     const container = containerRef.current
     if (!container) return
     const update = () => {
-      const availableWidth = Math.min(
-        container.clientWidth,
-        MAX_PREVIEW_WIDTH
-      )
+      const availableWidth = Math.min(container.clientWidth, MAX_PREVIEW_WIDTH)
       setScale(Math.min(1, availableWidth / box.width))
     }
     update()

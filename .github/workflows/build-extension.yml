@@ -28,10 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Check code
-        run: |
-          npm run lint
-          npm run verify:architecture
-          npm run test:unit
+        run: npm run check
       - name: Build extension
         run: npm run build
       - name: Prepare ZIP
@@ -80,6 +77,24 @@ jobs:
           echo "Download **${PACKAGE_NAME}** from this run's Artifacts section." >> "$GITHUB_STEP_SUMMARY"
           echo 'The ZIP contains manifest.json at its root. Extract it to load unpacked in Chrome or Edge.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Trusted builds also include a CRX signed with the stable repository signing key.' >> "$GITHUB_STEP_SUMMARY"
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build extension
+        run: npm run build
+      - name: Run end-to-end tests
+        run: npm test
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

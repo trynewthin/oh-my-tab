@@ -195,7 +195,10 @@ export function mountPixiGarden(svg: SVGSVGElement, animated = true) {
         art.scale.set(scale)
         art.position.set((width - 64 * scale) / 2, (height - 64 * scale) / 2)
         animations.forEach((animate) =>
-          animate((performance.now() - started) / 1000, motion.matches || !animated)
+          animate(
+            (performance.now() - started) / 1000,
+            motion.matches || !animated
+          )
         )
         presentPixi(renderer, stage!, canvas, width, height)
       }

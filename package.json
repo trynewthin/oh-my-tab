@@ -14,8 +14,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run verify:architecture && npm run test:unit && npm run website:build",
     "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "format": "prettier --write \"**/*.{js,mjs,ts,tsx,json,css,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,ts,tsx,json,css,md,yml,yaml}\"",
+    "lint-staged": "lint-staged --concurrent false",
+    "prepare": "simple-git-hooks",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview",
     "test": "playwright test",
@@ -66,12 +70,21 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "fake-indexeddb": "^6.2.5",
     "globals": "^17",
+    "lint-staged": "^16.2.3",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "sharp": "^0.35.4",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "~6",
     "typescript-eslint": "^8",
     "vite": "^8",
     "vitest": "^5.0.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npm run lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,mjs,ts,tsx,json,css,md,yml,yaml}": "prettier --write --ignore-unknown",
+    "*.{ts,tsx}": "eslint --fix"
   }
 }

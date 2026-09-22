@@ -232,24 +232,27 @@ async function capture(
   // neighbouring chrome (search box, empty track) leaks into the frame.
   let clipRegion = clip
   if (clip === "grid") {
-    const box = await page.evaluate((ids) => {
-      const tiles = ids
-        .map((id) =>
-          document
-            .querySelector(`[data-grid-item-id="${id}"]`)
-            ?.getBoundingClientRect()
-        )
-        .filter(Boolean)
-      if (!tiles.length) return null
-      const x = Math.min(...tiles.map((r) => r.x))
-      const y = Math.min(...tiles.map((r) => r.y))
-      return {
-        x,
-        y,
-        width: Math.max(...tiles.map((r) => r.x + r.width)) - x,
-        height: Math.max(...tiles.map((r) => r.y + r.height)) - y,
-      }
-    }, items.map((item) => item.id))
+    const box = await page.evaluate(
+      (ids) => {
+        const tiles = ids
+          .map((id) =>
+            document
+              .querySelector(`[data-grid-item-id="${id}"]`)
+              ?.getBoundingClientRect()
+          )
+          .filter(Boolean)
+        if (!tiles.length) return null
+        const x = Math.min(...tiles.map((r) => r.x))
+        const y = Math.min(...tiles.map((r) => r.y))
+        return {
+          x,
+          y,
+          width: Math.max(...tiles.map((r) => r.x + r.width)) - x,
+          height: Math.max(...tiles.map((r) => r.y + r.height)) - y,
+        }
+      },
+      items.map((item) => item.id)
+    )
     clipRegion = box ?? undefined
   }
   const screenshot = await page.screenshot(
@@ -320,12 +323,19 @@ const detailScenes = [
   },
 ]
 for (const scene of detailScenes) {
-  await capture(browser, scene.name, scene.theme, scene.items, scene.positions, {
-    width: 628,
-    height: 460,
-    clip: "grid",
-    columns: scene.columns,
-  })
+  await capture(
+    browser,
+    scene.name,
+    scene.theme,
+    scene.items,
+    scene.positions,
+    {
+      width: 628,
+      height: 460,
+      clip: "grid",
+      columns: scene.columns,
+    }
+  )
 }
 await browser.close()
 

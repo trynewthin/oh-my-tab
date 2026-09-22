@@ -14,7 +14,11 @@ import {
   dataUrlToBlob,
   storageRevision,
 } from "@/lib/storage"
-import { encodeBackup, decodeBackup, MAX_BACKUP_BYTES } from "@/lib/backup-codec"
+import {
+  encodeBackup,
+  decodeBackup,
+  MAX_BACKUP_BYTES,
+} from "@/lib/backup-codec"
 export { MAX_BACKUP_BYTES } from "@/lib/backup-codec"
 export type Backup = { config: Config; image?: Blob }
 export async function createBackup(): Promise<Blob> {

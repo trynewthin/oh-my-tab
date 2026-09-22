@@ -109,7 +109,9 @@ export default function BulkActions() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialog === "group" ? t("grid.bulk.folderName") : t("grid.bulk.deleteTitle")}
+              {dialog === "group"
+                ? t("grid.bulk.folderName")
+                : t("grid.bulk.deleteTitle")}
             </DialogTitle>
             {dialog !== "group" && (
               <DialogDescription>

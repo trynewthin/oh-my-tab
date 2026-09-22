@@ -17,7 +17,11 @@ import {
   isDotVisible,
 } from "@/lib/grid/dot-canvas-data"
 import type { DotCanvasItem } from "@/lib/grid/types"
-import { componentDefaultName, componentLabel, getComponentDefinition } from "@/lib/grid/registry"
+import {
+  componentDefaultName,
+  componentLabel,
+  getComponentDefinition,
+} from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 
 export default function DotCanvasConfiguration({

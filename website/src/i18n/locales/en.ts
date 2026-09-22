@@ -67,7 +67,8 @@ const resources: SiteResources = {
         title: "A little hobby, every day",
         text: "Calendar, todos, pixel planter, and dot-matrix canvas share the same free canvas.",
       },
-      widgetsAlt: "Calendar, todo, pixel planter, and dot-matrix canvas widgets",
+      widgetsAlt:
+        "Calendar, todo, pixel planter, and dot-matrix canvas widgets",
     },
   },
   privacy: {
@@ -121,7 +122,7 @@ const resources: SiteResources = {
         title: "Control, retention, and deletion",
         paragraphs: [
           "You can turn network services off in Settings and revoke site or bookmark permissions in your browser's extension management page. No new service requests are made after that; data already sent cannot be recalled, and existing favicon caches remain until you clear them.",
-          "Bookmarks can be deleted on the homepage. \"Cache → Manage\" in Settings shows per-category usage and clears the data you select; images left untouched for the past day are not cleared yet. Uninstalling the extension removes its local storage, while ZIP files and WebDAV backups you already exported must be deleted separately in their own locations.",
+          'Bookmarks can be deleted on the homepage. "Cache → Manage" in Settings shows per-category usage and clears the data you select; images left untouched for the past day are not cleared yet. Uninstalling the extension removes its local storage, while ZIP files and WebDAV backups you already exported must be deleted separately in their own locations.',
           "ZIP backups are unencrypted and contain site links, settings, and original background images; share them only with recipients you trust. Privacy consents and WebDAV connection details are not carried in a backup import. Legacy localStorage data is kept only as a migration fallback and is deleted along with the extension on uninstall.",
         ],
       },

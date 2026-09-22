@@ -11,4 +11,6 @@ for (const size of [16, 32, 48, 128]) {
     .png()
     .toFile(new URL(`icon-${size}.png`, icons).pathname)
 }
-console.log("Generated extension icons (16, 32, 48, 128 px) from docs/brand/oh-my-tab-icon.png")
+console.log(
+  "Generated extension icons (16, 32, 48, 128 px) from docs/brand/oh-my-tab-icon.png"
+)

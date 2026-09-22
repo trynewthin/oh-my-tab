@@ -14,7 +14,8 @@ const englishPrefix = "/en"
  */
 export function languageFromPath(pathname: string): AppLanguage {
   const normalized = normalizePath(pathname)
-  return normalized === englishPrefix || normalized.startsWith(`${englishPrefix}/`)
+  return normalized === englishPrefix ||
+    normalized.startsWith(`${englishPrefix}/`)
     ? "en"
     : defaultLanguage
 }

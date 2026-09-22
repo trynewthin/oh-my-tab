@@ -2,10 +2,7 @@ import { storageOptions } from "@/lib/storage"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
-import {
-  isLanguagePreference,
-  type LanguagePreference,
-} from "@/i18n/language"
+import { isLanguagePreference, type LanguagePreference } from "@/i18n/language"
 
 type LocaleState = {
   preference: LanguagePreference

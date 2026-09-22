@@ -21,21 +21,29 @@ describe("previewFolderTabs", () => {
 
   test("removes the moving tab and inserts exactly one sentinel", () => {
     const preview = previewFolderTabs(tabs, "b", 0)
-    expect(preview.filter((entry) => entry.id === FOLDER_GAP_ID)).toHaveLength(1)
+    expect(preview.filter((entry) => entry.id === FOLDER_GAP_ID)).toHaveLength(
+      1
+    )
     expect(preview.filter((entry) => entry.id === "b")).toHaveLength(0)
     expect(preview.map((entry) => entry.id)).toEqual([FOLDER_GAP_ID, "a", "c"])
   })
 
   test("clamps the insertion index to the remaining length at start, middle, end", () => {
-    expect(
-      previewFolderTabs(tabs, "b", -5).map((entry) => entry.id)
-    ).toEqual([FOLDER_GAP_ID, "a", "c"])
-    expect(
-      previewFolderTabs(tabs, "a", 1).map((entry) => entry.id)
-    ).toEqual(["b", FOLDER_GAP_ID, "c"])
-    expect(
-      previewFolderTabs(tabs, "b", 99).map((entry) => entry.id)
-    ).toEqual(["a", "c", FOLDER_GAP_ID])
+    expect(previewFolderTabs(tabs, "b", -5).map((entry) => entry.id)).toEqual([
+      FOLDER_GAP_ID,
+      "a",
+      "c",
+    ])
+    expect(previewFolderTabs(tabs, "a", 1).map((entry) => entry.id)).toEqual([
+      "b",
+      FOLDER_GAP_ID,
+      "c",
+    ])
+    expect(previewFolderTabs(tabs, "b", 99).map((entry) => entry.id)).toEqual([
+      "a",
+      "c",
+      FOLDER_GAP_ID,
+    ])
   })
 
   test("does not mutate the input array", () => {
@@ -57,15 +65,21 @@ describe("previewTodoTasks", () => {
   })
 
   test("clamps the insertion index to the remaining length at start, middle, end", () => {
-    expect(
-      previewTodoTasks(tasks, "b", -1).map((entry) => entry.id)
-    ).toEqual([TODO_GAP_ID, "a", "c"])
-    expect(
-      previewTodoTasks(tasks, "a", 2).map((entry) => entry.id)
-    ).toEqual(["b", "c", TODO_GAP_ID])
-    expect(
-      previewTodoTasks(tasks, "b", 10).map((entry) => entry.id)
-    ).toEqual(["a", "c", TODO_GAP_ID])
+    expect(previewTodoTasks(tasks, "b", -1).map((entry) => entry.id)).toEqual([
+      TODO_GAP_ID,
+      "a",
+      "c",
+    ])
+    expect(previewTodoTasks(tasks, "a", 2).map((entry) => entry.id)).toEqual([
+      "b",
+      "c",
+      TODO_GAP_ID,
+    ])
+    expect(previewTodoTasks(tasks, "b", 10).map((entry) => entry.id)).toEqual([
+      "a",
+      "c",
+      TODO_GAP_ID,
+    ])
   })
 
   test("does not mutate the input array", () => {
@@ -89,7 +103,11 @@ describe("reorderTodoTasks", () => {
 
   test("reinserts the original task object at the clamped index", () => {
     const original = task("b")
-    const start = reorderTodoTasks([task("a"), original, task("c")], original, 0)
+    const start = reorderTodoTasks(
+      [task("a"), original, task("c")],
+      original,
+      0
+    )
     expect(start[0]).toBe(original)
     expect(start.map((entry) => entry.id)).toEqual(["b", "a", "c"])
 
@@ -172,7 +190,10 @@ describe("gridPositionFromPoint", () => {
     expect(
       position(
         { x: 360, y: 260 },
-        { grabOffset: { x: 60, y: 60 }, bounds: { ...bounds, left: 100, top: 100 } }
+        {
+          grabOffset: { x: 60, y: 60 },
+          bounds: { ...bounds, left: 100, top: 100 },
+        }
       )
     ).toEqual({ x: 2, y: 1 })
   })

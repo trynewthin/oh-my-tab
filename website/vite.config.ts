@@ -27,7 +27,11 @@ function cleanUrls(): Plugin {
     return query ? `${target}?${query}` : target
   }
 
-  const middleware = (req: { url?: string }, _res: unknown, next: () => void) => {
+  const middleware = (
+    req: { url?: string },
+    _res: unknown,
+    next: () => void
+  ) => {
     req.url = rewrite(req.url)
     next()
   }

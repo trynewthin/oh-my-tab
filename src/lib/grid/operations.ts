@@ -169,9 +169,7 @@ export function describeRemoval(removed: GridItem[]): string {
 }
 
 export type UpsertBookmarkResult =
-  | { kind: "created" }
-  | { kind: "updated" }
-  | { kind: "invalid" }
+  { kind: "created" } | { kind: "updated" } | { kind: "invalid" }
 
 export function upsertBookmark(
   items: GridItem[],
@@ -179,8 +177,7 @@ export function upsertBookmark(
   url: string
 ): { items: GridItem[]; result: UpsertBookmarkResult } {
   const address = normalizeTabUrl(url)
-  if (!name.trim() || !address)
-    return { items, result: { kind: "invalid" } }
+  if (!name.trim() || !address) return { items, result: { kind: "invalid" } }
   const match = findBookmarkByUrl(items, address)
   if (match?.folderId)
     return {

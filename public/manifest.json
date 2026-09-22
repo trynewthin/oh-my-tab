@@ -15,12 +15,7 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
   },
-  "permissions": [
-    "activeTab",
-    "search",
-    "storage",
-    "unlimitedStorage"
-  ],
+  "permissions": ["activeTab", "search", "storage", "unlimitedStorage"],
   "action": {
     "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html",
@@ -30,10 +25,6 @@
       "128": "icons/icon-128.png"
     }
   },
-  "optional_host_permissions": [
-    "https://*/*"
-  ],
-  "optional_permissions": [
-    "bookmarks"
-  ]
+  "optional_host_permissions": ["https://*/*"],
+  "optional_permissions": ["bookmarks"]
 }

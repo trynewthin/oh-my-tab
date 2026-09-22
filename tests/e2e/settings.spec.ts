@@ -171,12 +171,14 @@ test("mobile settings uses full-screen application navigation", async ({
   await page.goto("/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  const bounds = await dialog.boundingBox()
-  expect(bounds).not.toBeNull()
-  expect(bounds!.x).toBeCloseTo(0, 0)
-  expect(bounds!.y).toBeCloseTo(0, 0)
-  expect(bounds!.width).toBeCloseTo(390, 0)
-  expect(bounds!.height).toBeCloseTo(844, 0)
+  await expect
+    .poll(async () => {
+      const bounds = await dialog.boundingBox()
+      return bounds
+        ? [bounds.x, bounds.y, bounds.width, bounds.height].map(Math.round)
+        : null
+    })
+    .toEqual([0, 0, 390, 844])
   await expect(
     dialog.locator("header").getByRole("button", { name: "添加", exact: true })
   ).toBeVisible()

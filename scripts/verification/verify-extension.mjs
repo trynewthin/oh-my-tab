@@ -128,7 +128,9 @@ for (const mode of languageModes) {
       () => globalThis.chrome?.i18n?.getMessage("extensionName") ?? ""
     )
     if (!extensionName)
-      throw new Error("chrome.i18n did not resolve the localized extension name")
+      throw new Error(
+        "chrome.i18n did not resolve the localized extension name"
+      )
     const label = (await input.getAttribute("aria-label"))?.trim() ?? ""
     const title = (await page.title()).trim()
     if (!label)
@@ -142,8 +144,7 @@ for (const mode of languageModes) {
     await popupPage.goto(new URL("popup.html", page.url()).href)
     await expectLanguage(popupPage, mode.lang, errors)
     const popupTitle = (await popupPage.title()).trim()
-    if (!popupTitle)
-      throw new Error(`Popup title is empty in ${mode.lang}`)
+    if (!popupTitle) throw new Error(`Popup title is empty in ${mode.lang}`)
     if (errors.length) throw new Error(errors.join("\n"))
     observed.push({ ...mode, label, title, popupTitle })
     console.log(

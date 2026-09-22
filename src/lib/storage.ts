@@ -121,7 +121,10 @@ export function writeEntries(
     writeError = error
     window.dispatchEvent(
       new CustomEvent("omt-storage-error", {
-        detail: error instanceof Error ? error.message : i18n.t("core.storage.saveFailed"),
+        detail:
+          error instanceof Error
+            ? error.message
+            : i18n.t("core.storage.saveFailed"),
       })
     )
     listeners.forEach((listener) => listener(Object.keys(values)))

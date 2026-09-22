@@ -54,9 +54,7 @@ export function getBackgroundPalette(id: BackgroundPaletteId) {
   )
 }
 
-export function backgroundPaletteStyle(
-  id: BackgroundPaletteId
-): CSSProperties {
+export function backgroundPaletteStyle(id: BackgroundPaletteId): CSSProperties {
   const palette = getBackgroundPalette(id)
   return {
     "--home-background-light": palette.light,

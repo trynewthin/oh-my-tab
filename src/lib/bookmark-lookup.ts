@@ -1,8 +1,4 @@
-import {
-  normalizeTabUrl,
-  type GridItem,
-  type TabEntry,
-} from "@/lib/grid/types"
+import { normalizeTabUrl, type GridItem, type TabEntry } from "@/lib/grid/types"
 
 export function findBookmarkByUrl(
   items: GridItem[],

@@ -16,9 +16,7 @@ test("plant care, naming, time accumulation and album persist", async ({
   await page.getByRole("button", { name: "趣味", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page
-    .getByRole("button", { name: "添加", exact: true })
-    .click()
+  await page.getByRole("button", { name: "添加", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   let panel = page.getByRole("dialog", { name: "像素花盆", exact: true })
@@ -163,9 +161,7 @@ test("daily check-in grants 100 points once and survives reload", async ({
   await page.getByRole("button", { name: "趣味", exact: true }).click()
   await page.getByRole("button", { name: "选择像素花盆" }).click()
   await page.getByRole("button", { name: "4×4", exact: true }).click()
-  await page
-    .getByRole("button", { name: "添加", exact: true })
-    .click()
+  await page.getByRole("button", { name: "添加", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
   await page.getByRole("button", { name: "编辑像素花盆" }).click()
   const panel = page.getByRole("dialog", { name: "像素花盆", exact: true })

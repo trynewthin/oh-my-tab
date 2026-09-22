@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  groupComponents,
-  resolveGroupAction,
-} from "@/lib/grid/grid-operations"
+import { groupComponents, resolveGroupAction } from "@/lib/grid/grid-operations"
 import type { GridItem, TabItem, FolderItem } from "@/lib/grid/types"
 import type { GridPositions } from "@/lib/grid/grid-layout"
 

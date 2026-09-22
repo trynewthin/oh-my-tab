@@ -4,7 +4,9 @@ import { privacySectionIds, privacySummaryIds } from "../i18n/types"
 
 export function PrivacyContent() {
   const { t } = useTranslation()
-  const [activeSection, setActiveSection] = useState<string>(privacySectionIds[0])
+  const [activeSection, setActiveSection] = useState<string>(
+    privacySectionIds[0]
+  )
 
   useEffect(() => {
     const updateSection = () => {
@@ -28,7 +30,10 @@ export function PrivacyContent() {
         <time dateTime="2026-09-13">{t("privacy.updatedLabel")}</time>
       </header>
 
-      <section className="policy-summary" aria-label={t("privacy.summaryLabel")}>
+      <section
+        className="policy-summary"
+        aria-label={t("privacy.summaryLabel")}
+      >
         {privacySummaryIds.map((id) => (
           <article key={id}>
             <strong>{t(`privacy.summary.${id}.title`)}</strong>

@@ -69,7 +69,9 @@ export default function TodoList({
       <CollectionViewport
         ref={viewportRef}
         expanded={showDelete}
-        label={showDelete ? t("grid.todo.listLabel", { name: item.name }) : undefined}
+        label={
+          showDelete ? t("grid.todo.listLabel", { name: item.name }) : undefined
+        }
         style={
           cards ? { marginTop: -topBleed, paddingTop: topBleed } : undefined
         }

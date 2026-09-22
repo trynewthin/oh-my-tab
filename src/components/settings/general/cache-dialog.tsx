@@ -72,7 +72,9 @@ export default function CacheDialog({
       toast(t("settings.cache.cleared"), "success")
     } catch (error) {
       toast(
-        error instanceof Error ? error.message : t("settings.cache.clearFailed"),
+        error instanceof Error
+          ? error.message
+          : t("settings.cache.clearFailed"),
         "error"
       )
     } finally {

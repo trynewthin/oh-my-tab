@@ -2,9 +2,11 @@ import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 
 // Static architecture guard for the import-direction contract:
-//   model/infrastructure (`src/lib`) -> never `components`, `pages`, `stores`
+//   model/infrastructure (`src/lib`) -> never `application`, `components`,
+//                                       `pages`, `stores`
 //   application orchestration         -> never `components`, `pages`
-//   state (`src/stores`)              -> never `components`, `pages`
+//   state (`src/stores`)              -> never `application`, `components`,
+//                                       `pages`
 //   reusable components               -> never `pages`
 // It also rejects internal static import cycles anywhere under `src`; entry
 // composition (`main.tsx`, `App.tsx`, `router/`, `layouts/`) stays free to
@@ -30,9 +32,9 @@ const sourceDir = path.join(root, "src")
 const extensions = [".ts", ".tsx"]
 
 const boundaryRules = [
-  { from: "lib", to: ["components", "pages", "stores"] },
+  { from: "lib", to: ["application", "components", "pages", "stores"] },
   { from: "application", to: ["components", "pages"] },
-  { from: "stores", to: ["components", "pages"] },
+  { from: "stores", to: ["application", "components", "pages"] },
   { from: "components", to: ["pages"] },
 ]
 
@@ -126,7 +128,7 @@ function scan(source) {
         index = readTemplate(index)
         continue
       }
-      if (char === "\"" || char === "'") {
+      if (char === '"' || char === "'") {
         index = readQuoted(index)
         continue
       }
@@ -187,7 +189,7 @@ function scan(source) {
       index = close < 0 ? length : close + 2
       continue
     }
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       const end = readQuoted(index)
       tokens.push({ type: "string", value: source.slice(index + 1, end - 1) })
       previous = "string"
@@ -316,11 +318,18 @@ const area = (file) => relative(file).split("/")[1]
 
 const violations = []
 for (const [importer, outgoing] of edges) {
-  const rule = boundaryRules.find((candidate) => candidate.from === area(importer))
+  const rule = boundaryRules.find(
+    (candidate) => candidate.from === area(importer)
+  )
   if (!rule) continue
   for (const imported of outgoing.keys())
     if (rule.to.includes(area(imported)))
-      violations.push({ importer, imported, from: rule.from, to: area(imported) })
+      violations.push({
+        importer,
+        imported,
+        from: rule.from,
+        to: area(imported),
+      })
 }
 violations.sort(
   (a, b) =>
@@ -332,9 +341,7 @@ const staticEdges = new Map()
 for (const [importer, outgoing] of edges)
   staticEdges.set(
     importer,
-    [...outgoing]
-      .filter(([, edge]) => edge.static)
-      .map(([target]) => target)
+    [...outgoing].filter(([, edge]) => edge.static).map(([target]) => target)
   )
 
 const cycles = []

@@ -253,7 +253,9 @@ export default function EcosystemConfiguration({
               {t("grid.ecosystem.plant")}
             </Button>
             {status?.mature && (
-              <Button onClick={archive}>{t("grid.ecosystem.addToAlbum")}</Button>
+              <Button onClick={archive}>
+                {t("grid.ecosystem.addToAlbum")}
+              </Button>
             )}
             <div className="mt-auto w-full pt-4">
               <span className="mb-1.5 block text-center text-xs text-muted-foreground">

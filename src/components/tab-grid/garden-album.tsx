@@ -36,20 +36,25 @@ export default function GardenAlbum({
       album: current.filter((plant) => !selected.includes(keyOf(plant))),
     })
     setSelected([])
-    toast(t("grid.ecosystem.albumRemoved", { count: removed.length }), "success", {
-      label: t("grid.notify.undo"),
-      run: () => {
-        const latest = useGardenStore.getState().album
-        useGardenStore.setState({
-          album: [
-            ...latest,
-            ...removed.filter(
-              (plant) => !latest.some((entry) => keyOf(entry) === keyOf(plant))
-            ),
-          ].sort((a, b) => a.plantedAt - b.plantedAt),
-        })
-      },
-    })
+    toast(
+      t("grid.ecosystem.albumRemoved", { count: removed.length }),
+      "success",
+      {
+        label: t("grid.notify.undo"),
+        run: () => {
+          const latest = useGardenStore.getState().album
+          useGardenStore.setState({
+            album: [
+              ...latest,
+              ...removed.filter(
+                (plant) =>
+                  !latest.some((entry) => keyOf(entry) === keyOf(plant))
+              ),
+            ].sort((a, b) => a.plantedAt - b.plantedAt),
+          })
+        },
+      }
+    )
   }
   return (
     <Dialog
@@ -70,7 +75,9 @@ export default function GardenAlbum({
             setSelected([])
           }}
         >
-          {selecting ? t("grid.ecosystem.albumDone") : t("grid.ecosystem.albumManage")}
+          {selecting
+            ? t("grid.ecosystem.albumDone")
+            : t("grid.ecosystem.albumManage")}
         </Button>
         {selecting && (
           <div

@@ -201,7 +201,7 @@ for (const [size, expectedRows] of [
   ["wide", 4],
   ["wide-tall", 8],
 ] as const) {
-  test(`${size} folder uses two columns when eight cells fit and collapses on a narrow grid`, async ({
+  test(`${size} folder keeps two columns on the minimum-width grid`, async ({
     page,
   }) => {
     await page.addInitScript((size) => {
@@ -248,13 +248,13 @@ for (const [size, expectedRows] of [
     await page.reload()
     await expect(folder).toHaveCSS("grid-column-end", "span 8")
     await page.setViewportSize({ width: 375, height: 900 })
-    await expect(folder).toHaveCSS("grid-column-end", "span 4")
-    await expect(links).toHaveCount(expectedRows)
+    await expect(folder).toHaveCSS("grid-column-end", "span 8")
+    await expect(links).toHaveCount(expectedRows * 2)
     await expect
       .poll(async () => {
         const a = await links.nth(0).boundingBox(),
           b = await links.nth(1).boundingBox()
-        return !!a && !!b && Math.abs(a.x - b.x) < 1 && b.y > a.y
+        return !!a && !!b && Math.abs(a.y - b.y) < 1 && b.x > a.x
       })
       .toBe(true)
   })

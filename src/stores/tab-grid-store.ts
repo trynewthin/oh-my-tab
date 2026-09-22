@@ -1,8 +1,5 @@
 import { storageOptions } from "@/lib/storage"
-import {
-  groupComponents,
-  resolveGroupAction,
-} from "@/lib/grid/grid-operations"
+import { groupComponents, resolveGroupAction } from "@/lib/grid/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import {
   GRID_COLUMNS,
@@ -12,11 +9,7 @@ import {
 import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import {
-  type GridItem,
-  type TabEntry,
-  type TodoTask,
-} from "@/lib/grid/types"
+import { type GridItem, type TabEntry, type TodoTask } from "@/lib/grid/types"
 import { validGridItem } from "@/lib/grid/validation"
 import { bookmarkItemFactory } from "@/lib/grid/factory"
 import {
@@ -44,10 +37,7 @@ const devInitialItems = (): GridItem[] =>
 
 import type { GridPosition, GridPositions } from "@/lib/grid/grid-layout"
 
-import {
-  transferTab,
-  type TabTransfer,
-} from "@/lib/grid/tab-transfer"
+import { transferTab, type TabTransfer } from "@/lib/grid/tab-transfer"
 
 import { randomComponentColor } from "@/lib/component-colors"
 import { i18n } from "@/i18n"
@@ -95,7 +85,10 @@ function sanitizePersisted(persisted: unknown): {
   mockDataVersion: number
 } {
   const items = (persisted as { items?: unknown } | null)?.items
-  if (items !== undefined && (!Array.isArray(items) || !items.every(validGridItem))) {
+  if (
+    items !== undefined &&
+    (!Array.isArray(items) || !items.every(validGridItem))
+  ) {
     throw new Error(i18n.t("grid.error.corruptGrid"))
   }
   const storedItems: GridItem[] = Array.isArray(items) ? items : []
@@ -168,7 +161,10 @@ export const useTabGridStore = create<TabGridState>()(
           label: i18n.t("grid.notify.undo"),
           run: () => {
             set((state) => restoreItems(state, removed, previous))
-            toast(i18n.t("grid.notify.restoredCount", { count: removed.length }), "success")
+            toast(
+              i18n.t("grid.notify.restoredCount", { count: removed.length }),
+              "success"
+            )
           },
         })
       },

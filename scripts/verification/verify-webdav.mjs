@@ -290,7 +290,9 @@ try {
       const dav = await import("/src/application/webdav.ts")
       const connection = { url, username: "omt-test", password }
       const old = await dav.fetchRemoteBackup(connection)
-      const data = await (await import("/src/application/backup.ts")).createBackup()
+      const data = await (
+        await import("/src/application/backup.ts")
+      ).createBackup()
       await dav.uploadRemoteBackup(connection, data, old.etag, true)
       try {
         await dav.uploadRemoteBackup(connection, data, old.etag, true)

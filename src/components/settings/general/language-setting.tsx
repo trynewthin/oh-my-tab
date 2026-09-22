@@ -7,10 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  LANGUAGE_PREFERENCES,
-  isLanguagePreference,
-} from "@/i18n/language"
+import { LANGUAGE_PREFERENCES, isLanguagePreference } from "@/i18n/language"
 import { useLocaleStore } from "@/stores/locale-store"
 import { settingsControlClassName } from "../shared/control-styles"
 

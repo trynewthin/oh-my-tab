@@ -137,6 +137,11 @@ export default {
     actionFailed: "操作失败，请重试",
   },
   home: {
+    gridMode: "网格模式",
+    gridDynamic: "动态网格",
+    gridDynamicHint: "根据可用宽度自动调整列数。",
+    gridStatic: "静态网格",
+    gridStaticHint: "桌面端固定 4 列，移动端固定 2 列，并整体缩放。",
     topComponent: "顶部显示的组件",
     topNone: "不显示",
     topDotMatrix: "电子点阵",

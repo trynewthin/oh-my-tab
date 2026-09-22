@@ -27,6 +27,7 @@ export function snapshot() {
     onboarding: { seen: useOnboardingStore.getState().seen },
     garden: useGardenStore.getState(),
     home: {
+      gridMode: home.gridMode,
       backgroundType: home.backgroundType,
       backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
@@ -77,6 +78,8 @@ export function validateConfig(value: unknown): Config {
     !grid ||
     (home.backgroundType !== undefined &&
       !["solid", "image", "explore"].includes(home.backgroundType)) ||
+    (home.gridMode !== undefined &&
+      !["dynamic", "static"].includes(home.gridMode)) ||
     (home.backgroundImage !== undefined &&
       home.backgroundImage !== null &&
       (typeof home.backgroundImage !== "string" ||
@@ -170,6 +173,7 @@ export function validateConfig(value: unknown): Config {
       ? legacyTexture
       : "burning"
   home.backgroundType ??= "solid"
+  home.gridMode ??= "dynamic"
   if ((home as { backgroundType?: string }).backgroundType === "explore")
     home.backgroundType = "solid"
   home.backgroundImage ??= null

@@ -146,6 +146,12 @@ export default {
     actionFailed: "Action failed, please try again",
   },
   home: {
+    gridMode: "Grid mode",
+    gridDynamic: "Dynamic grid",
+    gridDynamicHint: "Adjusts the column count to the available width.",
+    gridStatic: "Static grid",
+    gridStaticHint:
+      "Keeps four desktop columns and two mobile columns, scaling the whole grid.",
     topComponent: "Component shown at the top",
     topNone: "Hidden",
     topDotMatrix: "Dot matrix",

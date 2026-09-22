@@ -102,7 +102,7 @@ export default function EffectSurface({
           : { columns, rows, width, height }
       )
     }
-    updateGrid(element.getBoundingClientRect())
+    updateGrid({ width: element.clientWidth, height: element.clientHeight })
     const observer = new ResizeObserver(([entry]) => {
       updateGrid(entry.contentRect)
     })

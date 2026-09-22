@@ -4,8 +4,11 @@ import { getItemGridDimensions } from "./registry"
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
 export const GRID_CELL_SIZE = 59.5
 export const GRID_GAP = 16
+export const STATIC_GRID_MOBILE_COLUMNS = 8
+export const STATIC_GRID_DESKTOP_COLUMNS = 16
 
 export type GridColumnMode = "standard" | "even-components"
+export type GridSizingMode = "dynamic" | "static"
 
 export function columnsForWidth(
   width: number,
@@ -36,6 +39,41 @@ export function gridMetrics(width: number, mode: GridColumnMode = "standard") {
     columnStep,
     rowStep: columnStep,
     rowSize: width > 0 ? GRID_CELL_SIZE : 1,
+  }
+}
+
+export function resolveGridGeometry(
+  availableWidth: number,
+  sizingMode: GridSizingMode,
+  mobile: boolean,
+  columnMode: GridColumnMode = "standard"
+) {
+  const metrics =
+    sizingMode === "static"
+      ? {
+          columns: mobile
+            ? STATIC_GRID_MOBILE_COLUMNS
+            : STATIC_GRID_DESKTOP_COLUMNS,
+          gap: GRID_GAP,
+          compact: mobile,
+          columnStep: GRID_CELL_SIZE + GRID_GAP,
+          rowStep: GRID_CELL_SIZE + GRID_GAP,
+          rowSize: GRID_CELL_SIZE,
+        }
+      : gridMetrics(availableWidth, columnMode)
+  const trackWidth =
+    metrics.columnStep > 0
+      ? metrics.columns * metrics.columnStep - metrics.gap
+      : 0
+  const scale =
+    sizingMode === "static" && availableWidth > 0
+      ? Math.min(1, availableWidth / trackWidth)
+      : 1
+  return {
+    metrics,
+    trackWidth,
+    scale,
+    visualWidth: trackWidth * scale,
   }
 }
 

@@ -7,9 +7,13 @@ import type { Point } from "./drag/model"
 // keeps the measured width current.
 export default function useGridMeasurement({
   gridRef,
+  containerRef,
+  contentBox = false,
   trackWidth,
 }: {
   gridRef: MutableRefObject<HTMLDivElement | null>
+  containerRef?: MutableRefObject<HTMLDivElement | null>
+  contentBox?: boolean
   trackWidth?: number
 }): {
   pointer: MutableRefObject<Point | null>
@@ -23,18 +27,34 @@ export default function useGridMeasurement({
       pointer.current = { x: event.clientX, y: event.clientY }
     }
     document.addEventListener("mousemove", trackPointer, { passive: true })
-    const element = trackWidth ? null : gridRef.current?.parentElement
+    const element = trackWidth
+      ? null
+      : (containerRef?.current ?? gridRef.current?.parentElement)
+    const measure = () => {
+      if (!element) return 0
+      if (!contentBox) return element.getBoundingClientRect().width
+      const style = getComputedStyle(element)
+      return Math.max(
+        0,
+        element.clientWidth -
+          Number.parseFloat(style.paddingLeft) -
+          Number.parseFloat(style.paddingRight)
+      )
+    }
     const observer = element
       ? new ResizeObserver(() => {
-          setMeasuredWidth(element.getBoundingClientRect().width)
+          setMeasuredWidth(measure())
         })
       : null
-    if (element && observer) observer.observe(element)
+    if (element && observer) {
+      setMeasuredWidth(measure())
+      observer.observe(element)
+    }
     return () => {
       observer?.disconnect()
       document.removeEventListener("mousemove", trackPointer)
     }
-  }, [gridRef, trackWidth])
+  }, [containerRef, contentBox, gridRef, trackWidth])
 
   return { pointer, measuredWidth }
 }

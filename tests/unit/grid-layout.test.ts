@@ -6,6 +6,7 @@ import {
   gridMetrics,
   gridOccupancyBox,
   placeItems,
+  resolveGridGeometry,
 } from "@/lib/grid/grid-layout"
 import type { GridItem, TemplateItem } from "@/lib/grid/types"
 
@@ -103,5 +104,23 @@ describe("grid metrics", () => {
       expect(columns / 4).toBeGreaterThan(0)
       expect((columns / 4) % 2).toBe(0)
     }
+  })
+
+  test("static grids keep four desktop component columns and two mobile columns", () => {
+    const desktop = resolveGridGeometry(900, "static", false)
+    expect(desktop.metrics.columns).toBe(16)
+    expect(desktop.trackWidth).toBe(1192)
+    expect(desktop.visualWidth).toBe(900)
+    expect(desktop.scale).toBeCloseTo(900 / 1192)
+
+    const mobile = resolveGridGeometry(320, "static", true)
+    expect(mobile.metrics.columns).toBe(8)
+    expect(mobile.trackWidth).toBe(588)
+    expect(mobile.visualWidth).toBeCloseTo(320)
+    expect(mobile.scale).toBeCloseTo(320 / 588)
+
+    const narrow = resolveGridGeometry(240, "static", true)
+    expect(narrow.visualWidth).toBe(240)
+    expect(narrow.scale).toBeCloseTo(240 / 588)
   })
 })

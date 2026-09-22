@@ -8,14 +8,20 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu"
 import {
-  gridMetrics,
   gridOccupancyBox,
   itemHeight,
   itemWidth,
   placeItems,
+  resolveGridGeometry,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
-import { useEffect, useRef, useState } from "react"
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useComponentsApplicationStore } from "@/stores/components-application-store"
@@ -33,8 +39,20 @@ import GridSelectionItem from "./grid-selection-item"
 import { resolvePreviewDrop } from "./preview-drop"
 import useGridSensors from "./use-grid-sensors"
 import { previewFolderTabs, previewTodoTasks } from "./drag/model"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 const emptyPositions: GridPositions = {}
+const mobileGridQuery = "(max-width: 639px)"
+
+function subscribeMobileGrid(listener: () => void) {
+  const media = window.matchMedia(mobileGridQuery)
+  media.addEventListener("change", listener)
+  return () => media.removeEventListener("change", listener)
+}
+
+function mobileGridSnapshot() {
+  return window.matchMedia(mobileGridQuery).matches
+}
 
 export default function TabGrid({
   preview = false,
@@ -61,27 +79,46 @@ export default function TabGrid({
   const items = itemsOverride ?? storeItems
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
+  const gridMode = useHomeSettingsStore((state) => state.gridMode)
+  const mobileGrid = useSyncExternalStore(
+    subscribeMobileGrid,
+    mobileGridSnapshot,
+    () => false
+  )
   const gridRef = useRef<HTMLDivElement>(null)
+  const measurementRef = useRef<HTMLDivElement>(null)
   const { pointer, measuredWidth } = useGridMeasurement({
     gridRef,
+    containerRef: measurementRef,
+    contentBox: !preview && gridMode === "static",
     trackWidth,
   })
   const sourceWidth = trackWidth ?? measuredWidth
-  const metrics = gridMetrics(
+  const geometry = resolveGridGeometry(
     sourceWidth,
+    preview ? "dynamic" : gridMode,
+    mobileGrid,
     fullViewport ? "even-components" : "standard"
   )
+  const metrics = geometry.metrics
   const box = area
     ? gridOccupancyBox(sourceWidth, area.columns, area.rows)
     : null
-  const liveBox = gridOccupancyBox(sourceWidth, metrics.columns, 1)
-  const width = box?.width ?? (sourceWidth > 0 ? liveBox.width : measuredWidth)
+  const width =
+    box?.width ?? (sourceWidth > 0 ? geometry.trackWidth : measuredWidth)
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
-  const coordinateScale = preview ? previewScale : 1
+  const staticGrid = !preview && gridMode === "static"
+  const staticGridReady = staticGrid && sourceWidth > 0
+  const coordinateScale = preview
+    ? previewScale
+    : staticGridReady
+      ? geometry.scale
+      : 1
+  const [staticGridHeight, setStaticGridHeight] = useState(0)
   const [settledTarget, setSettledTarget] = useState<
     | {
         id: string
@@ -245,9 +282,20 @@ export default function TabGrid({
       columnStep={columnStep}
       rowStep={rowStep}
       gridGap={gridGap * coordinateScale}
-      previewScale={coordinateScale}
+      contentScale={coordinateScale}
     />
   )
+
+  useLayoutEffect(() => {
+    if (!staticGrid) return
+    const element = gridRef.current
+    if (!element) return
+    const update = () => setStaticGridHeight(element.offsetHeight)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [staticGrid, columns, items])
 
   // The preview grid runs the same drag pipeline as the live grid — dnd-kit
   // sensors, the floating overlay, FLIP reflows — but tiles render without
@@ -312,6 +360,7 @@ export default function TabGrid({
           onDragCancel={resetDrag}
         >
           <div
+            ref={measurementRef}
             className={`flex justify-center ${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
             style={{
               margin: fullViewport ? undefined : "0 -20px",
@@ -321,12 +370,26 @@ export default function TabGrid({
             <div
               ref={gridRef}
               data-tab-grid-track={preview ? undefined : ""}
+              data-grid-mode={gridMode}
+              data-grid-scale={staticGridReady ? coordinateScale : undefined}
               className="relative grid min-h-11"
               style={{
                 width: width > 0 ? width : undefined,
                 gap: gridGap,
                 gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
                 gridAutoRows: metrics.rowSize,
+                flexShrink: staticGridReady ? 0 : undefined,
+                transform: staticGridReady
+                  ? `scale(${coordinateScale})`
+                  : undefined,
+                transformOrigin: staticGridReady ? "top left" : undefined,
+                marginRight: staticGridReady
+                  ? geometry.visualWidth - width
+                  : undefined,
+                marginBottom:
+                  staticGridReady && staticGridHeight > 0
+                    ? staticGridHeight * coordinateScale - staticGridHeight
+                    : undefined,
               }}
             >
               {(width > 0 ? items : []).map((item) =>

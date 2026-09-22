@@ -7,6 +7,7 @@ import {
   isBackgroundPaletteId,
   type BackgroundPaletteId,
 } from "@/lib/background-palettes"
+import type { GridSizingMode } from "@/lib/grid/grid-layout"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -19,6 +20,7 @@ export type HomeLayoutMode = "traditional" | "free"
 
 type HomeSettings = {
   layoutMode: HomeLayoutMode
+  gridMode: GridSizingMode
   backgroundType: BackgroundType
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
@@ -36,6 +38,7 @@ type HomeSettings = {
 type HomeSettingsStore = HomeSettings & {
   setBackgroundType: (value: BackgroundType) => void
   setLayoutMode: (value: HomeLayoutMode) => void
+  setGridMode: (value: GridSizingMode) => void
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
@@ -54,6 +57,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
       layoutMode: "traditional",
+      gridMode: "dynamic",
       backgroundType: "solid",
       backgroundImage: null,
       backgroundPalette: "gray",
@@ -69,6 +73,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
+      setGridMode: (gridMode) => set({ gridMode }),
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
@@ -94,6 +99,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       name: "omt.home-settings",
       partialize: ({
         layoutMode,
+        gridMode,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -109,6 +115,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         transitionsEnabled,
       }) => ({
         layoutMode,
+        gridMode,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -128,6 +135,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         return {
           ...current,
           layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
+          gridMode: saved?.gridMode === "static" ? "static" : "dynamic",
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
           backgroundImage:
             typeof saved?.backgroundImage === "string"

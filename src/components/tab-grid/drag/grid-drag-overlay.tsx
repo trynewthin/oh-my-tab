@@ -33,7 +33,7 @@ export default function GridDragOverlay({
   columnStep,
   rowStep,
   gridGap,
-  previewScale = 1,
+  contentScale = 1,
 }: {
   dragging: DragSession | null
   intent: Intent
@@ -42,7 +42,7 @@ export default function GridDragOverlay({
   columnStep: number
   rowStep: number
   gridGap: number
-  previewScale?: number
+  contentScale?: number
 }) {
   const releaseProgress =
     dragging &&
@@ -100,7 +100,6 @@ export default function GridDragOverlay({
   const searchWidget =
     dragging?.item.kind === "search-minimal" ||
     dragging?.item.kind === "search-full"
-  const contentScale = preview ? previewScale : 1
   const contentWidth =
     overlayWidth === undefined ? undefined : overlayWidth / contentScale
   const contentHeight =

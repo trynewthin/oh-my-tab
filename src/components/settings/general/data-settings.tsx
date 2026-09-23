@@ -19,14 +19,14 @@ export default function DataSettings() {
     />
   )
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <LocalBackup
         busy={busy}
         pending={pending}
         setPending={state.setPending}
         run={state.run}
       />
-      <section className="space-y-5" aria-labelledby="sync-settings-title">
+      <section className="space-y-4" aria-labelledby="sync-settings-title">
         <SyncProviderSelect
           provider={syncProvider}
           busy={busy}

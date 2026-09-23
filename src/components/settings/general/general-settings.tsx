@@ -12,7 +12,7 @@ import DataSettings from "./data-settings"
 export default function GeneralSettings({ pane }: { pane: "basic" | "data" }) {
   const { t } = useTranslation()
   return (
-    <section className="relative isolate min-h-full space-y-5">
+    <section className="relative isolate min-h-full space-y-4">
       {pane === "basic" ? (
         <>
           <LanguageSetting />

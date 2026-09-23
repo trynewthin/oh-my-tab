@@ -15,7 +15,7 @@ export default function PersonalizationSettings({
 }) {
   const Pane = panes[pane]
   return (
-    <section className="relative isolate min-h-full space-y-5">
+    <section className="relative isolate min-h-full space-y-4">
       <Pane />
     </section>
   )

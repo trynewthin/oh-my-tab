@@ -5,7 +5,7 @@ import TopPane from "./top-pane"
 
 export default function HomeSettings() {
   return (
-    <section className="relative isolate min-h-full space-y-5">
+    <section className="relative isolate min-h-full space-y-4">
       <LayoutPane />
       <GridPane />
       <TopPane />

@@ -13,6 +13,7 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 import HomeContentContainer from "@/pages/home/components/home-content-container"
 import SearchPrompt from "@/components/search/search-prompt"
 import { gridTrackWidth, resolveGridGeometry } from "@/lib/grid/grid-layout"
+import QuickBar from "@/components/home/quick-bar"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
 // off the initial page for everyone else.
@@ -108,6 +109,7 @@ export default function HomeUI() {
               : "px-6 sm:px-10 xl:px-12"
           }
         >
+          {layoutMode === "free" && <QuickBar />}
           <TabGrid fullViewport={layoutMode === "free"} />
         </div>
       </div>

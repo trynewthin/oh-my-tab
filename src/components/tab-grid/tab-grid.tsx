@@ -1,6 +1,6 @@
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import BulkActions from "./bulk-actions"
-import { Plus } from "@phosphor-icons/react"
+import { Gear, Plus } from "@phosphor-icons/react"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -34,6 +34,7 @@ import { resolvePreviewDrop } from "./preview-drop"
 import useGridSensors from "./use-grid-sensors"
 import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useSettingsStore } from "@/stores/settings-store"
 
 const emptyPositions: GridPositions = {}
 
@@ -63,6 +64,7 @@ export default function TabGrid({
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
+  const layoutMode = useHomeSettingsStore((state) => state.layoutMode)
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
@@ -343,7 +345,7 @@ export default function TabGrid({
             className={`flex justify-center ${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
             style={{
               margin: fullViewport ? undefined : "0 -20px",
-              paddingTop: compactGrid ? 12 : 20,
+              paddingTop: fullViewport ? 8 : compactGrid ? 12 : 20,
             }}
           >
             <div
@@ -481,6 +483,14 @@ export default function TabGrid({
         </DndContext>
       </ContextMenuTrigger>
       <ContextMenuContent>
+        {layoutMode === "free" && (
+          <ContextMenuItem
+            onClick={() => useSettingsStore.getState().setOpen(true)}
+          >
+            <Gear />
+            {t("shell.settingsButton.open")}
+          </ContextMenuItem>
+        )}
         <ContextMenuItem
           onClick={() => useComponentsApplicationStore.getState().setOpen(true)}
         >

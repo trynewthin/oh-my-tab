@@ -96,7 +96,7 @@ const resources: SiteResources = {
       "local-data": {
         title: "Local data",
         paragraphs: [
-          "Site titles and links, folders, layout, search engines, preferences, dot-matrix images, and plant progress are stored in Chrome local storage; the development preview uses IndexedDB. Original background images and the favicon cache are managed by the same storage layer.",
+          "Site titles and links, folders, layout, website shortcuts and action settings in the top bar, search engines, preferences, dot-matrix images, and plant progress are stored in Chrome local storage; the development preview uses IndexedDB. Original background images and the favicon cache are managed by the same storage layer.",
           "When you use the toolbar quick bookmark, the extension reads only the current tab's title and URL to fill the bookmark form; it does not continuously read your browsing history. After you grant permission to import browser bookmarks, the extension reads bookmark titles, URLs, and folder structure to add them incrementally to your homepage; it never modifies, deletes, or continuously watches your existing browser bookmarks.",
           "Bookmark import, image cropping, and dot-matrix conversion all happen locally. Background images are kept as their original bytes and are sent to your own server only when you choose to upload a backup over WebDAV.",
         ],
@@ -106,7 +106,7 @@ const resources: SiteResources = {
         paragraphs: [
           "When you submit a search, the keywords go to your browser's default search service or to a search engine you selected yourself, and that service's privacy policy applies.",
           "Search suggestions are off by default. Once enabled and authorised, a 250-millisecond pause sends up to 200 characters of keywords to the suggestion service of the Google, Microsoft Bing, DuckDuckGo, Yahoo, Brave, Ecosia, or Yandex engine currently selected. Browser default, Startpage, and custom engines never request online suggestions.",
-          "Favicon downloads are off by default. Once enabled and authorised, a cache miss or manual refresh sends the site domain to Favicon.im, and to DuckDuckGo if that fails. Requests contain no bookmark titles, full URL paths, or query parameters.",
+          "Favicon downloads are off by default. Once enabled and authorised, a cache miss or manual refresh for a bookmark or top-bar website shortcut sends the site domain to Favicon.im, and to DuckDuckGo if that fails. Requests contain no site names, full URL paths, or query parameters.",
           "These requests use HTTPS and carry no cookies or referrer URL; the services still receive your IP address and the network information needed to handle the request, and may retain logs under their own policies.",
         ],
       },

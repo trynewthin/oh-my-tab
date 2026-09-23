@@ -22,6 +22,7 @@ import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { decodeConfig } from "@/lib/config-codec"
 import { isBackgroundPaletteId } from "@/lib/background-palettes"
+import { emptyQuickBar, validQuickBarConfig } from "@/lib/quick-bar"
 import { i18n } from "@/i18n"
 
 export function snapshot() {
@@ -33,6 +34,8 @@ export function snapshot() {
     onboarding: { seen: useOnboardingStore.getState().seen },
     garden: useGardenStore.getState(),
     home: {
+      layoutMode: home.layoutMode,
+      quickBar: home.quickBar,
       wideGridColumns: home.wideGridColumns,
       narrowGridColumns: home.narrowGridColumns,
       backgroundType: home.backgroundType,
@@ -83,6 +86,9 @@ export function validateConfig(value: unknown): Config {
     !theme ||
     !search ||
     !grid ||
+    (home.layoutMode !== undefined &&
+      !["traditional", "free"].includes(home.layoutMode)) ||
+    (home.quickBar !== undefined && !validQuickBarConfig(home.quickBar)) ||
     (home.backgroundType !== undefined &&
       !["solid", "image", "explore"].includes(home.backgroundType)) ||
     (home.wideGridColumns !== undefined &&
@@ -185,6 +191,8 @@ export function validateConfig(value: unknown): Config {
       ? legacyTexture
       : "burning"
   home.backgroundType ??= "solid"
+  home.layoutMode ??= "traditional"
+  home.quickBar ??= emptyQuickBar()
   home.wideGridColumns ??= DEFAULT_WIDE_GRID_COLUMNS
   home.narrowGridColumns = Math.min(
     home.narrowGridColumns ?? DEFAULT_NARROW_GRID_COLUMNS,

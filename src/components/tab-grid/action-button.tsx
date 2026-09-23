@@ -1,25 +1,10 @@
-import {
-  Checks,
-  CircleHalf,
-  Gear,
-  GridFour,
-  SquaresFour,
-  type Icon,
-} from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 
 import { runSystemAction } from "@/application/system-actions"
 import { buttonActionLabelKeys } from "@/lib/grid/button-actions"
-import type { ButtonAction, ButtonItem } from "@/lib/grid/types"
+import type { ButtonItem } from "@/lib/grid/types"
+import { systemActionIcons } from "@/components/system-action-icons"
 import ComponentBackground from "./shared/component-background"
-
-const buttonActionIcons = {
-  "toggle-theme": CircleHalf,
-  "tidy-grid": GridFour,
-  "toggle-selection": Checks,
-  "open-settings": Gear,
-  "open-components": SquaresFour,
-} as const satisfies Record<ButtonAction, Icon>
 
 export default function ActionButton({
   item,
@@ -29,7 +14,7 @@ export default function ActionButton({
   preview?: boolean
 }) {
   const { t } = useTranslation()
-  const Icon = buttonActionIcons[item.action]
+  const Icon = systemActionIcons[item.action]
   const action = t(
     `grid.editor.buttonActions.${buttonActionLabelKeys[item.action]}`
   )

@@ -170,7 +170,20 @@ test("personalization switches between traditional and free grid layouts", async
 
   await page.getByRole("button", { name: "打开设置" }).click()
   await page.getByRole("button", { name: "主页" }).click()
-  await page.getByRole("button", { name: "自由网格" }).click()
+  await page.getByRole("button", { name: "极简" }).click()
+
+  const preview = page.getByRole("group", { name: "顶栏预览" })
+  await expect(preview).toBeVisible()
+  await expect(preview).toHaveCSS("background-color", "rgba(0, 0, 0, 0)")
+  await expect(preview).toHaveCSS("border-top-width", "0px")
+  const layout = page.getByRole("button", { name: "极简" })
+  const leftActions = page.getByRole("group", { name: "左侧操作栏" })
+  expect((await preview.boundingBox())!.y).toBeGreaterThan(
+    (await layout.boundingBox())!.y
+  )
+  expect((await preview.boundingBox())!.y).toBeLessThan(
+    (await leftActions.boundingBox())!.y
+  )
 
   await expect(page.locator("[data-matrix-columns]")).toHaveCount(0)
   await expect(page.locator('[data-tour="search"]')).toHaveCount(0)

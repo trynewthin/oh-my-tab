@@ -6,6 +6,7 @@ const shell = {
   },
   home: {
     gridScroll: "滚动标签网格",
+    quickBar: "顶栏",
     searchInput: "搜索",
     searchPlaceholder: "搜索点什么…",
     searchButton: "搜索",

@@ -64,6 +64,8 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 `grid-layout.ts` 负责网格推导、碰撞处理和不同列数的布局恢复；`grid-operations.ts` 负责成组转换；`tab-transfer.ts` 负责标签在主页与文件夹之间移动。拖拽事件只协调这些操作，不承担数据转换规则。
 
+自由网格顶栏由主页组合，配置保存在 `home-settings-store.ts`，与网格组件和布局坐标独立。左右区域保存系统操作或网页快捷入口，中间显示时间或文字；顶栏和网格共用 `resolveGridGeometry` 推导的可视宽度以保持对齐。网页图标复用现有 favicon 缓存。
+
 ## 存储与兼容
 
 `src/lib/storage.ts` 统一持久化接口：扩展使用 `chrome.storage.local`，开发预览使用 IndexedDB。应用完成数据恢复后再显示主要界面，跨页面写入带版本检查。

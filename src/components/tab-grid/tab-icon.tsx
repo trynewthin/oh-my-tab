@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import {
   faviconKey,
   getCachedFavicon,
@@ -10,10 +10,12 @@ export default function TabIcon({
   url,
   className = "size-4",
   src: overrideSrc,
+  fallback,
 }: {
   url: string
   className?: string
   src?: string | null
+  fallback?: ReactNode
 }) {
   const key = faviconKey(url)
   const initialSrc = peekCachedFavicon(url)
@@ -68,13 +70,15 @@ export default function TabIcon({
       className={`${className} inline-flex shrink-0 items-center justify-center`}
       aria-hidden="true"
     >
-      {src && failedSrc !== src && (
+      {src && failedSrc !== src ? (
         <img
           src={src}
           className="h-full w-full object-contain"
           alt=""
           onError={() => setFailedSrc(src)}
         />
+      ) : (
+        fallback
       )}
     </span>
   )

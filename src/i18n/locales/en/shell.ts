@@ -6,6 +6,7 @@ const shell = {
   },
   home: {
     gridScroll: "Scroll tab grid",
+    quickBar: "Top bar",
     searchInput: "Search",
     searchPlaceholder: "Search for something…",
     searchButton: "Search",

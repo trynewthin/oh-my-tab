@@ -13,6 +13,18 @@ import {
   isGridComponentColumnCount,
   type GridComponentColumnCount,
 } from "@/lib/grid/grid-layout"
+import {
+  emptyQuickBar,
+  MAX_QUICK_CONTROLS_PER_SIDE,
+  normalizeQuickSite,
+  placeQuickControl,
+  sanitizeQuickBarConfig,
+  type QuickBarCenter,
+  type QuickBarConfig,
+  type QuickBarControl,
+  type QuickBarSide,
+} from "@/lib/quick-bar"
+import type { ButtonAction } from "@/lib/grid/types"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -25,6 +37,7 @@ export type HomeLayoutMode = "traditional" | "free"
 
 type HomeSettings = {
   layoutMode: HomeLayoutMode
+  quickBar: QuickBarConfig
   wideGridColumns: GridComponentColumnCount
   narrowGridColumns: GridComponentColumnCount
   backgroundType: BackgroundType
@@ -42,6 +55,16 @@ type HomeSettings = {
   transitionsEnabled: boolean
 }
 type HomeSettingsStore = HomeSettings & {
+  addQuickSystemControl: (side: QuickBarSide, action: ButtonAction) => void
+  addQuickSiteControl: (
+    side: QuickBarSide,
+    name: string,
+    url: string
+  ) => boolean
+  updateQuickSiteControl: (id: string, name: string, url: string) => boolean
+  removeQuickControl: (id: string) => void
+  placeQuickControl: (id: string, side: QuickBarSide, index: number) => void
+  setQuickBarCenter: (center: QuickBarCenter) => void
   setBackgroundType: (value: BackgroundType) => void
   setLayoutMode: (value: HomeLayoutMode) => void
   setWideGridColumns: (value: GridComponentColumnCount) => void
@@ -64,6 +87,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
       layoutMode: "traditional",
+      quickBar: emptyQuickBar(),
       wideGridColumns: DEFAULT_WIDE_GRID_COLUMNS,
       narrowGridColumns: DEFAULT_NARROW_GRID_COLUMNS,
       backgroundType: "solid",
@@ -81,6 +105,66 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
+      addQuickSystemControl: (side, action) =>
+        set((state) => ({
+          quickBar: {
+            ...state.quickBar,
+            [side]: [
+              ...state.quickBar[side],
+              { id: crypto.randomUUID(), kind: "system", action },
+            ].slice(0, MAX_QUICK_CONTROLS_PER_SIDE),
+          },
+        })),
+      addQuickSiteControl: (side, name, url) => {
+        const site = normalizeQuickSite(name, url)
+        if (!site) return false
+        set((state) => ({
+          quickBar: {
+            ...state.quickBar,
+            [side]: [
+              ...state.quickBar[side],
+              { id: crypto.randomUUID(), kind: "site", ...site },
+            ].slice(0, MAX_QUICK_CONTROLS_PER_SIDE) as QuickBarControl[],
+          },
+        }))
+        return true
+      },
+      updateQuickSiteControl: (id, name, url) => {
+        const site = normalizeQuickSite(name, url)
+        if (!site) return false
+        set((state) => ({
+          quickBar: {
+            left: state.quickBar.left.map((control) =>
+              control.id === id && control.kind === "site"
+                ? { ...control, ...site }
+                : control
+            ),
+            center: state.quickBar.center,
+            right: state.quickBar.right.map((control) =>
+              control.id === id && control.kind === "site"
+                ? { ...control, ...site }
+                : control
+            ),
+          },
+        }))
+        return true
+      },
+      removeQuickControl: (id) =>
+        set((state) => ({
+          quickBar: {
+            ...state.quickBar,
+            left: state.quickBar.left.filter((control) => control.id !== id),
+            right: state.quickBar.right.filter((control) => control.id !== id),
+          },
+        })),
+      placeQuickControl: (id, side, index) =>
+        set((state) => ({
+          quickBar: placeQuickControl(state.quickBar, id, side, index),
+        })),
+      setQuickBarCenter: (center) =>
+        set((state) => ({
+          quickBar: { ...state.quickBar, center },
+        })),
       setWideGridColumns: (wideGridColumns) =>
         set((state) => ({
           wideGridColumns,
@@ -121,6 +205,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       name: "omt.home-settings",
       partialize: ({
         layoutMode,
+        quickBar,
         wideGridColumns,
         narrowGridColumns,
         backgroundType,
@@ -138,6 +223,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         transitionsEnabled,
       }) => ({
         layoutMode,
+        quickBar,
         wideGridColumns,
         narrowGridColumns,
         backgroundType,
@@ -175,6 +261,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         return {
           ...current,
           layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
+          quickBar: sanitizeQuickBarConfig(saved?.quickBar),
           wideGridColumns,
           narrowGridColumns,
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",

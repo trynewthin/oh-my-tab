@@ -166,13 +166,12 @@ for (const width of [390, 1440]) {
             const layer = element.querySelector("canvas")
             const region = element.firstElementChild as HTMLElement | null
             if (!layer || !region) return null
-            const rect = region.getBoundingClientRect()
             const scale = window.devicePixelRatio || 1
             return {
               width: layer.width,
               height: layer.height,
-              expectedWidth: Math.ceil(Math.ceil(rect.width) * scale),
-              expectedHeight: Math.ceil(Math.ceil(rect.height) * scale),
+              expectedWidth: Math.ceil(region.clientWidth * scale),
+              expectedHeight: Math.ceil(region.clientHeight * scale),
               scale,
             }
           })
@@ -238,6 +237,18 @@ for (const width of [390, 1440]) {
           })
           .toBe(true)
         await page.emulateMedia({ reducedMotion: "reduce" })
+        await expect
+          .poll(async () => {
+            const first = await canvas.evaluate((element) =>
+              (element as HTMLCanvasElement).toDataURL()
+            )
+            await page.waitForTimeout(100)
+            const second = await canvas.evaluate((element) =>
+              (element as HTMLCanvasElement).toDataURL()
+            )
+            return first === second
+          })
+          .toBe(true)
 
         // 5. After a viewport resize, the backing store still matches the
         //    measured region at the active density. Fixed-size grid units may
@@ -261,16 +272,19 @@ for (const width of [390, 1440]) {
         expect(resized.width).toBe(resized.expectedWidth)
         expect(resized.height).toBe(resized.expectedHeight)
 
-        centres = await cellCentres(surface)
-        const resizedRendered = await decode(await surface.screenshot())
-        await hideCanvas()
-        const resizedDom = await decode(await surface.screenshot())
-        expect(
-          Math.abs(inkCoverage(resizedRendered) - inkCoverage(resizedDom))
-        ).toBeLessThan(0.05)
-        expect(
-          maxCentreDelta(resizedRendered, resizedDom, centres, resized.scale)
-        ).toBeLessThanOrEqual(8)
+        await expect
+          .poll(async () => {
+            await showCanvas()
+            centres = await cellCentres(surface)
+            const rendered = await decode(await surface.screenshot())
+            await hideCanvas()
+            const dom = await decode(await surface.screenshot())
+            return Math.max(
+              Math.abs(inkCoverage(rendered) - inkCoverage(dom)) / 0.05,
+              maxCentreDelta(rendered, dom, centres, resized.scale) / 8
+            )
+          })
+          .toBeLessThanOrEqual(1)
       })
     })
   }

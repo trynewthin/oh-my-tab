@@ -12,7 +12,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import HomeContentContainer from "@/pages/home/components/home-content-container"
 import SearchPrompt from "@/components/search/search-prompt"
-import { gridMetrics, gridOccupancyBox } from "@/lib/grid/grid-layout"
+import { gridTrackWidth, resolveGridGeometry } from "@/lib/grid/grid-layout"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
 // off the initial page for everyone else.
@@ -24,6 +24,10 @@ export default function HomeUI() {
   const { t } = useTranslation()
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
   const layoutMode = useHomeSettingsStore((state) => state.layoutMode)
+  const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
+  const narrowGridColumns = useHomeSettingsStore(
+    (state) => state.narrowGridColumns
+  )
   const needsTour = useOnboardingStore((state) => !state.seen || state.replay)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
@@ -40,11 +44,13 @@ export default function HomeUI() {
     observer.observe(element)
     return () => observer.disconnect()
   }, [layoutMode])
-  const traditionalMetrics = gridMetrics(traditionalWidth)
+  const traditionalGeometry = resolveGridGeometry(
+    traditionalWidth,
+    wideGridColumns,
+    narrowGridColumns
+  )
   const traditionalGridWidth =
-    traditionalWidth > 0
-      ? gridOccupancyBox(traditionalWidth, traditionalMetrics.columns, 1).width
-      : undefined
+    traditionalWidth > 0 ? traditionalGeometry.visualWidth : undefined
   const searchWidth = traditionalGridWidth
     ? Math.min(768, traditionalGridWidth, traditionalWidth)
     : undefined
@@ -86,7 +92,9 @@ export default function HomeUI() {
                   data-home-track-content
                   style={searchWidth ? { width: searchWidth } : undefined}
                 >
-                  <DotMatrix showSeconds={traditionalMetrics.columns > 8} />
+                  <DotMatrix
+                    showSeconds={traditionalWidth >= gridTrackWidth(12)}
+                  />
                 </HomeContentContainer>
               )}
               <SearchPrompt onSubmit={search} width={searchWidth} />

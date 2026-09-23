@@ -13,7 +13,7 @@ A customizable new tab page for your favorite sites, folders, and widgets.
 Oh My Tab replaces the new tab page in Chrome or Edge. Arrange cards on a free grid, organize related sites into folders, and search bookmarks across your page and folders.
 
 - **Organize your favorite sites:** add bookmarks and folders, drag to rearrange them, and choose card sizes. Multi-select items to organize them together.
-- **Choose how the grid behaves:** let a dynamic grid adapt its column count, or keep a static four-column desktop and two-column mobile grid that scales as one surface.
+- **Choose the grid columns:** set separate wide- and narrow-screen counts. The grid switches after the wide layout shrinks below 80%, then scales only if the narrow layout still does not fit. Defaults are four and two columns.
 - **Search within reach:** find saved bookmarks or search the web with your chosen search engine. Add a movable search widget in 4×1, 8×1, or 12×1 sizes.
 - **One-click shortcuts:** add 1×1 buttons to switch themes, tidy the grid, enter selection mode, or open settings and the component catalog.
 - **Useful and playful widgets:** keep a calendar and to-do list nearby, draw on a dot canvas, or grow a pixel plant. Preview widgets and select their size before adding them.

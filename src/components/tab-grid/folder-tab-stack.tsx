@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next"
 const ROW_GAP = 8
 const MIN_ROW_GAP = 4
 const TEXTURE_CELL_STEP = 9
+const COMPACT_ROW_HEIGHT = 46
+const PREVIEW_ROW_HEIGHT = 55
 
 function snapRowHeight(height: number, method: "nearest" | "down") {
   const cells =
@@ -24,7 +26,10 @@ function fixedRowLayout(availableHeight: number, visibleRows: number) {
     (availableHeight - (visibleRows - 1) * ROW_GAP) / visibleRows
   const maximumHeight =
     (availableHeight - (visibleRows - 1) * MIN_ROW_GAP) / visibleRows
-  let height = snapRowHeight(idealHeight, "nearest")
+  let height = Math.min(
+    PREVIEW_ROW_HEIGHT,
+    snapRowHeight(idealHeight, "nearest")
+  )
   if (height > maximumHeight) height = snapRowHeight(maximumHeight, "down")
   const gap = Math.min(
     ROW_GAP,
@@ -98,14 +103,13 @@ export default function FolderTabStack({
     const update = () => {
       setInnerColumns(wide && viewport.clientWidth >= 400 ? 2 : 1)
       const availableHeight = viewport.clientHeight - topBleed
-      const rowTarget = 46
       if (surface !== "preview") {
-        setRowHeight(rowTarget)
+        setRowHeight(COMPACT_ROW_HEIGHT)
         setStackGap(ROW_GAP)
         setStackInset(0)
       } else if (folder.size === "small") {
         const height = snapRowHeight(
-          Math.min(availableHeight, rowTarget),
+          Math.min(availableHeight, COMPACT_ROW_HEIGHT),
           "down"
         )
         setRowHeight(height)
@@ -113,7 +117,7 @@ export default function FolderTabStack({
         setStackInset(Math.max(0, (availableHeight - height) / 2))
       } else {
         const visibleRows =
-          folder.size === "tall" || folder.size === "wide-tall" ? 8 : 4
+          folder.size === "tall" || folder.size === "wide-tall" ? 9 : 4
         const { height, gap, inset } = fixedRowLayout(
           availableHeight,
           visibleRows

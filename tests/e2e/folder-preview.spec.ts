@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 for (const [size, expectedRows] of [
   ["large", 4],
-  ["tall", 8],
+  ["tall", 9],
 ] as const) {
   test(`${size} folder fills its height with ${expectedRows} complete rows`, async ({
     page,
@@ -69,7 +69,9 @@ for (const [size, expectedRows] of [
       return { available, rowHeight, step, fitted, total: rows.length }
     })
     expect(geometry.fitted).toBe(expectedRows)
+    expect(geometry.rowHeight).toBe(55)
     expect((geometry.rowHeight - 1) % 9).toBeCloseTo(0, 5)
+    expect(geometry.step - geometry.rowHeight).toBeLessThanOrEqual(8)
     await expect(region.getByRole("link")).toHaveCount(geometry.fitted)
     const bounds = (await region.boundingBox())!
     const boxes = await region
@@ -84,9 +86,18 @@ for (const [size, expectedRows] of [
       expect(box.top).toBeGreaterThanOrEqual(bounds.y - 0.5)
       expect(box.bottom).toBeLessThanOrEqual(bounds.y + bounds.height + 0.5)
     }
-    // The stack must consume the available height: no further full row fits.
+    // Surplus space is split around the stack instead of stretching row gaps.
+    const highest = Math.min(...boxes.map((box) => box.top))
     const lowest = Math.max(...boxes.map((box) => box.bottom))
-    expect(bounds.y + bounds.height - lowest).toBeLessThan(2)
+    const contentTop =
+      bounds.y +
+      (await region.evaluate((element) =>
+        Number.parseFloat(getComputedStyle(element).paddingTop)
+      ))
+    expect(highest - contentTop).toBeCloseTo(
+      bounds.y + bounds.height - lowest,
+      0
+    )
     // Large and tall previews are multi-row, and their twenty bookmarks exceed
     // what fits, so the scroll path below is genuinely exercised.
     expect(geometry.fitted).toBeGreaterThan(1)
@@ -199,7 +210,7 @@ test("legacy compact folders retain bookmarks and their stored size", async ({
 
 for (const [size, expectedRows] of [
   ["wide", 4],
-  ["wide-tall", 8],
+  ["wide-tall", 9],
 ] as const) {
   test(`${size} folder keeps two columns on the minimum-width grid`, async ({
     page,

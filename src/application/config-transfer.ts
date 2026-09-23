@@ -5,7 +5,13 @@ import {
   validSharedGarden,
   migrateGarden,
 } from "@/stores/garden-store"
-import { GRID_COLUMNS, itemWidth } from "@/lib/grid/grid-layout"
+import {
+  DEFAULT_NARROW_GRID_COLUMNS,
+  DEFAULT_WIDE_GRID_COLUMNS,
+  GRID_COLUMNS,
+  isGridComponentColumnCount,
+  itemWidth,
+} from "@/lib/grid/grid-layout"
 import { isMatrixPet } from "@/lib/matrix-pets"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
@@ -27,7 +33,8 @@ export function snapshot() {
     onboarding: { seen: useOnboardingStore.getState().seen },
     garden: useGardenStore.getState(),
     home: {
-      gridMode: home.gridMode,
+      wideGridColumns: home.wideGridColumns,
+      narrowGridColumns: home.narrowGridColumns,
       backgroundType: home.backgroundType,
       backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
@@ -78,8 +85,13 @@ export function validateConfig(value: unknown): Config {
     !grid ||
     (home.backgroundType !== undefined &&
       !["solid", "image", "explore"].includes(home.backgroundType)) ||
-    (home.gridMode !== undefined &&
-      !["dynamic", "static"].includes(home.gridMode)) ||
+    (home.wideGridColumns !== undefined &&
+      !isGridComponentColumnCount(home.wideGridColumns)) ||
+    (home.narrowGridColumns !== undefined &&
+      !isGridComponentColumnCount(home.narrowGridColumns)) ||
+    (isGridComponentColumnCount(home.wideGridColumns) &&
+      isGridComponentColumnCount(home.narrowGridColumns) &&
+      home.narrowGridColumns > home.wideGridColumns) ||
     (home.backgroundImage !== undefined &&
       home.backgroundImage !== null &&
       (typeof home.backgroundImage !== "string" ||
@@ -173,7 +185,12 @@ export function validateConfig(value: unknown): Config {
       ? legacyTexture
       : "burning"
   home.backgroundType ??= "solid"
-  home.gridMode ??= "dynamic"
+  home.wideGridColumns ??= DEFAULT_WIDE_GRID_COLUMNS
+  home.narrowGridColumns = Math.min(
+    home.narrowGridColumns ?? DEFAULT_NARROW_GRID_COLUMNS,
+    home.wideGridColumns
+  ) as typeof home.narrowGridColumns
+  delete (home as typeof home & { gridMode?: unknown }).gridMode
   if ((home as { backgroundType?: string }).backgroundType === "explore")
     home.backgroundType = "solid"
   home.backgroundImage ??= null

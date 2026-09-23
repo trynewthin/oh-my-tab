@@ -97,7 +97,8 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
           const columns = style.gridTemplateColumns
             .split(" ")
             .filter(Boolean).length
-          const gap = Number.parseFloat(style.columnGap) || 0
+          const scale = Number((node as HTMLElement).dataset.gridScale) || 1
+          const gap = (Number.parseFloat(style.columnGap) || 0) * scale
           const step = (node.getBoundingClientRect().width + gap) / columns
           // gridMetrics uses the same step, so a 4-track span is 4*step - gap.
           return 4 * step - gap

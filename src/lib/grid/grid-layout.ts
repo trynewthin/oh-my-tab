@@ -2,75 +2,62 @@ import type { GridItem } from "./types"
 import { getItemGridDimensions } from "./registry"
 
 export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
+export const GRID_COMPONENT_COLUMNS = [1, 2, 3, 4, 5, 6] as const
 export const GRID_CELL_SIZE = 59.5
 export const GRID_GAP = 16
-export const STATIC_GRID_MOBILE_COLUMNS = 8
-export const STATIC_GRID_DESKTOP_COLUMNS = 16
+export const DEFAULT_WIDE_GRID_COLUMNS = 4
+export const DEFAULT_NARROW_GRID_COLUMNS = 2
+export const MIN_COMFORTABLE_GRID_SCALE = 0.8
 
-export type GridColumnMode = "standard" | "even-components"
-export type GridSizingMode = "dynamic" | "static"
+export type GridComponentColumnCount = (typeof GRID_COMPONENT_COLUMNS)[number]
 
-export function columnsForWidth(
-  width: number,
-  mode: GridColumnMode = "standard"
-): number {
-  if (width <= 0) return 8
-  const candidates =
-    mode === "even-components"
-      ? GRID_COLUMNS.filter((columns) => (columns / 4) % 2 === 0)
-      : GRID_COLUMNS.filter((columns) => columns >= 8)
-  return (
-    [...candidates]
-      .reverse()
-      .find(
-        (columns) =>
-          columns * GRID_CELL_SIZE + (columns - 1) * GRID_GAP <= width
-      ) ?? 8
-  )
+export function isGridComponentColumnCount(
+  value: unknown
+): value is GridComponentColumnCount {
+  return GRID_COMPONENT_COLUMNS.includes(value as GridComponentColumnCount)
 }
 
-export function gridMetrics(width: number, mode: GridColumnMode = "standard") {
-  const columns = columnsForWidth(width, mode)
-  const columnStep = width > 0 ? GRID_CELL_SIZE + GRID_GAP : 0
+export function gridTrackWidth(columns: number) {
+  return columns * (GRID_CELL_SIZE + GRID_GAP) - GRID_GAP
+}
+
+function gridMetrics(columns: number, compact: boolean) {
+  const columnStep = GRID_CELL_SIZE + GRID_GAP
   return {
     columns,
     gap: GRID_GAP,
-    compact: width > 0 && width < 640,
+    compact,
     columnStep,
     rowStep: columnStep,
-    rowSize: width > 0 ? GRID_CELL_SIZE : 1,
+    rowSize: GRID_CELL_SIZE,
   }
 }
 
 export function resolveGridGeometry(
   availableWidth: number,
-  sizingMode: GridSizingMode,
-  mobile: boolean,
-  columnMode: GridColumnMode = "standard"
+  wideComponentColumns: GridComponentColumnCount = DEFAULT_WIDE_GRID_COLUMNS,
+  narrowComponentColumns: GridComponentColumnCount = DEFAULT_NARROW_GRID_COLUMNS
 ) {
-  const metrics =
-    sizingMode === "static"
-      ? {
-          columns: mobile
-            ? STATIC_GRID_MOBILE_COLUMNS
-            : STATIC_GRID_DESKTOP_COLUMNS,
-          gap: GRID_GAP,
-          compact: mobile,
-          columnStep: GRID_CELL_SIZE + GRID_GAP,
-          rowStep: GRID_CELL_SIZE + GRID_GAP,
-          rowSize: GRID_CELL_SIZE,
-        }
-      : gridMetrics(availableWidth, columnMode)
-  const trackWidth =
-    metrics.columnStep > 0
-      ? metrics.columns * metrics.columnStep - metrics.gap
-      : 0
+  const wideColumns = wideComponentColumns * 4
+  const wideTrackWidth = gridTrackWidth(wideColumns)
+  const wideScale =
+    availableWidth > 0 ? Math.min(1, availableWidth / wideTrackWidth) : 1
+  const componentColumns =
+    availableWidth > 0 &&
+    narrowComponentColumns < wideComponentColumns &&
+    wideScale < MIN_COMFORTABLE_GRID_SCALE
+      ? narrowComponentColumns
+      : wideComponentColumns
+  const metrics = gridMetrics(
+    componentColumns * 4,
+    availableWidth > 0 && availableWidth < 640
+  )
+  const trackWidth = gridTrackWidth(metrics.columns)
   const scale =
-    sizingMode === "static" && availableWidth > 0
-      ? Math.min(1, availableWidth / trackWidth)
-      : 1
+    availableWidth > 0 ? Math.min(1, availableWidth / trackWidth) : 1
   return {
     metrics,
+    componentColumns,
     trackWidth,
     scale,
     visualWidth: trackWidth * scale,
@@ -78,14 +65,14 @@ export function resolveGridGeometry(
 }
 
 export function gridOccupancyBox(
-  trackWidth: number,
+  _trackWidth: number,
   columns: number,
   rows: number
 ) {
-  const { columnStep, gap } = gridMetrics(trackWidth)
+  const columnStep = GRID_CELL_SIZE + GRID_GAP
   return {
-    width: columns * columnStep - gap,
-    height: rows * columnStep - gap,
+    width: gridTrackWidth(columns),
+    height: rows * columnStep - GRID_GAP,
   }
 }
 

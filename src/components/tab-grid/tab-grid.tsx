@@ -15,13 +15,7 @@ import {
   resolveGridGeometry,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useComponentsApplicationStore } from "@/stores/components-application-store"
@@ -42,17 +36,6 @@ import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 const emptyPositions: GridPositions = {}
-const mobileGridQuery = "(max-width: 639px)"
-
-function subscribeMobileGrid(listener: () => void) {
-  const media = window.matchMedia(mobileGridQuery)
-  media.addEventListener("change", listener)
-  return () => media.removeEventListener("change", listener)
-}
-
-function mobileGridSnapshot() {
-  return window.matchMedia(mobileGridQuery).matches
-}
 
 export default function TabGrid({
   preview = false,
@@ -79,26 +62,23 @@ export default function TabGrid({
   const items = itemsOverride ?? storeItems
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
-  const gridMode = useHomeSettingsStore((state) => state.gridMode)
-  const mobileGrid = useSyncExternalStore(
-    subscribeMobileGrid,
-    mobileGridSnapshot,
-    () => false
+  const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
+  const narrowGridColumns = useHomeSettingsStore(
+    (state) => state.narrowGridColumns
   )
   const gridRef = useRef<HTMLDivElement>(null)
   const measurementRef = useRef<HTMLDivElement>(null)
   const { pointer, measuredWidth } = useGridMeasurement({
     gridRef,
     containerRef: measurementRef,
-    contentBox: !preview && gridMode === "static",
+    contentBox: !preview,
     trackWidth,
   })
   const sourceWidth = trackWidth ?? measuredWidth
   const geometry = resolveGridGeometry(
     sourceWidth,
-    preview ? "dynamic" : gridMode,
-    mobileGrid,
-    fullViewport ? "even-components" : "standard"
+    wideGridColumns,
+    narrowGridColumns
   )
   const metrics = geometry.metrics
   const box = area
@@ -111,14 +91,13 @@ export default function TabGrid({
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
-  const staticGrid = !preview && gridMode === "static"
-  const staticGridReady = staticGrid && sourceWidth > 0
+  const liveGridReady = !preview && sourceWidth > 0
   const coordinateScale = preview
     ? previewScale
-    : staticGridReady
+    : liveGridReady
       ? geometry.scale
       : 1
-  const [staticGridHeight, setStaticGridHeight] = useState(0)
+  const [scaledGridHeight, setScaledGridHeight] = useState(0)
   const [settledTarget, setSettledTarget] = useState<
     | {
         id: string
@@ -287,15 +266,15 @@ export default function TabGrid({
   )
 
   useLayoutEffect(() => {
-    if (!staticGrid) return
+    if (preview) return
     const element = gridRef.current
     if (!element) return
-    const update = () => setStaticGridHeight(element.offsetHeight)
+    const update = () => setScaledGridHeight(element.offsetHeight)
     update()
     const observer = new ResizeObserver(update)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [staticGrid, columns, items])
+  }, [preview, columns, items])
 
   // The preview grid runs the same drag pipeline as the live grid — dnd-kit
   // sensors, the floating overlay, FLIP reflows — but tiles render without
@@ -370,25 +349,27 @@ export default function TabGrid({
             <div
               ref={gridRef}
               data-tab-grid-track={preview ? undefined : ""}
-              data-grid-mode={gridMode}
-              data-grid-scale={staticGridReady ? coordinateScale : undefined}
+              data-grid-component-columns={
+                liveGridReady ? geometry.componentColumns : undefined
+              }
+              data-grid-scale={liveGridReady ? coordinateScale : undefined}
               className="relative grid min-h-11"
               style={{
                 width: width > 0 ? width : undefined,
                 gap: gridGap,
                 gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
                 gridAutoRows: metrics.rowSize,
-                flexShrink: staticGridReady ? 0 : undefined,
-                transform: staticGridReady
+                flexShrink: liveGridReady ? 0 : undefined,
+                transform: liveGridReady
                   ? `scale(${coordinateScale})`
                   : undefined,
-                transformOrigin: staticGridReady ? "top left" : undefined,
-                marginRight: staticGridReady
+                transformOrigin: liveGridReady ? "top left" : undefined,
+                marginRight: liveGridReady
                   ? geometry.visualWidth - width
                   : undefined,
                 marginBottom:
-                  staticGridReady && staticGridHeight > 0
-                    ? staticGridHeight * coordinateScale - staticGridHeight
+                  liveGridReady && scaledGridHeight > 0
+                    ? scaledGridHeight * coordinateScale - scaledGridHeight
                     : undefined,
               }}
             >

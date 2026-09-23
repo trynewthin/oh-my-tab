@@ -66,10 +66,14 @@ test("folder deletion can be undone without undoing another deletion", async ({
   await expect(
     page.getByRole("link", { name: "子书签", exact: true })
   ).toBeVisible()
-  const stored = await readStoredState<{
-    layouts: Record<number, Record<string, { x: number; y: number }>>
-  }>(page, "omt.tab-grid")
-  expect(stored.layouts[12].folder).toEqual({ x: 4, y: 0 })
+  await expect
+    .poll(async () => {
+      const stored = await readStoredState<{
+        layouts: Record<number, Record<string, { x: number; y: number }>>
+      }>(page, "omt.tab-grid")
+      return stored.layouts[12]?.folder
+    })
+    .toEqual({ x: 4, y: 0 })
   await page.getByRole("button", { name: "撤销", exact: true }).click()
   await expect(
     page.getByRole("link", { name: "已有", exact: true })

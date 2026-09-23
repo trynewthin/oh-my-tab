@@ -5,56 +5,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  GRID_COMPONENT_COLUMNS,
+  isGridComponentColumnCount,
+} from "@/lib/grid/grid-layout"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
 import { settingsControlClassName } from "../shared/control-styles"
 
 export default function GridPane() {
   const { t } = useTranslation()
-  const gridMode = useHomeSettingsStore((state) => state.gridMode)
-  const setGridMode = useHomeSettingsStore((state) => state.setGridMode)
+  const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
+  const narrowGridColumns = useHomeSettingsStore(
+    (state) => state.narrowGridColumns
+  )
+  const setWideGridColumns = useHomeSettingsStore(
+    (state) => state.setWideGridColumns
+  )
+  const setNarrowGridColumns = useHomeSettingsStore(
+    (state) => state.setNarrowGridColumns
+  )
+  const settings = [
+    {
+      id: "home-grid-wide-columns",
+      label: t("settings.home.gridWideColumns"),
+      hint: t("settings.home.gridWideColumnsHint"),
+      value: wideGridColumns,
+      options: GRID_COMPONENT_COLUMNS,
+      setValue: setWideGridColumns,
+    },
+    {
+      id: "home-grid-narrow-columns",
+      label: t("settings.home.gridNarrowColumns"),
+      hint: t("settings.home.gridNarrowColumnsHint"),
+      value: narrowGridColumns,
+      options: GRID_COMPONENT_COLUMNS.filter(
+        (columns) => columns <= wideGridColumns
+      ),
+      setValue: setNarrowGridColumns,
+    },
+  ] as const
 
   return (
-    <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-      <div>
-        <label htmlFor="home-grid-mode" className="text-sm">
-          {t("settings.home.gridMode")}
-        </label>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t(
-            gridMode === "static"
-              ? "settings.home.gridStaticHint"
-              : "settings.home.gridDynamicHint"
-          )}
-        </p>
-      </div>
-      <Select
-        value={gridMode}
-        onValueChange={(value) => {
-          if (value === "dynamic" || value === "static") setGridMode(value)
-        }}
-      >
-        <SelectTrigger
-          id="home-grid-mode"
-          className={`w-full min-w-0 ${settingsControlClassName}`}
+    <div className="space-y-4">
+      {settings.map((setting) => (
+        <div
+          key={setting.id}
+          className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]"
         >
-          <SelectValue>
-            {t(
-              gridMode === "static"
-                ? "settings.home.gridStatic"
-                : "settings.home.gridDynamic"
-            )}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="dynamic">
-            {t("settings.home.gridDynamic")}
-          </SelectItem>
-          <SelectItem value="static">
-            {t("settings.home.gridStatic")}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+          <div>
+            <label htmlFor={setting.id} className="text-sm">
+              {setting.label}
+            </label>
+            <p className="mt-1 text-xs text-muted-foreground">{setting.hint}</p>
+          </div>
+          <Select
+            value={String(setting.value)}
+            onValueChange={(value) => {
+              const columns = Number(value)
+              if (isGridComponentColumnCount(columns)) setting.setValue(columns)
+            }}
+          >
+            <SelectTrigger
+              id={setting.id}
+              className={`w-full min-w-0 ${settingsControlClassName}`}
+            >
+              <SelectValue>
+                {t("settings.home.gridColumns", {
+                  count: setting.value,
+                })}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {setting.options.map((columns) => (
+                <SelectItem key={columns} value={String(columns)}>
+                  {t("settings.home.gridColumns", { count: columns })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ))}
     </div>
   )
 }

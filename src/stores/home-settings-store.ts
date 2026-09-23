@@ -7,7 +7,12 @@ import {
   isBackgroundPaletteId,
   type BackgroundPaletteId,
 } from "@/lib/background-palettes"
-import type { GridSizingMode } from "@/lib/grid/grid-layout"
+import {
+  DEFAULT_NARROW_GRID_COLUMNS,
+  DEFAULT_WIDE_GRID_COLUMNS,
+  isGridComponentColumnCount,
+  type GridComponentColumnCount,
+} from "@/lib/grid/grid-layout"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -20,7 +25,8 @@ export type HomeLayoutMode = "traditional" | "free"
 
 type HomeSettings = {
   layoutMode: HomeLayoutMode
-  gridMode: GridSizingMode
+  wideGridColumns: GridComponentColumnCount
+  narrowGridColumns: GridComponentColumnCount
   backgroundType: BackgroundType
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
@@ -38,7 +44,8 @@ type HomeSettings = {
 type HomeSettingsStore = HomeSettings & {
   setBackgroundType: (value: BackgroundType) => void
   setLayoutMode: (value: HomeLayoutMode) => void
-  setGridMode: (value: GridSizingMode) => void
+  setWideGridColumns: (value: GridComponentColumnCount) => void
+  setNarrowGridColumns: (value: GridComponentColumnCount) => void
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
@@ -57,7 +64,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
       layoutMode: "traditional",
-      gridMode: "dynamic",
+      wideGridColumns: DEFAULT_WIDE_GRID_COLUMNS,
+      narrowGridColumns: DEFAULT_NARROW_GRID_COLUMNS,
       backgroundType: "solid",
       backgroundImage: null,
       backgroundPalette: "gray",
@@ -73,7 +81,21 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
-      setGridMode: (gridMode) => set({ gridMode }),
+      setWideGridColumns: (wideGridColumns) =>
+        set((state) => ({
+          wideGridColumns,
+          narrowGridColumns: Math.min(
+            state.narrowGridColumns,
+            wideGridColumns
+          ) as GridComponentColumnCount,
+        })),
+      setNarrowGridColumns: (narrowGridColumns) =>
+        set((state) => ({
+          narrowGridColumns: Math.min(
+            narrowGridColumns,
+            state.wideGridColumns
+          ) as GridComponentColumnCount,
+        })),
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
@@ -99,7 +121,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       name: "omt.home-settings",
       partialize: ({
         layoutMode,
-        gridMode,
+        wideGridColumns,
+        narrowGridColumns,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -115,7 +138,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         transitionsEnabled,
       }) => ({
         layoutMode,
-        gridMode,
+        wideGridColumns,
+        narrowGridColumns,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -132,10 +156,27 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       }),
       merge: (persisted, current) => {
         const saved = persisted as Partial<HomeSettings> | null
+        const wideGridColumns = isGridComponentColumnCount(
+          saved?.wideGridColumns
+        )
+          ? saved.wideGridColumns
+          : DEFAULT_WIDE_GRID_COLUMNS
+        const narrowGridColumns = isGridComponentColumnCount(
+          saved?.narrowGridColumns
+        )
+          ? (Math.min(
+              saved.narrowGridColumns,
+              wideGridColumns
+            ) as GridComponentColumnCount)
+          : (Math.min(
+              DEFAULT_NARROW_GRID_COLUMNS,
+              wideGridColumns
+            ) as GridComponentColumnCount)
         return {
           ...current,
           layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
-          gridMode: saved?.gridMode === "static" ? "static" : "dynamic",
+          wideGridColumns,
+          narrowGridColumns,
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
           backgroundImage:
             typeof saved?.backgroundImage === "string"

@@ -39,7 +39,7 @@ test("wide grids adapt and keep drag positions after reload", async ({
   await expect(cards).toHaveCount(6)
   for (const [width, count, searchWidth, timeFormat] of [
     [900, 2, 588, "minutes"],
-    [1200, 3, 768, "seconds"],
+    [1200, 4, 768, "seconds"],
     [1440, 4, 768, "seconds"],
     [1920, 4, 768, "seconds"],
   ]) {

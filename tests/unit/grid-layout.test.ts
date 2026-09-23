@@ -1,10 +1,10 @@
 import { describe, expect, test } from "vitest"
 import {
-  columnsForWidth,
   GRID_CELL_SIZE,
   GRID_GAP,
-  gridMetrics,
   gridOccupancyBox,
+  gridTrackWidth,
+  MIN_COMFORTABLE_GRID_SCALE,
   placeItems,
   resolveGridGeometry,
 } from "@/lib/grid/grid-layout"
@@ -69,58 +69,58 @@ describe("responsive component width", () => {
 
 describe("grid metrics", () => {
   test("cell size matches home grid geometry", () => {
-    const metrics = gridMetrics(1280)
-    expect(metrics.columns).toBe(16)
-    expect(metrics.gap).toBe(GRID_GAP)
-    expect(metrics.columnStep).toBe(GRID_CELL_SIZE + GRID_GAP)
-    expect(metrics.rowSize).toBe(GRID_CELL_SIZE)
     expect(gridOccupancyBox(1280, 4, 1)).toEqual({
-      width: 4 * metrics.columnStep - GRID_GAP,
+      width: 4 * (GRID_CELL_SIZE + GRID_GAP) - GRID_GAP,
       height: GRID_CELL_SIZE,
     })
+    expect(gridTrackWidth(16)).toBe(1192)
   })
 
-  test("cell size remains fixed while the column count changes", () => {
-    for (const width of [500, 900, 1280, 1920]) {
-      const metrics = gridMetrics(width)
-      expect(metrics.rowSize).toBe(GRID_CELL_SIZE)
-      expect(metrics.columnStep).toBe(GRID_CELL_SIZE + GRID_GAP)
-    }
+  test("the wide layout scales to 80 percent before switching", () => {
+    const wideTrackWidth = gridTrackWidth(16)
+    const comfortable = resolveGridGeometry(
+      wideTrackWidth * MIN_COMFORTABLE_GRID_SCALE,
+      4,
+      2
+    )
+    expect(comfortable.componentColumns).toBe(4)
+    expect(comfortable.scale).toBeCloseTo(MIN_COMFORTABLE_GRID_SCALE)
+
+    const switched = resolveGridGeometry(
+      wideTrackWidth * MIN_COMFORTABLE_GRID_SCALE - 1,
+      4,
+      2
+    )
+    expect(switched.componentColumns).toBe(2)
+    expect(switched.metrics.columns).toBe(8)
+    expect(switched.scale).toBe(1)
   })
 
-  test("home grids keep at least two four-unit component columns", () => {
-    expect(columnsForWidth(320)).toBe(8)
-    expect(columnsForWidth(320, "even-components")).toBe(8)
+  test("configured column counts drive wide and narrow layouts", () => {
+    const wide = resolveGridGeometry(1200, 5, 3)
+    expect(wide.componentColumns).toBe(5)
+    expect(wide.metrics.columns).toBe(20)
+
+    const narrow = resolveGridGeometry(1190, 5, 3)
+    expect(narrow.componentColumns).toBe(3)
+    expect(narrow.metrics.columns).toBe(12)
+    expect(narrow.trackWidth).toBe(890)
+
+    const tiny = resolveGridGeometry(320, 5, 3)
+    expect(tiny.componentColumns).toBe(3)
+    expect(tiny.visualWidth).toBeCloseTo(320)
+    expect(tiny.scale).toBeCloseTo(320 / 890)
   })
 
-  test("free grids expose only an even number of four-unit component columns", () => {
-    for (const [width, columns] of [
-      [500, 8],
-      [900, 8],
-      [1440, 16],
-      [1920, 24],
-    ] as const) {
-      expect(columnsForWidth(width, "even-components")).toBe(columns)
-      expect(columns / 4).toBeGreaterThan(0)
-      expect((columns / 4) % 2).toBe(0)
-    }
-  })
+  test("defaults use four wide columns and two narrow columns", () => {
+    const wide = resolveGridGeometry(1000)
+    expect(wide.metrics.columns).toBe(16)
+    expect(wide.trackWidth).toBe(1192)
+    expect(wide.scale).toBeCloseTo(1000 / 1192)
 
-  test("static grids keep four desktop component columns and two mobile columns", () => {
-    const desktop = resolveGridGeometry(900, "static", false)
-    expect(desktop.metrics.columns).toBe(16)
-    expect(desktop.trackWidth).toBe(1192)
-    expect(desktop.visualWidth).toBe(900)
-    expect(desktop.scale).toBeCloseTo(900 / 1192)
-
-    const mobile = resolveGridGeometry(320, "static", true)
-    expect(mobile.metrics.columns).toBe(8)
-    expect(mobile.trackWidth).toBe(588)
-    expect(mobile.visualWidth).toBeCloseTo(320)
-    expect(mobile.scale).toBeCloseTo(320 / 588)
-
-    const narrow = resolveGridGeometry(240, "static", true)
-    expect(narrow.visualWidth).toBe(240)
-    expect(narrow.scale).toBeCloseTo(240 / 588)
+    const narrow = resolveGridGeometry(900)
+    expect(narrow.metrics.columns).toBe(8)
+    expect(narrow.trackWidth).toBe(588)
+    expect(narrow.scale).toBe(1)
   })
 })

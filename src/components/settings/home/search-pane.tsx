@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 
 export default function SearchPane() {
@@ -17,10 +18,10 @@ export default function SearchPane() {
   )
 
   return (
-    <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-      <label htmlFor="search-box-style" className="text-sm">
-        {t("settings.home.searchBoxStyle")}
-      </label>
+    <SettingItem
+      label={t("settings.home.searchBoxStyle")}
+      htmlFor="search-box-style"
+    >
       <Select
         value={searchBoxStyle}
         onValueChange={(value) => {
@@ -46,6 +47,6 @@ export default function SearchPane() {
           </SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </SettingItem>
   )
 }

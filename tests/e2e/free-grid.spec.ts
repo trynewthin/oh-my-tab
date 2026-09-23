@@ -169,7 +169,7 @@ test("personalization switches between traditional and free grid layouts", async
   await expect(page.locator('[data-tour="search"]')).toHaveCount(1)
 
   await page.getByRole("button", { name: "打开设置" }).click()
-  await page.getByRole("button", { name: "外观" }).click()
+  await page.getByRole("button", { name: "主页" }).click()
   await page.getByRole("button", { name: "自由网格" }).click()
 
   await expect(page.locator("[data-matrix-columns]")).toHaveCount(0)

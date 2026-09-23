@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTranslation } from "react-i18next"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import type { Pending } from "./data-settings-types"
 import type { SyncProvider } from "./use-data-settings"
@@ -25,14 +26,11 @@ export default function SyncProviderSelect({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-      <label
-        id="sync-settings-title"
-        htmlFor="sync-provider"
-        className="text-sm"
-      >
-        {t("settings.sync.label")}
-      </label>
+    <SettingItem
+      label={t("settings.sync.label")}
+      htmlFor="sync-provider"
+      labelId="sync-settings-title"
+    >
       <Select
         value={provider}
         disabled={busy || !!pending || !ready}
@@ -54,6 +52,6 @@ export default function SyncProviderSelect({
           <SelectItem value="webdav">WebDAV</SelectItem>
         </SelectContent>
       </Select>
-    </div>
+    </SettingItem>
   )
 }

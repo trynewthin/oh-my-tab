@@ -6,6 +6,7 @@ import ScaledGridPreview from "./scaled-grid-preview"
 import { Switch } from "@/components/ui/switch"
 import type { GridItem, TabItem } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
 
 const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
@@ -77,23 +78,24 @@ export default function TabsPane() {
           positions={preview.positions}
         />
       )}
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span className="text-sm">{t("settings.tabs.texture")}</span>
+      <SettingItem label={t("settings.tabs.texture")}>
         <EffectStylePicker
           value={tabTexture}
           color={color}
           onChange={setTabTexture}
           labelKey="settings.tabs.texture"
         />
-      </div>
+      </SettingItem>
       {tabTexture !== "none" && (
         <>
-          <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <label htmlFor="burning-amplitude" className="text-sm">
-              {tabTexture === "burning"
+          <SettingItem
+            label={
+              tabTexture === "burning"
                 ? t("settings.tabs.burningAmplitude")
-                : t("settings.tabs.breathingAmplitude")}
-            </label>
+                : t("settings.tabs.breathingAmplitude")
+            }
+            htmlFor="burning-amplitude"
+          >
             <div
               className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
             >
@@ -115,9 +117,8 @@ export default function TabsPane() {
                 {Math.round(amplitude * 100)}%
               </output>
             </div>
-          </div>
-          <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <span className="text-sm">{t("settings.tabs.transition")}</span>
+          </SettingItem>
+          <SettingItem label={t("settings.tabs.transition")}>
             <Switch
               aria-label={t("settings.tabs.transition")}
               checked={entrance}
@@ -125,7 +126,7 @@ export default function TabsPane() {
               style={{ backgroundColor: entrance ? color : undefined }}
               onCheckedChange={setEntrance}
             />
-          </div>
+          </SettingItem>
         </>
       )}
     </>

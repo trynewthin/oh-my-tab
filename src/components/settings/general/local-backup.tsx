@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/stores/toast-store"
 import { createBackup, readBackup, downloadBackup } from "@/application/backup"
 import { storageRevision } from "@/lib/storage"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import type { Pending } from "./data-settings-types"
 
@@ -22,8 +23,7 @@ export default function LocalBackup({
   const input = useRef<HTMLInputElement>(null)
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span className="text-sm">{t("settings.backup.title")}</span>
+      <SettingItem label={t("settings.backup.title")}>
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
@@ -47,7 +47,7 @@ export default function LocalBackup({
             {t("settings.backup.restore")}
           </Button>
         </div>
-      </div>
+      </SettingItem>
       <input
         ref={input}
         type="file"

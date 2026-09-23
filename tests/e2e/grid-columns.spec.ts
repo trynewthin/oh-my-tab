@@ -110,6 +110,13 @@ test("configured grid columns switch after the wide layout becomes too small", a
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const settings = page.getByRole("dialog", { name: "设置", exact: true })
   await settings.getByRole("button", { name: "主页", exact: true }).click()
+  const wideColumnsInfo = settings.getByRole("button", {
+    name: "宽屏列数说明",
+  })
+  await wideColumnsInfo.hover()
+  await expect(
+    page.getByText("空间充足时使用的组件列数。", { exact: true })
+  ).toBeVisible()
   await settings.getByLabel("宽屏列数", { exact: true }).click()
   await page.getByRole("option", { name: "5 列", exact: true }).click()
   await settings.getByLabel("窄屏列数", { exact: true }).click()

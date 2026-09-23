@@ -5,6 +5,7 @@ export default {
     manage: "管理",
     close: "关闭",
     processing: "处理中…",
+    info: "{{label}}说明",
   },
   nav: {
     general: "常规",
@@ -61,7 +62,6 @@ export default {
   },
   bookmarkImport: {
     label: "从浏览器书签导入",
-    infoAria: "从浏览器书签导入说明",
     info: "授权后读取当前浏览器书签并添加到首页，重复网址自动跳过。",
     infoUnsupported: "请在 Chrome 或 Edge 扩展中导入浏览器书签。",
     importing: "正在导入…",
@@ -85,7 +85,6 @@ export default {
     off: "关闭",
   },
   webdav: {
-    infoAria: "WebDAV 说明与配置",
     intro:
       "WebDAV 是一种远程文件存储协议，可将备份保存到你指定的服务器，供多台设备手动同步。",
     step1:
@@ -142,6 +141,9 @@ export default {
     gridNarrowColumns: "窄屏列数",
     gridNarrowColumnsHint: "宽屏布局缩小到 80% 后切换到此列数。",
     gridColumns: "{{count}} 列",
+    layoutMode: "主页布局",
+    layoutTraditional: "传统",
+    layoutFree: "自由网格",
     topComponent: "顶部显示的组件",
     topNone: "不显示",
     topDotMatrix: "电子点阵",
@@ -164,9 +166,6 @@ export default {
     sleepy: "困困 (-ω-)",
   },
   appearance: {
-    layoutMode: "主页布局",
-    layoutTraditional: "传统",
-    layoutFree: "自由网格",
     accentColor: "主题色",
     themeMode: "深浅色模式",
     themeLight: "浅色",

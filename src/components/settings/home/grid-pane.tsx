@@ -11,6 +11,7 @@ import {
 } from "@/lib/grid/grid-layout"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 
 export default function GridPane() {
@@ -49,16 +50,12 @@ export default function GridPane() {
   return (
     <div className="space-y-4">
       {settings.map((setting) => (
-        <div
+        <SettingItem
           key={setting.id}
-          className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]"
+          label={setting.label}
+          htmlFor={setting.id}
+          description={setting.hint}
         >
-          <div>
-            <label htmlFor={setting.id} className="text-sm">
-              {setting.label}
-            </label>
-            <p className="mt-1 text-xs text-muted-foreground">{setting.hint}</p>
-          </div>
           <Select
             value={String(setting.value)}
             onValueChange={(value) => {
@@ -84,7 +81,7 @@ export default function GridPane() {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </SettingItem>
       ))}
     </div>
   )

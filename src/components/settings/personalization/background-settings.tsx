@@ -1,3 +1,4 @@
+import SettingItem from "../shared/setting-item"
 import {
   settingsControlClassName,
   settingsControlSurface,
@@ -104,10 +105,10 @@ export default function BackgroundSettings() {
 
   return (
     <>
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span id="background-type-label" className="text-sm">
-          {t("settings.background.current")}
-        </span>
+      <SettingItem
+        label={t("settings.background.current")}
+        labelId="background-type-label"
+      >
         <ToggleGroup
           aria-labelledby="background-type-label"
           className={settingsControlSurface}
@@ -124,12 +125,12 @@ export default function BackgroundSettings() {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-      </div>
+      </SettingItem>
       {backgroundType === "solid" ? (
-        <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-          <span id="background-color-label" className="text-sm">
-            {t("settings.background.color")}
-          </span>
+        <SettingItem
+          label={t("settings.background.color")}
+          labelId="background-color-label"
+        >
           <ToggleGroup
             aria-labelledby="background-color-label"
             className={`justify-between gap-1 p-1 ${settingsControlSurface}`}
@@ -161,12 +162,11 @@ export default function BackgroundSettings() {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-        </div>
+        </SettingItem>
       ) : (
-        <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-          <span className="text-sm">{t("settings.background.imageLabel")}</span>
+        <SettingItem label={t("settings.background.imageLabel")}>
           <ImageBackgroundPicker />
-        </div>
+        </SettingItem>
       )}
     </>
   )

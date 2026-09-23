@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import CacheDialog from "./cache-dialog"
 
@@ -10,8 +11,7 @@ export default function CacheSettings() {
   const [busy, setBusy] = useState(false)
   return (
     <>
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <span className="text-sm">{t("settings.cache.title")}</span>
+      <SettingItem label={t("settings.cache.title")}>
         <Button
           variant="outline"
           className={settingsControlClassName}
@@ -19,7 +19,7 @@ export default function CacheSettings() {
         >
           {t("settings.common.manage")}
         </Button>
-      </div>
+      </SettingItem>
       <CacheDialog
         open={open}
         onOpenChange={setOpen}

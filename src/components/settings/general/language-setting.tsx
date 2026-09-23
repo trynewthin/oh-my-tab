@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select"
 import { LANGUAGE_PREFERENCES, isLanguagePreference } from "@/i18n/language"
 import { useLocaleStore } from "@/stores/locale-store"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 
 export default function LanguageSetting() {
@@ -23,10 +24,7 @@ export default function LanguageSetting() {
   }
 
   return (
-    <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-      <label id="language-setting-title" htmlFor="language" className="text-sm">
-        {t("core.language.label")}
-      </label>
+    <SettingItem label={t("core.language.label")} htmlFor="language">
       <Select
         value={preference}
         onValueChange={(value) => {
@@ -35,7 +33,6 @@ export default function LanguageSetting() {
       >
         <SelectTrigger
           id="language"
-          aria-labelledby="language-setting-title"
           className={`w-full ${settingsControlClassName}`}
         >
           <SelectValue>{labels[preference]}</SelectValue>
@@ -48,6 +45,6 @@ export default function LanguageSetting() {
           ))}
         </SelectContent>
       </Select>
-    </div>
+    </SettingItem>
   )
 }

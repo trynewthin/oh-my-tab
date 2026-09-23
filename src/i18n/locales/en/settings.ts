@@ -5,6 +5,7 @@ export default {
     manage: "Manage",
     close: "Close",
     processing: "Working…",
+    info: "About {{label}}",
   },
   nav: {
     general: "General",
@@ -62,7 +63,6 @@ export default {
   },
   bookmarkImport: {
     label: "Import from browser bookmarks",
-    infoAria: "About importing browser bookmarks",
     info: "After you grant access, your current browser bookmarks are read and added to the home page. Duplicate URLs are skipped automatically.",
     infoUnsupported:
       "Import browser bookmarks in the Chrome or Edge extension.",
@@ -88,7 +88,6 @@ export default {
     off: "Off",
   },
   webdav: {
-    infoAria: "About WebDAV and setup",
     intro:
       "WebDAV is a remote file storage protocol. Save your backup to a server you choose and sync it manually across devices.",
     step1:
@@ -152,6 +151,9 @@ export default {
     gridNarrowColumnsHint:
       "Switches to this count after the wide layout shrinks below 80%.",
     gridColumns: "{{count}} columns",
+    layoutMode: "Home layout",
+    layoutTraditional: "Traditional",
+    layoutFree: "Free grid",
     topComponent: "Component shown at the top",
     topNone: "Hidden",
     topDotMatrix: "Dot matrix",
@@ -174,9 +176,6 @@ export default {
     sleepy: "Sleepy (-ω-)",
   },
   appearance: {
-    layoutMode: "Home layout",
-    layoutTraditional: "Traditional",
-    layoutFree: "Free grid",
     accentColor: "Accent color",
     themeMode: "Light and dark mode",
     themeLight: "Light",

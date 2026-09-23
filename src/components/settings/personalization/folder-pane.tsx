@@ -10,6 +10,7 @@ import {
 import { createFolderItem } from "@/lib/grid/factory"
 import type { FolderItem, GridItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import ScaledGridPreview from "./scaled-grid-preview"
 
@@ -96,10 +97,7 @@ export default function FolderPane() {
           positions={preview.positions}
         />
       )}
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <label htmlFor="folder-style" className="text-sm">
-          {t("settings.folders.texture")}
-        </label>
+      <SettingItem label={t("settings.folders.texture")} htmlFor="folder-style">
         <Select
           value={folderStyle}
           onValueChange={(value) => {
@@ -121,7 +119,7 @@ export default function FolderPane() {
             <SelectItem value="none">{t("settings.folders.none")}</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </SettingItem>
     </>
   )
 }

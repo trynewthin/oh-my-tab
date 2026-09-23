@@ -1,3 +1,4 @@
+import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import CacheSettings from "./cache-settings"
 import BookmarkImport from "./bookmark-import"
@@ -15,8 +16,7 @@ export default function GeneralSettings({ pane }: { pane: "basic" | "data" }) {
       {pane === "basic" ? (
         <>
           <LanguageSetting />
-          <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <span className="text-sm">{t("settings.general.onboarding")}</span>
+          <SettingItem label={t("settings.general.onboarding")}>
             <Button
               variant="outline"
               className={settingsControlClassName}
@@ -27,7 +27,7 @@ export default function GeneralSettings({ pane }: { pane: "basic" | "data" }) {
             >
               {t("settings.general.restartOnboarding")}
             </Button>
-          </div>
+          </SettingItem>
         </>
       ) : (
         <>

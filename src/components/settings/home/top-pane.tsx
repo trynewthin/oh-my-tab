@@ -10,6 +10,7 @@ import {
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
 import { settingsControlClassName } from "../shared/control-styles"
+import SettingItem from "../shared/setting-item"
 
 const contentLabels = {
   time: "settings.home.contentTime",
@@ -31,10 +32,10 @@ export default function TopPane() {
 
   return (
     <>
-      <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <label htmlFor="home-top-component" className="text-sm">
-          {t("settings.home.topComponent")}
-        </label>
+      <SettingItem
+        label={t("settings.home.topComponent")}
+        htmlFor="home-top-component"
+      >
         <Select
           value={topComponent}
           onValueChange={(value) => {
@@ -59,13 +60,13 @@ export default function TopPane() {
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </SettingItem>
       {topComponent === "dot-matrix" && (
         <>
-          <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-            <label htmlFor="matrix-content" className="text-sm">
-              {t("settings.home.matrixContent")}
-            </label>
+          <SettingItem
+            label={t("settings.home.matrixContent")}
+            htmlFor="matrix-content"
+          >
             <Select
               value={content}
               onValueChange={(value) => {
@@ -99,12 +100,12 @@ export default function TopPane() {
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </SettingItem>
           {content === "text" && (
-            <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-              <label htmlFor="matrix-text" className="text-sm">
-                {t("settings.home.matrixText")}
-              </label>
+            <SettingItem
+              label={t("settings.home.matrixText")}
+              htmlFor="matrix-text"
+            >
               <Input
                 id="matrix-text"
                 className={`min-w-0 ${settingsControlClassName}`}
@@ -113,13 +114,10 @@ export default function TopPane() {
                 placeholder={t("settings.home.matrixTextPlaceholder")}
                 onChange={(event) => setText(event.target.value)}
               />
-            </div>
+            </SettingItem>
           )}
           {content === "pet" && (
-            <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
-              <label htmlFor="matrix-pet" className="text-sm">
-                {t("settings.home.pet")}
-              </label>
+            <SettingItem label={t("settings.home.pet")} htmlFor="matrix-pet">
               <Select
                 value={pet}
                 onValueChange={(value) => {
@@ -142,7 +140,7 @@ export default function TopPane() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </SettingItem>
           )}
         </>
       )}

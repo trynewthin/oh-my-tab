@@ -4,10 +4,7 @@ import {
   getComponentSizeOptions,
   getItemGridDimensions,
 } from "@/lib/grid/registry"
-import {
-  utilityWidgetKinds,
-  type PomodoroItem,
-} from "@/lib/grid/utility-types"
+import { utilityWidgetKinds, type PomodoroItem } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
 import {
   applyUtilityConfiguration,

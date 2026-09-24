@@ -70,10 +70,7 @@ function Frame({
           event.stopPropagation()
       }}
     >
-      <ComponentBackground
-        color={item.color}
-        animated={!!item.dynamicEffect}
-      />
+      <ComponentBackground color={item.color} animated={!!item.dynamicEffect} />
       <div className="relative z-10 flex h-full min-h-0 flex-col gap-2 p-3">
         {header && (
           <CollectionCardHeader>
@@ -123,7 +120,9 @@ function Empty({
   )
 }
 
-function ClockTile(props: Props<Extract<UtilityWidgetItem, { kind: "clock" }>>) {
+function ClockTile(
+  props: Props<Extract<UtilityWidgetItem, { kind: "clock" }>>
+) {
   const { item, preview, onOpen } = props
   const { i18n } = useTranslation()
   const now = useWallClock(preview)
@@ -207,7 +206,9 @@ function CountdownTile(
               return (
                 <CollectionRow
                   key={event.id}
-                  className={item.size === "medium" ? "h-auto min-h-8" : undefined}
+                  className={
+                    item.size === "medium" ? "h-auto min-h-8" : undefined
+                  }
                 >
                   <div className="flex h-full items-center justify-between gap-2">
                     <div className="min-w-0">
@@ -225,9 +226,7 @@ function CountdownTile(
                         : days === 0
                           ? t("widgets.today")
                           : t(
-                              days > 0
-                                ? "widgets.daysLeft"
-                                : "widgets.daysAgo",
+                              days > 0 ? "widgets.daysLeft" : "widgets.daysAgo",
                               { count: Math.abs(days) }
                             )}
                     </span>
@@ -248,7 +247,7 @@ function NoteTile(props: Props<Extract<UtilityWidgetItem, { kind: "note" }>>) {
   return (
     <Frame {...props}>
       {preview ? (
-        <p className="min-h-0 flex-1 whitespace-pre-wrap text-sm leading-relaxed">
+        <p className="min-h-0 flex-1 text-sm leading-relaxed whitespace-pre-wrap">
           {t("widgets.notePreview")}
         </p>
       ) : (
@@ -286,9 +285,7 @@ function PomodoroTile(
   useEffect(() => {
     if (preview || item.endsAt === null || item.endsAt > now) return
     updateUtilityWidget(item.id, (current) =>
-      current.kind === "pomodoro"
-        ? completePomodoro(current, now)
-        : current
+      current.kind === "pomodoro" ? completePomodoro(current, now) : current
     )
   }, [item.id, item.endsAt, now, preview])
   const todayCount =
@@ -336,9 +333,7 @@ function PomodoroTile(
               aria-label={t("widgets.reset")}
               onClick={() =>
                 updateUtilityWidget(item.id, (current) =>
-                  current.kind === "pomodoro"
-                    ? resetPomodoro(current)
-                    : current
+                  current.kind === "pomodoro" ? resetPomodoro(current) : current
                 )
               }
             >
@@ -351,7 +346,9 @@ function PomodoroTile(
   )
 }
 
-function PhotoTile(props: Props<Extract<UtilityWidgetItem, { kind: "photo" }>>) {
+function PhotoTile(
+  props: Props<Extract<UtilityWidgetItem, { kind: "photo" }>>
+) {
   const { item, preview, onOpen } = props
   const { t } = useTranslation()
   if (!item.image)
@@ -606,10 +603,7 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
         <Empty {...props} />
       ) : (
         <>
-          <div
-            className="flex min-h-0 flex-1 flex-col"
-            aria-busy={loading}
-          >
+          <div className="flex min-h-0 flex-1 flex-col" aria-busy={loading}>
             {!display && !error && (
               <p className="m-auto text-xs text-muted-foreground">
                 {t("widgets.notLoaded")}
@@ -624,9 +618,7 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
                     </p>
                     {!compact && (
                       <p className="text-xs text-muted-foreground">
-                        {t(
-                          `widgets.conditions.${conditionKey(display.code)}`
-                        )}
+                        {t(`widgets.conditions.${conditionKey(display.code)}`)}
                       </p>
                     )}
                   </div>
@@ -658,64 +650,63 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
                 )}
               </>
             )}
-            {display?.kind === "github-repo" &&
-              item.kind === "github-repo" && (
-                <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
-                  {preview ? (
-                    <span className="truncate text-xs">owner/repository</span>
-                  ) : (
-                    <a
-                      href={`https://github.com/${item.repository}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-xs underline underline-offset-2"
-                    >
-                      {item.repository}
-                    </a>
-                  )}
-                  <dl className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-xs">
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t("widgets.stars")}
-                      </dt>
-                      <dd className="font-medium tabular-nums">
-                        {display.stars.toLocaleString(i18n.resolvedLanguage)}
-                      </dd>
-                    </div>
-                    {!compact && (
-                      <div>
-                        <dt className="text-muted-foreground">
-                          {t("widgets.forks")}
-                        </dt>
-                        <dd className="font-medium tabular-nums">
-                          {display.forks.toLocaleString(i18n.resolvedLanguage)}
-                        </dd>
-                      </div>
-                    )}
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t("widgets.openItems")}
-                      </dt>
-                      <dd className="font-medium tabular-nums">
-                        {display.openItems}
-                      </dd>
-                    </div>
-                  </dl>
+            {display?.kind === "github-repo" && item.kind === "github-repo" && (
+              <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
+                {preview ? (
+                  <span className="truncate text-xs">owner/repository</span>
+                ) : (
+                  <a
+                    href={`https://github.com/${item.repository}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-xs underline underline-offset-2"
+                  >
+                    {item.repository}
+                  </a>
+                )}
+                <dl className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-xs">
+                  <div>
+                    <dt className="text-muted-foreground">
+                      {t("widgets.stars")}
+                    </dt>
+                    <dd className="font-medium tabular-nums">
+                      {display.stars.toLocaleString(i18n.resolvedLanguage)}
+                    </dd>
+                  </div>
                   {!compact && (
-                    <p className="line-clamp-2 text-xs text-muted-foreground">
-                      {display.description}
-                    </p>
+                    <div>
+                      <dt className="text-muted-foreground">
+                        {t("widgets.forks")}
+                      </dt>
+                      <dd className="font-medium tabular-nums">
+                        {display.forks.toLocaleString(i18n.resolvedLanguage)}
+                      </dd>
+                    </div>
                   )}
-                  {!compact && display.pushedAt && (
-                    <p className="text-[10px] text-muted-foreground">
-                      {t("widgets.lastPush")}:{" "}
-                      {new Date(display.pushedAt).toLocaleDateString(
-                        i18n.resolvedLanguage
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
+                  <div>
+                    <dt className="text-muted-foreground">
+                      {t("widgets.openItems")}
+                    </dt>
+                    <dd className="font-medium tabular-nums">
+                      {display.openItems}
+                    </dd>
+                  </div>
+                </dl>
+                {!compact && (
+                  <p className="line-clamp-2 text-xs text-muted-foreground">
+                    {display.description}
+                  </p>
+                )}
+                {!compact && display.pushedAt && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {t("widgets.lastPush")}:{" "}
+                    {new Date(display.pushedAt).toLocaleDateString(
+                      i18n.resolvedLanguage
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
             {display?.kind === "rss" && (
               <CollectionViewport label={item.name}>
                 {display.entries.length === 0 ? (
@@ -771,10 +762,7 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
                   Open-Meteo
                 </a>
               ) : (
-                <span
-                  title={source?.origin}
-                  className="truncate"
-                >
+                <span title={source?.origin} className="truncate">
                   {source?.hostname}
                 </span>
               )}

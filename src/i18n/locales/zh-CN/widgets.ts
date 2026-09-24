@@ -72,8 +72,7 @@ export default {
   pause: "暂停专注",
   reset: "重置专注计时",
   durationMinutes: "专注时长（1–180 分钟）",
-  pomodoroHelp:
-    "修改时长会重置本次计时；刷新或隐藏页面不会重置。",
+  pomodoroHelp: "修改时长会重置本次计时；刷新或隐藏页面不会重置。",
   photoPreview: "把喜欢的照片留在主页",
   photoFile: "选择本地图片",
   photoHelp:
@@ -88,8 +87,7 @@ export default {
   sourceFolder: "来源文件夹",
   folderEmpty: "来源文件夹为空或已删除。",
   missingFolder: "来源文件夹已不存在",
-  folderHelp:
-    "组件引用原文件夹，原文件夹的修改会同步显示，不复制一份书签。",
+  folderHelp: "组件引用原文件夹，原文件夹的修改会同步显示，不复制一份书签。",
   timeZone: "IANA 时区",
   deviceTimeZone: "跟随设备时区",
   hour12: "使用 12 小时制",
@@ -97,10 +95,8 @@ export default {
   zoneIndex: "时钟 {{index}}",
   cityLabel: "城市或自定义名称",
   addZone: "添加时区",
-  timeZoneHelp:
-    "例如 Asia/Tokyo、Europe/London、America/New_York 或 UTC。",
-  countdownHelp:
-    "4×2 显示第一个事件；4×4 可滚动查看列表，按日历日期计算天数。",
+  timeZoneHelp: "例如 Asia/Tokyo、Europe/London、America/New_York 或 UTC。",
+  countdownHelp: "4×2 显示第一个事件；4×4 可滚动查看列表，按日历日期计算天数。",
   locationName: "地点名称",
   latitude: "纬度",
   longitude: "经度",
@@ -148,8 +144,7 @@ export default {
     responseTooLarge: "响应超过 1 MiB 大小限制。",
     invalidResponse: "服务返回了不支持的数据。",
     invalidConfiguration: "请检查日期、时区、网址及数值范围。",
-    photoInvalid:
-      "请选择有效的 PNG、JPEG 或 WebP，且能够压缩至 512 KiB。",
+    photoInvalid: "请选择有效的 PNG、JPEG 或 WebP，且能够压缩至 512 KiB。",
     removed: "这个组件已在其他页面被删除。",
   },
 }

@@ -148,8 +148,7 @@ export default {
     rateLimited: "The service denied or rate-limited this request.",
     responseTooLarge: "The response exceeds the 1 MiB limit.",
     invalidResponse: "The service returned an unsupported response.",
-    invalidConfiguration:
-      "Check the date, time zone, URL, and numeric limits.",
+    invalidConfiguration: "Check the date, time zone, URL, and numeric limits.",
     photoInvalid:
       "Choose a valid PNG, JPEG, or WebP that can be reduced to 512 KiB.",
     removed: "This card was removed in another view.",

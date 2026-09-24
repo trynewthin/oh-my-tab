@@ -157,11 +157,7 @@ export function WidgetEditor({
 }): ReactNode {
   if (isUtilityWidget(item))
     return (
-      <UtilityWidgetEditor
-        item={item}
-        onClose={onClose}
-        onSaved={onSaved}
-      />
+      <UtilityWidgetEditor item={item} onClose={onClose} onSaved={onSaved} />
     )
 
   switch (item.kind) {

@@ -108,7 +108,6 @@ export async function applyNetworkChoices(choices: {
 export const canSelectBrowserSearch = () =>
   import.meta.env.DEV || supportsBrowserSearch()
 
-
 /** Request one exact HTTPS origin from a direct widget click. */
 export async function requestWidgetOrigin(origin: string) {
   const normalized = remoteUrl(origin)

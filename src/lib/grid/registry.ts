@@ -462,10 +462,7 @@ export const componentRegistry = {
   countdown: utilityDefinition(
     "countdown",
     "medium",
-    [
-      gridSize("medium", "4x2", "medium"),
-      gridSize("large", "4x4", "large"),
-    ],
+    [gridSize("medium", "4x2", "medium"), gridSize("large", "4x4", "large")],
     "productivity",
     "#d49b6c"
   ),
@@ -490,10 +487,7 @@ export const componentRegistry = {
   weather: utilityDefinition(
     "weather",
     "large",
-    [
-      gridSize("medium", "4x2", "medium"),
-      gridSize("large", "4x4", "large"),
-    ],
+    [gridSize("medium", "4x2", "medium"), gridSize("large", "4x4", "large")],
     "common",
     "#5ba9d1"
   ),
@@ -512,10 +506,7 @@ export const componentRegistry = {
   "bookmark-list": utilityDefinition(
     "bookmark-list",
     "large",
-    [
-      gridSize("large", "4x4", "large"),
-      gridSize("tall", "4x8", "tall"),
-    ],
+    [gridSize("large", "4x4", "large"), gridSize("tall", "4x8", "tall")],
     "common",
     "#72a483"
   ),
@@ -529,10 +520,7 @@ export const componentRegistry = {
   "github-repo": utilityDefinition(
     "github-repo",
     "large",
-    [
-      gridSize("medium", "4x2", "medium"),
-      gridSize("large", "4x4", "large"),
-    ],
+    [gridSize("medium", "4x2", "medium"), gridSize("large", "4x4", "large")],
     "productivity",
     "#8a90a0"
   ),

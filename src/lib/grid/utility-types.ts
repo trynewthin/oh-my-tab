@@ -13,12 +13,7 @@ export const utilityWidgetKinds = [
 
 export type UtilityWidgetKind = (typeof utilityWidgetKinds)[number]
 export type UtilityWidgetSize =
-  | "small"
-  | "medium"
-  | "large"
-  | "tall"
-  | "wide"
-  | "wide-tall"
+  "small" | "medium" | "large" | "tall" | "wide" | "wide-tall"
 
 export type CountdownEvent = { id: string; title: string; date: string }
 export type WorldClockZone = { id: string; label: string; timeZone: string }
@@ -83,8 +78,8 @@ export function isUtilityWidgetKind(
   )
 }
 
-export function isUtilityWidget(
-  value: { kind?: unknown }
-): value is UtilityWidgetItem {
+export function isUtilityWidget(value: {
+  kind?: unknown
+}): value is UtilityWidgetItem {
   return isUtilityWidgetKind(value.kind)
 }

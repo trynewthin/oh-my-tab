@@ -46,13 +46,7 @@ import { prepareWidgetPhoto } from "@/lib/widgets/photo"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { updateUtilityWidget } from "@/stores/widget-actions"
 
-function Field({
-  label,
-  children,
-}: {
-  label: string
-  children: ReactNode
-}) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-2 text-sm">
       {label}
@@ -88,9 +82,7 @@ export default function UtilityWidgetEditor({
   )
 
   const patch = (changes: object) =>
-    setDraft(
-      (current) => ({ ...current, ...changes }) as UtilityWidgetItem
-    )
+    setDraft((current) => ({ ...current, ...changes }) as UtilityWidgetItem)
 
   async function selectPhoto(file?: File) {
     if (!file) return
@@ -398,11 +390,7 @@ export default function UtilityWidgetEditor({
               />
             </Field>
             <p className="text-xs text-muted-foreground">
-              {t(
-                uploading
-                  ? "widgets.processingPhoto"
-                  : "widgets.photoHelp"
-              )}
+              {t(uploading ? "widgets.processingPhoto" : "widgets.photoHelp")}
             </p>
             {draft.image && (
               <>
@@ -434,8 +422,7 @@ export default function UtilityWidgetEditor({
                 value={draft.fit}
                 onChange={(event) =>
                   patch({
-                    fit:
-                      event.target.value === "contain" ? "contain" : "cover",
+                    fit: event.target.value === "contain" ? "contain" : "cover",
                   })
                 }
               >
@@ -452,24 +439,17 @@ export default function UtilityWidgetEditor({
               <select
                 className="h-9 rounded-md border bg-background px-3"
                 value={draft.folderId}
-                onChange={(event) =>
-                  patch({ folderId: event.target.value })
-                }
+                onChange={(event) => patch({ folderId: event.target.value })}
               >
                 <option value="">{t("widgets.chooseFolder")}</option>
                 {draft.folderId &&
-                  !folders.some(
-                    (folder) => folder.id === draft.folderId
-                  ) && (
+                  !folders.some((folder) => folder.id === draft.folderId) && (
                     <option value={draft.folderId}>
                       {t("widgets.missingFolder")}
                     </option>
                   )}
                 {folders.map((folder) => (
-                  <option
-                    key={folder.id}
-                    value={folder.id}
-                  >
+                  <option key={folder.id} value={folder.id}>
                     {folder.name}
                   </option>
                 ))}
@@ -505,9 +485,7 @@ export default function UtilityWidgetEditor({
                 maxLength={140}
                 value={draft.repository}
                 placeholder="owner/repository"
-                onChange={(event) =>
-                  patch({ repository: event.target.value })
-                }
+                onChange={(event) => patch({ repository: event.target.value })}
               />
             </Field>
             <p className="text-xs text-muted-foreground">
@@ -599,9 +577,7 @@ export default function UtilityWidgetEditor({
               <input
                 type="checkbox"
                 checked={draft.hour12}
-                onChange={(event) =>
-                  patch({ hour12: event.target.checked })
-                }
+                onChange={(event) => patch({ hour12: event.target.checked })}
               />
               {t("widgets.hour12")}
             </label>
@@ -631,10 +607,7 @@ export default function UtilityWidgetEditor({
             {t("widgets.editorDescription")}
           </DialogDescription>
         </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={save}
-        >
+        <form className="space-y-4" onSubmit={save}>
           <Field label={t("grid.editor.name")}>
             <Input
               required
@@ -644,10 +617,7 @@ export default function UtilityWidgetEditor({
             />
           </Field>
           <div className="space-y-2">
-            <label
-              htmlFor={`widget-size-${item.id}`}
-              className="text-sm"
-            >
+            <label htmlFor={`widget-size-${item.id}`} className="text-sm">
               {t("grid.editor.displaySize")}
             </label>
             <Select
@@ -657,20 +627,14 @@ export default function UtilityWidgetEditor({
                   patch({ size: value as UtilityWidgetItem["size"] })
               }}
             >
-              <SelectTrigger
-                id={`widget-size-${item.id}`}
-                className="w-full"
-              >
+              <SelectTrigger id={`widget-size-${item.id}`} className="w-full">
                 <SelectValue>
                   {currentSize ? sizeLabel(currentSize, t) : undefined}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {sizes.map((size) => (
-                  <SelectItem
-                    key={size.value}
-                    value={size.value}
-                  >
+                  <SelectItem key={size.value} value={size.value}>
                     {sizeLabel(size, t)}
                   </SelectItem>
                 ))}
@@ -689,25 +653,15 @@ export default function UtilityWidgetEditor({
           )}
           {fields()}
           {error && (
-            <p
-              role="alert"
-              className="text-sm text-destructive"
-            >
+            <p role="alert" className="text-sm text-destructive">
               {t(`widgets.errors.${error}`)}
             </p>
           )}
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               {t("grid.editor.cancel")}
             </Button>
-            <Button
-              type="submit"
-              disabled={uploading}
-            >
+            <Button type="submit" disabled={uploading}>
               {t("grid.editor.save")}
             </Button>
           </DialogFooter>

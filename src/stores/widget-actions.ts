@@ -10,7 +10,9 @@ export function updateUtilityWidget(
   id: string,
   change: (item: UtilityWidgetItem) => UtilityWidgetItem
 ) {
-  const current = useTabGridStore.getState().items.find((item) => item.id === id)
+  const current = useTabGridStore
+    .getState()
+    .items.find((item) => item.id === id)
   if (!current || !isUtilityWidget(current)) return
   const next = change(current)
   if (next === current) return

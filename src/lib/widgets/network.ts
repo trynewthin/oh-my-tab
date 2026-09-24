@@ -194,7 +194,9 @@ export function parseGithub(value: unknown): GithubData {
     forks: count(root.forks_count),
     openItems: count(root.open_issues_count),
     description:
-      typeof root.description === "string" ? root.description.slice(0, 300) : "",
+      typeof root.description === "string"
+        ? root.description.slice(0, 300)
+        : "",
     pushedAt: typeof root.pushed_at === "string" ? root.pushed_at : null,
   }
 }
@@ -222,16 +224,14 @@ export function parseFeed(xml: string, source: string): FeedData {
     const alternate = links.find(
       (link) =>
         link.hasAttribute("href") &&
-        (!link.hasAttribute("rel") ||
-          link.getAttribute("rel") === "alternate")
+        (!link.hasAttribute("rel") || link.getAttribute("rel") === "alternate")
     )
-    const raw =
-      alternate?.getAttribute("href") ?? links[0]?.textContent?.trim()
+    const raw = alternate?.getAttribute("href") ?? links[0]?.textContent?.trim()
     const url = safeLink(raw, source)
     if (!url || seen.has(url)) continue
     seen.add(url)
-    const title = children(element, "title")[0]?.textContent
-      ?.trim()
+    const title = children(element, "title")[0]
+      ?.textContent?.trim()
       .slice(0, 160)
     entries.push({ title: title || new URL(url).hostname, url })
     if (entries.length === 5) break

@@ -134,9 +134,7 @@ export function validRepository(value: unknown): value is string {
   return (
     typeof value === "string" &&
     value.length <= 140 &&
-    /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?\/[a-z\d_.-]{1,100}$/i.test(
-      value
-    ) &&
+    /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?\/[a-z\d_.-]{1,100}$/i.test(value) &&
     ![".", ".."].includes(value.split("/")[1])
   )
 }

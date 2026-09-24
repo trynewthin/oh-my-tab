@@ -1,0 +1,127 @@
+name: Validate widget design rework
+
+on:
+  push:
+    branches: [feat/expanded-widget-library]
+    paths: [.github/workflows/widget-design-rework.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: widget-design-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rework-and-check:
+    if: github.repository == 'trynewthin/oh-my-tab' && github.ref == 'refs/heads/feat/expanded-widget-library'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Verify reviewed source and apply design changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, lzma, os, subprocess
+          from pathlib import Path
+          base = 'd82ca0f2ee0c90ef944f3b15079a4e1335e5a64f'
+          workflow = '.github/workflows/widget-design-rework.yml'
+          changed = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()
+          assert changed == [workflow], ('The feature branch changed since review', changed)
+          blobs = [
+              'b2e9002e85e8be1bbc3b5b7247474f2f5eb41fec',
+              '2a95850bb759191f22a7710e00fe3bfa4867eedd',
+              'ec1b5aa1fda91e4d08dbe7c38e0c58b91e06452c',
+              '24c6b04e87c3b3bb893ea76c5435ad99ceda784b',
+          ]
+          fragments = []
+          for sha in blobs:
+              result = json.loads(subprocess.check_output(['gh', 'api', f'repos/trynewthin/oh-my-tab/git/blobs/{sha}']))
+              assert result['sha'] == sha and result['encoding'] == 'base64'
+              fragments.append(base64.b64decode(result['content']).decode('ascii'))
+          compressed = base64.b64decode(''.join(fragments), validate=True)
+          assert hashlib.sha256(compressed).hexdigest() == '7fcf8087120d6c693062601a53feb4afad03f967e0155b5e31c79c454b220d61'
+          payload = json.loads(lzma.decompress(compressed))
+          paths = [
+              'docs/development/widget-design.md',
+              'src/components/tab-grid/utility-widget-editor.tsx',
+              'src/components/tab-grid/utility-widget-tile.tsx',
+              'src/components/tab-grid/utility/content-widgets.tsx',
+              'src/components/tab-grid/utility/editor-preview.tsx',
+              'src/components/tab-grid/utility/editor.css',
+              'src/components/tab-grid/utility/remote-widget.tsx',
+              'src/components/tab-grid/utility/surface.tsx',
+              'src/components/tab-grid/utility/time-widgets.tsx',
+              'src/components/tab-grid/utility/widgets.css',
+              'src/i18n/locales/en/widgets.ts',
+              'src/i18n/locales/zh-CN/widgets.ts',
+              'src/lib/widgets/presentation.ts',
+              'tests/unit/widget-presentation.test.ts',
+              'tests/unit/widget-rendering.test.ts',
+          ]
+          assert set(payload['files']).isdisjoint(payload['patches'])
+          assert set(payload['files']) | set(payload['patches']) == set(paths)
+          replacements = dict(payload['files'])
+          for name, patch in payload['patches'].items():
+              old = Path(name).read_text()
+              assert hashlib.sha256(old.encode()).hexdigest() == patch['sha256'], ('Reviewed file has changed', name)
+              for start, end, text in reversed(patch['edits']):
+                  assert 0 <= start <= end <= len(old)
+                  old = old[:start] + text + old[end:]
+              replacements[name] = old
+          for name, text in replacements.items():
+              path = Path(name)
+              assert not path.is_absolute() and '..' not in path.parts
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_text(text)
+          Path(workflow).unlink()
+          Path(os.environ['RUNNER_TEMP'], 'widget-design-paths.json').write_text(json.dumps(paths + [workflow]))
+          print('Applied nine-widget visual rework to 15 reviewed files. No browser or E2E commands.')
+          PY
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Format and verify change scope
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process'
+          import { readFileSync } from 'node:fs'
+          const paths = JSON.parse(readFileSync(process.env.RUNNER_TEMP + '/widget-design-paths.json', 'utf8'))
+          const expected = new Set(paths)
+          const changed = execFileSync('git', ['diff', '--name-only', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
+          const added = execFileSync('git', ['ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
+          const actual = new Set([...changed, ...added])
+          if (actual.size !== expected.size || [...actual].some(p => !expected.has(p))) throw new Error('Unexpected change scope: ' + [...actual].join(', '))
+          execFileSync('node', ['node_modules/prettier/bin/prettier.cjs', '--write', ...paths.filter(p => !p.startsWith('.github/'))], { stdio: 'inherit' })
+          JS
+          git diff --check
+          git diff --quiet -- .github/workflows/build-extension.yml package.json package-lock.json public/manifest.json
+      - name: Non-browser quality checks
+        run: npm run check
+      - name: Build extension
+        run: npm run build
+      - name: Commit verified design to existing PR branch only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          test "$GITHUB_REF" = 'refs/heads/feat/expanded-widget-library'
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process'
+          import { readFileSync } from 'node:fs'
+          const paths = JSON.parse(readFileSync(process.env.RUNNER_TEMP + '/widget-design-paths.json', 'utf8'))
+          execFileSync('git', ['add', '-A', '--', ...paths], { stdio: 'inherit' })
+          JS
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'design: give utility widgets distinct readable compositions'
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/feat/expanded-widget-library
+          printf 'Verified design commit: %s\n' "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

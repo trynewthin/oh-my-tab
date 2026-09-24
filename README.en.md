@@ -16,7 +16,7 @@ Oh My Tab replaces the new tab page in Chrome or Edge. Arrange cards on a free g
 - **Choose the grid columns:** set separate wide- and narrow-screen counts. The grid switches after the wide layout shrinks below 80%, then scales only if the narrow layout still does not fit. Defaults are four and two columns.
 - **Search within reach:** find saved bookmarks or search the web with your chosen search engine. Add a movable search widget in 4×1, 8×1, or 12×1 sizes.
 - **One-click shortcuts:** add 1×1 buttons to switch themes, tidy the grid, enter selection mode, or open settings and the component catalog.
-- **Useful and playful widgets:** add clocks, countdowns, notes, a focus timer, weather, photos, bookmark lists, RSS, GitHub repository stats, and world clocks alongside the calendar, to-do list, dot canvas, and pixel planter. Preview widgets and select their size before adding them.
+- **Useful and playful widgets:** add clocks, countdowns, notes, a focus timer, weather, photos, bookmark lists, RSS, and world clocks alongside the calendar, to-do list, dot canvas, and pixel planter. Preview widgets and select their size before adding them.
 - **Personalize the look:** choose light, dark, or system mode, set colors and backgrounds, and preview card styles and visual effects. The interface supports English and Simplified Chinese.
 - **Bring your bookmarks:** optionally import Chrome or Edge bookmarks, with duplicate URLs and matching folder names handled for you.
 - **Keep a backup:** export and restore complete ZIP backups, or manually transfer snapshots through your own HTTPS WebDAV server.
@@ -43,7 +43,7 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 
 Bookmarks, layouts, preferences, and background images are stored on your device by default. Oh My Tab contains no advertising or behavioral analytics.
 
-Search suggestions, third-party site icons, browser bookmark import, WebDAV, and network reads from the weather, GitHub, and RSS widgets require you to opt in or initiate the action. Weather never requests device location, and network widgets do not load automatically when added or previewed. ZIP backups are not encrypted; store them securely. See the [privacy policy](https://ohmytab.vercel.app/privacy) for permission usage and network access details.
+Search suggestions, third-party site icons, browser bookmark import, WebDAV, and network reads from the weather and RSS widgets require you to opt in or initiate the action. Weather never requests device location, and network widgets do not load automatically when added or previewed. ZIP backups are not encrypted; store them securely. See the [privacy policy](https://ohmytab.vercel.app/privacy) for permission usage and network access details.
 
 <details>
 <summary>Development and contributions</summary>

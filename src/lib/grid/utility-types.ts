@@ -7,7 +7,6 @@ export const utilityWidgetKinds = [
   "photo",
   "bookmark-list",
   "rss",
-  "github-repo",
   "world-clock",
 ] as const
 
@@ -59,14 +58,13 @@ export type UtilityWidgetItem = UtilityBase &
       }
     | { kind: "bookmark-list"; folderId: string }
     | { kind: "rss"; feedUrl: string }
-    | { kind: "github-repo"; repository: string }
     | { kind: "world-clock"; zones: WorldClockZone[]; hour12: boolean }
   )
 
 export type PomodoroItem = Extract<UtilityWidgetItem, { kind: "pomodoro" }>
 export type RemoteWidgetItem = Extract<
   UtilityWidgetItem,
-  { kind: "weather" | "rss" | "github-repo" }
+  { kind: "weather" | "rss" }
 >
 
 export function isUtilityWidgetKind(

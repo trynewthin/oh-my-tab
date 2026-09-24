@@ -122,8 +122,6 @@ export default function UtilityWidgetEditor({
       clean = { ...clean, timeZone: clean.timeZone.trim() }
     if (clean.kind === "rss")
       clean = { ...clean, feedUrl: clean.feedUrl.trim() }
-    if (clean.kind === "github-repo")
-      clean = { ...clean, repository: clean.repository.trim() }
     if (clean.kind === "countdown")
       clean = {
         ...clean,
@@ -474,22 +472,6 @@ export default function UtilityWidgetEditor({
             </Field>
             <p className="text-xs text-muted-foreground">
               {t("widgets.rssPrivacy")}
-            </p>
-          </>
-        )
-      case "github-repo":
-        return (
-          <>
-            <Field label={t("widgets.repository")}>
-              <Input
-                maxLength={140}
-                value={draft.repository}
-                placeholder="owner/repository"
-                onChange={(event) => patch({ repository: event.target.value })}
-              />
-            </Field>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.githubPrivacy")}
             </p>
           </>
         )

@@ -66,7 +66,6 @@ describe("component occupancy registration", () => {
       photo: "fun",
       "bookmark-list": "common",
       rss: "common",
-      "github-repo": "productivity",
       "world-clock": "productivity",
     })
   })

@@ -8,20 +8,24 @@ vi.mock("@/stores/privacy-store", () => ({
 }))
 import { loadRemoteWidget } from "@/application/widget-network"
 
-const repository: RemoteWidgetItem = {
-  id: "repository",
-  name: "Repository",
+const weather: RemoteWidgetItem = {
+  id: "weather",
+  name: "Weather",
   color: "#123456",
   size: "large",
-  kind: "github-repo",
-  repository: "trynewthin/oh-my-tab",
+  kind: "weather",
+  latitude: 35.68,
+  longitude: 139.69,
+  locationName: "Tokyo",
+  unit: "celsius",
 }
 const responseData = {
-  stargazers_count: 12,
-  forks_count: 3,
-  open_issues_count: 7,
-  description: "Example",
-  pushed_at: "2026-09-24T00:00:00Z",
+  current: { temperature_2m: 22, weather_code: 0 },
+  daily: {
+    time: ["2026-09-24"],
+    temperature_2m_max: [25],
+    temperature_2m_min: [18],
+  },
 }
 
 function mockFetch(response: Response) {
@@ -40,8 +44,8 @@ describe("manual widget requests", () => {
     requestOrigin.mockResolvedValue(false)
     const fetch = vi.fn()
     vi.stubGlobal("fetch", fetch)
-    const pending = loadRemoteWidget(repository, new AbortController().signal)
-    expect(requestOrigin).toHaveBeenCalledWith("https://api.github.com")
+    const pending = loadRemoteWidget(weather, new AbortController().signal)
+    expect(requestOrigin).toHaveBeenCalledWith("https://api.open-meteo.com")
     await expect(pending).rejects.toMatchObject({ code: "permissionDenied" })
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -49,10 +53,16 @@ describe("manual widget requests", () => {
   test("granted requests omit cookies, referrer and redirects", async () => {
     requestOrigin.mockResolvedValue(true)
     const fetch = mockFetch(new Response(JSON.stringify(responseData)))
-    const pending = loadRemoteWidget(repository, new AbortController().signal)
-    await expect(pending).resolves.toMatchObject({ stars: 12, openItems: 7 })
+    const pending = loadRemoteWidget(weather, new AbortController().signal)
+    await expect(pending).resolves.toMatchObject({
+      kind: "weather",
+      temperature: 22,
+    })
     expect(fetch).toHaveBeenCalledWith(
-      "https://api.github.com/repos/trynewthin/oh-my-tab",
+      "https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.69" +
+        "&current=temperature_2m%2Cweather_code" +
+        "&daily=temperature_2m_max%2Ctemperature_2m_min" +
+        "&forecast_days=3&temperature_unit=celsius&timezone=auto",
       expect.objectContaining({
         credentials: "omit",
         referrerPolicy: "no-referrer",
@@ -65,7 +75,7 @@ describe("manual widget requests", () => {
   test("unconfigured widgets neither request permission nor fetch", async () => {
     const fetch = vi.fn()
     vi.stubGlobal("fetch", fetch)
-    const empty = { ...repository, repository: "" }
+    const empty = { ...weather, latitude: null, longitude: null }
     const pending = loadRemoteWidget(empty, new AbortController().signal)
     await expect(pending).rejects.toMatchObject({ code: "notConfigured" })
     expect(requestOrigin).not.toHaveBeenCalled()
@@ -83,7 +93,7 @@ describe("manual widget requests", () => {
     const fetch = vi.fn()
     vi.stubGlobal("fetch", fetch)
     const controller = new AbortController()
-    const pending = loadRemoteWidget(repository, controller.signal)
+    const pending = loadRemoteWidget(weather, controller.signal)
     controller.abort()
     grant(true)
     await expect(pending).rejects.toBeTruthy()

@@ -525,7 +525,7 @@ function conditionKey(code: number | null) {
 
 function RemoteTile(props: Props<RemoteWidgetItem>) {
   const { item, preview } = props
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [data, setData] = useState<RemoteWidgetData | null>(null)
   const [error, setError] = useState<WidgetNetworkErrorCode | null>(null)
   const [loading, setLoading] = useState(false)
@@ -553,28 +553,19 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
             { date: "2026-01-17", high: 25, low: 19 },
           ],
         }
-      : item.kind === "github-repo"
-        ? {
-            kind: "github-repo",
-            stars: 128,
-            forks: 12,
-            openItems: 4,
-            description: t("widgets.githubPreview"),
-            pushedAt: null,
-          }
-        : {
-            kind: "rss",
-            entries: [
-              {
-                title: t("widgets.feedPreviewOne"),
-                url: "https://example.com/1",
-              },
-              {
-                title: t("widgets.feedPreviewTwo"),
-                url: "https://example.com/2",
-              },
-            ],
-          }
+      : {
+          kind: "rss",
+          entries: [
+            {
+              title: t("widgets.feedPreviewOne"),
+              url: "https://example.com/1",
+            },
+            {
+              title: t("widgets.feedPreviewTwo"),
+              url: "https://example.com/2",
+            },
+          ],
+        }
     : data
 
   async function load() {
@@ -649,63 +640,6 @@ function RemoteTile(props: Props<RemoteWidgetItem>) {
                   </CollectionViewport>
                 )}
               </>
-            )}
-            {display?.kind === "github-repo" && item.kind === "github-repo" && (
-              <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
-                {preview ? (
-                  <span className="truncate text-xs">owner/repository</span>
-                ) : (
-                  <a
-                    href={`https://github.com/${item.repository}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-xs underline underline-offset-2"
-                  >
-                    {item.repository}
-                  </a>
-                )}
-                <dl className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-xs">
-                  <div>
-                    <dt className="text-muted-foreground">
-                      {t("widgets.stars")}
-                    </dt>
-                    <dd className="font-medium tabular-nums">
-                      {display.stars.toLocaleString(i18n.resolvedLanguage)}
-                    </dd>
-                  </div>
-                  {!compact && (
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t("widgets.forks")}
-                      </dt>
-                      <dd className="font-medium tabular-nums">
-                        {display.forks.toLocaleString(i18n.resolvedLanguage)}
-                      </dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-muted-foreground">
-                      {t("widgets.openItems")}
-                    </dt>
-                    <dd className="font-medium tabular-nums">
-                      {display.openItems}
-                    </dd>
-                  </div>
-                </dl>
-                {!compact && (
-                  <p className="line-clamp-2 text-xs text-muted-foreground">
-                    {display.description}
-                  </p>
-                )}
-                {!compact && display.pushedAt && (
-                  <p className="text-[10px] text-muted-foreground">
-                    {t("widgets.lastPush")}:{" "}
-                    {new Date(display.pushedAt).toLocaleDateString(
-                      i18n.resolvedLanguage
-                    )}
-                  </p>
-                )}
-              </div>
             )}
             {display?.kind === "rss" && (
               <CollectionViewport label={item.name}>
@@ -812,7 +746,6 @@ export default function UtilityWidgetTile(props: Props) {
       return <WorldClockTile {...props} item={item} />
     case "weather":
     case "rss":
-    case "github-repo":
       return (
         <RemoteTile
           key={`${item.id}:${remoteSourceKey(item)}`}

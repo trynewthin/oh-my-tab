@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import {
+  catalogComponentKinds,
   getComponentSizeOptions,
   getItemGridDimensions,
 } from "@/lib/grid/registry"
@@ -19,14 +20,9 @@ import {
   resetPomodoro,
   togglePomodoro,
   validPhoto,
-  validRepository,
   validTimeZone,
 } from "@/lib/widgets/model"
-import {
-  parseGithub,
-  parseWeather,
-  widgetRequestUrl,
-} from "@/lib/widgets/network"
+import { parseWeather, widgetRequestUrl } from "@/lib/widgets/network"
 
 const shared = {
   id: "widget",
@@ -46,6 +42,24 @@ const timer = (): PomodoroItem => ({
 })
 
 describe("utility widgets", () => {
+  test("keeps the nine approved widgets and rejects the removed kind", () => {
+    expect(utilityWidgetKinds).toEqual([
+      "clock",
+      "countdown",
+      "note",
+      "pomodoro",
+      "weather",
+      "photo",
+      "bookmark-list",
+      "rss",
+      "world-clock",
+    ])
+    expect(catalogComponentKinds).not.toContain("github-repo")
+    expect(
+      validGridItem({ ...shared, kind: "github-repo", repository: "a/b" })
+    ).toBe(false)
+  })
+
   test.each(utilityWidgetKinds)("%s creates valid registered sizes", (kind) => {
     for (const option of getComponentSizeOptions(kind, "catalog")) {
       const item = createCatalogComponent(kind, option.value)
@@ -90,10 +104,6 @@ describe("utility widgets", () => {
       {
         ...createUtilityWidget("rss", { ...shared, size: "wide" }),
         feedUrl: "https://127.0.0.1/feed",
-      },
-      {
-        ...createUtilityWidget("github-repo", shared),
-        repository: "owner/repo/issues",
       },
     ]
     invalid.forEach((item) => expect(validGridItem(item)).toBe(false))
@@ -149,8 +159,6 @@ describe("utility widgets", () => {
     expect(remoteUrl("https://example.com/feed#item")).toBe(
       "https://example.com/feed"
     )
-    expect(validRepository("trynewthin/oh-my-tab")).toBe(true)
-    expect(validRepository("owner/..")).toBe(false)
     expect(validPhoto("data:image/svg+xml;base64,PHN2Zz4=")).toBe(false)
 
     const weatherUrl = new URL(
@@ -178,14 +186,5 @@ describe("utility widgets", () => {
         },
       }).forecast
     ).toEqual([{ date: "2026-09-24", high: 25, low: 18 }])
-    expect(
-      parseGithub({
-        stargazers_count: 12,
-        forks_count: 3,
-        open_issues_count: 7,
-        description: "Example",
-        pushed_at: "2026-09-24T00:00:00Z",
-      }).openItems
-    ).toBe(7)
   })
 })

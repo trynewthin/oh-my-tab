@@ -39,11 +39,6 @@ export const utilityComponents = {
     description: "手动读取最多五条 RSS 或 Atom 标题。",
     defaultName: "RSS 阅读",
   },
-  "github-repo": {
-    label: "GitHub 仓库",
-    description: "按需读取公开仓库的状态。",
-    defaultName: "GitHub 仓库",
-  },
   "world-clock": {
     label: "世界时钟",
     description: "对照查看最多四个自定义时区。",
@@ -108,18 +103,10 @@ export default {
   feedUrl: "RSS 或 Atom 地址",
   rssPrivacy:
     "仅点击加载或刷新后直连公共 HTTPS 源，不使用代理、不发送登录 Cookie、不跟随跳转，也不加载文章 HTML。",
-  repository: "公开仓库（owner/repository）",
-  githubPrivacy:
-    "仅点击加载或刷新后请求 api.github.com，不保存账号或令牌；公开接口存在请求频率限制。",
-  githubPreview: "关注一个公开项目的变化。",
   feedPreviewOne: "你关注的项目发布了新版本",
   feedPreviewTwo: "来自常读专栏的新文章",
   notLoaded: "尚未加载",
   emptyFeed: "此订阅源没有可读取的标题。",
-  stars: "星标",
-  forks: "派生",
-  openItems: "议题与 PR",
-  lastPush: "最近推送",
   previewOnly: "示例数据 · 不会联网",
   loadFrom: "从 {{origin}} 读取数据",
   loading: "加载中……",

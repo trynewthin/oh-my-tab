@@ -1,5 +1,5 @@
 import type { RemoteWidgetItem } from "@/lib/grid/utility-types"
-import { dateOrdinal, remoteUrl, safeLink, validRepository } from "./model"
+import { dateOrdinal, remoteUrl, safeLink } from "./model"
 
 export type WeatherData = {
   kind: "weather"
@@ -7,19 +7,11 @@ export type WeatherData = {
   code: number | null
   forecast: { date: string; high: number; low: number }[]
 }
-export type GithubData = {
-  kind: "github-repo"
-  stars: number
-  forks: number
-  openItems: number
-  description: string
-  pushedAt: string | null
-}
 export type FeedData = {
   kind: "rss"
   entries: { title: string; url: string }[]
 }
-export type RemoteWidgetData = WeatherData | GithubData | FeedData
+export type RemoteWidgetData = WeatherData | FeedData
 export type WidgetNetworkErrorCode =
   | "notConfigured"
   | "permissionDenied"
@@ -62,10 +54,6 @@ export function widgetRequestUrl(item: RemoteWidgetItem): string {
       }).toString()
       return url.href
     }
-    case "github-repo":
-      if (!validRepository(item.repository))
-        throw new WidgetNetworkError("notConfigured")
-      return `https://api.github.com/repos/${item.repository}`
     case "rss": {
       const url = remoteUrl(item.feedUrl)
       if (!url) throw new WidgetNetworkError("notConfigured")
@@ -179,28 +167,6 @@ export function parseWeather(value: unknown): WeatherData {
   }
 }
 
-export function parseGithub(value: unknown): GithubData {
-  const root = record(value)
-  if (
-    (root.description !== null && typeof root.description !== "string") ||
-    (root.pushed_at !== null &&
-      (typeof root.pushed_at !== "string" ||
-        !Number.isFinite(Date.parse(root.pushed_at))))
-  )
-    throw new WidgetNetworkError("invalidResponse")
-  return {
-    kind: "github-repo",
-    stars: count(root.stargazers_count),
-    forks: count(root.forks_count),
-    openItems: count(root.open_issues_count),
-    description:
-      typeof root.description === "string"
-        ? root.description.slice(0, 300)
-        : "",
-    pushedAt: typeof root.pushed_at === "string" ? root.pushed_at : null,
-  }
-}
-
 function children(element: Element, name: string): Element[] {
   return Array.from(element.childNodes).filter(
     (node): node is Element =>
@@ -252,5 +218,5 @@ export async function readRemoteWidget(
   } catch {
     throw new WidgetNetworkError("invalidResponse")
   }
-  return item.kind === "weather" ? parseWeather(value) : parseGithub(value)
+  return parseWeather(value)
 }

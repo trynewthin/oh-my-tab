@@ -39,11 +39,6 @@ export const utilityComponents = {
     description: "Manually load up to five RSS or Atom headlines.",
     defaultName: "RSS reader",
   },
-  "github-repo": {
-    label: "GitHub repository",
-    description: "Read public repository statistics on request.",
-    defaultName: "GitHub repository",
-  },
   "world-clock": {
     label: "World clocks",
     description: "Compare up to four named time zones.",
@@ -112,18 +107,10 @@ export default {
   feedUrl: "RSS or Atom URL",
   rssPrivacy:
     "Load/Refresh contacts the public HTTPS feed directly. No proxy, login cookies, redirects, or remote article HTML.",
-  repository: "Public repository (owner/repository)",
-  githubPrivacy:
-    "Load/Refresh contacts api.github.com without an account or token. Public API rate limits apply.",
-  githubPreview: "A public project you follow.",
   feedPreviewOne: "A new release is available",
   feedPreviewTwo: "Notes from your favorite publication",
   notLoaded: "Not loaded yet",
   emptyFeed: "No readable headlines in this feed.",
-  stars: "Stars",
-  forks: "Forks",
-  openItems: "Issues + PRs",
-  lastPush: "Last push",
   previewOnly: "Example data · no network requests",
   loadFrom: "Load data from {{origin}}",
   loading: "Loading…",

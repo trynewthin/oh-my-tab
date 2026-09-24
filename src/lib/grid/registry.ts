@@ -517,13 +517,6 @@ export const componentRegistry = {
     "common",
     "#d49b6c"
   ),
-  "github-repo": utilityDefinition(
-    "github-repo",
-    "large",
-    [gridSize("medium", "4x2", "medium"), gridSize("large", "4x4", "large")],
-    "productivity",
-    "#8a90a0"
-  ),
   "world-clock": utilityDefinition(
     "world-clock",
     "large",

@@ -130,15 +130,6 @@ export function remoteUrl(value: unknown): string | null {
   return url.href
 }
 
-export function validRepository(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length <= 140 &&
-    /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?\/[a-z\d_.-]{1,100}$/i.test(value) &&
-    ![".", ".."].includes(value.split("/")[1])
-  )
-}
-
 export function validPhoto(value: unknown): value is string {
   if (value === "") return true
   if (typeof value !== "string" || value.length > PHOTO_MAX_DATA_LENGTH)
@@ -226,8 +217,6 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
       return text(item.folderId, 100)
     case "rss":
       return item.feedUrl === "" || remoteUrl(item.feedUrl) !== null
-    case "github-repo":
-      return item.repository === "" || validRepository(item.repository)
     case "world-clock":
       return (
         typeof item.hour12 === "boolean" &&
@@ -294,8 +283,6 @@ export function createUtilityWidget(
       return { ...shared, kind, folderId: "" }
     case "rss":
       return { ...shared, kind, feedUrl: "" }
-    case "github-repo":
-      return { ...shared, kind, repository: "" }
     case "world-clock":
       return {
         ...shared,

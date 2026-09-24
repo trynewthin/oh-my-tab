@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useRef,
   useState,
   type FormEvent,
@@ -8,6 +9,11 @@ import {
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import ColorPicker from "@/components/ui/color-picker"
+import WidgetEditorPreview from "./utility/editor-preview"
+import "./utility/editor.css"
 import {
   Dialog,
   DialogContent,
@@ -26,7 +32,6 @@ import {
 import {
   componentLabel,
   getComponentDefinition,
-  getComponentSize,
   getComponentSizeOptions,
   isComponentSize,
   sizeLabel,
@@ -48,10 +53,71 @@ import { updateUtilityWidget } from "@/stores/widget-actions"
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-2 text-sm">
+    <label className="utility-editor-field">
       {label}
       {children}
     </label>
+  )
+}
+
+function SwitchField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  const id = useId()
+  return (
+    <div className="utility-editor-switch-row">
+      <label htmlFor={id}>{label}</label>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="data-checked:bg-foreground [&_[data-slot=switch-thumb]]:bg-background"
+      />
+    </div>
+  )
+}
+
+function ChoiceField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}) {
+  const id = useId()
+  return (
+    <div className="utility-editor-field">
+      <label htmlFor={id}>{label}</label>
+      <Select
+        value={value}
+        onValueChange={(next) => {
+          if (next !== null) onChange(String(next))
+        }}
+      >
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue>
+            {options.find((option) => option.value === value)?.label}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 
@@ -72,7 +138,6 @@ export default function UtilityWidgetEditor({
   const items = useTabGridStore((state) => state.items)
   const folders = items.filter((entry) => entry.kind === "folder")
   const sizes = getComponentSizeOptions(item.kind, "editor", draft.size)
-  const currentSize = getComponentSize(item.kind, draft.size)
 
   useEffect(
     () => () => {
@@ -168,40 +233,25 @@ export default function UtilityWidgetEditor({
                 onChange={(event) => patch({ timeZone: event.target.value })}
               />
             </Field>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={draft.hour12}
-                onChange={(event) => patch({ hour12: event.target.checked })}
-              />
-              {t("widgets.hour12")}
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={draft.showSeconds}
-                onChange={(event) =>
-                  patch({ showSeconds: event.target.checked })
-                }
-              />
-              {t("widgets.showSeconds")}
-            </label>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.timeZoneHelp")}
-            </p>
+            <SwitchField
+              label={t("widgets.hour12")}
+              checked={draft.hour12}
+              onChange={(hour12) => patch({ hour12 })}
+            />
+            <SwitchField
+              label={t("widgets.showSeconds")}
+              checked={draft.showSeconds}
+              onChange={(showSeconds) => patch({ showSeconds })}
+            />
+            <p className="utility-editor-help">{t("widgets.timeZoneHelp")}</p>
           </>
         )
       case "countdown":
         return (
           <>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.countdownHelp")}
-            </p>
+            <p className="utility-editor-help">{t("widgets.countdownHelp")}</p>
             {draft.events.map((entry, index) => (
-              <fieldset
-                key={entry.id}
-                className="space-y-3 rounded-xl border p-3"
-              >
+              <fieldset key={entry.id} className="utility-editor-group">
                 <legend className="px-1 text-xs">
                   {t("widgets.eventIndex", { index: index + 1 })}
                 </legend>
@@ -277,11 +327,7 @@ export default function UtilityWidgetEditor({
           </>
         )
       case "note":
-        return (
-          <p className="text-sm text-muted-foreground">
-            {t("widgets.noteHelp")}
-          </p>
-        )
+        return <p className="utility-editor-help">{t("widgets.noteHelp")}</p>
       case "pomodoro":
         return (
           <>
@@ -298,9 +344,7 @@ export default function UtilityWidgetEditor({
                 }
               />
             </Field>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.pomodoroHelp")}
-            </p>
+            <p className="utility-editor-help">{t("widgets.pomodoroHelp")}</p>
           </>
         )
       case "weather":
@@ -351,26 +395,20 @@ export default function UtilityWidgetEditor({
                 />
               </Field>
             </div>
-            <Field label={t("widgets.temperatureUnit")}>
-              <select
-                className="h-9 rounded-md border bg-background px-3"
-                value={draft.unit}
-                onChange={(event) =>
-                  patch({
-                    unit:
-                      event.target.value === "fahrenheit"
-                        ? "fahrenheit"
-                        : "celsius",
-                  })
-                }
-              >
-                <option value="celsius">°C</option>
-                <option value="fahrenheit">°F</option>
-              </select>
-            </Field>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.weatherPrivacy")}
-            </p>
+            <ChoiceField
+              label={t("widgets.temperatureUnit")}
+              value={draft.unit}
+              options={[
+                { value: "celsius", label: "°C" },
+                { value: "fahrenheit", label: "°F" },
+              ]}
+              onChange={(value) =>
+                patch({
+                  unit: value === "fahrenheit" ? "fahrenheit" : "celsius",
+                })
+              }
+            />
+            <p className="utility-editor-help">{t("widgets.weatherPrivacy")}</p>
           </>
         )
       case "photo":
@@ -387,16 +425,11 @@ export default function UtilityWidgetEditor({
                 }}
               />
             </Field>
-            <p className="text-xs text-muted-foreground">
+            <p className="utility-editor-help">
               {t(uploading ? "widgets.processingPhoto" : "widgets.photoHelp")}
             </p>
             {draft.image && (
               <>
-                <img
-                  src={draft.image}
-                  alt={draft.caption || draft.name}
-                  className="h-32 w-full rounded-lg object-contain"
-                />
                 <Button
                   type="button"
                   variant="outline"
@@ -414,48 +447,44 @@ export default function UtilityWidgetEditor({
                 onChange={(event) => patch({ caption: event.target.value })}
               />
             </Field>
-            <Field label={t("widgets.photoFit")}>
-              <select
-                className="h-9 rounded-md border bg-background px-3"
-                value={draft.fit}
-                onChange={(event) =>
-                  patch({
-                    fit: event.target.value === "contain" ? "contain" : "cover",
-                  })
-                }
-              >
-                <option value="cover">{t("widgets.cover")}</option>
-                <option value="contain">{t("widgets.contain")}</option>
-              </select>
-            </Field>
+            <ChoiceField
+              label={t("widgets.photoFit")}
+              value={draft.fit}
+              options={[
+                { value: "cover", label: t("widgets.cover") },
+                { value: "contain", label: t("widgets.contain") },
+              ]}
+              onChange={(value) =>
+                patch({ fit: value === "contain" ? "contain" : "cover" })
+              }
+            />
           </>
         )
       case "bookmark-list":
         return (
           <>
-            <Field label={t("widgets.sourceFolder")}>
-              <select
-                className="h-9 rounded-md border bg-background px-3"
-                value={draft.folderId}
-                onChange={(event) => patch({ folderId: event.target.value })}
-              >
-                <option value="">{t("widgets.chooseFolder")}</option>
-                {draft.folderId &&
-                  !folders.some((folder) => folder.id === draft.folderId) && (
-                    <option value={draft.folderId}>
-                      {t("widgets.missingFolder")}
-                    </option>
-                  )}
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.folderHelp")}
-            </p>
+            <ChoiceField
+              label={t("widgets.sourceFolder")}
+              value={draft.folderId}
+              options={[
+                { value: "", label: t("widgets.chooseFolder") },
+                ...(draft.folderId &&
+                !folders.some((folder) => folder.id === draft.folderId)
+                  ? [
+                      {
+                        value: draft.folderId,
+                        label: t("widgets.missingFolder"),
+                      },
+                    ]
+                  : []),
+                ...folders.map((folder) => ({
+                  value: folder.id,
+                  label: folder.name,
+                })),
+              ]}
+              onChange={(folderId) => patch({ folderId })}
+            />
+            <p className="utility-editor-help">{t("widgets.folderHelp")}</p>
           </>
         )
       case "rss":
@@ -470,19 +499,14 @@ export default function UtilityWidgetEditor({
                 onChange={(event) => patch({ feedUrl: event.target.value })}
               />
             </Field>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.rssPrivacy")}
-            </p>
+            <p className="utility-editor-help">{t("widgets.rssPrivacy")}</p>
           </>
         )
       case "world-clock":
         return (
           <>
             {draft.zones.map((zone, index) => (
-              <fieldset
-                key={zone.id}
-                className="space-y-3 rounded-xl border p-3"
-              >
+              <fieldset key={zone.id} className="utility-editor-group">
                 <legend className="px-1 text-xs">
                   {t("widgets.zoneIndex", { index: index + 1 })}
                 </legend>
@@ -555,22 +579,20 @@ export default function UtilityWidgetEditor({
             >
               {t("widgets.addZone")}
             </Button>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={draft.hour12}
-                onChange={(event) => patch({ hour12: event.target.checked })}
-              />
-              {t("widgets.hour12")}
-            </label>
-            <p className="text-xs text-muted-foreground">
-              {t("widgets.timeZoneHelp")}
-            </p>
+            <SwitchField
+              label={t("widgets.hour12")}
+              checked={draft.hour12}
+              onChange={(hour12) => patch({ hour12 })}
+            />
+            <p className="utility-editor-help">{t("widgets.timeZoneHelp")}</p>
           </>
         )
     }
   }
 
+  const previewItem = validGridItem(draft)
+    ? applyUtilityConfiguration(item, draft)
+    : item
   return (
     <Dialog
       open
@@ -578,69 +600,85 @@ export default function UtilityWidgetEditor({
         if (!open) onClose()
       }}
     >
-      <DialogContent className="max-h-[85svh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="utility-editor">
+        <DialogHeader className="utility-editor-heading">
           <DialogTitle>
             {t("grid.editor.editTitle", {
               label: componentLabel(item.kind, t),
             })}
           </DialogTitle>
           <DialogDescription>
-            {t("widgets.editorDescription")}
+            {t("widgets.design.editorHint")}
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4" onSubmit={save}>
-          <Field label={t("grid.editor.name")}>
-            <Input
-              required
-              maxLength={40}
-              value={draft.name}
-              onChange={(event) => patch({ name: event.target.value })}
-            />
-          </Field>
-          <div className="space-y-2">
-            <label htmlFor={`widget-size-${item.id}`} className="text-sm">
-              {t("grid.editor.displaySize")}
-            </label>
-            <Select
-              value={draft.size}
-              onValueChange={(value) => {
-                if (isComponentSize(item.kind, value))
-                  patch({ size: value as UtilityWidgetItem["size"] })
-              }}
-            >
-              <SelectTrigger id={`widget-size-${item.id}`} className="w-full">
-                <SelectValue>
-                  {currentSize ? sizeLabel(currentSize, t) : undefined}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {sizes.map((size) => (
-                  <SelectItem key={size.value} value={size.value}>
-                    {sizeLabel(size, t)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <form className="utility-editor-form" onSubmit={save}>
+          <div className="utility-editor-layout">
+            <WidgetEditorPreview item={previewItem} />
+            <div className="utility-editor-fields">
+              <Field label={t("grid.editor.name")}>
+                <Input
+                  required
+                  maxLength={40}
+                  value={draft.name}
+                  onChange={(event) => patch({ name: event.target.value })}
+                />
+              </Field>
+              <div className="utility-editor-field">
+                <span id={`widget-size-${item.id}`}>
+                  {t("grid.editor.displaySize")}
+                </span>
+                <ToggleGroup
+                  value={[draft.size]}
+                  aria-labelledby={`widget-size-${item.id}`}
+                  className="utility-editor-size-options"
+                  onValueChange={(values) => {
+                    const value = values[0]
+                    if (isComponentSize(item.kind, value))
+                      patch({ size: value })
+                  }}
+                >
+                  {sizes.map((size) => (
+                    <ToggleGroupItem
+                      key={size.value}
+                      value={size.value}
+                      aria-label={sizeLabel(size, t)}
+                      title={sizeLabel(size, t)}
+                    >
+                      <span
+                        className="utility-size-mark"
+                        aria-hidden="true"
+                        style={{
+                          aspectRatio: `${size.width}/${size.height}`,
+                          width: `${Math.min(18, (18 * size.width) / size.height)}px`,
+                        }}
+                      />
+                      <span>
+                        {size.width}×{size.height}
+                      </span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+              {getComponentDefinition(item.kind).actions.randomColor && (
+                <div className="utility-editor-field">
+                  <span>{t("grid.editor.backgroundColor")}</span>
+                  <ColorPicker
+                    label={t("grid.editor.backgroundColor")}
+                    value={draft.color}
+                    onChange={(color) => patch({ color })}
+                  />
+                </div>
+              )}
+              {fields()}
+            </div>
           </div>
-          {getComponentDefinition(item.kind).actions.randomColor && (
-            <Field label={t("grid.editor.backgroundColor")}>
-              <input
-                type="color"
-                value={draft.color}
-                className="h-8 w-full cursor-pointer rounded border"
-                onChange={(event) => patch({ color: event.target.value })}
-              />
-            </Field>
-          )}
-          {fields()}
           {error && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="utility-editor-error">
               {t(`widgets.errors.${error}`)}
             </p>
           )}
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="utility-editor-footer">
+            <Button type="button" variant="ghost" onClick={onClose}>
               {t("grid.editor.cancel")}
             </Button>
             <Button type="submit" disabled={uploading}>

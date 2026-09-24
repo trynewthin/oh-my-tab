@@ -83,9 +83,14 @@ jobs:
               assert not path.is_absolute() and '..' not in path.parts
               path.parent.mkdir(parents=True, exist_ok=True)
               path.write_text(text)
+          config_path = Path('tsconfig.node.json')
+          config = config_path.read_text()
+          assert config.count('"noEmit": true,') == 1 and '"jsx"' not in config
+          config_path.write_text(config.replace('"noEmit": true,', '"noEmit": true,\n    "jsx": "react-jsx",'))
+          paths.append('tsconfig.node.json')
           Path(workflow).unlink()
           Path(os.environ['RUNNER_TEMP'], 'widget-design-paths.json').write_text(json.dumps(paths + [workflow]))
-          print('Applied nine-widget visual rework to 15 reviewed files. No browser or E2E commands.')
+          print('Applied nine-widget visual rework plus JSX support for static rendering tests. No browser or E2E commands.')
           PY
       - name: Install locked dependencies
         run: npm ci

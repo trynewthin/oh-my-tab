@@ -87,7 +87,7 @@ export default function UtilityWidgetEditor({
     []
   )
 
-  const patch = (changes: Partial<UtilityWidgetItem>) =>
+  const patch = (changes: object) =>
     setDraft(
       (current) => ({ ...current, ...changes }) as UtilityWidgetItem
     )

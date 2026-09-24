@@ -86,11 +86,14 @@ jobs:
           config_path = Path('tsconfig.node.json')
           config = config_path.read_text()
           assert config.count('"noEmit": true,') == 1 and '"jsx"' not in config
-          config_path.write_text(config.replace('"noEmit": true,', '"noEmit": true,\n    "jsx": "react-jsx",'))
+          assert config.count('"tests/unit"]') == 1
+          config = config.replace('"noEmit": true,', '"noEmit": true,\n    "jsx": "react-jsx",')
+          config = config.replace('"tests/unit"]', '"tests/unit", "src/types/**/*.d.ts"]')
+          config_path.write_text(config)
           paths.append('tsconfig.node.json')
           Path(workflow).unlink()
           Path(os.environ['RUNNER_TEMP'], 'widget-design-paths.json').write_text(json.dumps(paths + [workflow]))
-          print('Applied nine-widget visual rework plus JSX support for static rendering tests. No browser or E2E commands.')
+          print('Applied nine-widget design and existing JSX/ambient type support for static rendering tests.')
           PY
       - name: Install locked dependencies
         run: npm ci

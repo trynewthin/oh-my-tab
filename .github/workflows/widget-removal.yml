@@ -1,0 +1,203 @@
+name: Remove unneeded repository widget
+
+on:
+  push:
+    branches: [feat/expanded-widget-library]
+    paths: [.github/workflows/widget-removal.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: widget-removal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  remove-and-check:
+    if: github.repository == 'trynewthin/oh-my-tab' && github.ref == 'refs/heads/feat/expanded-widget-library'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Verify reviewed parent
+        run: test "$(git rev-parse HEAD^)" = 'f6cbb893e888339dd902b8a8e2149f5533a1a260'
+      - name: Apply reviewed removal
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          r=Path('.')
+          def edit(p, old, new='', count=1):
+            path=r/p;s=path.read_text(); actual=s.count(old)
+            if actual!=count: raise ValueError((p,actual,count,old[:120]))
+            path.write_text(s.replace(old,new))
+          def sub(p,pattern,replacement='',count=1):
+            path=r/p;s=path.read_text(); new,n=re.subn(pattern,replacement,s,flags=re.S)
+            if n!=count: raise ValueError((p,n,count,pattern))
+            path.write_text(new)
+          edit('src/lib/grid/utility-types.ts','  "github-repo",\n')
+          edit('src/lib/grid/utility-types.ts','    | { kind: "github-repo"; repository: string }\n')
+          edit('src/lib/grid/utility-types.ts','{ kind: "weather" | "rss" | "github-repo" }','{ kind: "weather" | "rss" }')
+          sub('src/lib/grid/registry.ts',r'  "github-repo": utilityDefinition\(.*?\n  \),\n')
+          sub('src/lib/widgets/model.ts',r'export function validRepository\(.*?\n}\n\n')
+          edit('src/lib/widgets/model.ts','    case "github-repo":\n      return item.repository === "" || validRepository(item.repository)\n')
+          edit('src/lib/widgets/model.ts','    case "github-repo":\n      return { ...shared, kind, repository: "" }\n')
+          edit('src/lib/widgets/network.ts','dateOrdinal, remoteUrl, safeLink, validRepository','dateOrdinal, remoteUrl, safeLink')
+          sub('src/lib/widgets/network.ts',r'export type GithubData = \{.*?\n}\n')
+          edit('src/lib/widgets/network.ts','WeatherData | GithubData | FeedData','WeatherData | FeedData')
+          edit('src/lib/widgets/network.ts','    case "github-repo":\n      if (!validRepository(item.repository))\n        throw new WidgetNetworkError("notConfigured")\n      return `https://api.github.com/repos/${item.repository}`\n')
+          sub('src/lib/widgets/network.ts',r'export function parseGithub\(.*?\n}\n\n')
+          edit('src/lib/widgets/network.ts','return item.kind === "weather" ? parseWeather(value) : parseGithub(value)','return parseWeather(value)')
+          edit('src/components/tab-grid/utility-widget-editor.tsx','    if (clean.kind === "github-repo")\n      clean = { ...clean, repository: clean.repository.trim() }\n')
+          sub('src/components/tab-grid/utility-widget-editor.tsx',r'      case "github-repo":.*?(?=      case "world-clock":)')
+          p='src/components/tab-grid/utility-widget-tile.tsx'
+          edit(p,'function RemoteTile(props: Props<RemoteWidgetItem>) {\n  const { item, preview } = props\n  const { t, i18n } = useTranslation()','function RemoteTile(props: Props<RemoteWidgetItem>) {\n  const { item, preview } = props\n  const { t } = useTranslation()')
+          sub(p,r'      : item.kind === "github-repo"\n        \? \{.*?\n          }\n        : \{', '      : {')
+          path=r/p;s=path.read_text();start=s.index('      : {\n            kind: "rss"');end=s.index('\n    : data',start)
+          s=s[:start]+'\n'.join(line[2:] if line.startswith('        ') else line for line in s[start:end].split('\n'))+s[end:];path.write_text(s)
+          sub(p,r'            \{display\?\.kind === "github-repo".*?(?=            \{display\?\.kind === "rss")')
+          edit(p,'    case "github-repo":\n')
+          for lang in ['en','zh-CN']:
+            p=f'src/i18n/locales/{lang}/widgets.ts'
+            sub(p,r'  "github-repo": \{.*?\n  },\n')
+            sub(p,r'  repository:.*?\n  githubPreview:.*?\n')
+            sub(p,r'  stars:.*?\n  lastPush:.*?\n')
+          edit('tests/unit/registry.test.ts','      "github-repo": "productivity",\n')
+          p='tests/unit/utility-widgets.test.ts'
+          edit(p,'  getComponentSizeOptions,','  catalogComponentKinds,\n  getComponentSizeOptions,')
+          edit(p,'  validRepository,\n')
+          edit(p,'import {\n  parseGithub,\n  parseWeather,\n  widgetRequestUrl,\n} from "@/lib/widgets/network"','import { parseWeather, widgetRequestUrl } from "@/lib/widgets/network"')
+          edit(p,'      {\n        ...createUtilityWidget("github-repo", shared),\n        repository: "owner/repo/issues",\n      },\n')
+          edit(p,'    expect(validRepository("trynewthin/oh-my-tab")).toBe(true)\n    expect(validRepository("owner/..")).toBe(false)\n')
+          sub(p,r'    expect\(\n      parseGithub\(\{.*?\n    \).toBe\(7\)\n')
+          edit(p,'describe("utility widgets", () => {','''describe("utility widgets", () => {
+            test("keeps the nine approved widgets and rejects the removed kind", () => {
+              expect(utilityWidgetKinds).toEqual([
+                "clock",
+                "countdown",
+                "note",
+                "pomodoro",
+                "weather",
+                "photo",
+                "bookmark-list",
+                "rss",
+                "world-clock",
+              ])
+              expect(catalogComponentKinds).not.toContain("github-repo")
+              expect(
+                validGridItem({ ...shared, kind: "github-repo", repository: "a/b" })
+              ).toBe(false)
+            })
+          ''')
+          edit('tests/unit/widget-backup.test.ts','        case "github-repo":\n          return { ...item, repository: "trynewthin/oh-my-tab" }\n')
+          p='tests/unit/widget-network.test.ts'
+          edit(p,'  id: "repository",\n  name: "Repository",','  id: "weather",\n  name: "Weather",')
+          edit(p,'  kind: "github-repo",\n  repository: "trynewthin/oh-my-tab",','  kind: "weather",\n  latitude: 35.68,\n  longitude: 139.69,\n  locationName: "Tokyo",\n  unit: "celsius",')
+          edit(p,'''const responseData = {
+            stargazers_count: 12,
+            forks_count: 3,
+            open_issues_count: 7,
+            description: "Example",
+            pushed_at: "2026-09-24T00:00:00Z",
+          }''','''const responseData = {
+            current: { temperature_2m: 22, weather_code: 0 },
+            daily: {
+              time: ["2026-09-24"],
+              temperature_2m_max: [25],
+              temperature_2m_min: [18],
+            },
+          }''')
+          path=r/p;s=path.read_text().replace('repository', 'weather').replace('https://api.github.com','https://api.open-meteo.com').replace('{ stars: 12, openItems: 7 }','{ kind: "weather", temperature: 22 }').replace('"https://api.open-meteo.com/repos/trynewthin/oh-my-tab"','"https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.69&current=temperature_2m%2Cweather_code&daily=temperature_2m_max%2Ctemperature_2m_min&forecast_days=3&temperature_unit=celsius&timezone=auto"').replace('{ ...weather, weather: "" }','{ ...weather, latitude: null, longitude: null }');path.write_text(s)
+          edit(p,'"https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.69&current=temperature_2m%2Cweather_code&daily=temperature_2m_max%2Ctemperature_2m_min&forecast_days=3&temperature_unit=celsius&timezone=auto"','"https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.69" +\n        "&current=temperature_2m%2Cweather_code" +\n        "&daily=temperature_2m_max%2Ctemperature_2m_min" +\n        "&forecast_days=3&temperature_unit=celsius&timezone=auto"')
+          for p in ['README.md','docs/store-assets/description.txt','docs/publishing/chrome-web-store.md']:
+            path=r/p;s=path.read_text()
+            for old,new in [
+              ('RSS、GitHub 仓库状态和世界时钟','RSS 和世界时钟'),
+              ('RSS、GitHub 仓库和世界时钟','RSS 和世界时钟'),
+              ('天气、GitHub、RSS','天气和 RSS'),
+              ('天气、GitHub 和 RSS','天气和 RSS'),
+              ('天气、GitHub、RSS 服务','天气和 RSS 服务'),
+              ('手动天气坐标/公开仓库标识/完整订阅源 URL','手动天气坐标/完整订阅源 URL'),
+              ('GitHub 开放项计数包含 PR，因此界面标为“议题与 PR”。',''),
+            ]: s=s.replace(old,new)
+            path.write_text(s)
+          edit('README.en.md','RSS, GitHub repository stats, and world clocks','RSS, and world clocks')
+          edit('README.en.md','weather, GitHub, and RSS widgets','weather and RSS widgets')
+          p='docs/development/widgets.md'
+          sub(p,r'\| GitHub 仓库[^\n]*\n')
+          edit(p,'天气、GitHub 和 RSS','天气和 RSS')
+          edit(p,'- GitHub：访问 `api.github.com`，只查询公开 `owner/repository`，\n  不读取登录状态或保存令牌。\n')
+          edit(p,'坐标、公开仓库标识和订阅源地址','坐标和订阅源地址')
+          p='website/src/i18n/locales/zh-CN.ts'
+          path=r/p;s=path.read_text()
+          for old,new in [
+            ('天气、GitHub、RSS','天气和 RSS'),
+            ('天气、GitHub 和 RSS','天气和 RSS'),
+            ('天气、GitHub 或 RSS','天气或 RSS'),
+            ('、公开仓库标识',''),
+            ('、读取 GitHub 账户或令牌',''),
+          ]:s=s.replace(old,new)
+          path.write_text(s)
+          p='website/src/i18n/locales/en.ts'
+          path=r/p;s=path.read_text()
+          for old,new in [
+            ('weather, GitHub, and RSS','weather and RSS'),
+            ('Weather, GitHub, and RSS','Weather and RSS'),
+            ('weather, GitHub, or RSS','weather, or RSS'),
+            (', public repository names',''),
+            ('coordinates, public repository identifier, or feed URL','coordinates or feed URL'),
+            ('GitHub account, access token, ','') ,
+            (', repository identifiers',''),
+          ]:s=s.replace(old,new)
+          path.write_text(s)
+          PY
+          rm -- .github/workflows/widget-removal.yml
+          git diff --check
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Format and verify changed-file scope
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process'
+          const allowed = new Set([
+            'README.en.md', 'README.md', 'docs/development/widgets.md',
+            'docs/publishing/chrome-web-store.md', 'docs/store-assets/description.txt',
+            'src/components/tab-grid/utility-widget-editor.tsx',
+            'src/components/tab-grid/utility-widget-tile.tsx',
+            'src/i18n/locales/en/widgets.ts', 'src/i18n/locales/zh-CN/widgets.ts',
+            'src/lib/grid/registry.ts', 'src/lib/grid/utility-types.ts',
+            'src/lib/widgets/model.ts', 'src/lib/widgets/network.ts',
+            'tests/unit/registry.test.ts', 'tests/unit/utility-widgets.test.ts',
+            'tests/unit/widget-backup.test.ts', 'tests/unit/widget-network.test.ts',
+            'website/src/i18n/locales/en.ts', 'website/src/i18n/locales/zh-CN.ts',
+            '.github/workflows/widget-removal.yml',
+          ])
+          const changed = execFileSync('git', ['diff', '--name-only', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
+          if (changed.length !== allowed.size || changed.some(p => !allowed.has(p))) throw new Error('Unexpected change scope')
+          const format = changed.filter(p => !p.startsWith('.github/') && !p.endsWith('.txt'))
+          execFileSync('node', ['node_modules/prettier/bin/prettier.cjs', '--write', ...format], { stdio: 'inherit' })
+          JS
+      - name: Non-browser quality checks
+        run: npm run check
+      - name: Build extension
+        run: npm run build
+      - name: Commit verified removal to PR branch only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          test "$GITHUB_REF" = 'refs/heads/feat/expanded-widget-library'
+          git diff --check
+          git diff --quiet -- .github/workflows/build-extension.yml
+          git add -u
+          git -c core.hooksPath=/dev/null -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'refactor: remove GitHub repository widget'
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/feat/expanded-widget-library
+          printf 'Verified removal commit: %s\n' "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"

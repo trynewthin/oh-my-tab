@@ -58,6 +58,16 @@ describe("component occupancy registration", () => {
       calendar: "productivity",
       "search-minimal": "common",
       ecosystem: "fun",
+      clock: "common",
+      countdown: "productivity",
+      note: "productivity",
+      pomodoro: "productivity",
+      weather: "common",
+      photo: "fun",
+      "bookmark-list": "common",
+      rss: "common",
+      "github-repo": "productivity",
+      "world-clock": "productivity",
     })
   })
 

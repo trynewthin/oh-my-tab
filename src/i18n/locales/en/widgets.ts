@@ -1,0 +1,157 @@
+export const utilityComponents = {
+  clock: {
+    label: "Clock",
+    description: "Readable time, date, and optional seconds.",
+    defaultName: "Clock",
+  },
+  countdown: {
+    label: "Countdown",
+    description: "Track up to four dates as calendar days.",
+    defaultName: "Countdown",
+  },
+  note: {
+    label: "Quick note",
+    description: "Write directly on a locally saved card.",
+    defaultName: "Quick note",
+  },
+  pomodoro: {
+    label: "Focus timer",
+    description: "A reload-safe start, pause, and reset timer.",
+    defaultName: "Focus timer",
+  },
+  weather: {
+    label: "Weather",
+    description: "Load temperature and a three-day forecast on request.",
+    defaultName: "Weather",
+  },
+  photo: {
+    label: "Photo",
+    description: "Display a locally imported picture.",
+    defaultName: "Photo",
+  },
+  "bookmark-list": {
+    label: "Bookmark list",
+    description: "Show links from an existing folder directly.",
+    defaultName: "Bookmark list",
+  },
+  rss: {
+    label: "RSS reader",
+    description: "Manually load up to five RSS or Atom headlines.",
+    defaultName: "RSS reader",
+  },
+  "github-repo": {
+    label: "GitHub repository",
+    description: "Read public repository statistics on request.",
+    defaultName: "GitHub repository",
+  },
+  "world-clock": {
+    label: "World clocks",
+    description: "Compare up to four named time zones.",
+    defaultName: "World clocks",
+  },
+}
+
+export default {
+  configure: "Configure",
+  today: "Today",
+  daysLeft: "{{count}} days left",
+  daysAgo: "{{count}} days ago",
+  event: "My event",
+  eventIndex: "Event {{index}}",
+  eventTitle: "Event title",
+  date: "Date",
+  remove: "Remove",
+  addEvent: "Add event",
+  notePreview: "Capture an idea.\nKeep one useful reminder here.",
+  notePlaceholder: "Write something to remember…",
+  noteHelp:
+    "Type directly on the card. Changes are stored locally and included in ZIP backups. Up to 4,000 characters.",
+  completed: "Focus session complete",
+  sessionsToday: "{{count}} sessions today",
+  start: "Start or resume focus timer",
+  pause: "Pause focus timer",
+  reset: "Reset focus timer",
+  durationMinutes: "Session length (1–180 minutes)",
+  pomodoroHelp:
+    "Changing the duration resets the current timer. Reloading or hiding the page does not reset it.",
+  photoPreview: "Your picture, kept on your device",
+  photoFile: "Choose a local picture",
+  photoHelp:
+    "PNG, JPEG, or WebP, up to 5 MiB. It is re-encoded locally to at most 1,024 pixels and 512 KiB.",
+  processingPhoto: "Preparing picture locally…",
+  removePhoto: "Remove picture",
+  caption: "Caption",
+  photoFit: "Image fit",
+  cover: "Fill and crop",
+  contain: "Show entire picture",
+  chooseFolder: "Choose an existing folder",
+  sourceFolder: "Source folder",
+  folderEmpty: "The source folder is missing or empty.",
+  missingFolder: "Source folder no longer exists",
+  folderHelp:
+    "This card references the existing folder, so edits appear without duplicating bookmarks.",
+  timeZone: "IANA time zone",
+  deviceTimeZone: "Use device time zone",
+  hour12: "Use 12-hour time",
+  showSeconds: "Show seconds",
+  zoneIndex: "Clock {{index}}",
+  cityLabel: "City or label",
+  addZone: "Add time zone",
+  timeZoneHelp:
+    "Use names such as Asia/Tokyo, Europe/London, America/New_York, or UTC.",
+  countdownHelp:
+    "4×2 shows the first event; 4×4 shows a scrollable list. Dates are compared as calendar days.",
+  locationName: "Location label",
+  latitude: "Latitude",
+  longitude: "Longitude",
+  temperatureUnit: "Temperature unit",
+  selectedLocation: "Selected location",
+  forecast: "Three-day forecast",
+  weatherPrivacy:
+    "No automatic location access. Load/Refresh sends the coordinates to api.open-meteo.com after site permission.",
+  feedUrl: "RSS or Atom URL",
+  rssPrivacy:
+    "Load/Refresh contacts the public HTTPS feed directly. No proxy, login cookies, redirects, or remote article HTML.",
+  repository: "Public repository (owner/repository)",
+  githubPrivacy:
+    "Load/Refresh contacts api.github.com without an account or token. Public API rate limits apply.",
+  githubPreview: "A public project you follow.",
+  feedPreviewOne: "A new release is available",
+  feedPreviewTwo: "Notes from your favorite publication",
+  notLoaded: "Not loaded yet",
+  emptyFeed: "No readable headlines in this feed.",
+  stars: "Stars",
+  forks: "Forks",
+  openItems: "Issues + PRs",
+  lastPush: "Last push",
+  previewOnly: "Example data · no network requests",
+  loadFrom: "Load data from {{origin}}",
+  loading: "Loading…",
+  refresh: "Refresh",
+  load: "Load",
+  editorDescription:
+    "Configure this card. Saving settings does not start a network request.",
+  conditions: {
+    clear: "Clear",
+    cloudy: "Cloudy",
+    fog: "Fog",
+    thunder: "Thunderstorms",
+    snow: "Snow",
+    rain: "Rain",
+    unknown: "Current temperature",
+  },
+  errors: {
+    notConfigured: "Configure the data source first.",
+    permissionDenied: "Site access was denied. Nothing was loaded.",
+    requestFailed:
+      "The request failed or timed out. RSS also requires a final HTTPS URL and CORS in website preview mode.",
+    rateLimited: "The service denied or rate-limited this request.",
+    responseTooLarge: "The response exceeds the 1 MiB limit.",
+    invalidResponse: "The service returned an unsupported response.",
+    invalidConfiguration:
+      "Check the date, time zone, URL, and numeric limits.",
+    photoInvalid:
+      "Choose a valid PNG, JPEG, or WebP that can be reduced to 512 KiB.",
+    removed: "This card was removed in another view.",
+  },
+}

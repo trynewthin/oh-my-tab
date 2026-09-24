@@ -1,5 +1,7 @@
 import { validGardenPlant } from "@/lib/garden"
 import { isComponentSize, isGridItemKind } from "@/lib/grid/registry"
+import { isUtilityWidget } from "@/lib/grid/utility-types"
+import { validUtilityWidget } from "@/lib/widgets/model"
 import {
   normalizeTabUrl,
   type ButtonAction,
@@ -49,6 +51,7 @@ export function validGridItem(value: unknown): value is GridItem {
     return false
 
   const typed = item as GridItem
+  if (isUtilityWidget(typed)) return validUtilityWidget(typed)
   if (typed.kind === "todo")
     return (
       Array.isArray(typed.tasks) &&

@@ -1,4 +1,5 @@
 import type { GridItem } from "./types"
+import { utilityWidgetKinds, type UtilityWidgetKind } from "./utility-types"
 
 export type GridItemKind = GridItem["kind"]
 export type GridItemSize = GridItem["size"]
@@ -87,6 +88,46 @@ export type Translator = (key: string) => string
 
 // Registry entries carry translation keys, never display text: the same
 // definition must render in every language without being rebuilt.
+function utilityDefinition(
+  kind: UtilityWidgetKind,
+  defaultSize: GridItemSize,
+  sizes: readonly ComponentSizeDefinition[],
+  catalogSection: CatalogSection = "productivity",
+  defaultColor = "#6c8bd4"
+): ComponentDefinition {
+  const values = sizes.map((size) => size.value)
+  const appearance = kind !== "photo"
+  return {
+    labelKey: `grid.component.${kind}.label`,
+    descriptionKey: `grid.component.${kind}.description`,
+    defaultNameKey: `grid.component.${kind}.defaultName`,
+    defaultColor,
+    defaultSize,
+    sizes,
+    menu: {
+      sizes: values.length > 1 ? values : [],
+      operations: appearance
+        ? ["edit", "randomColor", "dynamicEffect"]
+        : ["edit"],
+    },
+    editorSizes: values,
+    catalogSizes: values,
+    catalogDirectAdd: true,
+    catalogSection,
+    detailPreviewWidth: kind === "rss" ? "wide" : "compact",
+    showNameInEditor: true,
+    tileBorder: true,
+    openAction: "edit",
+    actions: {
+      resize: values.length > 1,
+      randomColor: appearance,
+      dynamicEffect: appearance,
+      groupable: false,
+      expandable: false,
+    },
+  }
+}
+
 export type ComponentDefinition = {
   labelKey: string
   descriptionKey: string
@@ -408,6 +449,100 @@ export const componentRegistry = {
       expandable: true,
     },
   },
+  clock: utilityDefinition(
+    "clock",
+    "large",
+    [
+      gridSize("small", "4x1", "small"),
+      gridSize("medium", "4x2", "medium"),
+      gridSize("large", "4x4", "large"),
+    ],
+    "common"
+  ),
+  countdown: utilityDefinition(
+    "countdown",
+    "medium",
+    [
+      gridSize("medium", "4x2", "medium"),
+      gridSize("large", "4x4", "large"),
+    ],
+    "productivity",
+    "#d49b6c"
+  ),
+  note: utilityDefinition(
+    "note",
+    "large",
+    [
+      gridSize("large", "4x4", "large"),
+      gridSize("tall", "4x8", "tall"),
+      gridSize("wide", "8x4", "wide"),
+    ],
+    "productivity",
+    "#d4bd6c"
+  ),
+  pomodoro: utilityDefinition(
+    "pomodoro",
+    "large",
+    [gridSize("large", "4x4", "large")],
+    "productivity",
+    "#df716b"
+  ),
+  weather: utilityDefinition(
+    "weather",
+    "large",
+    [
+      gridSize("medium", "4x2", "medium"),
+      gridSize("large", "4x4", "large"),
+    ],
+    "common",
+    "#5ba9d1"
+  ),
+  photo: utilityDefinition(
+    "photo",
+    "large",
+    [
+      gridSize("large", "4x4", "large"),
+      gridSize("tall", "4x8", "tall"),
+      gridSize("wide", "8x4", "wide"),
+      gridSize("wide-tall", "8x8", "wideTall"),
+    ],
+    "fun",
+    "#8a90a0"
+  ),
+  "bookmark-list": utilityDefinition(
+    "bookmark-list",
+    "large",
+    [
+      gridSize("large", "4x4", "large"),
+      gridSize("tall", "4x8", "tall"),
+    ],
+    "common",
+    "#72a483"
+  ),
+  rss: utilityDefinition(
+    "rss",
+    "wide",
+    [gridSize("wide", "8x4", "wide")],
+    "common",
+    "#d49b6c"
+  ),
+  "github-repo": utilityDefinition(
+    "github-repo",
+    "large",
+    [
+      gridSize("medium", "4x2", "medium"),
+      gridSize("large", "4x4", "large"),
+    ],
+    "productivity",
+    "#8a90a0"
+  ),
+  "world-clock": utilityDefinition(
+    "world-clock",
+    "large",
+    [gridSize("large", "4x4", "large")],
+    "productivity",
+    "#8b7bc8"
+  ),
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
 export const catalogComponentKinds = [
@@ -417,6 +552,7 @@ export const catalogComponentKinds = [
   "calendar",
   "search-minimal",
   "ecosystem",
+  ...utilityWidgetKinds,
 ] as const satisfies readonly GridItemKind[]
 
 export type CatalogComponentKind = (typeof catalogComponentKinds)[number]

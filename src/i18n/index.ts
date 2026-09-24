@@ -5,10 +5,16 @@ import enCore from "./locales/en/core"
 import enGrid from "./locales/en/grid"
 import enSettings from "./locales/en/settings"
 import enShell from "./locales/en/shell"
+import enWidgets, {
+  utilityComponents as enUtilityComponents,
+} from "./locales/en/widgets"
 import zhCore from "./locales/zh-CN/core"
 import zhGrid from "./locales/zh-CN/grid"
 import zhSettings from "./locales/zh-CN/settings"
 import zhShell from "./locales/zh-CN/shell"
+import zhWidgets, {
+  utilityComponents as zhUtilityComponents,
+} from "./locales/zh-CN/widgets"
 import {
   APP_LANGUAGES,
   FALLBACK_LANGUAGE,
@@ -24,16 +30,24 @@ export const resources = {
     translation: {
       core: zhCore,
       settings: zhSettings,
-      grid: zhGrid,
+      grid: {
+        ...zhGrid,
+        component: { ...zhGrid.component, ...zhUtilityComponents },
+      },
       shell: zhShell,
+      widgets: zhWidgets,
     },
   },
   en: {
     translation: {
       core: enCore,
       settings: enSettings,
-      grid: enGrid,
+      grid: {
+        ...enGrid,
+        component: { ...enGrid.component, ...enUtilityComponents },
+      },
       shell: enShell,
+      widgets: enWidgets,
     },
   },
 }

@@ -1,3 +1,5 @@
+import type { UtilityWidgetItem } from "./utility-types"
+
 export type TabEntry = {
   id: string
   name: string
@@ -136,6 +138,7 @@ export type GridItem =
   | FullSearchItem
   | TemplateItem
   | ButtonItem
+  | UtilityWidgetItem
 
 export function normalizeTabUrl(value: string): string | null {
   try {

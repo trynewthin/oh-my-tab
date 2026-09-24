@@ -18,6 +18,9 @@ import ActionButton from "./action-button"
 import ComponentConfiguration from "./component-configuration"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
+import UtilityWidgetTile from "./utility-widget-tile"
+import UtilityWidgetEditor from "./utility-widget-editor"
+import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import type { ReactNode } from "react"
 import {
@@ -84,6 +87,9 @@ export function WidgetTile({
   folderTabs?: TabEntry[]
   todoTasks?: TodoTask[]
 }) {
+  if (isUtilityWidget(item))
+    return <UtilityWidgetTile item={item} onOpen={onOpen} preview={preview} />
+
   switch (item.kind) {
     case "button":
       return <ActionButton item={item} preview={preview} />
@@ -149,6 +155,15 @@ export function WidgetEditor({
   onClose: () => void
   onSaved: () => void
 }): ReactNode {
+  if (isUtilityWidget(item))
+    return (
+      <UtilityWidgetEditor
+        item={item}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
+    )
+
   switch (item.kind) {
     case "search-minimal":
     case "search-full":

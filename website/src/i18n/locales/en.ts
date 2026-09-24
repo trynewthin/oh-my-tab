@@ -65,10 +65,10 @@ const resources: SiteResources = {
         "Product interface with an expanded folder for browsing bookmarks",
       widgets: {
         title: "A little hobby, every day",
-        text: "Calendar, todos, pixel planter, and dot-matrix canvas share the same free canvas.",
+        text: "Clocks, notes, timers, weather, bookmarks, feeds, photos, a calendar, todos, and pixel widgets share the same free canvas.",
       },
       widgetsAlt:
-        "Calendar, todo, pixel planter, and dot-matrix canvas widgets",
+        "Clock, note, timer, weather, bookmark, feed, calendar, todo, and pixel widgets",
     },
   },
   privacy: {

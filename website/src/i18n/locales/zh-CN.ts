@@ -62,9 +62,9 @@ const resources: SiteResources = {
       organizeAlt: "展开文件夹浏览常用网站的产品界面",
       widgets: {
         title: "每天，也留一点小爱好",
-        text: "日历、待办、像素花盆和点阵画布，共享同一张自由画布。",
+        text: "时钟、便签、计时、天气、书签、订阅、图片、日历、待办和像素组件，共享同一张自由画布。",
       },
-      widgetsAlt: "日历、待办、像素花盆和点阵画布组件",
+      widgetsAlt: "时钟、便签、计时、天气、书签、订阅、日历、待办和像素组件",
     },
   },
   privacy: {

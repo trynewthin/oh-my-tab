@@ -9,7 +9,7 @@ const png =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/54AAAAASUVORK5CYII="
 
 describe("utility widget backups", () => {
-  test("preserves every kind and its payload through the existing ZIP codec", async () => {
+  test("preserves all widget payloads through the ZIP codec", async () => {
     const items = utilityWidgetKinds.map((kind) => {
       const item = createCatalogComponent(kind)
       switch (item.kind) {
@@ -18,9 +18,10 @@ describe("utility widget backups", () => {
         case "photo":
           return { ...item, image: png, caption: "Local photo" }
         case "countdown":
-          return { ...item, events: [
-            { id: "event", title: "Trip", date: "2027-01-15" },
-          ] }
+          return {
+            ...item,
+            events: [{ id: "event", title: "Trip", date: "2027-01-15" }],
+          }
         case "pomodoro":
           return { ...item, endsAt: 1_800_000_000_000 }
         case "weather":
@@ -42,7 +43,7 @@ describe("utility widget backups", () => {
     expect(decoded.image).toBeUndefined()
   })
 
-  test("both languages cover all component metadata and widget messages", () => {
+  test("both languages cover all component metadata and messages", () => {
     for (const language of ["en", "zh-CN"] as const) {
       for (const kind of utilityWidgetKinds) {
         const component = resources[language].translation.grid.component[kind]
@@ -51,11 +52,9 @@ describe("utility widget backups", () => {
         expect(component.defaultName).toBeTruthy()
       }
     }
-    expect(Object.keys(resources.en.translation.widgets).sort()).toEqual(
-      Object.keys(resources["zh-CN"].translation.widgets).sort()
-    )
-    expect(Object.keys(resources.en.translation.widgets.errors).sort()).toEqual(
-      Object.keys(resources["zh-CN"].translation.widgets.errors).sort()
-    )
+    const en = resources.en.translation.widgets
+    const zh = resources["zh-CN"].translation.widgets
+    expect(Object.keys(en).sort()).toEqual(Object.keys(zh).sort())
+    expect(Object.keys(en.errors).sort()).toEqual(Object.keys(zh.errors).sort())
   })
 })

@@ -133,7 +133,7 @@ export default function GridItemDialog({
                   label: componentLabel(kind, t),
                 })}
                 aria-haspopup="dialog"
-                className="relative h-64 w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-zinc-100 text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:bg-zinc-950 dark:hover:border-white/30"
+                className="relative h-64 w-full min-w-0 overflow-hidden rounded-2xl border border-border text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:hover:border-white/30"
                 onClick={() => {
                   if (selected !== kind) {
                     setSelected(kind)
@@ -167,7 +167,7 @@ export default function GridItemDialog({
               }
             }}
           >
-            <DialogContent className="h-[min(36rem,calc(100svh-2rem))] gap-0 overflow-hidden bg-zinc-100 p-0 sm:max-w-xl dark:bg-zinc-950">
+            <DialogContent className="h-[min(36rem,calc(100svh-2rem))] gap-0 overflow-hidden bg-transparent p-0 sm:max-w-xl">
               <CatalogComponentPreview
                 kind={selected}
                 detail

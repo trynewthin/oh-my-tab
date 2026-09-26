@@ -134,6 +134,11 @@ export default {
   data: {
     loadFailed: "连接设置读取失败，请重新填写",
     actionFailed: "操作失败，请重试",
+    erase: "清除所有数据",
+    eraseTitle: "清除所有数据？",
+    eraseBody:
+      "将删除本机的全部设置、网格组件、书签和缓存，页面恢复为新用户状态。此操作不可撤销，建议先导出备份。",
+    eraseConfirm: "确认清除",
   },
   home: {
     gridWideColumns: "宽屏列数",

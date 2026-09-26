@@ -14,7 +14,7 @@ import {
   type GridComponentColumnCount,
 } from "@/lib/grid/grid-layout"
 import {
-  emptyQuickBar,
+  defaultQuickBar,
   MAX_QUICK_CONTROLS_PER_SIDE,
   normalizeQuickSite,
   placeQuickControl,
@@ -87,7 +87,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
       layoutMode: "traditional",
-      quickBar: emptyQuickBar(),
+      quickBar: defaultQuickBar(),
       wideGridColumns: DEFAULT_WIDE_GRID_COLUMNS,
       narrowGridColumns: DEFAULT_NARROW_GRID_COLUMNS,
       backgroundType: "solid",
@@ -261,7 +261,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         return {
           ...current,
           layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
-          quickBar: sanitizeQuickBarConfig(saved?.quickBar),
+          quickBar:
+            saved?.quickBar === undefined
+              ? defaultQuickBar()
+              : sanitizeQuickBarConfig(saved.quickBar),
           wideGridColumns,
           narrowGridColumns,
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",

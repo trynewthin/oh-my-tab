@@ -22,7 +22,7 @@ import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { decodeConfig } from "@/lib/config-codec"
 import { isBackgroundPaletteId } from "@/lib/background-palettes"
-import { emptyQuickBar, validQuickBarConfig } from "@/lib/quick-bar"
+import { defaultQuickBar, validQuickBarConfig } from "@/lib/quick-bar"
 import { i18n } from "@/i18n"
 
 export function snapshot() {
@@ -192,7 +192,7 @@ export function validateConfig(value: unknown): Config {
       : "burning"
   home.backgroundType ??= "solid"
   home.layoutMode ??= "traditional"
-  home.quickBar ??= emptyQuickBar()
+  home.quickBar ??= defaultQuickBar()
   home.wideGridColumns ??= DEFAULT_WIDE_GRID_COLUMNS
   home.narrowGridColumns = Math.min(
     home.narrowGridColumns ?? DEFAULT_NARROW_GRID_COLUMNS,

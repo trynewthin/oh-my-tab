@@ -1,3 +1,4 @@
+import EraseData from "./erase-data"
 import LocalBackup from "./local-backup"
 import PendingConfirmation from "./pending-confirmation"
 import SyncProviderSelect from "./sync-provider"
@@ -43,6 +44,7 @@ export default function DataSettings() {
       </section>
       <WebdavDialog state={state} confirmation={confirmation} />
       {!webdavOpen && confirmation}
+      <EraseData busy={busy} pending={!!pending} />
     </div>
   )
 }

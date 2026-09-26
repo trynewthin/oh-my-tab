@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  defaultQuickBar,
   emptyQuickBar,
   normalizeQuickSite,
   placeQuickControl,
@@ -9,11 +10,20 @@ import {
 import { snapshot, validateConfig } from "@/application/config-transfer"
 
 describe("quick bar configuration", () => {
-  it("starts empty and keeps valid controls in their own regions", () => {
+  it("starts with default controls and keeps valid controls in their own regions", () => {
     expect(emptyQuickBar()).toEqual({
       left: [],
       center: { kind: "none" },
       right: [],
+    })
+    expect(defaultQuickBar()).toEqual({
+      left: [
+        { id: "default-components", kind: "system", action: "open-components" },
+      ],
+      center: { kind: "time" },
+      right: [
+        { id: "default-settings", kind: "system", action: "open-settings" },
+      ],
     })
     const config = {
       left: [{ id: "theme", kind: "system", action: "toggle-theme" }],
@@ -71,7 +81,7 @@ describe("quick bar configuration", () => {
     delete legacy.home.quickBar
     expect(validateConfig(legacy).home).toMatchObject({
       layoutMode: "traditional",
-      quickBar: emptyQuickBar(),
+      quickBar: defaultQuickBar(),
     })
     current.home.quickBar.right = [
       { id: "bad", kind: "site", name: "Bad", url: "javascript:alert(1)" },

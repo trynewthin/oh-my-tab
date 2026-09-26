@@ -143,6 +143,11 @@ export default {
   data: {
     loadFailed: "Could not read the connection settings. Enter them again.",
     actionFailed: "Action failed, please try again",
+    erase: "Clear all data",
+    eraseTitle: "Clear all data?",
+    eraseBody:
+      "This deletes all settings, grid components, bookmarks, and cached data on this device, returning the page to a fresh state. This cannot be undone; export a backup first.",
+    eraseConfirm: "Clear data",
   },
   home: {
     gridWideColumns: "Wide-screen columns",

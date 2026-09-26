@@ -277,6 +277,28 @@ export async function clearCachedData() {
   })
 }
 
+export async function clearAllData() {
+  await flushStorage()
+  await navigator.locks.request("omt-write", async () => {
+    const keys = Object.keys(await allEntries())
+    const chrome = chromeStorage()
+    if (chrome) {
+      await chrome.local.remove(keys)
+    } else {
+      const db = await database()
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(TABLE, "readwrite")
+        tx.objectStore(TABLE).clear()
+        tx.oncomplete = () => resolve()
+        tx.onabort = tx.onerror = () => reject(tx.error)
+      })
+    }
+    loaded.clear()
+    channel.postMessage(keys)
+    listeners.forEach((listener) => listener(keys))
+  })
+}
+
 export async function editStoredEntries(
   plan: (entries: Record<string, unknown>) => {
     updates: Record<string, unknown>

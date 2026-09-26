@@ -19,6 +19,14 @@ export const emptyQuickBar = (): QuickBarConfig => ({
   right: [],
 })
 
+export const defaultQuickBar = (): QuickBarConfig => ({
+  left: [
+    { id: "default-components", kind: "system", action: "open-components" },
+  ],
+  center: { kind: "time" },
+  right: [{ id: "default-settings", kind: "system", action: "open-settings" }],
+})
+
 export const MAX_QUICK_CONTROLS_PER_SIDE = 24
 const MAX_TEXT_LENGTH = 80
 

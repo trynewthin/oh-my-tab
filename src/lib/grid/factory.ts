@@ -8,6 +8,12 @@ import {
   type GridItemSize,
 } from "@/lib/grid/registry"
 import { i18n } from "@/i18n"
+import { createUtilityWidget } from "@/lib/widgets/model"
+import {
+  isUtilityWidgetKind,
+  type UtilityWidgetItem,
+  type UtilityWidgetSize,
+} from "@/lib/grid/utility-types"
 import type {
   FolderItem,
   GridItem,
@@ -22,6 +28,7 @@ export type ConfigurableItem = Exclude<
   GridItem,
   | { kind: "dot-canvas" | "ecosystem" }
   | { kind: "search-minimal" | "search-full" }
+  | UtilityWidgetItem
 >
 
 function assertNever(value: never): never {
@@ -177,6 +184,12 @@ export function createCatalogComponent(
     name: componentDefaultName(kind, (key) => i18n.t(key)),
     color: definition.defaultColor,
   }
+
+  if (isUtilityWidgetKind(kind))
+    return createUtilityWidget(kind, {
+      ...shared,
+      size: size as UtilityWidgetSize,
+    })
 
   if (kind === "search-minimal")
     return {

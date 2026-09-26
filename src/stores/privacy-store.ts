@@ -1,5 +1,6 @@
 import { storageOptions } from "@/lib/storage"
 import { suggestionOrigins } from "@/lib/search-suggestions"
+import { remoteUrl } from "@/lib/widgets/model"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
@@ -106,3 +107,11 @@ export async function applyNetworkChoices(choices: {
 
 export const canSelectBrowserSearch = () =>
   import.meta.env.DEV || supportsBrowserSearch()
+
+/** Request one exact HTTPS origin from a direct widget click. */
+export async function requestWidgetOrigin(origin: string) {
+  const normalized = remoteUrl(origin)
+  if (!normalized || new URL(normalized).origin !== origin) return false
+  const permissions = extensionApi()?.permissions
+  return permissions ? permissions.request({ origins: [`${origin}/*`] }) : true
+}

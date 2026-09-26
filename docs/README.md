@@ -9,6 +9,7 @@
 | 使用者     | [项目首页](../README.md)                           | 功能、安装、基本使用与数据说明         |
 | 使用者     | [隐私政策](https://ohmytab.vercel.app/privacy)     | 权限、联网服务、数据保存与第三方接收方 |
 | 开发者     | [开发架构](development/architecture.md)            | 模块职责、依赖边界、状态与兼容规则     |
+| 开发者     | [扩展组件库](development/widgets.md)               | 组件尺寸、状态、联网边界与隐私约束     |
 | 开发者     | [测试指南](development/testing.md)                 | 测试分层、运行命令、环境要求与产物位置 |
 | 发布维护者 | [Chrome Web Store](publishing/chrome-web-store.md) | 商店文案、权限说明、素材与送审检查     |
 

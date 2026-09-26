@@ -354,7 +354,7 @@ export default function ApplicationDialog<RouteId extends string>({
                   <Button
                     type="button"
                     variant="ghost"
-                    className="pointer-events-auto w-full justify-start rounded-none bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                    className="pointer-events-auto w-full justify-start rounded-none border-0 bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
                     onClick={() => onOpenChange(false)}
                   >
                     <X />

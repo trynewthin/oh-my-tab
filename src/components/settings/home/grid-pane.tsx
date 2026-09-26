@@ -49,6 +49,7 @@ export default function GridPane() {
 
   return (
     <div className="space-y-4">
+      <div className="border-t" aria-hidden="true" />
       {settings.map((setting) => (
         <SettingItem
           key={setting.id}

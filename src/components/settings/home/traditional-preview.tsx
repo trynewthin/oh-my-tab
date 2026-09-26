@@ -90,7 +90,7 @@ export default function TraditionalPreview() {
       <div
         ref={contentRef}
         aria-hidden="true"
-        className="pointer-events-none origin-top-left px-6 pt-6 pb-3"
+        className="pointer-events-none origin-top-left px-6 pt-6 pb-6"
         style={{ width: FRAME_WIDTH, transform: `scale(${scale})` }}
       >
         {topComponent === "dot-matrix" && (
@@ -123,7 +123,10 @@ export default function TraditionalPreview() {
             </div>
           </div>
         )}
-        <div className="mt-6" style={{ width: TRACK_WIDTH }}>
+        <div
+          className={topComponent === "dot-matrix" ? "mt-6" : undefined}
+          style={{ width: TRACK_WIDTH }}
+        >
           {searchBoxStyle === "minimal" ? (
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2">
               <div className="flex shrink-0 items-center gap-2 text-foreground">

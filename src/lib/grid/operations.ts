@@ -102,6 +102,18 @@ export function addFolderTab(
   )
 }
 
+export function removeFolderTab(
+  items: GridItem[],
+  folderId: string,
+  tabId: string
+): GridItem[] {
+  return mapItem(items, folderId, (item) =>
+    item.kind === "folder"
+      ? { ...item, tabs: item.tabs.filter((tab) => tab.id !== tabId) }
+      : item
+  )
+}
+
 export type RemoveResult = {
   items: GridItem[]
   layouts: Record<number, GridPositions>

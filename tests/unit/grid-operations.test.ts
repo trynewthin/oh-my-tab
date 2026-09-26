@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { groupComponents, resolveGroupAction } from "@/lib/grid/grid-operations"
+import { removeFolderTab } from "@/lib/grid/operations"
 import type { GridItem, TabItem, FolderItem } from "@/lib/grid/types"
 import type { GridPositions } from "@/lib/grid/grid-layout"
 
@@ -95,6 +96,24 @@ describe("groupComponents", () => {
     // Sorted by layout order: b (0,0) precedes a (8,3)
     expect(next!.layouts[24][created!.id]).toEqual({ x: 0, y: 0 })
     expect((created as FolderItem).tabs.map((t) => t.id)).toEqual([b.id, a.id])
+  })
+
+  it("removeFolderTab drops the tab but keeps the folder and siblings", () => {
+    const [a, b] = [tab(), tab()]
+    const f = folder({
+      tabs: [
+        { id: a.id, name: a.name, url: a.url },
+        { id: b.id, name: b.name, url: b.url },
+      ],
+    })
+    const next = removeFolderTab([f], f.id, a.id)
+    expect(next).toHaveLength(1)
+    const merged = next[0] as FolderItem
+    expect(merged.id).toBe(f.id)
+    expect(merged.tabs.map((t) => t.id)).toEqual([b.id])
+    // Unknown ids are a no-op
+    expect(removeFolderTab([f], "missing", b.id)).toEqual([f])
+    expect(removeFolderTab([f], f.id, "missing")).toEqual([f])
   })
 
   it("returns null when name is empty or selection is invalid", () => {

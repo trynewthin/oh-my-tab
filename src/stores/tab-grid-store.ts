@@ -16,6 +16,7 @@ import {
   addFolderTab,
   describeRemoval,
   randomizeItemColor,
+  removeFolderTab,
   removeItems,
   resizeItem,
   restoreItems,
@@ -73,6 +74,7 @@ type TabGridState = {
     changes: Pick<TabEntry, "name" | "url">
   ) => void
   addFolderTab: (folderId: string, tab: TabEntry) => void
+  removeFolderTab: (folderId: string, tabId: string) => void
 }
 
 // Normalizes the persisted blob (any version) into the shape this store keeps.
@@ -217,6 +219,10 @@ export const useTabGridStore = create<TabGridState>()(
       addFolderTab: (folderId, tab) =>
         set((state) => ({
           items: addFolderTab(state.items, folderId, tab),
+        })),
+      removeFolderTab: (folderId, tabId) =>
+        set((state) => ({
+          items: removeFolderTab(state.items, folderId, tabId),
         })),
     }),
     {

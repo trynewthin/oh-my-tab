@@ -2,7 +2,7 @@ import { refreshFavicon } from "@/application/favicon-cache"
 import { ArrowClockwise } from "@phosphor-icons/react"
 import { useCallback, useRef, useState } from "react"
 import { useDraggable } from "@dnd-kit/core"
-import { PencilSimple } from "@phosphor-icons/react"
+import { PencilSimple, Trash } from "@phosphor-icons/react"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -12,6 +12,7 @@ import {
 import FolderTabEditor from "./folder-tab-editor"
 import FolderTabRow from "./folder-tab-row"
 import { useTranslation } from "react-i18next"
+import { useTabGridStore } from "@/stores/tab-grid-store"
 import type { TabEntry } from "@/lib/grid/types"
 import type { FolderTabDragData } from "./drag-types"
 
@@ -38,6 +39,8 @@ export default function DraggableFolderTab({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const removeFolderTab = useTabGridStore((state) => state.removeFolderTab)
   const { t } = useTranslation()
   const node = useRef<HTMLDivElement | null>(null)
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -58,7 +61,13 @@ export default function DraggableFolderTab({
     [setNodeRef]
   )
   return (
-    <ContextMenu open={menuOpen} onOpenChange={setMenuOpen}>
+    <ContextMenu
+      open={menuOpen}
+      onOpenChange={(open) => {
+        setMenuOpen(open)
+        if (!open) setConfirmDelete(false)
+      }}
+    >
       <ContextMenuTrigger
         render={<div />}
         data-folder-interaction-open={menuOpen || editing ? "true" : undefined}
@@ -101,6 +110,17 @@ export default function DraggableFolderTab({
         <ContextMenuItem onClick={() => setEditing(true)}>
           <PencilSimple />
           {t("grid.menu.edit")}
+        </ContextMenuItem>
+        <ContextMenuItem
+          variant="destructive"
+          closeOnClick={confirmDelete}
+          onClick={() => {
+            if (confirmDelete) removeFolderTab(folderId, tab.id)
+            else setConfirmDelete(true)
+          }}
+        >
+          <Trash />
+          {confirmDelete ? t("grid.menu.confirmDelete") : t("grid.menu.delete")}
         </ContextMenuItem>
       </ContextMenuContent>
       {editing && (

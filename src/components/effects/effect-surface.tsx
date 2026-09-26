@@ -87,6 +87,10 @@ export default function EffectSurface({
       width: number
       height: number
     }) => {
+      // display:none (drag hide, portal teardown) reports 0x0. Ignoring it
+      // keeps the last real grid — otherwise the texture collapses into a
+      // one-column sliver and a dropped RO notification never corrects it.
+      if (!width || !height) return
       // Cells are sized to fill the surface exactly: the row/column count
       // is rounded (not ceiled) to the nearest 9px step, then the cell
       // edge shrinks or grows a fraction of a pixel so the last cell ends

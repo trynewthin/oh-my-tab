@@ -38,8 +38,10 @@ export function createPixiEffect(
   // Cell pitch tracks the surface: step = cell edge + 1px gap, sized so the
   // texture fills the surface exactly (see stepsOf in effect-surface).
   let { stepX, stepY } = steps
-  const firstRow = Math.floor(offsetY / stepY)
-  const shift = offsetY % stepY
+  // Row phase follows the live cell pitch. A resize (4-wide → 8-wide) changes
+  // stepY, and a shift frozen at creation slides every row off the canvas.
+  let firstRow = Math.floor(offsetY / stepY)
+  let shift = offsetY % stepY
   let left = size.width - (columns * stepX - 1)
   let burning = createBurningTexture(color, seed, columns)
   let updateScene:
@@ -85,6 +87,8 @@ export function createPixiEffect(
         })
       const cells = createCells()
       updateScene = (previous) => {
+        firstRow = Math.floor(offsetY / stepY)
+        shift = offsetY % stepY
         left = size.width - (columns * stepX - 1)
         burning = createBurningTexture(color, seed, columns)
         if (previous.columns !== columns || previous.rows !== rows) {

@@ -52,6 +52,11 @@ export function presentPixi(
   const resolution = window.devicePixelRatio || 1
   const w = Math.max(1, Math.ceil(width * resolution))
   const h = Math.max(1, Math.ceil(height * resolution))
+  // Assigning canvas.width resets the bitmap and drops the previous 2d
+  // context state. A context captured before that assignment clears the old
+  // box only, so a wider surface (a 4-wide folder becoming 8-wide) keeps the
+  // previous frame in the new strip on the right. The context is therefore
+  // read after the resize, and cleared against the bitmap that exists now.
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w
     canvas.height = h
@@ -63,7 +68,7 @@ export function presentPixi(
     renderer.resize(Math.max(renderer.width, w), Math.max(renderer.height, h))
   stage.scale.set(resolution)
   renderer.render({ container: stage })
-  context.clearRect(0, 0, w, h)
+  context.clearRect(0, 0, canvas.width, canvas.height)
   context.drawImage(renderer.canvas, 0, 0, w, h, 0, 0, w, h)
   canvas.dataset.renderCount = String(
     Number(canvas.dataset.renderCount ?? 0) + 1

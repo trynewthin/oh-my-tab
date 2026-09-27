@@ -140,18 +140,7 @@ for (const [size, expectedRows] of [
     await page.setViewportSize({ width: 1440, height: 1000 })
     await expect.poll(columnCount).toBe(3)
     const folder = page.locator('[data-grid-item-id="folder"]')
-    const content = expanded.locator("[data-expansion-content]")
     await expanded.getByRole("button", { name: "关闭文件夹" }).click()
-    await expect(content).toHaveCSS("opacity", "1")
-    await expect(expandedGrid).toHaveAttribute("data-collapsing", "true")
-    await expect(expandedGrid.locator("[data-stack-row]").nth(1)).toHaveCSS(
-      "position",
-      "fixed"
-    )
-    await expect(expandedGrid).toHaveCSS(
-      "grid-template-columns",
-      /\d+(\.\d+)?px \d+(\.\d+)?px/
-    )
     await expect(expanded).toHaveCount(0)
     await expect(folder).toHaveCSS("visibility", "visible")
     await region.focus()

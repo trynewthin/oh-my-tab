@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import EngineIcon from "@/components/search/engine-icon"
 import SearchShortcutsPreview from "@/components/search/search-shortcuts-preview"
+import { searchSurfaceBackgroundClassName } from "@/components/search/search-surface-styles"
 import { searchEngineLabel } from "@/lib/search-engines"
 import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
@@ -45,6 +46,7 @@ export default function TraditionalPreview() {
   const pet = useHomeSettingsStore((state) => state.pet)
   const color = useHomeSettingsStore((state) => state.color)
   const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const searchShortcutsCount = useHomeSettingsStore(
     (state) => state.searchShortcuts.controls.length
   )
@@ -145,7 +147,7 @@ export default function TraditionalPreview() {
             >
               <SearchShortcutsPreview compact />
               <div
-                className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-background bg-clip-padding dark:bg-card ${surfaceShadowClassName}`}
+                className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding ${searchSurfaceBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`}
               >
                 <Button
                   variant="ghost"
@@ -170,7 +172,7 @@ export default function TraditionalPreview() {
             </div>
           ) : (
             <div
-              className={`rounded-3xl border border-input bg-background p-2 dark:bg-card ${surfaceShadowClassName}`}
+              className={`rounded-3xl border border-input p-2 ${searchSurfaceBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`}
             >
               <div className="flex min-h-11 items-start px-3 py-2 text-sm text-muted-foreground">
                 {t("shell.home.searchPlaceholder")}

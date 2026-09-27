@@ -4,6 +4,7 @@ import { SquaresFour } from "@phosphor-icons/react"
 import { runSystemAction } from "@/application/system-actions"
 import { systemActionMenuIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
+import { compactSearchButtonBackgroundClassName } from "@/components/search/search-surface-styles"
 import { Button } from "@/components/ui/button"
 import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import {
@@ -17,6 +18,7 @@ import {
   type SystemActionId,
 } from "@/lib/system-actions"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 const defaultMenuActions = systemActionIdsFor("more-actions")
 
@@ -62,6 +64,7 @@ export default function MoreActions({
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const selecting = useGridSelectionStore((state) => state.active)
   const menuActions = actions ?? ["toggle-theme", ...defaultMenuActions]
   const uniqueMenuActions = [...new Set(menuActions)]
@@ -85,7 +88,7 @@ export default function MoreActions({
               size="icon"
               className={
                 compact
-                  ? `size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl ${surfaceShadowClassName}`
+                  ? `size-10 rounded-full border-border bg-clip-padding backdrop-blur-xl ${compactSearchButtonBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`
                   : undefined
               }
             />

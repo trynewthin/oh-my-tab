@@ -16,6 +16,7 @@ import type { TabItem } from "@/lib/grid/types"
 import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
 import SearchShortcuts from "@/components/search/search-shortcuts"
 import SearchEngineSelect from "@/components/search/search-engine-select"
+import { searchSurfaceBackgroundClassName } from "@/components/search/search-surface-styles"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 
 import type { SearchBoxStyle } from "@/stores/home-settings-store"
@@ -190,7 +191,7 @@ export default function SearchPrompt({
           {!embedded && <SearchShortcuts compact />}
           <div
             data-search-input-shell
-            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${!embedded ? surfaceShadowClassName : ""} ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
+            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${!embedded ? surfaceShadowClassName : ""} ${searchSurfaceBackgroundClassName(backgroundType)}`}
           >
             <SearchEngineSelect inset={embedded ? "padded" : "flush"} />
             <input
@@ -277,7 +278,7 @@ export default function SearchPrompt({
         </div>
       ) : (
         <PromptInput
-          className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : `relative isolate overflow-hidden ${surfaceShadowClassName}`} ${backgroundType === "solid" ? "dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
+          className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : `relative isolate overflow-hidden ${surfaceShadowClassName}`} ${backgroundType === "solid" ? "dark:bg-card" : searchSurfaceBackgroundClassName(backgroundType)}`}
           value={draft}
           onValueChange={(value) => {
             setDraft(value)

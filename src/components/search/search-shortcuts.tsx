@@ -10,6 +10,7 @@ import { systemActionRegistry, type SystemActionId } from "@/lib/system-actions"
 import { searchShortcutGroups } from "@/lib/search-shortcuts"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { searchShortcutIcons } from "./search-shortcut-icons"
+import { compactSearchButtonBackgroundClassName } from "./search-surface-styles"
 
 function SystemShortcutButton({
   action,
@@ -19,6 +20,7 @@ function SystemShortcutButton({
   compact: boolean
 }) {
   const { t } = useTranslation()
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const { disabled, pressed } = useSystemActionState(action)
   const Icon = searchShortcutIcons[action]
   const label = t(systemActionRegistry[action].labelKey)
@@ -29,7 +31,7 @@ function SystemShortcutButton({
       size="icon"
       className={
         compact
-          ? `size-10 shrink-0 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl ${surfaceShadowClassName}`
+          ? `size-10 shrink-0 rounded-full border-border bg-clip-padding backdrop-blur-xl ${compactSearchButtonBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`
           : undefined
       }
       aria-label={label}

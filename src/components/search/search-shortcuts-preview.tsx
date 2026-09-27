@@ -3,6 +3,7 @@ import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { searchShortcutGroups } from "@/lib/search-shortcuts"
 import { moreShortcutIcon, searchShortcutIcons } from "./search-shortcut-icons"
+import { compactSearchButtonBackgroundClassName } from "./search-surface-styles"
 
 export default function SearchShortcutsPreview({
   compact,
@@ -10,10 +11,11 @@ export default function SearchShortcutsPreview({
   compact: boolean
 }) {
   const config = useHomeSettingsStore((state) => state.searchShortcuts)
+  const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   if (!config.controls.length) return null
   const { hidden, visible } = searchShortcutGroups(config)
   const className = compact
-    ? `size-10 shrink-0 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl ${surfaceShadowClassName}`
+    ? `size-10 shrink-0 rounded-full border-border bg-clip-padding backdrop-blur-xl ${compactSearchButtonBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`
     : undefined
   const MoreIcon = moreShortcutIcon
   return (

@@ -1,15 +1,8 @@
-import { toast } from "@/stores/toast-store"
-import { useState, type FormEvent } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { useTranslation } from "react-i18next"
+import SettingItem from "@/components/settings/shared/setting-item"
+import ColorPicker from "@/components/ui/color-picker"
 import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -17,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl, type ButtonAction } from "@/lib/grid/types"
+import { buttonActionLabelKeys, buttonActions } from "@/lib/grid/button-actions"
+import { configureComponent } from "@/lib/grid/factory"
 import {
   componentDefaultName,
   componentLabel,
@@ -26,97 +19,132 @@ import {
   getComponentSize,
   getComponentSizeOptions,
   isComponentSize,
-  sizeLabel,
   type GridItemSize,
 } from "@/lib/grid/registry"
-import { configureComponent, type ConfigurableItem } from "@/lib/grid/factory"
-import { useTranslation } from "react-i18next"
-import { buttonActionLabelKeys, buttonActions } from "@/lib/grid/button-actions"
+import type { ButtonAction, GridItem } from "@/lib/grid/types"
+import { useTabGridStore } from "@/stores/tab-grid-store"
+import { toast } from "@/stores/toast-store"
+import ActionButton from "./action-button"
+import Calendar from "./calendar"
+import ComponentEditorFrame from "./component-editor-frame"
+import TemplateTile from "./template/tile"
+import Todo from "./todo"
+
+type GeneralItem = Extract<
+  GridItem,
+  { kind: "todo" | "calendar" | "template" | "button" }
+>
+
+function GeneralPreview({ item }: { item: GeneralItem }) {
+  switch (item.kind) {
+    case "todo":
+      return <Todo item={item} preview />
+    case "calendar":
+      return <Calendar item={item} preview />
+    case "template":
+      return <TemplateTile item={item} preview />
+    case "button":
+      return <ActionButton item={item} preview />
+  }
+}
 
 export default function ComponentConfiguration({
   item,
-  initialKind = "tab",
   onClose,
   onSaved,
 }: {
-  item?: ConfigurableItem
-  initialKind?: "tab" | "folder"
+  item: GeneralItem
   onClose: () => void
   onSaved: () => void
 }) {
   const { t } = useTranslation()
-  const [id] = useState(() => item?.id ?? crypto.randomUUID())
-  const kind = item?.kind ?? initialKind
+  const kind = item.kind
   const definition = getComponentDefinition(kind)
-  const [name, setName] = useState(item?.name ?? "")
-  const [url, setUrl] = useState(item?.kind === "tab" ? item.url : "")
+  const [name, setName] = useState(item.name)
   const [action, setAction] = useState<ButtonAction>(
-    item?.kind === "button" ? item.action : "toggle-theme"
+    item.kind === "button" ? item.action : "toggle-theme"
   )
-  const [size, setSize] = useState<GridItemSize>(
-    item?.size ?? definition.defaultSize
-  )
-  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
+  const [size, setSize] = useState<GridItemSize>(item.size)
+  const [color, setColor] = useState(item.color)
   const saveItem = useTabGridStore((state) => state.saveItem)
-  const sizeOptions = getComponentSizeOptions(kind, "editor", item?.size)
-  const currentSize = getComponentSize(kind, size)
+  const sizeOptions = getComponentSizeOptions(kind, "editor", item.size)
+  const currentSize = getComponentSize(kind, size) ?? definition.sizes[0]
+  const resolvedSize = isComponentSize(kind, size)
+    ? size
+    : definition.defaultSize
+  const resolvedName = definition.showNameInEditor
+    ? name.trim()
+    : item.name || componentDefaultName(kind, t)
+  const previewItem = configureComponent({
+    existing: item,
+    id: item.id,
+    kind,
+    name: resolvedName || componentDefaultName(kind, t),
+    size: resolvedSize,
+    color,
+    action,
+  }) as GeneralItem
 
-  function save(event: FormEvent) {
-    event.preventDefault()
-    const normalized = normalizeTabUrl(url)
-    const resolvedName = definition.showNameInEditor
-      ? name.trim()
-      : item?.name || componentDefaultName(kind, t)
-    const resolvedSize = isComponentSize(kind, size)
-      ? size
-      : definition.defaultSize
-    if (!resolvedName || (kind === "tab" && !normalized)) {
+  function save() {
+    if (!resolvedName) {
       toast(t("grid.editor.invalidTab"), "error")
       return
     }
     saveItem(
       configureComponent({
         existing: item,
-        id,
+        id: item.id,
         kind,
         name: resolvedName,
         size: resolvedSize,
         color,
-        url: normalized ?? undefined,
         action,
       })
     )
     onSaved()
   }
 
-  const form = (
-    <form className="space-y-4" onSubmit={save}>
+  return (
+    <ComponentEditorFrame
+      title={t("grid.editor.editTitle", { label: componentLabel(kind, t) })}
+      description={t(
+        definition.showNameInEditor
+          ? "grid.editor.descriptionWithName"
+          : "grid.editor.descriptionOptions"
+      )}
+      width={currentSize.width}
+      height={currentSize.height}
+      preview={<GeneralPreview item={previewItem} />}
+      previewBorder={definition.tileBorder}
+      sizeOptions={sizeOptions}
+      size={size}
+      onSizeChange={(value) => {
+        if (isComponentSize(kind, value)) setSize(value)
+      }}
+      submitLabel={t("grid.editor.save")}
+      onSubmit={save}
+      onClose={onClose}
+    >
       {definition.showNameInEditor && (
-        <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          {t("grid.editor.name")}
+        <SettingItem
+          label={t("grid.editor.name")}
+          htmlFor="component-editor-name"
+        >
           <Input
+            id="component-editor-name"
             autoFocus
             required
             maxLength={40}
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-        </label>
-      )}
-      {kind === "tab" && (
-        <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          {t("grid.editor.url")}
-          <Input
-            required
-            placeholder="https://example.com"
-            value={url}
-            onChange={(event) => setUrl(event.target.value)}
-          />
-        </label>
+        </SettingItem>
       )}
       {kind === "button" && (
-        <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          <label htmlFor="button-action">{t("grid.editor.buttonAction")}</label>
+        <SettingItem
+          label={t("grid.editor.buttonAction")}
+          htmlFor="component-editor-action"
+        >
           <Select
             value={action}
             onValueChange={(value) => {
@@ -124,7 +152,7 @@ export default function ComponentConfiguration({
                 setAction(value as ButtonAction)
             }}
           >
-            <SelectTrigger id="button-action" className="w-full">
+            <SelectTrigger id="component-editor-action" className="w-full">
               <SelectValue>
                 {t(
                   `grid.editor.buttonActions.${buttonActionLabelKeys[action]}`
@@ -141,79 +169,15 @@ export default function ComponentConfiguration({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </SettingItem>
       )}
-      {sizeOptions.length > 0 && (
-        <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-          <label htmlFor="grid-size">{t("grid.editor.displaySize")}</label>
-          <Select
-            value={size}
-            onValueChange={(value) => {
-              if (isComponentSize(kind, value)) setSize(value)
-            }}
-          >
-            <SelectTrigger id="grid-size" className="w-full">
-              <SelectValue>
-                {currentSize ? sizeLabel(currentSize, t) : undefined}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {sizeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {sizeLabel(option, t)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      <label className="grid grid-cols-1 items-center gap-2 sm:grid-cols-2 sm:gap-3">
-        {kind === "folder"
-          ? t("grid.editor.folderColor")
-          : t("grid.editor.backgroundColor")}
-        <input
-          type="color"
-          className="h-8 w-full cursor-pointer rounded border"
+      <SettingItem label={t("grid.editor.backgroundColor")}>
+        <ColorPicker
+          label={t("grid.editor.backgroundColor")}
           value={color}
-          onChange={(event) => setColor(event.target.value)}
+          onChange={setColor}
         />
-      </label>
-
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          {t("grid.editor.cancel")}
-        </Button>
-        <Button type="submit">
-          {item ? t("grid.editor.save") : t("grid.editor.confirmAdd")}
-        </Button>
-      </DialogFooter>
-    </form>
-  )
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
-    >
-      <DialogContent className="max-h-[85svh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {item
-              ? t("grid.editor.editTitle", { label: componentLabel(kind, t) })
-              : t("grid.editor.configTitle", {
-                  label: componentLabel(kind, t),
-                })}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {definition.showNameInEditor
-              ? t("grid.editor.descriptionWithName")
-              : t("grid.editor.descriptionOptions")}
-          </DialogDescription>
-        </DialogHeader>
-        {form}
-      </DialogContent>
-    </Dialog>
+      </SettingItem>
+    </ComponentEditorFrame>
   )
 }

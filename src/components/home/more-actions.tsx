@@ -18,7 +18,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import ComponentConfiguration from "@/components/tab-grid/component-configuration"
+import FolderEditor from "@/components/tab-grid/folder-editor"
+import TabEditor from "@/components/tab-grid/tab-editor"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useComponentsApplicationStore } from "@/stores/components-application-store"
@@ -158,9 +159,14 @@ export default function MoreActions({
           </Button>
         </PopoverContent>
       </Popover>
-      {adding && (
-        <ComponentConfiguration
-          initialKind={adding}
+      {adding === "tab" && (
+        <TabEditor
+          onClose={() => setAdding(null)}
+          onSaved={() => setAdding(null)}
+        />
+      )}
+      {adding === "folder" && (
+        <FolderEditor
           onClose={() => setAdding(null)}
           onSaved={() => setAdding(null)}
         />

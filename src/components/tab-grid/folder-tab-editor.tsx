@@ -1,17 +1,13 @@
-import { toast } from "@/stores/toast-store"
-import { useState, type FormEvent } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import { normalizeTabUrl, type TabEntry } from "@/lib/grid/types"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import SettingItem from "@/components/settings/shared/setting-item"
+import { Input } from "@/components/ui/input"
+import { getComponentDefinition, getComponentSize } from "@/lib/grid/registry"
+import { normalizeTabUrl, type TabEntry } from "@/lib/grid/types"
+import { useTabGridStore } from "@/stores/tab-grid-store"
+import { toast } from "@/stores/toast-store"
+import ComponentEditorFrame from "./component-editor-frame"
+import FolderTabRow from "./folder-tab-row"
 
 export default function FolderTabEditor({
   folderId,
@@ -25,9 +21,18 @@ export default function FolderTabEditor({
   const { t } = useTranslation()
   const [name, setName] = useState(tab.name)
   const [url, setUrl] = useState(tab.url)
+  const folder = useTabGridStore((state) =>
+    state.items.find((item) => item.kind === "folder" && item.id === folderId)
+  )
   const updateFolderTab = useTabGridStore((state) => state.updateFolderTab)
-  function save(event: FormEvent) {
-    event.preventDefault()
+  const dimensions = getComponentSize("tab", "small")!
+  const previewTab: TabEntry = {
+    ...tab,
+    name: name.trim() || tab.name,
+    url: normalizeTabUrl(url) ?? tab.url,
+  }
+
+  function save() {
     const normalized = normalizeTabUrl(url)
     if (!name.trim() || !normalized) {
       toast(t("grid.folder.invalidTab"), "error")
@@ -36,49 +41,55 @@ export default function FolderTabEditor({
     updateFolderTab(folderId, tab.id, { name: name.trim(), url: normalized })
     onClose()
   }
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="z-[90]"
-        overlayClassName="z-[80]"
-      >
-        <DialogHeader>
-          <DialogTitle>{t("grid.folder.editTabTitle")}</DialogTitle>
-        </DialogHeader>
-        <form className="space-y-4" onSubmit={save}>
-          <label className="grid grid-cols-2 items-center gap-3">
-            {t("grid.folder.name")}
-            <Input
-              autoFocus
-              required
-              maxLength={40}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </label>
-          <label className="grid grid-cols-2 items-center gap-3">
-            {t("grid.folder.url")}
-            <Input
-              required
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-            />
-          </label>
 
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={onClose}>
-              {t("grid.folder.cancel")}
-            </Button>
-            <Button type="submit">{t("grid.folder.save")}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+  return (
+    <ComponentEditorFrame
+      contentClassName="z-[90]"
+      overlayClassName="z-[80]"
+      title={t("grid.folder.editTabTitle")}
+      description={t("grid.editor.descriptionWithName")}
+      width={dimensions.width}
+      height={dimensions.height}
+      preview={
+        <FolderTabRow
+          tab={previewTab}
+          color={
+            folder?.kind === "folder"
+              ? folder.color
+              : getComponentDefinition("folder").defaultColor
+          }
+          folderId={folderId}
+          animated={folder?.kind === "folder" && !!folder.dynamicEffect}
+          preview
+        />
+      }
+      previewBorder={false}
+      submitLabel={t("grid.folder.save")}
+      cancelLabel={t("grid.folder.cancel")}
+      onSubmit={save}
+      onClose={onClose}
+    >
+      <SettingItem
+        label={t("grid.folder.name")}
+        htmlFor="folder-tab-editor-name"
+      >
+        <Input
+          id="folder-tab-editor-name"
+          autoFocus
+          required
+          maxLength={40}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </SettingItem>
+      <SettingItem label={t("grid.folder.url")} htmlFor="folder-tab-editor-url">
+        <Input
+          id="folder-tab-editor-url"
+          required
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+        />
+      </SettingItem>
+    </ComponentEditorFrame>
   )
 }

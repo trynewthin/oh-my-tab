@@ -1,15 +1,10 @@
 import DotImageCrop from "./dot-image-crop"
 import { useEffect, useRef, useState, type PointerEvent } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
 import DotArt from "./dot-art"
+import ComponentEditorFrame from "./component-editor-frame"
 import {
   blankDots,
   dotDimensions,
@@ -21,6 +16,7 @@ import {
   componentDefaultName,
   componentLabel,
   getComponentDefinition,
+  getComponentSize,
 } from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 
@@ -40,6 +36,7 @@ export default function DotCanvasConfiguration({
   const { columns, rows } = dotDimensions(pixels, pixelColumns)
   const { t } = useTranslation()
   const size = item?.size ?? "large"
+  const dimensions = getComponentSize("dot-canvas", size)!
   const [color, setColor] = useState(
     item?.color ?? getComponentDefinition("dot-canvas").defaultColor
   )
@@ -120,165 +117,153 @@ export default function DotCanvasConfiguration({
       setImporting(false)
     }
   }
+  function save() {
+    useTabGridStore.getState().saveItem({
+      id: item?.id ?? crypto.randomUUID(),
+      kind: "dot-canvas",
+      name: item?.name ?? componentDefaultName("dot-canvas", t),
+      size,
+      color,
+      pixels,
+      pixelColumns,
+    })
+    onSaved()
+  }
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
-      }}
-    >
-      <DialogContent className="flex h-[min(720px,90svh)] flex-col overflow-hidden sm:max-w-2xl">
-        <DialogHeader className="shrink-0">
-          <DialogTitle>
-            {item
-              ? t("grid.editor.editTitle", {
-                  label: componentLabel("dot-canvas", t),
-                })
-              : t("grid.editor.configTitle", {
-                  label: componentLabel("dot-canvas", t),
-                })}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="grid min-h-0 flex-1 grid-cols-[5rem_minmax(0,1fr)] gap-3 sm:gap-5">
-          <div
-            role="toolbar"
-            aria-label={t("grid.dotCanvas.toolbar")}
-            className="flex flex-col gap-2"
-          >
-            <input
-              aria-label={t("grid.dotCanvas.brushColor")}
-              type="color"
-              value={color}
-              onChange={(e) => {
-                setColor(e.target.value)
-                setTool("draw")
-              }}
-              className="h-8 w-full rounded border"
-            />
-            <Button
-              variant={tool === "draw" ? "secondary" : "outline"}
-              aria-pressed={tool === "draw"}
-              onClick={() => setTool("draw")}
-            >
-              {t("grid.dotCanvas.brush")}
-            </Button>
-            <Button
-              variant={tool === "erase" ? "secondary" : "outline"}
-              aria-pressed={tool === "erase"}
-              onClick={() => setTool("erase")}
-            >
-              {t("grid.dotCanvas.eraser")}
-            </Button>
-            <Button
-              variant={tool === "pick" ? "secondary" : "outline"}
-              aria-pressed={tool === "pick"}
-              onClick={() => setTool("pick")}
-            >
-              {t("grid.dotCanvas.picker")}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!history.length || importing}
-              onClick={() => {
-                setPixels(history[history.length - 1])
-                setHistory(history.slice(0, -1))
-              }}
-            >
-              {t("grid.dotCanvas.undo")}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={importing}
-              onClick={() => {
-                remember()
-                setPixels(blankDots(columns, rows))
-              }}
-            >
-              {t("grid.dotCanvas.clear")}
-            </Button>
-            <Button
-              variant="outline"
-              disabled={importing}
-              onClick={() => fileRef.current?.click()}
-            >
-              {importing
-                ? t("grid.dotCanvas.convertPending")
-                : t("grid.dotCanvas.importImage")}
-            </Button>
-            <input
-              ref={fileRef}
-              aria-label={t("grid.dotCanvas.importImageLabel")}
-              className="hidden"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                void importImage(e.target.files?.[0])
-                e.target.value = ""
-              }}
-            />
-          </div>
-          <div className="[container-type:size] flex min-h-0 min-w-0 items-center justify-center">
-            <div
-              className="shrink-0 rounded-2xl"
-              style={{
-                aspectRatio: `${columns} / ${rows}`,
-                width: `min(100cqw, ${(100 * columns) / rows}cqh)`,
-              }}
-              onPointerDown={(e) => {
-                if (importing) e.stopPropagation()
-              }}
-            >
-              <DotArt
-                pixels={pixels}
-                pixelColumns={pixelColumns}
-                onPointerDown={(e) => {
-                  if (!importing) paint(e, true)
-                }}
-                onPointerMove={(e) => paint(e)}
-                onPointerUp={() => {
-                  stroke.current = null
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="flex shrink-0 justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>
-            {t("grid.dotCanvas.cancel")}
-          </Button>
-          <Button
-            disabled={importing}
-            onClick={() => {
-              useTabGridStore.getState().saveItem({
-                id: item?.id ?? crypto.randomUUID(),
-                kind: "dot-canvas",
-                name: item?.name ?? componentDefaultName("dot-canvas", t),
-                size,
-                color,
-                pixels,
-                pixelColumns,
+    <>
+      <ComponentEditorFrame
+        title={
+          item
+            ? t("grid.editor.editTitle", {
+                label: componentLabel("dot-canvas", t),
               })
-              onSaved()
+            : t("grid.editor.configTitle", {
+                label: componentLabel("dot-canvas", t),
+              })
+        }
+        description={t("grid.dotCanvas.canvasLabel")}
+        width={dimensions.width}
+        height={dimensions.height}
+        preview={
+          <DotArt
+            pixels={pixels}
+            pixelColumns={pixelColumns}
+            onPointerDown={(event) => {
+              if (!importing) paint(event, true)
             }}
-          >
-            {item ? t("grid.dotCanvas.save") : t("grid.dotCanvas.confirmAdd")}
-          </Button>
-        </div>
-        {cropImage && (
-          <DotImageCrop
-            image={cropImage}
-            columns={columns}
-            rows={rows}
-            onClose={() => setCropImage(null)}
-            onConfirm={(next) => {
-              remember()
-              setPixels(next)
-              setCropImage(null)
+            onPointerMove={(event) => paint(event)}
+            onPointerUp={() => {
+              stroke.current = null
             }}
           />
-        )}
-      </DialogContent>
-    </Dialog>
+        }
+        previewBorder={false}
+        previewInteractive
+        previewOverlap={false}
+        submitLabel={
+          item ? t("grid.dotCanvas.save") : t("grid.dotCanvas.confirmAdd")
+        }
+        submitDisabled={importing}
+        onSubmit={save}
+        onClose={onClose}
+      >
+        <div
+          role="toolbar"
+          aria-label={t("grid.dotCanvas.toolbar")}
+          className="flex flex-wrap gap-2"
+        >
+          <input
+            aria-label={t("grid.dotCanvas.brushColor")}
+            type="color"
+            value={color}
+            onChange={(event) => {
+              setColor(event.target.value)
+              setTool("draw")
+            }}
+            className="h-8 w-12 rounded border"
+          />
+          <Button
+            type="button"
+            variant={tool === "draw" ? "secondary" : "outline"}
+            aria-pressed={tool === "draw"}
+            onClick={() => setTool("draw")}
+          >
+            {t("grid.dotCanvas.brush")}
+          </Button>
+          <Button
+            type="button"
+            variant={tool === "erase" ? "secondary" : "outline"}
+            aria-pressed={tool === "erase"}
+            onClick={() => setTool("erase")}
+          >
+            {t("grid.dotCanvas.eraser")}
+          </Button>
+          <Button
+            type="button"
+            variant={tool === "pick" ? "secondary" : "outline"}
+            aria-pressed={tool === "pick"}
+            onClick={() => setTool("pick")}
+          >
+            {t("grid.dotCanvas.picker")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!history.length || importing}
+            onClick={() => {
+              setPixels(history[history.length - 1])
+              setHistory(history.slice(0, -1))
+            }}
+          >
+            {t("grid.dotCanvas.undo")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={importing}
+            onClick={() => {
+              remember()
+              setPixels(blankDots(columns, rows))
+            }}
+          >
+            {t("grid.dotCanvas.clear")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={importing}
+            onClick={() => fileRef.current?.click()}
+          >
+            {importing
+              ? t("grid.dotCanvas.convertPending")
+              : t("grid.dotCanvas.importImage")}
+          </Button>
+          <input
+            ref={fileRef}
+            aria-label={t("grid.dotCanvas.importImageLabel")}
+            className="hidden"
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              void importImage(event.target.files?.[0])
+              event.target.value = ""
+            }}
+          />
+        </div>
+      </ComponentEditorFrame>
+      {cropImage && (
+        <DotImageCrop
+          image={cropImage}
+          columns={columns}
+          rows={rows}
+          onClose={() => setCropImage(null)}
+          onConfirm={(next) => {
+            remember()
+            setPixels(next)
+            setCropImage(null)
+          }}
+        />
+      )}
+    </>
   )
 }

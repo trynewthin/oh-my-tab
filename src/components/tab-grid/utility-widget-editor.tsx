@@ -1,27 +1,12 @@
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react"
+import { useEffect, useId, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import ColorPicker from "@/components/ui/color-picker"
-import WidgetEditorPreview from "./utility/editor-preview"
+import ComponentEditorFrame from "./component-editor-frame"
+import UtilityWidgetTile from "./utility-widget-tile"
 import "./utility/editor.css"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -32,9 +17,9 @@ import {
 import {
   componentLabel,
   getComponentDefinition,
+  getComponentSize,
   getComponentSizeOptions,
   isComponentSize,
-  sizeLabel,
 } from "@/lib/grid/registry"
 import {
   isUtilityWidget,
@@ -167,8 +152,7 @@ export default function UtilityWidgetEditor({
     }
   }
 
-  function save(event: FormEvent) {
-    event.preventDefault()
+  function save() {
     if (uploading) return
     const current = useTabGridStore
       .getState()
@@ -593,100 +577,60 @@ export default function UtilityWidgetEditor({
   const previewItem = validGridItem(draft)
     ? applyUtilityConfiguration(item, draft)
     : item
+  const dimensions =
+    getComponentSize(item.kind, draft.size) ??
+    getComponentSize(item.kind, item.size)!
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose()
+    <ComponentEditorFrame
+      title={t("grid.editor.editTitle", {
+        label: componentLabel(item.kind, t),
+      })}
+      description={t("widgets.design.editorHint")}
+      width={dimensions.width}
+      height={dimensions.height}
+      preview={
+        <UtilityWidgetTile item={previewItem} preview onOpen={() => {}} />
+      }
+      previewBorder={getComponentDefinition(item.kind).tileBorder}
+      sizeOptions={sizes}
+      size={draft.size}
+      onSizeChange={(value) => {
+        if (isComponentSize(item.kind, value)) patch({ size: value })
       }}
+      submitLabel={t("grid.editor.save")}
+      submitDisabled={uploading}
+      onSubmit={save}
+      onClose={onClose}
     >
-      <DialogContent className="utility-editor">
-        <DialogHeader className="utility-editor-heading">
-          <DialogTitle>
-            {t("grid.editor.editTitle", {
-              label: componentLabel(item.kind, t),
-            })}
-          </DialogTitle>
-          <DialogDescription>
-            {t("widgets.design.editorHint")}
-          </DialogDescription>
-        </DialogHeader>
-        <form className="utility-editor-form" onSubmit={save}>
-          <div className="utility-editor-layout">
-            <WidgetEditorPreview item={previewItem} />
-            <div className="utility-editor-fields">
-              <Field label={t("grid.editor.name")}>
-                <Input
-                  required
-                  maxLength={40}
-                  value={draft.name}
-                  onChange={(event) => patch({ name: event.target.value })}
-                />
-              </Field>
-              <div className="utility-editor-field">
-                <span id={`widget-size-${item.id}`}>
-                  {t("grid.editor.displaySize")}
-                </span>
-                <ToggleGroup
-                  value={[draft.size]}
-                  aria-labelledby={`widget-size-${item.id}`}
-                  className="utility-editor-size-options"
-                  onValueChange={(values) => {
-                    const value = values[0]
-                    if (isComponentSize(item.kind, value))
-                      patch({ size: value })
-                  }}
-                >
-                  {sizes.map((size) => (
-                    <ToggleGroupItem
-                      key={size.value}
-                      value={size.value}
-                      aria-label={sizeLabel(size, t)}
-                      title={sizeLabel(size, t)}
-                    >
-                      <span
-                        className="utility-size-mark"
-                        aria-hidden="true"
-                        style={{
-                          aspectRatio: `${size.width}/${size.height}`,
-                          width: `${Math.min(18, (18 * size.width) / size.height)}px`,
-                        }}
-                      />
-                      <span>
-                        {size.width}×{size.height}
-                      </span>
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
-              {getComponentDefinition(item.kind).actions.randomColor && (
-                <div className="utility-editor-field">
-                  <span>{t("grid.editor.backgroundColor")}</span>
-                  <ColorPicker
-                    label={t("grid.editor.backgroundColor")}
-                    value={draft.color}
-                    onChange={(color) => patch({ color })}
-                  />
-                </div>
-              )}
-              {fields()}
-            </div>
+      <div className="utility-editor-fields">
+        <Field label={t("grid.editor.name")}>
+          <Input
+            required
+            maxLength={40}
+            value={draft.name}
+            onChange={(event) => patch({ name: event.target.value })}
+          />
+        </Field>
+        {getComponentDefinition(item.kind).actions.randomColor && (
+          <div className="utility-editor-field">
+            <span>{t("grid.editor.backgroundColor")}</span>
+            <ColorPicker
+              label={t("grid.editor.backgroundColor")}
+              value={draft.color}
+              onChange={(color) => patch({ color })}
+            />
           </div>
-          {error && (
-            <p role="alert" className="utility-editor-error">
-              {t(`widgets.errors.${error}`)}
-            </p>
-          )}
-          <DialogFooter className="utility-editor-footer">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              {t("grid.editor.cancel")}
-            </Button>
-            <Button type="submit" disabled={uploading}>
-              {t("grid.editor.save")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        )}
+        {fields()}
+        {(item.kind === "weather" || item.kind === "rss") && (
+          <p className="utility-editor-help">{t("widgets.previewOnly")}</p>
+        )}
+      </div>
+      {error && (
+        <p role="alert" className="utility-editor-error">
+          {t(`widgets.errors.${error}`)}
+        </p>
+      )}
+    </ComponentEditorFrame>
   )
 }

@@ -16,6 +16,8 @@ import TemplateTile from "./template/tile"
 import SearchTile from "./search-tile"
 import ActionButton from "./action-button"
 import ComponentConfiguration from "./component-configuration"
+import FolderEditor from "./folder-editor"
+import TabEditor from "./tab-editor"
 import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import UtilityWidgetTile from "./utility-widget-tile"
@@ -181,7 +183,9 @@ export function WidgetEditor({
         />
       )
     case "tab":
+      return <TabEditor item={item} onClose={onClose} onSaved={onSaved} />
     case "folder":
+      return <FolderEditor item={item} onClose={onClose} onSaved={onSaved} />
     case "todo":
     case "calendar":
     case "template":

@@ -43,6 +43,15 @@ const shell = {
     batch: "Batch select",
     batchOn: "On",
   },
+  systemActions: {
+    toggleTheme: "Toggle light/dark",
+    addTab: "Add tab",
+    addFolder: "Add folder",
+    openComponents: "Open components",
+    tidyGrid: "Tidy up",
+    toggleSelection: "Multi-select",
+    openSettings: "Open settings",
+  },
   settingsButton: {
     open: "Open settings",
     title: "Settings",

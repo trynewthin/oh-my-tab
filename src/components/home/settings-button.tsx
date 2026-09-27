@@ -1,8 +1,9 @@
 import { GearSix } from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 
+import { runSystemAction } from "@/application/system-actions"
 import { Button } from "@/components/ui/button"
-import { useSettingsStore } from "@/stores/settings-store"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 
 export default function SettingsButton({
   compact = false,
@@ -10,7 +11,6 @@ export default function SettingsButton({
   compact?: boolean
 }) {
   const { t } = useTranslation()
-  const setOpen = useSettingsStore((state) => state.setOpen)
 
   return (
     <Button
@@ -19,7 +19,7 @@ export default function SettingsButton({
       size="icon"
       className={
         compact
-          ? "size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
+          ? `size-10 shrink-0 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl ${surfaceShadowClassName}`
           : undefined
       }
       data-tour="settings"
@@ -27,7 +27,7 @@ export default function SettingsButton({
       title={t("shell.settingsButton.title")}
       onClick={(event) => {
         event.stopPropagation()
-        setOpen(true)
+        runSystemAction("open-settings")
       }}
     >
       <GearSix className="size-5" />

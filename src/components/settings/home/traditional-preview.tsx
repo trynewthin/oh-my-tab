@@ -1,10 +1,4 @@
-import {
-  ArrowUp,
-  CaretDown,
-  GearSix,
-  MagnifyingGlass,
-  SquaresFour,
-} from "@phosphor-icons/react"
+import { ArrowUp, CaretDown, MagnifyingGlass } from "@phosphor-icons/react"
 import { useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -21,8 +15,11 @@ import {
   matrixColumns,
 } from "@/components/dot-matrix/responsive-layout"
 import { Button } from "@/components/ui/button"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import EngineIcon from "@/components/search/engine-icon"
+import SearchShortcutsPreview from "@/components/search/search-shortcuts-preview"
 import { searchEngineLabel } from "@/lib/search-engines"
+import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 
@@ -40,17 +37,27 @@ export default function TraditionalPreview() {
   const [height, setHeight] = useState(0)
   const [now] = useState(() => new Date())
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const traditionalTopSpacing = useHomeSettingsStore(
+    (state) => state.traditionalTopSpacing
+  )
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const pet = useHomeSettingsStore((state) => state.pet)
   const color = useHomeSettingsStore((state) => state.color)
   const searchBoxStyle = useHomeSettingsStore((state) => state.searchBoxStyle)
+  const searchShortcutsCount = useHomeSettingsStore(
+    (state) => state.searchShortcuts.controls.length
+  )
   const engines = useSearchEngineStore((state) => state.engines)
   const selectedId = useSearchEngineStore((state) => state.selectedId)
   const selectedEngine = engines.find((engine) => engine.id === selectedId)
   const engineName = selectedEngine
     ? searchEngineLabel(selectedEngine, (key) => t(key))
     : t("shell.engineSelect.browserDefault")
+  const topInsets = traditionalTopInsets(
+    traditionalTopSpacing,
+    topComponent === "dot-matrix"
+  )
 
   useLayoutEffect(() => {
     const element = container.current
@@ -63,9 +70,9 @@ export default function TraditionalPreview() {
     update()
     const observer = new ResizeObserver(update)
     observer.observe(element)
-    observer.observe(preview)
+    observer.observe(preview, { box: "border-box" })
     return () => observer.disconnect()
-  }, [])
+  }, [topInsets.topPadding, topInsets.searchGap, topComponent, searchBoxStyle])
 
   const pixels = useMemo(() => {
     if (content === "time")
@@ -84,14 +91,18 @@ export default function TraditionalPreview() {
       data-traditional-preview
       role="group"
       aria-label={t("settings.home.traditionalPreview")}
-      className="w-full overflow-hidden rounded-2xl bg-card shadow-[0_0_14px_rgba(0,0,0,0.14)] dark:shadow-[0_0_18px_rgba(0,0,0,0.4)]"
+      className={`w-full overflow-hidden rounded-2xl bg-card ${surfaceShadowClassName}`}
       style={{ height: height * scale }}
     >
       <div
         ref={contentRef}
         aria-hidden="true"
-        className="pointer-events-none origin-top-left px-6 pt-6 pb-6"
-        style={{ width: FRAME_WIDTH, transform: `scale(${scale})` }}
+        className="pointer-events-none origin-top-left px-6 pb-6"
+        style={{
+          width: FRAME_WIDTH,
+          paddingTop: topInsets.topPadding,
+          transform: `scale(${scale})`,
+        }}
       >
         {topComponent === "dot-matrix" && (
           <div className="flex min-h-[102px] items-start justify-center">
@@ -123,40 +134,28 @@ export default function TraditionalPreview() {
             </div>
           </div>
         )}
-        <div
-          className={topComponent === "dot-matrix" ? "mt-6" : undefined}
-          style={{ width: TRACK_WIDTH }}
-        >
+        <div style={{ width: TRACK_WIDTH, marginTop: topInsets.searchGap }}>
           {searchBoxStyle === "minimal" ? (
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2">
-              <div className="flex shrink-0 items-center gap-2 text-foreground">
+            <div
+              className={
+                searchShortcutsCount > 0
+                  ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2"
+                  : "block"
+              }
+            >
+              <SearchShortcutsPreview compact />
+              <div
+                className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-background bg-clip-padding dark:bg-card ${surfaceShadowClassName}`}
+              >
                 <Button
                   variant="ghost"
                   size="icon"
                   tabIndex={-1}
-                  className="size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
-                >
-                  <SquaresFour className="size-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  tabIndex={-1}
-                  className="size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
-                >
-                  <GearSix className="size-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  tabIndex={-1}
-                  className="size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
+                  className="size-10 rounded-full bg-transparent text-muted-foreground"
                 >
                   <EngineIcon icon={selectedEngine?.icon} size={20} />
                 </Button>
-              </div>
-              <div className="flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-background bg-clip-padding dark:bg-card">
-                <span className="min-w-0 flex-1 px-4 text-sm text-muted-foreground">
+                <span className="min-w-0 flex-1 px-2 text-sm text-muted-foreground">
                   {t("shell.home.searchPlaceholder")}
                 </span>
                 <Button
@@ -170,19 +169,14 @@ export default function TraditionalPreview() {
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-input bg-background p-2 shadow-xs dark:bg-card">
+            <div
+              className={`rounded-3xl border border-input bg-background p-2 dark:bg-card ${surfaceShadowClassName}`}
+            >
               <div className="flex min-h-11 items-start px-3 py-2 text-sm text-muted-foreground">
                 {t("shell.home.searchPlaceholder")}
               </div>
               <div className="flex items-center justify-end gap-1 px-2 pt-1 pb-1 text-foreground sm:gap-2">
-                <Button variant="ghost" size="icon" tabIndex={-1}>
-                  <SquaresFour className="size-5" />
-                </Button>
-                <div className="mr-auto">
-                  <Button variant="ghost" size="icon" tabIndex={-1}>
-                    <GearSix className="size-5" />
-                  </Button>
-                </div>
+                <SearchShortcutsPreview compact={false} />
                 <Button variant="ghost" tabIndex={-1}>
                   <EngineIcon icon={selectedEngine?.icon} />
                   <span className="max-w-32 truncate">{engineName}</span>

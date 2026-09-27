@@ -15,7 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { buttonActionLabelKeys } from "@/lib/grid/button-actions"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
+import { systemActionRegistry } from "@/lib/system-actions"
 import {
   MAX_QUICK_CONTROLS_PER_SIDE,
   type QuickBarControl,
@@ -37,7 +38,7 @@ function PreviewControl({
   const name =
     control.kind === "site"
       ? control.name
-      : t(`grid.editor.buttonActions.${buttonActionLabelKeys[control.action]}`)
+      : t(systemActionRegistry[control.action].labelKey)
   return (
     <ContextMenu>
       <ContextMenuTrigger
@@ -161,7 +162,7 @@ export default function QuickBarPreview() {
   const [addingSide, setAddingSide] = useState<QuickBarSide | null>(null)
 
   return (
-    <div className="rounded-2xl bg-card px-2 py-1 shadow-[0_0_14px_rgba(0,0,0,0.14)] dark:shadow-[0_0_18px_rgba(0,0,0,0.4)]">
+    <div className={`rounded-2xl bg-card px-2 py-1 ${surfaceShadowClassName}`}>
       <div
         data-quick-bar-preview
         role="group"

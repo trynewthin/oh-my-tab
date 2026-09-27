@@ -113,13 +113,6 @@ const grid = {
     folderColor: "Folder color",
     backgroundColor: "Background color",
     buttonAction: "Assigned action",
-    buttonActions: {
-      toggleTheme: "Toggle light/dark",
-      tidyGrid: "Tidy up",
-      toggleSelection: "Multi-select",
-      openSettings: "Open settings",
-      openComponents: "Open components",
-    },
     cancel: "Cancel",
     save: "Save",
     confirmAdd: "Confirm add",

@@ -12,12 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { buttonActionLabelKeys, buttonActions } from "@/lib/grid/button-actions"
-import { normalizeTabUrl, type ButtonAction } from "@/lib/grid/types"
+import { normalizeTabUrl } from "@/lib/grid/types"
+import {
+  isSystemActionOnSurface,
+  systemActionIdsFor,
+  systemActionRegistry,
+  type SystemActionId,
+} from "@/lib/system-actions"
 import type { QuickBarControl, QuickBarSide } from "@/lib/quick-bar"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { settingsControlClassName } from "../shared/control-styles"
 import SettingItem from "../shared/setting-item"
+
+const quickBarActions = systemActionIdsFor("quick-bar")
 
 export function SiteFields({
   initial,
@@ -89,7 +96,7 @@ export function QuickBarSideEditor({
   const addSystem = useHomeSettingsStore((state) => state.addQuickSystemControl)
   const addSite = useHomeSettingsStore((state) => state.addQuickSiteControl)
   const [kind, setKind] = useState<"system" | "site">("system")
-  const [action, setAction] = useState<ButtonAction>(buttonActions[0])
+  const [action, setAction] = useState<SystemActionId>(quickBarActions[0])
   const [url, setUrl] = useState("")
   const [invalid, setInvalid] = useState(false)
 
@@ -151,8 +158,7 @@ export function QuickBarSideEditor({
           <Select
             value={action}
             onValueChange={(value) => {
-              if (buttonActions.includes(value as ButtonAction))
-                setAction(value as ButtonAction)
+              if (isSystemActionOnSurface(value, "quick-bar")) setAction(value)
             }}
           >
             <SelectTrigger
@@ -160,17 +166,13 @@ export function QuickBarSideEditor({
               className={`w-full min-w-0 ${settingsControlClassName}`}
             >
               <SelectValue>
-                {t(
-                  `grid.editor.buttonActions.${buttonActionLabelKeys[action]}`
-                )}
+                {t(systemActionRegistry[action].labelKey)}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {buttonActions.map((option) => (
+              {quickBarActions.map((option) => (
                 <SelectItem key={option} value={option}>
-                  {t(
-                    `grid.editor.buttonActions.${buttonActionLabelKeys[option]}`
-                  )}
+                  {t(systemActionRegistry[option].labelKey)}
                 </SelectItem>
               ))}
             </SelectContent>

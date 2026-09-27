@@ -6,7 +6,6 @@ export type Theme = "light" | "dark" | "system"
 type ThemeState = {
   theme: Theme
   setTheme: (theme: Theme) => void
-  cycleTheme: () => void
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -14,11 +13,6 @@ export const useThemeStore = create<ThemeState>()(
     (set) => ({
       theme: "light",
       setTheme: (theme) => set({ theme }),
-      cycleTheme: () =>
-        set(({ theme }) => ({
-          theme:
-            theme === "light" ? "dark" : theme === "dark" ? "system" : "light",
-        })),
     }),
     {
       ...storageOptions(),

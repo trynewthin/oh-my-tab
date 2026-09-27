@@ -22,6 +22,14 @@ import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { decodeConfig } from "@/lib/config-codec"
 import { isBackgroundPaletteId } from "@/lib/background-palettes"
+import {
+  defaultTraditionalTopSpacing,
+  isTraditionalTopSpacing,
+} from "@/lib/home-top-spacing"
+import {
+  defaultSearchShortcuts,
+  validSearchShortcuts,
+} from "@/lib/search-shortcuts"
 import { defaultQuickBar, validQuickBarConfig } from "@/lib/quick-bar"
 import { i18n } from "@/i18n"
 
@@ -42,9 +50,11 @@ export function snapshot() {
       backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
       searchBoxStyle: home.searchBoxStyle,
+      searchShortcuts: home.searchShortcuts,
       folderStyle: home.folderStyle,
       tabTexture: home.tabTexture,
       topComponent: home.topComponent,
+      traditionalTopSpacing: home.traditionalTopSpacing,
       content: home.content,
       text: home.text,
       pet: home.pet,
@@ -109,6 +119,10 @@ export function validateConfig(value: unknown): Config {
       !isBackgroundPaletteId(home.backgroundPalette)) ||
     (home.searchBoxStyle !== undefined &&
       !["full", "minimal"].includes(home.searchBoxStyle)) ||
+    (home.searchShortcuts !== undefined &&
+      !validSearchShortcuts(home.searchShortcuts)) ||
+    (home.traditionalTopSpacing !== undefined &&
+      !isTraditionalTopSpacing(home.traditionalTopSpacing)) ||
     (home.folderStyle !== undefined &&
       !["classic", "noise", "none"].includes(home.folderStyle)) ||
     (home.tabTexture !== undefined &&
@@ -204,6 +218,8 @@ export function validateConfig(value: unknown): Config {
   home.backgroundImage ??= null
   home.backgroundPalette ??= "gray"
   home.searchBoxStyle ??= "full"
+  home.searchShortcuts ??= defaultSearchShortcuts()
+  home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
   home.folderStyle ??= "noise"
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=

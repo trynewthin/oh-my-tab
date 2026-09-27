@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Info } from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Popover,
   PopoverContent,
@@ -13,19 +14,28 @@ export default function SettingItem({
   htmlFor,
   labelId,
   description,
+  wide = false,
   children,
 }: {
   label: string
   htmlFor?: string
   labelId?: string
   description?: ReactNode
+  wide?: boolean
   children: ReactNode
 }) {
   const { t } = useTranslation()
   const infoLabel = t("settings.common.info", { label })
 
   return (
-    <div className="grid grid-cols-2 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_11rem]">
+    <div
+      className={cn(
+        "grid items-center gap-3",
+        wide
+          ? "grid-cols-1 sm:grid-cols-[minmax(0,3fr)_minmax(0,7fr)]"
+          : "grid-cols-2 sm:grid-cols-[minmax(0,1fr)_11rem]"
+      )}
+    >
       <div className="flex items-center gap-1">
         {htmlFor ? (
           <label id={labelId} htmlFor={htmlFor} className="text-sm">

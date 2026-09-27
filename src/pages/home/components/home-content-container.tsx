@@ -10,7 +10,7 @@ export default function HomeContentContainer({
   return (
     <div
       className={cn(
-        "mx-auto flex min-h-40 w-full max-w-3xl shrink-0 flex-col justify-end",
+        "mx-auto flex min-h-[102px] w-full max-w-3xl shrink-0 flex-col justify-end",
         className
       )}
       {...props}

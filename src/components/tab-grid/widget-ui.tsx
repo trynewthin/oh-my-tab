@@ -22,6 +22,7 @@ import EcosystemConfiguration from "./ecosystem-configuration"
 import DotCanvasConfiguration from "./dot-canvas-configuration"
 import UtilityWidgetTile from "./utility-widget-tile"
 import UtilityWidgetEditor from "./utility-widget-editor"
+import SearchConfiguration from "./search-configuration"
 import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import type { ReactNode } from "react"
@@ -147,7 +148,7 @@ export function WidgetTile({
   return assertNever(item)
 }
 
-/** Existing-item editor routing; search kinds have no editor surface. */
+/** Existing-item editor routing for every editable grid kind. */
 export function WidgetEditor({
   item,
   onClose,
@@ -165,7 +166,9 @@ export function WidgetEditor({
   switch (item.kind) {
     case "search-minimal":
     case "search-full":
-      return null
+      return (
+        <SearchConfiguration item={item} onClose={onClose} onSaved={onSaved} />
+      )
     case "dot-canvas":
       return (
         <DotCanvasConfiguration

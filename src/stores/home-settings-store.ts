@@ -24,7 +24,24 @@ import {
   type QuickBarControl,
   type QuickBarSide,
 } from "@/lib/quick-bar"
-import type { ButtonAction } from "@/lib/grid/types"
+import {
+  isSystemActionOnSurface,
+  type SystemActionId,
+} from "@/lib/system-actions"
+import {
+  defaultTraditionalTopSpacing,
+  isTraditionalTopSpacing,
+  type TraditionalTopSpacing,
+} from "@/lib/home-top-spacing"
+import {
+  appendSearchShortcut,
+  defaultSearchShortcuts,
+  moveSearchShortcut,
+  removeSearchShortcut,
+  sanitizeSearchShortcuts,
+  setSearchShortcutBoundary,
+  type SearchShortcutConfig,
+} from "@/lib/search-shortcuts"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -44,9 +61,11 @@ type HomeSettings = {
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
   searchBoxStyle: SearchBoxStyle
+  searchShortcuts: SearchShortcutConfig
   folderStyle: FolderStyle
   tabTexture: TabTexture
   topComponent: TopComponent
+  traditionalTopSpacing: TraditionalTopSpacing
   content: MatrixContent
   text: string
   pet: MatrixPet
@@ -55,7 +74,7 @@ type HomeSettings = {
   transitionsEnabled: boolean
 }
 type HomeSettingsStore = HomeSettings & {
-  addQuickSystemControl: (side: QuickBarSide, action: ButtonAction) => void
+  addQuickSystemControl: (side: QuickBarSide, action: SystemActionId) => void
   addQuickSiteControl: (
     side: QuickBarSide,
     name: string,
@@ -72,9 +91,14 @@ type HomeSettingsStore = HomeSettings & {
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
+  addSearchShortcut: (action: SystemActionId) => void
+  removeSearchShortcut: (id: string) => void
+  moveSearchShortcut: (id: string, index: number) => void
+  setSearchShortcutBoundary: (index: number) => void
   setFolderStyle: (value: FolderStyle) => void
   setTabTexture: (value: TabTexture) => void
   setTopComponent: (value: TopComponent) => void
+  setTraditionalTopSpacing: (value: TraditionalTopSpacing) => void
   setContent: (value: MatrixContent) => void
   setText: (value: string) => void
   setPet: (value: MatrixPet) => void
@@ -94,9 +118,11 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       backgroundImage: null,
       backgroundPalette: "gray",
       searchBoxStyle: "full",
+      searchShortcuts: defaultSearchShortcuts(),
       folderStyle: "noise",
       tabTexture: "burning",
       topComponent: "dot-matrix",
+      traditionalTopSpacing: defaultTraditionalTopSpacing,
       content: "time",
       text: "HELLO WORLD",
       pet: "cat",
@@ -105,7 +131,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       transitionsEnabled: false,
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
-      addQuickSystemControl: (side, action) =>
+      addQuickSystemControl: (side, action) => {
+        if (!isSystemActionOnSurface(action, "quick-bar")) return
         set((state) => ({
           quickBar: {
             ...state.quickBar,
@@ -114,7 +141,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
               { id: crypto.randomUUID(), kind: "system", action },
             ].slice(0, MAX_QUICK_CONTROLS_PER_SIDE),
           },
-        })),
+        }))
+      },
       addQuickSiteControl: (side, name, url) => {
         const site = normalizeQuickSite(name, url)
         if (!site) return false
@@ -183,6 +211,37 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
+      addSearchShortcut: (action) =>
+        set((state) => {
+          const next = appendSearchShortcut(state.searchShortcuts, {
+            id: crypto.randomUUID(),
+            action,
+          })
+          return next === state.searchShortcuts
+            ? state
+            : { searchShortcuts: next }
+        }),
+      removeSearchShortcut: (id) =>
+        set((state) => {
+          const next = removeSearchShortcut(state.searchShortcuts, id)
+          return next === state.searchShortcuts
+            ? state
+            : { searchShortcuts: next }
+        }),
+      moveSearchShortcut: (id, index) =>
+        set((state) => {
+          const next = moveSearchShortcut(state.searchShortcuts, id, index)
+          return next === state.searchShortcuts
+            ? state
+            : { searchShortcuts: next }
+        }),
+      setSearchShortcutBoundary: (index) =>
+        set((state) => {
+          const next = setSearchShortcutBoundary(state.searchShortcuts, index)
+          return next === state.searchShortcuts
+            ? state
+            : { searchShortcuts: next }
+        }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
       setBurningAmplitude: (value) => {
@@ -192,6 +251,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setTransitionsEnabled: (transitionsEnabled) =>
         set({ transitionsEnabled }),
       setTopComponent: (topComponent) => set({ topComponent }),
+      setTraditionalTopSpacing: (traditionalTopSpacing) =>
+        set({ traditionalTopSpacing }),
       setContent: (content) => set({ content }),
       setText: (text) =>
         set({ text: text.replace(/[^\x20-\x7e]/g, "").slice(0, 80) }),
@@ -212,9 +273,11 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         backgroundImage,
         backgroundPalette,
         searchBoxStyle,
+        searchShortcuts,
         folderStyle,
         tabTexture,
         topComponent,
+        traditionalTopSpacing,
         content,
         text,
         pet,
@@ -230,9 +293,11 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         backgroundImage,
         backgroundPalette,
         searchBoxStyle,
+        searchShortcuts,
         folderStyle,
         tabTexture,
         topComponent,
+        traditionalTopSpacing,
         content,
         text,
         pet,
@@ -277,6 +342,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             : "gray",
           searchBoxStyle:
             saved?.searchBoxStyle === "minimal" ? "minimal" : "full",
+          searchShortcuts:
+            saved?.searchShortcuts === undefined
+              ? defaultSearchShortcuts()
+              : sanitizeSearchShortcuts(saved.searchShortcuts),
           folderStyle:
             saved?.folderStyle === "classic" || saved?.folderStyle === "none"
               ? saved.folderStyle
@@ -301,6 +370,11 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
               (saved as { burningEntrance?: boolean } | null)
                 ?.burningEntrance) === true,
           topComponent: saved?.topComponent === "none" ? "none" : "dot-matrix",
+          traditionalTopSpacing: isTraditionalTopSpacing(
+            saved?.traditionalTopSpacing
+          )
+            ? saved.traditionalTopSpacing
+            : defaultTraditionalTopSpacing,
           content:
             saved?.content === "text" ||
             saved?.content === "pet" ||

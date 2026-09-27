@@ -9,7 +9,7 @@ import {
   type SettingsSection,
 } from "@/lib/settings-sections"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import { useSettingsStore } from "@/stores/settings-store"
+import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
 import { settingsIcon, settingsNav } from "./settings-routes"
 import { settingsViews } from "./settings-views"
@@ -36,10 +36,10 @@ function settingsNavigation(
 
 export default function SettingsApplication() {
   const { t } = useTranslation()
-  const open = useSettingsStore((state) => state.open)
-  const setOpen = useSettingsStore((state) => state.setOpen)
-  const section = useSettingsStore((state) => state.section)
-  const setSection = useSettingsStore((state) => state.setSection)
+  const open = useSystemOverlayStore((state) => state.active === "settings")
+  const close = useSystemOverlayStore((state) => state.close)
+  const section = useSystemOverlayStore((state) => state.settingsSection)
+  const setSection = useSystemOverlayStore((state) => state.setSettingsSection)
   const accentColor = useHomeSettingsStore((state) => state.color)
   const View = settingsViews[section] ?? settingsViews[defaultSettingsSection]
 
@@ -47,7 +47,9 @@ export default function SettingsApplication() {
     <ApplicationDialog
       applicationId="settings"
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => {
+        if (!next) close("settings")
+      }}
       title={t("settings.dialog.title")}
       description={t("settings.dialog.description")}
       closeLabel={t("settings.common.close")}

@@ -1,3 +1,4 @@
+import type { SystemActionId } from "@/lib/system-actions"
 import type { UtilityWidgetItem } from "./utility-types"
 
 export type TabEntry = {
@@ -110,20 +111,13 @@ export type TemplateItem = {
   dynamicEffect?: boolean
 }
 
-export type ButtonAction =
-  | "toggle-theme"
-  | "tidy-grid"
-  | "toggle-selection"
-  | "open-settings"
-  | "open-components"
-
 export type ButtonItem = {
   id: string
   kind: "button"
   name: string
   size: "small"
   color: string
-  action: ButtonAction
+  action: SystemActionId
   dynamicEffect?: boolean
 }
 

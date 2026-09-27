@@ -1,12 +1,21 @@
 import { i18n } from "@/i18n"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
-import type { ButtonAction } from "@/lib/grid/types"
-import { useComponentsApplicationStore } from "@/stores/components-application-store"
+import type { SettingsSection } from "@/lib/settings-sections"
+import type { SystemActionId } from "@/lib/system-actions"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
-import { useSettingsStore } from "@/stores/settings-store"
+import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { useThemeStore } from "@/stores/theme-store"
+import { useThemeStore, type Theme } from "@/stores/theme-store"
 import { toast } from "@/stores/toast-store"
+
+export type SystemActionRequest =
+  | SystemActionId
+  | { id: "set-theme"; theme: Theme }
+  | { id: "open-settings"; section: SettingsSection }
+
+function assertNever(action: never): never {
+  throw new Error(`Unhandled system action: ${String(action)}`)
+}
 
 function tidyGrid() {
   const state = useTabGridStore.getState()
@@ -25,8 +34,15 @@ function tidyGrid() {
   })
 }
 
-export function runSystemAction(action: ButtonAction) {
-  switch (action) {
+export function runSystemAction(request: SystemActionRequest) {
+  if (typeof request !== "string") {
+    if (request.id === "set-theme")
+      useThemeStore.getState().setTheme(request.theme)
+    else useSystemOverlayStore.getState().openSettings(request.section)
+    return
+  }
+
+  switch (request) {
     case "toggle-theme": {
       const { theme, setTheme } = useThemeStore.getState()
       const dark =
@@ -43,9 +59,17 @@ export function runSystemAction(action: ButtonAction) {
       useGridSelectionStore.getState().toggleMode()
       return
     case "open-settings":
-      useSettingsStore.getState().setOpen(true)
+      useSystemOverlayStore.getState().openSettings()
       return
     case "open-components":
-      useComponentsApplicationStore.getState().setOpen(true)
+      useSystemOverlayStore.getState().open("components")
+      return
+    case "add-tab":
+      useSystemOverlayStore.getState().open("add-tab")
+      return
+    case "add-folder":
+      useSystemOverlayStore.getState().open("add-folder")
+      return
   }
+  return assertNever(request)
 }

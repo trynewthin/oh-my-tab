@@ -23,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 
 export type ApplicationNavigationItem<RouteId extends string> = {
   id: RouteId
@@ -350,7 +351,9 @@ export default function ApplicationDialog<RouteId extends string>({
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 -z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
                 />
-                <div className="relative overflow-hidden rounded-2xl bg-popover shadow-md dark:border dark:border-border">
+                <div
+                  className={`relative overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
+                >
                   <Button
                     type="button"
                     variant="ghost"

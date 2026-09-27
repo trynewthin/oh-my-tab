@@ -1,53 +1,75 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  SquaresFour,
-  GridFour,
-  Plus,
-  BookmarkSimple,
-  FolderPlus,
-  Checks,
-  Sun,
-  Moon,
-  Desktop,
-} from "@phosphor-icons/react"
+import { SquaresFour } from "@phosphor-icons/react"
+import { runSystemAction } from "@/application/system-actions"
+import { systemActionMenuIcons } from "@/components/system-action-icons"
+import { useSystemActionState } from "@/components/system-action-state"
 import { Button } from "@/components/ui/button"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import FolderEditor from "@/components/tab-grid/folder-editor"
-import TabEditor from "@/components/tab-grid/tab-editor"
+import {
+  systemActionIdsFor,
+  systemActionRegistry,
+  type SystemActionId,
+} from "@/lib/system-actions"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
-import { useThemeStore } from "@/stores/theme-store"
-import { useComponentsApplicationStore } from "@/stores/components-application-store"
-import { runSystemAction } from "@/application/system-actions"
 
-const themeOptions = [
-  { value: "light", labelKey: "themeLight", icon: Sun },
-  { value: "dark", labelKey: "themeDark", icon: Moon },
-  {
-    value: "system",
-    labelKey: "themeSystem",
-    ariaKey: "themeSystemAria",
-    icon: Desktop,
-  },
-] as const
+const defaultMenuActions = systemActionIdsFor("more-actions")
+
+function SystemMenuAction({
+  action,
+  onActivate,
+}: {
+  action: SystemActionId
+  onActivate: () => void
+}) {
+  const { t } = useTranslation()
+  const { disabled, pressed } = useSystemActionState(action)
+  const Icon = systemActionMenuIcons[action]
+  const definition = systemActionRegistry[action]
+  const label = t(
+    "menuLabelKey" in definition ? definition.menuLabelKey : definition.labelKey
+  )
+  return (
+    <Button
+      variant="ghost"
+      className="w-full justify-start"
+      disabled={disabled}
+      aria-pressed={pressed}
+      onClick={onActivate}
+    >
+      <Icon />
+      {label}
+      {pressed && "activeLabelKey" in definition && (
+        <span className="ml-auto text-xs text-muted-foreground">
+          {t(definition.activeLabelKey)}
+        </span>
+      )}
+    </Button>
+  )
+}
+
 export default function MoreActions({
   compact = false,
+  actions,
 }: {
   compact?: boolean
+  actions?: readonly SystemActionId[]
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const [adding, setAdding] = useState<"tab" | "folder" | null>(null)
   const selecting = useGridSelectionStore((state) => state.active)
-  const theme = useThemeStore((state) => state.theme)
-  const setTheme = useThemeStore((state) => state.setTheme)
+  const menuActions = actions ?? ["toggle-theme", ...defaultMenuActions]
+  const uniqueMenuActions = [...new Set(menuActions)]
   return (
-    <div onClick={(event) => event.stopPropagation()}>
+    <div
+      className={compact ? "shrink-0" : undefined}
+      onClick={(event) => event.stopPropagation()}
+    >
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           data-tour="more"
@@ -55,11 +77,15 @@ export default function MoreActions({
           title={t("shell.moreActions.trigger")}
           render={
             <Button
-              variant={selecting ? "secondary" : "ghost"}
+              variant={
+                selecting && menuActions.includes("toggle-selection")
+                  ? "secondary"
+                  : "ghost"
+              }
               size="icon"
               className={
                 compact
-                  ? "size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
+                  ? `size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl ${surfaceShadowClassName}`
                   : undefined
               }
             />
@@ -72,105 +98,18 @@ export default function MoreActions({
           aria-label={t("shell.moreActions.menuLabel")}
           className="w-56 gap-1 p-2"
         >
-          <div className="mb-1 pb-1">
-            <ToggleGroup
-              aria-label={t("shell.moreActions.themeGroup")}
-              value={[theme]}
-              onValueChange={(values) => {
-                const value = values[0]
-                if (value === "light" || value === "dark" || value === "system")
-                  setTheme(value)
-              }}
-            >
-              {themeOptions.map((option) => (
-                <ToggleGroupItem
-                  key={option.value}
-                  value={option.value}
-                  aria-label={t(
-                    `shell.moreActions.${"ariaKey" in option ? option.ariaKey : option.labelKey}`
-                  )}
-                  title={t(
-                    `shell.moreActions.${"ariaKey" in option ? option.ariaKey : option.labelKey}`
-                  )}
-                >
-                  <option.icon weight="bold" />
-                  <span>{t(`shell.moreActions.${option.labelKey}`)}</span>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </div>
-          {(
-            [
-              { kind: "tab", labelKey: "addTab", icon: BookmarkSimple },
-              { kind: "folder", labelKey: "addFolder", icon: FolderPlus },
-            ] as const
-          ).map((entry) => (
-            <Button
-              key={entry.kind}
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => {
+          {uniqueMenuActions.map((action) => (
+            <SystemMenuAction
+              key={action}
+              action={action}
+              onActivate={() => {
                 setOpen(false)
-                setAdding(entry.kind)
+                runSystemAction(action)
               }}
-            >
-              <entry.icon />
-              {t(`shell.moreActions.${entry.labelKey}`)}
-            </Button>
+            />
           ))}
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => {
-              setOpen(false)
-              useComponentsApplicationStore.getState().setOpen(true)
-            }}
-          >
-            <Plus />
-            {t("shell.moreActions.addComponent")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => {
-              setOpen(false)
-              runSystemAction("tidy-grid")
-            }}
-          >
-            <GridFour />
-            {t("shell.moreActions.tidy")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            aria-pressed={selecting}
-            onClick={() => {
-              setOpen(false)
-              runSystemAction("toggle-selection")
-            }}
-          >
-            <Checks />
-            {t("shell.moreActions.batch")}
-            {selecting && (
-              <span className="ml-auto text-xs text-muted-foreground">
-                {t("shell.moreActions.batchOn")}
-              </span>
-            )}
-          </Button>
         </PopoverContent>
       </Popover>
-      {adding === "tab" && (
-        <TabEditor
-          onClose={() => setAdding(null)}
-          onSaved={() => setAdding(null)}
-        />
-      )}
-      {adding === "folder" && (
-        <FolderEditor
-          onClose={() => setAdding(null)}
-          onSaved={() => setAdding(null)}
-        />
-      )}
     </div>
   )
 }

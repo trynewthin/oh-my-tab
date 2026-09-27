@@ -84,6 +84,19 @@ describe("component occupancy registration", () => {
     }
   )
 
+  test("search widgets expose the shared editor without changing their saved sizes", () => {
+    expect(componentRegistry["search-minimal"].menu.operations).toContain(
+      "edit"
+    )
+    expect(componentRegistry["search-minimal"].editorSizes).toEqual([
+      "compact",
+      "medium",
+      "small",
+    ])
+    expect(componentRegistry["search-full"].menu.operations).toContain("edit")
+    expect(componentRegistry["search-full"].editorSizes).toEqual([])
+  })
+
   test("1×1 is the square unit and template uses the scale", () => {
     expect(GRID_OCCUPANCY["1x1"]).toEqual({ width: 1, height: 1 })
     expect(getItemGridDimensions({ kind: "template", size: "small" })).toEqual({
@@ -101,6 +114,9 @@ describe("component occupancy registration", () => {
       action: "toggle-theme",
     })
     expect(validGridItem(button)).toBe(true)
+    expect(validGridItem({ ...button, action: "add-tab" })).toBe(true)
+    expect(validGridItem({ ...button, action: "add-folder" })).toBe(true)
+    expect(validGridItem({ ...button, action: "missing-action" })).toBe(false)
     expect(getItemGridDimensions(button)).toEqual({ width: 1, height: 1 })
     expect(getItemGridDimensions({ kind: "calendar", size: "medium" })).toEqual(
       {

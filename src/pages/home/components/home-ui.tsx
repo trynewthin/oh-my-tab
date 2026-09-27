@@ -13,6 +13,7 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 import HomeContentContainer from "@/pages/home/components/home-content-container"
 import SearchPrompt from "@/components/search/search-prompt"
 import { gridTrackWidth, resolveGridGeometry } from "@/lib/grid/grid-layout"
+import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import QuickBar from "@/components/home/quick-bar"
 
 // Only first-run users (or an explicit replay) need the tour; keep its bundle
@@ -24,6 +25,9 @@ const OnboardingTour = lazy(
 export default function HomeUI() {
   const { t } = useTranslation()
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const traditionalTopSpacing = useHomeSettingsStore(
+    (state) => state.traditionalTopSpacing
+  )
   const layoutMode = useHomeSettingsStore((state) => state.layoutMode)
   const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
   const narrowGridColumns = useHomeSettingsStore(
@@ -55,6 +59,10 @@ export default function HomeUI() {
   const searchWidth = traditionalGridWidth
     ? Math.min(768, traditionalGridWidth, traditionalWidth)
     : undefined
+  const topInsets = traditionalTopInsets(
+    traditionalTopSpacing,
+    topComponent === "dot-matrix"
+  )
   function search(query: string) {
     runHomeSearch(query, t)
   }
@@ -73,7 +81,10 @@ export default function HomeUI() {
         className="h-full [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain outline-none [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
       >
         {layoutMode === "traditional" && (
-          <div className="sticky top-0 isolate z-40 px-6 pt-6 pb-3 sm:px-10 xl:px-12">
+          <div
+            className="sticky top-0 isolate z-40 px-6 pb-3 sm:px-10 xl:px-12"
+            style={{ paddingTop: topInsets.topPadding }}
+          >
             {backgroundType === "solid" && (
               <div
                 aria-hidden="true"
@@ -98,7 +109,11 @@ export default function HomeUI() {
                   />
                 </HomeContentContainer>
               )}
-              <SearchPrompt onSubmit={search} width={searchWidth} />
+              <SearchPrompt
+                onSubmit={search}
+                width={searchWidth}
+                topGap={topInsets.searchGap}
+              />
             </div>
           </div>
         )}

@@ -66,6 +66,12 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 自由网格顶栏由主页组合，配置保存在 `home-settings-store.ts`，与网格组件和布局坐标独立。左右区域保存系统操作或网页快捷入口，中间显示时间或文字；顶栏和网格共用 `resolveGridGeometry` 推导的可视宽度以保持对齐。网页图标复用现有 favicon 缓存。
 
+个性顶栏的顶部距离使用近、中、远三档，旧配置默认远档。主页和设置预览共用 `src/lib/home-top-spacing.ts` 的间距计算，点阵隐藏时也会调整搜索框位置。
+
+个性顶栏的完整与简约搜索框共用 `searchShortcuts`：按钮顺序及“更多操作”分界线保存在主页设置中，旧配置使用原有“更多操作＋设置”布局。按钮在独立设置项中增删排序；预览只显示结果，不触发操作。
+
+全局系统操作的稳定 ID、文案和可用入口由 `src/lib/system-actions.ts` 定义；网格按钮和顶栏快捷操作只保存 ID。执行与跨 store 编排集中在 `src/application/system-actions.ts`。设置、组件库和新增标签／文件夹共用 `system-overlay-store.ts`，同时只打开一个全局界面；主题选项等带参数的操作通过执行入口传参，不把参数化命令当作可保存的快捷操作。
+
 ## 存储与兼容
 
 `src/lib/storage.ts` 统一持久化接口：扩展使用 `chrome.storage.local`，开发预览使用 IndexedDB。应用完成数据恢复后再显示主要界面，跨页面写入带版本检查。

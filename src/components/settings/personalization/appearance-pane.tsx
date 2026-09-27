@@ -8,6 +8,7 @@ import BackgroundSettings from "./background-settings"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
+import { runSystemAction } from "@/application/system-actions"
 import { useTranslation } from "react-i18next"
 import { Desktop, Moon, Sun } from "@phosphor-icons/react"
 
@@ -25,7 +26,6 @@ const themeOptions = [
 export default function AppearancePane() {
   const { t } = useTranslation()
   const theme = useThemeStore((state) => state.theme)
-  const setTheme = useThemeStore((state) => state.setTheme)
   const color = useHomeSettingsStore((state) => state.color)
   const setColor = useHomeSettingsStore((state) => state.setColor)
   return (
@@ -49,7 +49,7 @@ export default function AppearancePane() {
           onValueChange={(values) => {
             const value = values[0]
             if (value === "light" || value === "dark" || value === "system")
-              setTheme(value)
+              runSystemAction({ id: "set-theme", theme: value })
           }}
         >
           {themeOptions.map((option) => (

@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { isTraditionalTopSpacing } from "@/lib/home-top-spacing"
 import { useTranslation } from "react-i18next"
 import { settingsControlClassName } from "../shared/control-styles"
 import SettingItem from "../shared/setting-item"
@@ -19,19 +20,58 @@ const contentLabels = {
   breathing: "settings.home.contentBreathing",
 } as const
 
+const topSpacingLabels = {
+  near: "settings.home.topSpacingNear",
+  middle: "settings.home.topSpacingMiddle",
+  far: "settings.home.topSpacingFar",
+} as const
+
 export default function TopPane() {
   const { t } = useTranslation()
   const topComponent = useHomeSettingsStore((state) => state.topComponent)
+  const traditionalTopSpacing = useHomeSettingsStore(
+    (state) => state.traditionalTopSpacing
+  )
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const pet = useHomeSettingsStore((state) => state.pet)
   const setTopComponent = useHomeSettingsStore((state) => state.setTopComponent)
+  const setTraditionalTopSpacing = useHomeSettingsStore(
+    (state) => state.setTraditionalTopSpacing
+  )
   const setContent = useHomeSettingsStore((state) => state.setContent)
   const setText = useHomeSettingsStore((state) => state.setText)
   const setPet = useHomeSettingsStore((state) => state.setPet)
 
   return (
     <>
+      <SettingItem
+        label={t("settings.home.topSpacing")}
+        htmlFor="home-top-spacing"
+      >
+        <Select
+          value={traditionalTopSpacing}
+          onValueChange={(value) => {
+            if (isTraditionalTopSpacing(value)) setTraditionalTopSpacing(value)
+          }}
+        >
+          <SelectTrigger
+            id="home-top-spacing"
+            className={`w-full min-w-0 ${settingsControlClassName}`}
+          >
+            <SelectValue>
+              {t(topSpacingLabels[traditionalTopSpacing])}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(topSpacingLabels).map(([value, labelKey]) => (
+              <SelectItem key={value} value={value}>
+                {t(labelKey)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingItem>
       <SettingItem
         label={t("settings.home.topComponent")}
         htmlFor="home-top-component"

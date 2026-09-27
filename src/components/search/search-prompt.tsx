@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowUp, Check, MagnifyingGlass } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import {
   PromptInput,
   PromptInputActions,
@@ -13,8 +14,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import TabBackground from "@/components/tab-grid/tab-background"
 import type { TabItem } from "@/lib/grid/types"
 import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
-import MoreActions from "@/components/home/more-actions"
-import SettingsButton from "@/components/home/settings-button"
+import SearchShortcuts from "@/components/search/search-shortcuts"
 import SearchEngineSelect from "@/components/search/search-engine-select"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 
@@ -25,6 +25,7 @@ type SearchPromptProps = {
   style?: SearchBoxStyle
   embedded?: boolean
   width?: number
+  topGap?: number
 }
 
 function readableForeground(hex: string) {
@@ -44,6 +45,7 @@ export default function SearchPrompt({
   style,
   embedded = false,
   width,
+  topGap = 24,
 }: SearchPromptProps) {
   const { t } = useTranslation()
   const draft = usePromptStore((state) => state.draft)
@@ -54,6 +56,9 @@ export default function SearchPrompt({
   const openInNewTab = useSearchEngineStore((state) => state.openInNewTab)
   const storedSearchBoxStyle = useHomeSettingsStore(
     (state) => state.searchBoxStyle
+  )
+  const searchShortcutsCount = useHomeSettingsStore(
+    (state) => state.searchShortcuts.controls.length
   )
   const searchBoxStyle = style ?? storedSearchBoxStyle
   const root = useRef<HTMLDivElement>(null)
@@ -172,8 +177,8 @@ export default function SearchPrompt({
   return (
     <div
       ref={root}
-      className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto mt-6 max-w-3xl"} ${searchBoxStyle === "minimal" ? (embedded ? "flex items-center" : "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2") : embedded ? "flex flex-col" : ""}`}
-      style={!embedded && width ? { width } : undefined}
+      className={`relative isolate z-20 w-full shrink-0 ${embedded ? "h-full" : "mx-auto max-w-3xl"} ${searchBoxStyle === "minimal" ? (embedded ? "flex items-center" : searchShortcutsCount > 0 ? "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2" : "") : embedded ? "flex flex-col" : ""}`}
+      style={!embedded ? { width, marginTop: topGap } : undefined}
       data-tour={searchBoxStyle === "minimal" ? "search" : undefined}
       onMouseDown={embedded ? (event) => event.stopPropagation() : undefined}
       onKeyDown={embedded ? (event) => event.stopPropagation() : undefined}
@@ -182,18 +187,12 @@ export default function SearchPrompt({
         <div
           className={`contents ${embedded ? "[&>div:last-child]:h-full" : ""}`}
         >
-          {!embedded && (
-            <div className="flex shrink-0 items-center gap-2">
-              <MoreActions compact />
-              <SettingsButton compact />
-              <SearchEngineSelect compact />
-            </div>
-          )}
+          {!embedded && <SearchShortcuts compact />}
           <div
             data-search-input-shell
-            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
+            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${!embedded ? surfaceShadowClassName : ""} ${backgroundType === "solid" ? "bg-background dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           >
-            {embedded && <SearchEngineSelect inset />}
+            <SearchEngineSelect inset={embedded ? "padded" : "flush"} />
             <input
               value={draft}
               type="text"
@@ -209,7 +208,7 @@ export default function SearchPrompt({
               aria-activedescendant={
                 selected >= 0 ? `${listId}-${selected}` : undefined
               }
-              className={`h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground ${embedded ? "px-2" : "px-4"}`}
+              className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
               onChange={(event) => {
                 setDraft(event.target.value)
                 setActive(-1)
@@ -278,7 +277,7 @@ export default function SearchPrompt({
         </div>
       ) : (
         <PromptInput
-          className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : "relative isolate overflow-hidden"} ${backgroundType === "solid" ? "dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
+          className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : `relative isolate overflow-hidden ${surfaceShadowClassName}`} ${backgroundType === "solid" ? "dark:bg-card" : "bg-background/55 backdrop-blur-xl dark:bg-card/55"}`}
           value={draft}
           onValueChange={(value) => {
             setDraft(value)
@@ -338,10 +337,7 @@ export default function SearchPrompt({
           <PromptInputActions
             className={`justify-end gap-1 px-2 pt-1 pb-1 sm:gap-2 ${embedded ? "mt-auto" : ""}`}
           >
-            <MoreActions />
-            <div className="mr-auto">
-              <SettingsButton />
-            </div>
+            {!embedded && <SearchShortcuts compact={false} />}
             <SearchEngineSelect />
             <Button
               type="button"
@@ -376,7 +372,7 @@ export default function SearchPrompt({
           id={listId}
           role="listbox"
           aria-label={t("shell.home.suggestions")}
-          className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" && !embedded ? "col-start-2 col-end-3" : ""}`}
+          className={`absolute top-full right-0 left-0 mt-2 max-h-[min(340px,45svh)] overflow-y-auto rounded-2xl border bg-popover p-1.5 text-popover-foreground shadow-lg ${searchBoxStyle === "minimal" && !embedded && searchShortcutsCount > 0 ? "col-start-2 col-end-3" : ""}`}
           style={embedded ? { zIndex: 60 } : undefined}
           onMouseDown={(event) => event.preventDefault()}
         >

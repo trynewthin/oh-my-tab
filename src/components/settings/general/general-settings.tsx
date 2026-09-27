@@ -4,7 +4,7 @@ import CacheSettings from "./cache-settings"
 import BookmarkImport from "./bookmark-import"
 import LanguageSetting from "./language-setting"
 import { useOnboardingStore } from "@/stores/onboarding-store"
-import { useSettingsStore } from "@/stores/settings-store"
+import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
 import DataSettings from "./data-settings"
@@ -21,7 +21,7 @@ export default function GeneralSettings({ pane }: { pane: "basic" | "data" }) {
               variant="outline"
               className={settingsControlClassName}
               onClick={() => {
-                useSettingsStore.getState().setOpen(false)
+                useSystemOverlayStore.getState().close("settings")
                 useOnboardingStore.getState().start()
               }}
             >

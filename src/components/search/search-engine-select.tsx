@@ -11,15 +11,14 @@ import {
 } from "@/components/ui/popover"
 import EngineIcon from "@/components/search/engine-icon"
 import { searchEngineLabel } from "@/lib/search-engines"
+import { cn } from "@/lib/utils"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
-import { useSettingsStore } from "@/stores/settings-store"
+import { runSystemAction } from "@/application/system-actions"
 
 export default function SearchEngineSelect({
-  compact = false,
-  inset = false,
+  inset,
 }: {
-  compact?: boolean
-  inset?: boolean
+  inset?: "flush" | "padded"
 }) {
   const { t } = useTranslation()
   const available = canSelectBrowserSearch()
@@ -29,7 +28,6 @@ export default function SearchEngineSelect({
   const searchEngines = useSearchEngineStore((state) => state.engines)
   const searchEngine = useSearchEngineStore((state) => state.selectedId)
   const setSearchEngine = useSearchEngineStore((state) => state.selectEngine)
-  const openSettings = useSettingsStore((state) => state.openSettings)
   const selectedEngine = browserSearch
     ? undefined
     : searchEngines.find((item) => item.id === searchEngine)
@@ -44,13 +42,14 @@ export default function SearchEngineSelect({
         render={
           <Button
             variant="ghost"
-            size={compact || inset ? "icon" : "default"}
+            size={inset ? "icon" : "default"}
             className={
-              compact
-                ? "size-10 rounded-full border-border bg-card/70 bg-clip-padding backdrop-blur-xl"
-                : inset
-                  ? "ml-1.5 size-10 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:hover:bg-transparent"
-                  : undefined
+              inset
+                ? cn(
+                    "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:hover:bg-transparent",
+                    inset === "padded" && "ml-1.5"
+                  )
+                : undefined
             }
           />
         }
@@ -59,11 +58,8 @@ export default function SearchEngineSelect({
         })}
         onClick={(event) => event.stopPropagation()}
       >
-        <EngineIcon
-          icon={selectedEngine?.icon}
-          size={compact || inset ? 20 : 16}
-        />
-        {!compact && !inset && (
+        <EngineIcon icon={selectedEngine?.icon} size={inset ? 20 : 16} />
+        {!inset && (
           <>
             <span className="hidden max-w-32 truncate sm:inline">
               {selectedName}
@@ -118,7 +114,7 @@ export default function SearchEngineSelect({
           className="w-full justify-start"
           onClick={() => {
             setOpen(false)
-            openSettings("search-engines")
+            runSystemAction({ id: "open-settings", section: "search-engines" })
           }}
         >
           <Plus />

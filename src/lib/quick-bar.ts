@@ -1,9 +1,12 @@
-import { buttonActions } from "@/lib/grid/button-actions"
-import { normalizeTabUrl, type ButtonAction } from "@/lib/grid/types"
+import { normalizeTabUrl } from "@/lib/grid/types"
+import {
+  isSystemActionOnSurface,
+  type SystemActionId,
+} from "@/lib/system-actions"
 
 export type QuickBarSide = "left" | "right"
 export type QuickBarControl =
-  | { id: string; kind: "system"; action: ButtonAction }
+  | { id: string; kind: "system"; action: SystemActionId }
   | { id: string; kind: "site"; name: string; url: string }
 export type QuickBarCenter =
   { kind: "none" } | { kind: "time" } | { kind: "text"; text: string }
@@ -36,7 +39,7 @@ export function validQuickBarControl(value: unknown): value is QuickBarControl {
   if (typeof control.id !== "string" || !control.id || control.id.length > 100)
     return false
   if (control.kind === "system")
-    return buttonActions.includes(control.action as ButtonAction)
+    return isSystemActionOnSurface(control.action, "quick-bar")
   if (control.kind === "site")
     return (
       typeof control.name === "string" &&

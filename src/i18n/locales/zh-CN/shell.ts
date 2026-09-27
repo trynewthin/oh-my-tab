@@ -43,6 +43,15 @@ const shell = {
     batch: "批量操作",
     batchOn: "已开启",
   },
+  systemActions: {
+    toggleTheme: "切换深浅色",
+    addTab: "添加标签",
+    addFolder: "添加文件夹",
+    openComponents: "打开组件",
+    tidyGrid: "一键整理",
+    toggleSelection: "多选",
+    openSettings: "打开设置",
+  },
   settingsButton: {
     open: "打开设置",
     title: "设置",

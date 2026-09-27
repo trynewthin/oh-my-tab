@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next"
 import { runSystemAction } from "@/application/system-actions"
 import GradualBlur from "@/components/effects/gradual-blur"
 import { systemActionIcons } from "@/components/system-action-icons"
+import { useSystemActionState } from "@/components/system-action-state"
 import TabIcon from "@/components/tab-grid/tab-icon"
-import { buttonActionLabelKeys } from "@/lib/grid/button-actions"
+import { systemActionRegistry } from "@/lib/system-actions"
 import { resolveGridGeometry } from "@/lib/grid/grid-layout"
 import type {
   QuickBarCenter as QuickBarCenterConfig,
@@ -29,44 +30,49 @@ export function QuickBarGlyph({ control }: { control: QuickBarControl }) {
   return (
     <Icon
       className="size-5"
-      aria-label={t(
-        `grid.editor.buttonActions.${buttonActionLabelKeys[control.action]}`
-      )}
+      aria-label={t(systemActionRegistry[control.action].labelKey)}
     />
   )
 }
 
-function QuickControl({ control }: { control: QuickBarControl }) {
+function SystemQuickControl({
+  control,
+}: {
+  control: Extract<QuickBarControl, { kind: "system" }>
+}) {
   const { t } = useTranslation()
+  const { disabled, pressed } = useSystemActionState(control.action)
   const className =
-    "flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-  if (control.kind === "site")
-    return (
-      <a
-        href={control.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={control.name}
-        title={control.name}
-        className={className}
-      >
-        <QuickBarGlyph control={control} />
-      </a>
-    )
-
-  const label = t(
-    `grid.editor.buttonActions.${buttonActionLabelKeys[control.action]}`
-  )
+    "flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+  const label = t(systemActionRegistry[control.action].labelKey)
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
+      aria-pressed={pressed}
+      disabled={disabled}
       className={className}
       onClick={() => runSystemAction(control.action)}
     >
       <QuickBarGlyph control={control} />
     </button>
+  )
+}
+
+function QuickControl({ control }: { control: QuickBarControl }) {
+  if (control.kind === "system") return <SystemQuickControl control={control} />
+  return (
+    <a
+      href={control.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={control.name}
+      title={control.name}
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <QuickBarGlyph control={control} />
+    </a>
   )
 }
 

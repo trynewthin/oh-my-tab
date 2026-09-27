@@ -66,6 +66,16 @@ describe("quick bar configuration", () => {
     expect(normalizeQuickSite("Bad", "javascript:alert(1)")).toBeNull()
   })
 
+  it("accepts creation actions in saved quick-bar controls", () => {
+    const config = {
+      left: [{ id: "new-tab", kind: "system", action: "add-tab" }],
+      center: { kind: "none" },
+      right: [{ id: "new-folder", kind: "system", action: "add-folder" }],
+    }
+    expect(validQuickBarConfig(config)).toBe(true)
+    expect(sanitizeQuickBarConfig(config)).toEqual(config)
+  })
+
   it("includes quick controls in backups and accepts older backups without them", () => {
     const current = JSON.parse(JSON.stringify(snapshot()))
     current.home.layoutMode = "free"

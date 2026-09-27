@@ -1,6 +1,7 @@
 import GridPane from "./grid-pane"
 import LayoutPane from "./layout-pane"
 import SearchPane from "./search-pane"
+import SearchShortcutsSetting from "./search-shortcuts-setting"
 import TopPane from "./top-pane"
 import QuickBarPane from "./quick-bar-pane"
 import QuickBarPreview from "./quick-bar-preview"
@@ -17,6 +18,7 @@ export default function HomeSettings() {
           <TraditionalPreview />
           <TopPane />
           <SearchPane />
+          <SearchShortcutsSetting />
         </>
       )}
       {layoutMode === "free" && <QuickBarPreview />}

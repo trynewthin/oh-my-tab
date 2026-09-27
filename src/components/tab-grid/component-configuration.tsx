@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { buttonActionLabelKeys, buttonActions } from "@/lib/grid/button-actions"
 import { configureComponent } from "@/lib/grid/factory"
 import {
   componentDefaultName,
@@ -21,7 +20,13 @@ import {
   isComponentSize,
   type GridItemSize,
 } from "@/lib/grid/registry"
-import type { ButtonAction, GridItem } from "@/lib/grid/types"
+import type { GridItem } from "@/lib/grid/types"
+import {
+  isSystemActionOnSurface,
+  systemActionIdsFor,
+  systemActionRegistry,
+  type SystemActionId,
+} from "@/lib/system-actions"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
 import ActionButton from "./action-button"
@@ -34,6 +39,8 @@ type GeneralItem = Extract<
   GridItem,
   { kind: "todo" | "calendar" | "template" | "button" }
 >
+
+const buttonActions = systemActionIdsFor("grid-button")
 
 function GeneralPreview({ item }: { item: GeneralItem }) {
   switch (item.kind) {
@@ -61,7 +68,7 @@ export default function ComponentConfiguration({
   const kind = item.kind
   const definition = getComponentDefinition(kind)
   const [name, setName] = useState(item.name)
-  const [action, setAction] = useState<ButtonAction>(
+  const [action, setAction] = useState<SystemActionId>(
     item.kind === "button" ? item.action : "toggle-theme"
   )
   const [size, setSize] = useState<GridItemSize>(item.size)
@@ -148,23 +155,19 @@ export default function ComponentConfiguration({
           <Select
             value={action}
             onValueChange={(value) => {
-              if (value && value in buttonActionLabelKeys)
-                setAction(value as ButtonAction)
+              if (isSystemActionOnSurface(value, "grid-button"))
+                setAction(value)
             }}
           >
             <SelectTrigger id="component-editor-action" className="w-full">
               <SelectValue>
-                {t(
-                  `grid.editor.buttonActions.${buttonActionLabelKeys[action]}`
-                )}
+                {t(systemActionRegistry[action].labelKey)}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {buttonActions.map((option) => (
                 <SelectItem key={option} value={option}>
-                  {t(
-                    `grid.editor.buttonActions.${buttonActionLabelKeys[option]}`
-                  )}
+                  {t(systemActionRegistry[option].labelKey)}
                 </SelectItem>
               ))}
             </SelectContent>

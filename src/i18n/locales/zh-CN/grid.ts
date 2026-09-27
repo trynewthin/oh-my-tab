@@ -109,13 +109,6 @@ const grid = {
     folderColor: "文件夹颜色",
     backgroundColor: "背景颜色",
     buttonAction: "绑定行为",
-    buttonActions: {
-      toggleTheme: "切换深浅色",
-      tidyGrid: "一键整理",
-      toggleSelection: "多选",
-      openSettings: "打开设置",
-      openComponents: "打开组件",
-    },
     cancel: "取消",
     save: "保存",
     confirmAdd: "确认添加",

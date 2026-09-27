@@ -18,7 +18,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { useComponentsApplicationStore } from "@/stores/components-application-store"
+import { runSystemAction } from "@/application/system-actions"
 import DraggableGridItem from "./draggable-grid-item"
 import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
@@ -34,7 +34,6 @@ import { resolvePreviewDrop } from "./preview-drop"
 import useGridSensors from "./use-grid-sensors"
 import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import { useSettingsStore } from "@/stores/settings-store"
 
 const emptyPositions: GridPositions = {}
 
@@ -64,7 +63,6 @@ export default function TabGrid({
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
-  const layoutMode = useHomeSettingsStore((state) => state.layoutMode)
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
@@ -483,17 +481,11 @@ export default function TabGrid({
         </DndContext>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        {layoutMode === "free" && (
-          <ContextMenuItem
-            onClick={() => useSettingsStore.getState().setOpen(true)}
-          >
-            <Gear />
-            {t("shell.settingsButton.open")}
-          </ContextMenuItem>
-        )}
-        <ContextMenuItem
-          onClick={() => useComponentsApplicationStore.getState().setOpen(true)}
-        >
+        <ContextMenuItem onClick={() => runSystemAction("open-settings")}>
+          <Gear />
+          {t("shell.settingsButton.open")}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => runSystemAction("open-components")}>
           <Plus />
           {t("grid.chrome.addComponent")}
         </ContextMenuItem>

@@ -48,11 +48,6 @@ const grid = {
       description: "A one-row search box for free grids, up to 12×1.",
       defaultName: "Minimal search",
     },
-    searchFull: {
-      label: "Full search",
-      description: "A search box with the full action row, up to 12×2.",
-      defaultName: "Full search",
-    },
     template: {
       label: "Template",
       description:

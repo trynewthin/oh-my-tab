@@ -1,5 +1,5 @@
 import type { GridItem } from "./types"
-import { utilityWidgetKinds, type UtilityWidgetKind } from "./utility-types"
+import type { UtilityWidgetKind } from "./utility-types"
 
 export type GridItemKind = GridItem["kind"]
 export type GridItemSize = GridItem["size"]
@@ -349,38 +349,11 @@ export const componentRegistry = {
     catalogDirectAdd: true,
     catalogSection: "common",
     detailPreviewWidth: "wide",
-    showNameInEditor: true,
+    showNameInEditor: false,
     tileBorder: false,
     openAction: "none",
     actions: {
       resize: true,
-      randomColor: false,
-      dynamicEffect: false,
-      groupable: false,
-      expandable: false,
-    },
-  },
-  "search-full": {
-    labelKey: "grid.component.searchFull.label",
-    descriptionKey: "grid.component.searchFull.description",
-    defaultNameKey: "grid.component.searchFull.defaultName",
-    defaultColor: "#6c8bd4",
-    defaultSize: "medium",
-    sizes: [gridSize("medium", "12x2")],
-    menu: {
-      sizes: [],
-      operations: ["edit"],
-    },
-    editorSizes: [],
-    catalogSizes: ["medium"],
-    catalogDirectAdd: true,
-    catalogSection: "common",
-    detailPreviewWidth: "wide",
-    showNameInEditor: true,
-    tileBorder: false,
-    openAction: "none",
-    actions: {
-      resize: false,
       randomColor: false,
       dynamicEffect: false,
       groupable: false,
@@ -503,13 +476,6 @@ export const componentRegistry = {
     "fun",
     "#8a90a0"
   ),
-  "bookmark-list": utilityDefinition(
-    "bookmark-list",
-    "large",
-    [gridSize("large", "4x4", "large"), gridSize("tall", "4x8", "tall")],
-    "common",
-    "#72a483"
-  ),
   rss: utilityDefinition(
     "rss",
     "wide",
@@ -526,6 +492,7 @@ export const componentRegistry = {
   ),
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
+// Utility widgets remain registered for saved layouts but are temporarily absent here.
 export const catalogComponentKinds = [
   "button",
   "dot-canvas",
@@ -533,7 +500,6 @@ export const catalogComponentKinds = [
   "calendar",
   "search-minimal",
   "ecosystem",
-  ...utilityWidgetKinds,
 ] as const satisfies readonly GridItemKind[]
 
 export type CatalogComponentKind = (typeof catalogComponentKinds)[number]

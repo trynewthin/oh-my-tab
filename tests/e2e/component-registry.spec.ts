@@ -77,7 +77,6 @@ test("component registry is the shared source for sizes and capabilities", () =>
     "randomColor",
     "dynamicEffect",
   ])
-  expect(getComponentMenuOperations("search-full")).toEqual([])
 })
 
 test("every catalog size creates a valid component with matching dimensions", () => {

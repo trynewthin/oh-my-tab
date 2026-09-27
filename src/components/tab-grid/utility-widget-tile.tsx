@@ -1,9 +1,5 @@
 import { remoteSourceKey } from "@/lib/widgets/network"
-import {
-  BookmarkListTile,
-  NoteTile,
-  PhotoTile,
-} from "./utility/content-widgets"
+import { NoteTile, PhotoTile } from "./utility/content-widgets"
 import RemoteTile from "./utility/remote-widget"
 import {
   ClockTile,
@@ -26,8 +22,6 @@ export default function UtilityWidgetTile(props: WidgetProps) {
       return <PomodoroTile {...props} item={item} />
     case "photo":
       return <PhotoTile {...props} item={item} />
-    case "bookmark-list":
-      return <BookmarkListTile {...props} item={item} />
     case "world-clock":
       return <WorldClockTile {...props} item={item} />
     case "weather":

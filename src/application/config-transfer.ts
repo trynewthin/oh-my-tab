@@ -17,6 +17,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { validGridItem } from "@/lib/grid/validation"
+import { dropRemovedGridItems } from "@/lib/grid/removed-items"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
@@ -86,6 +87,9 @@ export function validateConfig(value: unknown): Config {
     throw new Error(i18n.t("settings.errors.invalidContent"))
   const config = value as Config
   const { home, theme, search, grid } = config
+  const retained = Array.isArray(grid?.items)
+    ? dropRemovedGridItems(grid.items)
+    : null
   const hex = (v: unknown) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)
   if (
     config.version !== 1 ||
@@ -158,14 +162,14 @@ export function validateConfig(value: unknown): Config {
     (search.openInNewTab !== undefined &&
       typeof search.openInNewTab !== "boolean") ||
     new Set(search.engines.map((e) => e.id)).size !== search.engines.length ||
-    !Array.isArray(grid.items) ||
-    !grid.items.every(validGridItem) ||
+    !retained ||
+    !retained.items.every(validGridItem) ||
     !grid.layouts ||
     typeof grid.layouts !== "object" ||
     Array.isArray(grid.layouts)
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
-  const ids = grid.items.flatMap((item) =>
+  const ids = retained.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]
       : [item.id]
@@ -179,24 +183,28 @@ export function validateConfig(value: unknown): Config {
       typeof positions !== "object" ||
       !Object.entries(positions).every(
         ([id, p]) =>
-          p &&
-          Number.isInteger(p.x) &&
-          Number.isInteger(p.y) &&
-          p.x >= 0 &&
-          p.x <=
-            Number(columns) -
-              (grid.items.find((item) => item.id === id)
-                ? itemWidth(
-                    grid.items.find((item) => item.id === id)!,
-                    Number(columns)
-                  )
-                : 4) &&
-          p.y >= 0 &&
-          p.y <= 500
+          retained.removedIds.has(id) ||
+          (p &&
+            Number.isInteger(p.x) &&
+            Number.isInteger(p.y) &&
+            p.x >= 0 &&
+            p.x <=
+              Number(columns) -
+                (retained.items.find((item) => item.id === id)
+                  ? itemWidth(
+                      retained.items.find((item) => item.id === id)!,
+                      Number(columns)
+                    )
+                  : 4) &&
+            p.y >= 0 &&
+            p.y <= 500)
       )
     )
       throw new Error(i18n.t("settings.errors.invalidGrid"))
   }
+  grid.items = retained.items
+  for (const positions of Object.values(grid.layouts))
+    for (const id of retained.removedIds) delete positions[id]
   // Older exports carried the material as `effectStyle`; fold it into
   // tabTexture when the new key is absent.
   const legacyTexture = (home as { effectStyle?: string }).effectStyle

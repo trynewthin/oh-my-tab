@@ -93,15 +93,6 @@ export type MinimalSearchItem = {
   dynamicEffect?: boolean
 }
 
-export type FullSearchItem = {
-  id: string
-  kind: "search-full"
-  name: string
-  size: "medium"
-  color: string
-  dynamicEffect?: boolean
-}
-
 export type TemplateItem = {
   id: string
   kind: "template"
@@ -129,7 +120,6 @@ export type GridItem =
   | CalendarItem
   | TodoItem
   | MinimalSearchItem
-  | FullSearchItem
   | TemplateItem
   | ButtonItem
   | UtilityWidgetItem

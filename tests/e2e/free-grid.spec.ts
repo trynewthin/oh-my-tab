@@ -17,7 +17,7 @@ const homeSettings = {
   transitionsEnabled: false,
 }
 
-test("free grid replaces the fixed header with responsive search components", async ({
+test("free grid shows minimal search and drops removed search widgets", async ({
   page,
 }) => {
   await page.addInitScript(
@@ -65,10 +65,7 @@ test("free grid replaces the fixed header with responsive search components", as
     "grid-column-end",
     "span 12"
   )
-  await expect(page.locator('[data-grid-item-id="full-search"]')).toHaveCSS(
-    "grid-column-end",
-    "span 12"
-  )
+  await expect(page.locator('[data-grid-item-id="full-search"]')).toHaveCount(0)
   const track = page.locator("[data-tab-grid-track]")
   await expect
     .poll(() =>
@@ -82,7 +79,7 @@ test("free grid replaces the fixed header with responsive search components", as
   )
   await expect(
     page.getByRole("combobox", { name: "搜索", exact: true })
-  ).toHaveCount(2)
+  ).toHaveCount(1)
   await expect(page.getByRole("combobox", { name: "对话输入" })).toHaveCount(0)
   const minimalTile = page.locator('[data-grid-item-id="minimal-search"]')
   await expect(
@@ -113,10 +110,6 @@ test("free grid replaces the fixed header with responsive search components", as
 
   await page.setViewportSize({ width: 500, height: 900 })
   await expect(page.locator('[data-grid-item-id="minimal-search"]')).toHaveCSS(
-    "grid-column-end",
-    "span 8"
-  )
-  await expect(page.locator('[data-grid-item-id="full-search"]')).toHaveCSS(
     "grid-column-end",
     "span 8"
   )
@@ -153,41 +146,4 @@ test("free grid replaces the fixed header with responsive search components", as
     }
   })
   expect(Math.abs(alignment.left - alignment.right)).toBeLessThan(1)
-})
-
-test("personalization switches between traditional and free grid layouts", async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      "omt.onboarding",
-      JSON.stringify({ state: { seen: true }, version: 0 })
-    )
-  })
-  await page.goto("/")
-  await expect(page.locator("[data-matrix-columns]")).toHaveCount(1)
-  await expect(page.locator('[data-tour="search"]')).toHaveCount(1)
-
-  await page.getByRole("button", { name: "打开设置" }).click()
-  await page.getByRole("button", { name: "主页" }).click()
-  await page.getByRole("button", { name: "极简" }).click()
-
-  const preview = page.getByRole("group", { name: "顶栏预览" })
-  await expect(preview).toBeVisible()
-  await expect(preview).toHaveCSS("background-color", "rgba(0, 0, 0, 0)")
-  await expect(preview).toHaveCSS("border-top-width", "0px")
-  const layout = page.getByRole("button", { name: "极简" })
-  const leftActions = page.getByRole("group", { name: "左侧操作栏" })
-  expect((await preview.boundingBox())!.y).toBeGreaterThan(
-    (await layout.boundingBox())!.y
-  )
-  expect((await preview.boundingBox())!.y).toBeLessThan(
-    (await leftActions.boundingBox())!.y
-  )
-
-  await expect(page.locator("[data-matrix-columns]")).toHaveCount(0)
-  await expect(page.locator('[data-tour="search"]')).toHaveCount(0)
-  await expect(page.locator('[data-tour="grid"]')).not.toHaveClass(
-    /max-w-\[1280px\]/
-  )
 })

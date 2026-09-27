@@ -97,7 +97,6 @@ export function WidgetTile({
     case "button":
       return <ActionButton item={item} preview={preview} />
     case "search-minimal":
-    case "search-full":
       return <SearchTile item={item} preview={preview} />
     case "todo":
       return <Todo item={item} preview={preview} tasks={todoTasks} />
@@ -165,7 +164,6 @@ export function WidgetEditor({
 
   switch (item.kind) {
     case "search-minimal":
-    case "search-full":
       return (
         <SearchConfiguration item={item} onClose={onClose} onSaved={onSaved} />
       )

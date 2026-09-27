@@ -29,11 +29,6 @@ export const utilityComponents = {
     description: "Display a locally imported picture.",
     defaultName: "Photo",
   },
-  "bookmark-list": {
-    label: "Bookmark list",
-    description: "Show links from an existing folder directly.",
-    defaultName: "Bookmark list",
-  },
   rss: {
     label: "RSS reader",
     description: "Manually load up to five RSS or Atom headlines.",
@@ -63,7 +58,6 @@ export default {
     illustration: "Sample landscape illustration",
     addPhoto: "Make room for a memory",
     photoHint: "One picture from your device. Nothing uploaded.",
-    folderHint: "Your links, without another layer.",
     setLocation: "Choose a place",
     weatherHint: "Set your coordinates. No location tracking.",
     addFeed: "A quieter reading list",
@@ -108,12 +102,6 @@ export default {
   photoFit: "Image fit",
   cover: "Fill and crop",
   contain: "Show entire picture",
-  chooseFolder: "Choose an existing folder",
-  sourceFolder: "Source folder",
-  folderEmpty: "The source folder is missing or empty.",
-  missingFolder: "Source folder no longer exists",
-  folderHelp:
-    "This card references the existing folder, so edits appear without duplicating bookmarks.",
   timeZone: "IANA time zone",
   deviceTimeZone: "Use device time zone",
   hour12: "Use 12-hour time",

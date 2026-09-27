@@ -46,11 +46,6 @@ const grid = {
       description: "适合自由网格的单行搜索框，最大占用 12×1。",
       defaultName: "简约搜索框",
     },
-    searchFull: {
-      label: "普通搜索框",
-      description: "带完整操作区的搜索框，最大占用 12×2。",
-      defaultName: "普通搜索框",
-    },
     template: {
       label: "模板",
       description: "标准占位格。1×1 是正方形单位，其它尺寸都是它的整数倍。",

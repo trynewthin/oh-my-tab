@@ -28,8 +28,6 @@ describe("utility widget backups", () => {
           return { ...item, latitude: 35.68, longitude: 139.69 }
         case "rss":
           return { ...item, feedUrl: "https://example.com/feed.xml" }
-        case "bookmark-list":
-          return { ...item, folderId: "existing-folder" }
         default:
           return item
       }

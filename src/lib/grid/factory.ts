@@ -12,6 +12,7 @@ import { createUtilityWidget } from "@/lib/widgets/model"
 import {
   isUtilityWidgetKind,
   type UtilityWidgetItem,
+  type UtilityWidgetKind,
   type UtilityWidgetSize,
 } from "@/lib/grid/utility-types"
 import type {
@@ -23,11 +24,11 @@ import type {
   TemplateItem,
 } from "@/lib/grid/types"
 
-type CatalogItem = Extract<GridItem, { kind: CatalogComponentKind }>
+type CreatableComponentKind = CatalogComponentKind | UtilityWidgetKind
 export type ConfigurableItem = Exclude<
   GridItem,
   | { kind: "dot-canvas" | "ecosystem" }
-  | { kind: "search-minimal" | "search-full" }
+  | { kind: "search-minimal" }
   | UtilityWidgetItem
 >
 
@@ -170,9 +171,9 @@ export const bookmarkItemFactory = {
 }
 
 export function createCatalogComponent(
-  kind: CatalogComponentKind,
+  kind: CreatableComponentKind,
   requestedSize?: GridItemSize
-): CatalogItem {
+): Extract<GridItem, { kind: CreatableComponentKind }> {
   const definition = getComponentDefinition(kind)
   const sizes = getComponentSizeOptions(kind, "catalog")
   const size =

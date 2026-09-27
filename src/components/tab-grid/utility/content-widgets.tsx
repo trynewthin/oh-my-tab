@@ -1,20 +1,8 @@
-import {
-  ArrowUpRight,
-  BookmarksSimple,
-  ImageSquare,
-  PencilSimple,
-} from "@phosphor-icons/react"
+import { ImageSquare, PencilSimple } from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 import type { UtilityWidgetItem } from "@/lib/grid/utility-types"
-import { NOTE_MAX_LENGTH, safeLink } from "@/lib/widgets/model"
-import { sourceHost } from "@/lib/widgets/presentation"
-import { useTabGridStore } from "@/stores/tab-grid-store"
+import { NOTE_MAX_LENGTH } from "@/lib/widgets/model"
 import { updateUtilityWidget } from "@/stores/widget-actions"
-import {
-  CollectionGrid,
-  CollectionRow,
-  CollectionViewport,
-} from "../collection/layout"
 import { WidgetEmpty, WidgetSurface, type WidgetProps } from "./surface"
 
 type KindProps<K extends UtilityWidgetItem["kind"]> = WidgetProps<
@@ -145,83 +133,6 @@ export function PhotoTile(props: KindProps<"photo">) {
   return (
     <WidgetSurface {...props} header={false} className="utility-photo">
       <figure>{content}</figure>
-    </WidgetSurface>
-  )
-}
-
-export function BookmarkListTile(props: KindProps<"bookmark-list">) {
-  const { item, preview, sample = preview } = props
-  const { t } = useTranslation()
-  const source = useTabGridStore((state) =>
-    state.items.find((entry) => entry.id === item.folderId)
-  )
-  const tabs =
-    source?.kind === "folder"
-      ? source.tabs
-      : sample
-        ? [
-            { id: "1", name: "Are.na", url: "https://www.are.na" },
-            { id: "2", name: "Figma", url: "https://figma.com" },
-            { id: "3", name: "MDN", url: "https://developer.mozilla.org" },
-            { id: "4", name: "Wikipedia", url: "https://wikipedia.org" },
-          ]
-        : []
-  return (
-    <WidgetSurface {...props} className="utility-bookmarks">
-      {tabs.length === 0 ? (
-        <WidgetEmpty
-          {...props}
-          icon={<BookmarksSimple size={30} weight="light" />}
-          title={t(
-            item.folderId ? "widgets.folderEmpty" : "widgets.chooseFolder"
-          )}
-          hint={t("widgets.design.folderHint")}
-        />
-      ) : (
-        <CollectionViewport label={item.name}>
-          <CollectionGrid>
-            {tabs.map((tab) => {
-              const url = safeLink(tab.url)
-              if (!url) return null
-              const content = (
-                <>
-                  <span className="utility-bookmark-mark" aria-hidden="true">
-                    {Array.from(
-                      tab.name.trim() || sourceHost(url)
-                    )[0]?.toUpperCase()}
-                  </span>
-                  <span className="utility-bookmark-label">
-                    <strong>{tab.name}</strong>
-                    <span>{sourceHost(url)}</span>
-                  </span>
-                  <ArrowUpRight
-                    className="utility-link-arrow"
-                    size={14}
-                    aria-hidden="true"
-                  />
-                </>
-              )
-              return (
-                <CollectionRow key={tab.id} className="utility-bookmark-row">
-                  {preview ? (
-                    <div className="utility-bookmark-link">{content}</div>
-                  ) : (
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={tab.name}
-                      className="utility-bookmark-link utility-focus"
-                    >
-                      {content}
-                    </a>
-                  )}
-                </CollectionRow>
-              )
-            })}
-          </CollectionGrid>
-        </CollectionViewport>
-      )}
     </WidgetSurface>
   )
 }

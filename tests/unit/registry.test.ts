@@ -8,6 +8,7 @@ import {
   sizeLabel,
 } from "@/lib/grid/registry"
 import { createCatalogComponent } from "@/lib/grid/factory"
+import { utilityWidgetKinds } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
 
 describe("component occupancy registration", () => {
@@ -58,16 +59,11 @@ describe("component occupancy registration", () => {
       calendar: "productivity",
       "search-minimal": "common",
       ecosystem: "fun",
-      clock: "common",
-      countdown: "productivity",
-      note: "productivity",
-      pomodoro: "productivity",
-      weather: "common",
-      photo: "fun",
-      "bookmark-list": "common",
-      rss: "common",
-      "world-clock": "productivity",
     })
+    for (const kind of [...utilityWidgetKinds, "bookmark-list", "search-full"])
+      expect(catalogComponentKinds).not.toContain(kind)
+    expect(componentRegistry).not.toHaveProperty("bookmark-list")
+    expect(componentRegistry).not.toHaveProperty("search-full")
   })
 
   test.each([
@@ -88,13 +84,12 @@ describe("component occupancy registration", () => {
     expect(componentRegistry["search-minimal"].menu.operations).toContain(
       "edit"
     )
+    expect(componentRegistry["search-minimal"].showNameInEditor).toBe(false)
     expect(componentRegistry["search-minimal"].editorSizes).toEqual([
       "compact",
       "medium",
       "small",
     ])
-    expect(componentRegistry["search-full"].menu.operations).toContain("edit")
-    expect(componentRegistry["search-full"].editorSizes).toEqual([])
   })
 
   test("1×1 is the square unit and template uses the scale", () => {

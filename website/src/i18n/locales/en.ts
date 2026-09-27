@@ -65,17 +65,16 @@ const resources: SiteResources = {
         "Product interface with an expanded folder for browsing bookmarks",
       widgets: {
         title: "A little hobby, every day",
-        text: "Clocks, notes, timers, weather, bookmarks, feeds, photos, a calendar, todos, and pixel widgets share the same free canvas.",
+        text: "A calendar, to-dos, pixel art, and a little plant share the same free canvas.",
       },
-      widgetsAlt:
-        "Clock, note, timer, weather, bookmark, feed, calendar, todo, and pixel widgets",
+      widgetsAlt: "Clock, note, timer, calendar, todo, and pixel widgets",
     },
   },
   privacy: {
     title: "Privacy Policy",
     intro:
       "Oh My Tab runs no server that collects extension data and bundles no advertising or analytics tracking. This page explains what stays on your device and what happens when you choose to enable a network feature.",
-    updatedLabel: "Updated: September 24, 2026",
+    updatedLabel: "Updated: September 27, 2026",
     summaryLabel: "Privacy summary",
     summary: {
       local: {
@@ -122,6 +121,7 @@ const resources: SiteResources = {
       control: {
         title: "Control, retention, and deletion",
         paragraphs: [
+          "Clock, countdown, note, focus timer, weather, RSS, photo, and world-clock widgets already on the page remain available, but cannot be added again from the component catalog. Previously saved bookmark-list and full-search widgets are removed from the local grid when this version loads or a backup is imported.",
           "You can turn network services off in Settings and revoke site or bookmark permissions in your browser's extension management page. Manual widgets stop making requests when you stop clicking Load or Refresh, and revoking their site permission prevents later loads. No new service requests are made after disabling or revoking a service; data already sent cannot be recalled, and existing favicon caches remain until you clear them.",
           'Bookmarks can be deleted on the homepage. "Cache → Manage" in Settings shows per-category usage and clears the data you select; images left untouched for the past day are not cleared yet. Uninstalling the extension removes its local storage, while ZIP files and WebDAV backups you already exported must be deleted separately in their own locations.',
           "ZIP backups are unencrypted and contain site links, settings, original background images, notes, locally re-encoded widget photos, coordinates, and full feed URLs; share them only with recipients you trust. Privacy consents and WebDAV connection details are not carried in a backup import. Legacy localStorage data is kept only as a migration fallback and is deleted along with the extension on uninstall.",

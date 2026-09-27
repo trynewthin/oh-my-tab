@@ -5,7 +5,6 @@ export const utilityWidgetKinds = [
   "pomodoro",
   "weather",
   "photo",
-  "bookmark-list",
   "rss",
   "world-clock",
 ] as const
@@ -56,7 +55,6 @@ export type UtilityWidgetItem = UtilityBase &
         caption: string
         fit: "cover" | "contain"
       }
-    | { kind: "bookmark-list"; folderId: string }
     | { kind: "rss"; feedUrl: string }
     | { kind: "world-clock"; zones: WorldClockZone[]; hour12: boolean }
   )

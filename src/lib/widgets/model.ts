@@ -213,8 +213,6 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
         text(item.caption, 120) &&
         ["cover", "contain"].includes(item.fit)
       )
-    case "bookmark-list":
-      return text(item.folderId, 100)
     case "rss":
       return item.feedUrl === "" || remoteUrl(item.feedUrl) !== null
     case "world-clock":
@@ -279,8 +277,6 @@ export function createUtilityWidget(
       }
     case "photo":
       return { ...shared, kind, image: "", caption: "", fit: "cover" }
-    case "bookmark-list":
-      return { ...shared, kind, folderId: "" }
     case "rss":
       return { ...shared, kind, feedUrl: "" }
     case "world-clock":

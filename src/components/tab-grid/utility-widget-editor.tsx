@@ -120,8 +120,6 @@ export default function UtilityWidgetEditor({
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const uploadSequence = useRef(0)
-  const items = useTabGridStore((state) => state.items)
-  const folders = items.filter((entry) => entry.kind === "folder")
   const sizes = getComponentSizeOptions(item.kind, "editor", draft.size)
 
   useEffect(
@@ -442,33 +440,6 @@ export default function UtilityWidgetEditor({
                 patch({ fit: value === "contain" ? "contain" : "cover" })
               }
             />
-          </>
-        )
-      case "bookmark-list":
-        return (
-          <>
-            <ChoiceField
-              label={t("widgets.sourceFolder")}
-              value={draft.folderId}
-              options={[
-                { value: "", label: t("widgets.chooseFolder") },
-                ...(draft.folderId &&
-                !folders.some((folder) => folder.id === draft.folderId)
-                  ? [
-                      {
-                        value: draft.folderId,
-                        label: t("widgets.missingFolder"),
-                      },
-                    ]
-                  : []),
-                ...folders.map((folder) => ({
-                  value: folder.id,
-                  label: folder.name,
-                })),
-              ]}
-              onChange={(folderId) => patch({ folderId })}
-            />
-            <p className="utility-editor-help">{t("widgets.folderHelp")}</p>
           </>
         )
       case "rss":

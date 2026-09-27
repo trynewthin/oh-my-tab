@@ -42,7 +42,7 @@ const timer = (): PomodoroItem => ({
 })
 
 describe("utility widgets", () => {
-  test("keeps the nine approved widgets and rejects the removed kind", () => {
+  test("keeps supported widgets and rejects removed kinds", () => {
     expect(utilityWidgetKinds).toEqual([
       "clock",
       "countdown",
@@ -50,14 +50,17 @@ describe("utility widgets", () => {
       "pomodoro",
       "weather",
       "photo",
-      "bookmark-list",
       "rss",
       "world-clock",
     ])
     expect(catalogComponentKinds).not.toContain("github-repo")
+    for (const kind of utilityWidgetKinds)
+      expect(catalogComponentKinds).not.toContain(kind)
     expect(
       validGridItem({ ...shared, kind: "github-repo", repository: "a/b" })
     ).toBe(false)
+    expect(validGridItem({ ...shared, kind: "bookmark-list" })).toBe(false)
+    expect(validGridItem({ ...shared, kind: "search-full" })).toBe(false)
   })
 
   test.each(utilityWidgetKinds)("%s creates valid registered sizes", (kind) => {

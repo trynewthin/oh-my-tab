@@ -11,6 +11,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type GridItem, type TabEntry, type TodoTask } from "@/lib/grid/types"
 import { validGridItem } from "@/lib/grid/validation"
+import { dropRemovedGridItems } from "@/lib/grid/removed-items"
 import { bookmarkItemFactory } from "@/lib/grid/factory"
 import {
   addFolderTab,
@@ -81,19 +82,20 @@ type TabGridState = {
 // Shared by migrate() and merge() so a legacy v0 blob and a current blob are
 // validated and clamped by exactly one code path. Throws on invalid items so a
 // corrupt blob is rejected instead of silently overwriting good data.
-function sanitizePersisted(persisted: unknown): {
+export function sanitizePersisted(persisted: unknown): {
   items: GridItem[]
   layouts: Record<number, GridPositions>
   mockDataVersion: number
 } {
   const items = (persisted as { items?: unknown } | null)?.items
+  const retained = Array.isArray(items) ? dropRemovedGridItems(items) : null
   if (
     items !== undefined &&
-    (!Array.isArray(items) || !items.every(validGridItem))
+    (!retained || !retained.items.every(validGridItem))
   ) {
     throw new Error(i18n.t("grid.error.corruptGrid"))
   }
-  const storedItems: GridItem[] = Array.isArray(items) ? items : []
+  const storedItems: GridItem[] = retained?.items ?? []
   const savedLayouts = (
     persisted as { layouts?: Record<string, unknown> } | null
   )?.layouts
@@ -103,6 +105,7 @@ function sanitizePersisted(persisted: unknown): {
     if (!layout || typeof layout !== "object") continue
     layouts[columns] = Object.fromEntries(
       Object.entries(layout).filter(([id, value]) => {
+        if (retained?.removedIds.has(id)) return false
         if (
           !value ||
           !Number.isInteger((value as GridPosition).x) ||
@@ -231,7 +234,7 @@ export const useTabGridStore = create<TabGridState>()(
       version: 1,
       // v0 persisted blobs had no schema version. Reuse the same sanitizer for
       // both migration and merge so a v0 blob and a fresh blob are normalized
-      // identically; anything invalid throws and preserves the stored data.
+      // identically. Removed kinds are discarded; other invalid data throws.
       migrate: (persisted) => sanitizePersisted(persisted),
       // lastLayoutColumns stays tab-local: persisting it makes tabs with
       // different column counts overwrite each other in a ping-pong loop.

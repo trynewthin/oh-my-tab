@@ -520,43 +520,10 @@
 .utility-art-front {
   fill: color-mix(in oklab, var(--utility-accent) 80%, var(--card-foreground));
 }
-.utility-bookmarks .utility-body,
 .utility-world .utility-body {
   gap: 8px;
   padding: 14px 16px;
 }
-.utility-bookmark-row {
-  height: 51px;
-}
-.utility-bookmark-link {
-  display: flex;
-  height: 100%;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 2px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: inherit;
-}
-.utility-bookmark-mark {
-  display: grid;
-  place-items: center;
-  flex: 0 0 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--utility-accent) 10%, transparent);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--utility-ink);
-}
-.utility-bookmark-label {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  gap: 3px;
-}
-.utility-bookmark-label strong,
 .utility-world-place strong {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -564,18 +531,10 @@
   font-size: 13px;
   font-weight: 500;
 }
-.utility-bookmark-label > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-  color: var(--utility-secondary);
-}
 .utility-link-arrow {
   flex-shrink: 0;
   color: var(--utility-secondary);
 }
-.utility-bookmark-link:hover,
 .utility-feed-link:hover {
   background: color-mix(in srgb, var(--foreground) 4%, transparent);
 }
@@ -873,8 +832,6 @@
   .utility-surface:focus-within .utility-settings,
   .utility-surface:hover .utility-photo-edit,
   .utility-surface:focus-within .utility-photo-edit,
-  .utility-bookmark-link:hover .utility-link-arrow,
-  .utility-bookmark-link:focus-visible .utility-link-arrow,
   .utility-feed-link:hover .utility-link-arrow,
   .utility-feed-link:focus-visible .utility-link-arrow {
     opacity: 1;
@@ -901,8 +858,7 @@
   .utility-ring-progress {
     stroke: Highlight;
   }
-  .utility-timer-primary,
-  .utility-bookmark-mark {
+  .utility-timer-primary {
     border: 1px solid ButtonText;
   }
 }

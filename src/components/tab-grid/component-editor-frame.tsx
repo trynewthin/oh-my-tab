@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import HomeSurface from "@/components/home/home-surface"
 import { gridOccupancyBox, resolveGridGeometry } from "@/lib/grid/grid-layout"
+import { cn } from "@/lib/utils"
 import {
   occupancyMark,
   type ComponentSizeDefinition,
@@ -77,7 +78,7 @@ export default function ComponentEditorFrame({
   cancelLabel?: string
   onSubmit?: () => void
   onClose: () => void
-  children: ReactNode
+  children?: ReactNode
 }) {
   const { t } = useTranslation()
   const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
@@ -225,9 +226,14 @@ export default function ComponentEditorFrame({
             <DialogDescription className="sr-only">
               {description}
             </DialogDescription>
-            <div className="space-y-3">{children}</div>
+            {children && <div className="space-y-3">{children}</div>}
             {(sizeOptions.length > 0 || onSubmit) && (
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <div
+                className={cn(
+                  "flex flex-wrap items-center justify-between gap-3",
+                  children && "mt-4"
+                )}
+              >
                 {sizeOptions.length > 0 ? (
                   <div
                     role="group"

@@ -41,7 +41,7 @@ describe("grid unit occupancy", () => {
 })
 
 describe("responsive component width", () => {
-  test("search components use 12 columns when available and shrink to the grid", () => {
+  test("minimal search uses 12 columns when available and shrinks to the grid", () => {
     const minimal: GridItem = {
       id: "minimal-search",
       kind: "search-minimal",
@@ -49,20 +49,11 @@ describe("responsive component width", () => {
       size: "small",
       color: "#6c8bd4",
     }
-    const full: GridItem = {
-      id: "full-search",
-      kind: "search-full",
-      name: "search",
-      size: "medium",
-      color: "#6c8bd4",
-    }
-    expect(placeItems([minimal, full], 20, {})).toMatchObject({
+    expect(placeItems([minimal], 20, {})).toMatchObject({
       "minimal-search": { width: 12, height: 1 },
-      "full-search": { width: 12, height: 2 },
     })
-    expect(placeItems([minimal, full], 8, {})).toMatchObject({
+    expect(placeItems([minimal], 8, {})).toMatchObject({
       "minimal-search": { width: 8, height: 1 },
-      "full-search": { width: 8, height: 2 },
     })
   })
 })

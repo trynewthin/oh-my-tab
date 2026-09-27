@@ -97,9 +97,7 @@ export default function GridDragOverlay({
     dragging && compactSize && fullHeight !== undefined
       ? compactSize.height + (fullHeight - compactSize.height) * releaseProgress
       : dragging?.height
-  const searchWidget =
-    dragging?.item.kind === "search-minimal" ||
-    dragging?.item.kind === "search-full"
+  const searchWidget = dragging?.item.kind === "search-minimal"
   const contentWidth =
     overlayWidth === undefined ? undefined : overlayWidth / contentScale
   const contentHeight =

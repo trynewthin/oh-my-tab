@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { readStoredState } from "../helpers/storage"
+import { readStoredState, waitForStorageWrites } from "../helpers/storage"
 
 // The suite runs with a pinned zh-CN browser locale, so `system` resolves to
 // Simplified Chinese everywhere else. These tests opt into English explicitly
@@ -108,12 +108,7 @@ test.describe("language preference", () => {
       page.getByRole("combobox", { name: ZH.prompt, exact: true })
     ).toBeVisible()
 
-    await page.reload()
-    await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN")
-    await expect(
-      page.getByRole("combobox", { name: ZH.prompt, exact: true })
-    ).toBeVisible()
-
+    await waitForStorageWrites(page)
     await expect
       .poll(async () => {
         const state = await readStoredState<{ preference: string }>(
@@ -123,6 +118,12 @@ test.describe("language preference", () => {
         return state.preference
       })
       .toBe("zh-CN")
+
+    await page.reload()
+    await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN")
+    await expect(
+      page.getByRole("combobox", { name: ZH.prompt, exact: true })
+    ).toBeVisible()
   })
 })
 

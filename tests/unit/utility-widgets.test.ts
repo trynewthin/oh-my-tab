@@ -64,6 +64,7 @@ describe("utility widgets", () => {
       "countdown",
       "note",
       "pomodoro",
+      "workday",
       "weather",
       "photo",
       "rss",
@@ -73,7 +74,8 @@ describe("utility widgets", () => {
     expect(catalogComponentKinds).toContain("pomodoro")
     expect(catalogComponentKinds).toContain("countdown")
     for (const kind of utilityWidgetKinds.filter(
-      (kind) => kind !== "pomodoro" && kind !== "countdown"
+      (kind) =>
+        kind !== "pomodoro" && kind !== "countdown" && kind !== "workday"
     ))
       expect(catalogComponentKinds).not.toContain(kind)
     expect(

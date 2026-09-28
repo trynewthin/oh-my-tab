@@ -14,6 +14,11 @@ export const utilityComponents = {
     description: "直接在卡片上输入，内容保存在本地。",
     defaultName: "便签",
   },
+  workday: {
+    label: "下班倒计时",
+    description: "用毫秒倒计时和动态进度迎接下班，支持跨午夜班次。",
+    defaultName: "下班倒计时",
+  },
   pomodoro: {
     label: "番茄钟",
     description: "开始、暂停与重置，刷新页面不丢失计时。",
@@ -42,6 +47,19 @@ export const utilityComponents = {
 }
 
 export default {
+  workday: {
+    startTime: "上班时间",
+    endTime: "下班时间",
+    startHour: "上班时间：时",
+    startMinute: "上班时间：分",
+    endHour: "下班时间：时",
+    endMinute: "下班时间：分",
+    help: "每天按本地时间计时。下班时间早于上班时间时视为跨午夜班次；两者不能相同。三位小数显示毫秒，界面约每 32 毫秒刷新。",
+    before: "距离上班",
+    working: "距离下班",
+    done: "已下班",
+    free: "自由时间",
+  },
   design: {
     eventPreview: "下一次出发",
     remaining: "天后",
@@ -150,6 +168,7 @@ export default {
     unknown: "当前气温",
   },
   errors: {
+    sameWorkTimes: "上班时间和下班时间不能相同。",
     notConfigured: "请先配置数据来源。",
     permissionDenied: "未获得站点访问权限，没有加载数据。",
     requestFailed:

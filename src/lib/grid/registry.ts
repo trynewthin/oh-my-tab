@@ -450,6 +450,13 @@ export const componentRegistry = {
     "productivity",
     "#d4bd6c"
   ),
+  workday: utilityDefinition(
+    "workday",
+    "medium",
+    [gridSize("medium", "4x2", "medium")],
+    "productivity",
+    "#68bda4"
+  ),
   pomodoro: utilityDefinition(
     "pomodoro",
     "large",
@@ -501,6 +508,7 @@ export const catalogComponentKinds = [
   "calendar",
   "pomodoro",
   "countdown",
+  "workday",
   "search-minimal",
   "ecosystem",
 ] as const satisfies readonly GridItemKind[]

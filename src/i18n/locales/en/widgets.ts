@@ -14,6 +14,12 @@ export const utilityComponents = {
     description: "Write directly on a locally saved card.",
     defaultName: "Quick note",
   },
+  workday: {
+    label: "Clock-out countdown",
+    description:
+      "Count down to clock-out with milliseconds and a moving progress trail. Supports overnight shifts.",
+    defaultName: "Clock-out countdown",
+  },
   pomodoro: {
     label: "Pomodoro timer",
     description: "A reload-safe start, pause, and reset timer.",
@@ -42,6 +48,19 @@ export const utilityComponents = {
 }
 
 export default {
+  workday: {
+    startTime: "Work starts",
+    endTime: "Clock-out time",
+    startHour: "Work start hour",
+    startMinute: "Work start minute",
+    endHour: "Clock-out hour",
+    endMinute: "Clock-out minute",
+    help: "Repeats daily in local time. An earlier end time means an overnight shift; start and end must differ. Three decimals show milliseconds, refreshed about every 32 ms.",
+    before: "Until work starts",
+    working: "Until clock-out",
+    done: "Off the clock",
+    free: "You're free",
+  },
   design: {
     eventPreview: "A little time away",
     remaining: "days to go",
@@ -153,6 +172,7 @@ export default {
     unknown: "Current temperature",
   },
   errors: {
+    sameWorkTimes: "Work start and clock-out time must be different.",
     notConfigured: "Configure the data source first.",
     permissionDenied: "Site access was denied. Nothing was loaded.",
     requestFailed:

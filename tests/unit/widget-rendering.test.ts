@@ -23,6 +23,23 @@ afterEach(() => vi.unstubAllGlobals())
 
 // Server rendering only: does not launch a browser or claim layout/visual QA.
 describe("widget render contracts", () => {
+  test("clock-out preview shows milliseconds without interactive controls", () => {
+    const item = createCatalogComponent("workday")
+    if (item.kind !== "workday") throw new Error("Expected workday")
+    const html = renderToStaticMarkup(
+      createElement(UtilityWidgetTile, {
+        item: { ...item, startTime: "09:00", endTime: "18:00" },
+        preview: true,
+        sample: true,
+        onOpen: () => {},
+      })
+    )
+    expect(html).toContain("04:29:59")
+    expect(html).toContain(".877")
+    expect(html).toContain('data-phase="working"')
+    expect(html).not.toContain("data-celebrating")
+    expect(html).not.toContain("<button")
+  })
   for (const language of ["en", "zh-CN"]) {
     test(`all catalog sizes render readable, non-interactive ${language} previews`, async () => {
       await i18n.changeLanguage(language)

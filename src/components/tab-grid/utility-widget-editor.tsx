@@ -4,6 +4,7 @@ import SettingItem from "@/components/settings/shared/setting-item"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DatePicker from "@/components/ui/date-picker"
+import TimePicker from "@/components/ui/time-picker"
 import { Switch } from "@/components/ui/switch"
 import ColorPicker from "@/components/ui/color-picker"
 import ComponentEditorFrame from "./component-editor-frame"
@@ -121,6 +122,7 @@ export default function UtilityWidgetEditor({
   const durationId = useId()
   const breakDurationId = useId()
   const loopId = useId()
+  const workdayId = useId()
   const [draft, setDraft] = useState<UtilityWidgetItem>(() =>
     item.kind === "countdown" && item.event === null
       ? { ...item, event: { title: "", date: localDateKey() } }
@@ -195,6 +197,10 @@ export default function UtilityWidgetEditor({
         })),
       }
 
+    if (clean.kind === "workday" && clean.startTime === clean.endTime) {
+      setError("sameWorkTimes")
+      return
+    }
     const next = applyUtilityConfiguration(current, clean)
     if (!validGridItem(next)) {
       setError("invalidConfiguration")
@@ -282,6 +288,36 @@ export default function UtilityWidgetEditor({
         )
       case "note":
         return <p className="utility-editor-help">{t("widgets.noteHelp")}</p>
+      case "workday":
+        return (
+          <>
+            <SettingItem
+              label={t("widgets.workday.startTime")}
+              htmlFor={`${workdayId}-start`}
+            >
+              <TimePicker
+                id={`${workdayId}-start`}
+                hourLabel={t("widgets.workday.startHour")}
+                minuteLabel={t("widgets.workday.startMinute")}
+                value={draft.startTime}
+                onChange={(startTime) => patch({ startTime })}
+              />
+            </SettingItem>
+            <SettingItem
+              label={t("widgets.workday.endTime")}
+              htmlFor={`${workdayId}-end`}
+              description={t("widgets.workday.help")}
+            >
+              <TimePicker
+                id={`${workdayId}-end`}
+                hourLabel={t("widgets.workday.endHour")}
+                minuteLabel={t("widgets.workday.endMinute")}
+                value={draft.endTime}
+                onChange={(endTime) => patch({ endTime })}
+              />
+            </SettingItem>
+          </>
+        )
       case "pomodoro":
         return (
           <>
@@ -585,17 +621,21 @@ export default function UtilityWidgetEditor({
       onClose={onClose}
     >
       <div className="utility-editor-fields">
-        {draft.kind !== "pomodoro" && draft.kind !== "countdown" && (
-          <Field label={t("grid.editor.name")}>
-            <Input
-              required
-              maxLength={40}
-              value={draft.name}
-              onChange={(event) => patch({ name: event.target.value })}
-            />
-          </Field>
-        )}
-        {draft.kind === "pomodoro" || draft.kind === "countdown" ? (
+        {draft.kind !== "pomodoro" &&
+          draft.kind !== "countdown" &&
+          draft.kind !== "workday" && (
+            <Field label={t("grid.editor.name")}>
+              <Input
+                required
+                maxLength={40}
+                value={draft.name}
+                onChange={(event) => patch({ name: event.target.value })}
+              />
+            </Field>
+          )}
+        {draft.kind === "pomodoro" ||
+        draft.kind === "countdown" ||
+        draft.kind === "workday" ? (
           <SettingItem label={t("grid.editor.backgroundColor")}>
             <ColorPicker
               label={t("grid.editor.backgroundColor")}

@@ -16,7 +16,7 @@ Oh My Tab replaces the new tab page in Chrome or Edge. Arrange cards on a free g
 - **Choose the grid columns:** set separate wide- and narrow-screen counts. The grid switches after the wide layout shrinks below 80%, then scales only if the narrow layout still does not fit. Defaults are four and two columns.
 - **Search within reach:** find saved bookmarks or search the web with your chosen search engine. Add a movable search widget in 4×1, 8×1, or 12×1 sizes.
 - **One-click shortcuts:** add 1×1 buttons to switch themes, tidy the grid, enter selection mode, or open settings and the component catalog.
-- **Useful and playful widgets:** add a calendar, to-do list, countdown, Pomodoro timer, dot canvas, and pixel planter. Preview widgets and select their size before adding them.
+- **Useful and playful widgets:** add a calendar, to-do list, countdown, Pomodoro timer, clock-out countdown, dot canvas, and pixel planter. Preview widgets and select their size before adding them.
 - **Personalize the look:** choose light, dark, or system mode, set colors and backgrounds, and preview card styles and visual effects. The interface supports English and Simplified Chinese.
 - **Bring your bookmarks:** optionally import Chrome or Edge bookmarks, with duplicate URLs and matching folder names handled for you.
 - **Keep a backup:** export and restore complete ZIP backups, or manually transfer snapshots through your own HTTPS WebDAV server.

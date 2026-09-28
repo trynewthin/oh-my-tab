@@ -1,3 +1,4 @@
+import { validWorkdaySchedule } from "./workday"
 import type {
   PomodoroItem,
   UtilityWidgetItem,
@@ -230,6 +231,8 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
           text(item.event.title, 40, true) &&
           dateOrdinal(item.event.date) !== null)
       )
+    case "workday":
+      return validWorkdaySchedule(item)
     case "note":
       return text(item.text, NOTE_MAX_LENGTH)
     case "pomodoro":
@@ -307,6 +310,8 @@ export function createUtilityWidget(
       }
     case "countdown":
       return { ...shared, kind, event: null }
+    case "workday":
+      return { ...shared, kind, startTime: "09:00", endTime: "18:00" }
     case "note":
       return { ...shared, kind, text: "" }
     case "pomodoro":

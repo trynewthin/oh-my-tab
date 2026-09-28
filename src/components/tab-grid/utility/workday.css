@@ -1,0 +1,169 @@
+.utility-workday .utility-body {
+  padding: 16px;
+}
+.workday-scene {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.workday-label {
+  flex-shrink: 0;
+  color: var(--utility-secondary);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.workday-readout {
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 0;
+}
+.workday-time {
+  container-type: inline-size;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: flex-end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+.workday-time strong {
+  font-size: 18cqw;
+  font-weight: 650;
+}
+.workday-fraction {
+  width: 3.5ch;
+  flex-shrink: 0;
+  font-size: 9cqw;
+  color: var(--utility-accent);
+  letter-spacing: -0.02em;
+}
+.workday-free {
+  font-size: clamp(26px, 12cqw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.workday-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--utility-accent);
+}
+.workday-track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--utility-accent) 16%, transparent);
+}
+.workday-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--workday-progress);
+  border-radius: inherit;
+  background: currentColor;
+}
+.workday-traveler {
+  position: absolute;
+  top: 50%;
+  left: var(--workday-progress);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+.workday-exit {
+  display: flex;
+  opacity: 0.5;
+  transition:
+    opacity 0.6s,
+    transform 0.6s;
+}
+.workday-scene[data-phase="working"] .workday-traveler {
+  box-shadow: 0 0 12px currentColor;
+}
+.workday-scene[data-finale] .workday-traveler {
+  animation: workday-pulse 1.2s ease-in-out infinite;
+}
+.workday-scene[data-phase="done"] .workday-exit {
+  opacity: 1;
+  transform: translateX(3px);
+}
+.workday-scene[data-phase="done"] .workday-traveler {
+  opacity: 0;
+}
+.workday-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.workday-burst i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--utility-accent);
+  opacity: 0;
+}
+.workday-burst i:nth-child(3n) {
+  background: var(--foreground);
+}
+.workday-scene[data-celebrating] .workday-burst i {
+  animation: workday-release 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.workday-scene[data-celebrating] .workday-free {
+  animation: workday-arrive 0.7s ease-out both;
+}
+@keyframes workday-pulse {
+  50% {
+    box-shadow: 0 0 18px 4px currentColor;
+  }
+}
+@keyframes workday-release {
+  0% {
+    opacity: 0;
+    transform: rotate(calc(var(--ray) * 30deg)) translateY(8px) scale(0.3);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--ray) * 30deg)) translateY(-120px) scale(0.6);
+  }
+}
+@keyframes workday-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workday-scene *,
+  .workday-scene *::before,
+  .workday-scene *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.utility-workday[data-preview] .workday-scene * {
+  animation: none;
+}

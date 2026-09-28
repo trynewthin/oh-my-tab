@@ -1,3 +1,4 @@
+import WorkdayTile from "./utility/workday-widget"
 import { remoteSourceKey } from "@/lib/widgets/network"
 import { NoteTile, PhotoTile } from "./utility/content-widgets"
 import RemoteTile from "./utility/remote-widget"
@@ -12,6 +13,8 @@ import type { WidgetProps } from "./utility/surface"
 export default function UtilityWidgetTile(props: WidgetProps) {
   const { item } = props
   switch (item.kind) {
+    case "workday":
+      return <WorkdayTile {...props} item={item} />
     case "clock":
       return <ClockTile {...props} item={item} />
     case "countdown":

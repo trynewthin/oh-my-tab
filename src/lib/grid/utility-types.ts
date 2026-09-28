@@ -3,6 +3,7 @@ export const utilityWidgetKinds = [
   "countdown",
   "note",
   "pomodoro",
+  "workday",
   "weather",
   "photo",
   "rss",
@@ -34,6 +35,7 @@ export type UtilityWidgetItem = UtilityBase &
       }
     | { kind: "countdown"; event: CountdownEvent | null }
     | { kind: "note"; text: string }
+    | { kind: "workday"; startTime: string; endTime: string }
     | {
         kind: "pomodoro"
         minutes: number

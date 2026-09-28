@@ -57,6 +57,7 @@ describe("component occupancy registration", () => {
       "dot-canvas": "dots",
       todo: "productivity",
       calendar: "productivity",
+      workday: "productivity",
       pomodoro: "productivity",
       countdown: "productivity",
       "search-minimal": "common",
@@ -64,7 +65,8 @@ describe("component occupancy registration", () => {
     })
     for (const kind of [
       ...utilityWidgetKinds.filter(
-        (kind) => kind !== "pomodoro" && kind !== "countdown"
+        (kind) =>
+          kind !== "pomodoro" && kind !== "countdown" && kind !== "workday"
       ),
       "bookmark-list",
       "search-full",

@@ -7,6 +7,7 @@ const locks = new Map<string, Promise<void>>()
 Object.defineProperty(globalThis, "navigator", {
   configurable: true,
   value: {
+    userAgent: "node",
     locks: {
       request<T>(key: string, fn: () => Promise<T> | T): Promise<T> {
         const promise = (locks.get(key) ?? Promise.resolve()).then(fn)

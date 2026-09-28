@@ -57,10 +57,18 @@ describe("component occupancy registration", () => {
       "dot-canvas": "dots",
       todo: "productivity",
       calendar: "productivity",
+      pomodoro: "productivity",
+      countdown: "productivity",
       "search-minimal": "common",
       ecosystem: "fun",
     })
-    for (const kind of [...utilityWidgetKinds, "bookmark-list", "search-full"])
+    for (const kind of [
+      ...utilityWidgetKinds.filter(
+        (kind) => kind !== "pomodoro" && kind !== "countdown"
+      ),
+      "bookmark-list",
+      "search-full",
+    ])
       expect(catalogComponentKinds).not.toContain(kind)
     expect(componentRegistry).not.toHaveProperty("bookmark-list")
     expect(componentRegistry).not.toHaveProperty("search-full")

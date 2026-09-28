@@ -53,7 +53,13 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   ).toHaveCount(0)
   await expectCatalogPreviews(catalog, 2)
   await catalog.getByRole("button", { name: "效率", exact: true }).click()
-  await expectCatalogPreviews(catalog, 2)
+  await expectCatalogPreviews(catalog, 4)
+  await expect(
+    catalog.getByRole("button", { name: "选择番茄钟" })
+  ).toBeVisible()
+  await expect(
+    catalog.getByRole("button", { name: "选择倒数日" })
+  ).toBeVisible()
   await catalog.getByRole("button", { name: "点阵", exact: true }).click()
   await expectCatalogPreviews(catalog, 1)
   await expect(

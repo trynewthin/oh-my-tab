@@ -49,9 +49,9 @@ describe("widget presentation", () => {
     expect(timerProgress(Number.NaN, 25)).toBe(0)
   })
   test("long countdown values keep every digit rather than truncating", () => {
-    expect(countdownFontSize("7", true)).toBe(54)
+    expect(countdownFontSize("7", true)).toBe(28)
     expect(countdownFontSize("1234567", true)).toBeLessThan(25)
-    expect(countdownFontSize("1234567", false)).toBeGreaterThan(40)
+    expect(countdownFontSize("1234567", false)).toBeLessThan(25)
   })
   test("does not invent a weather condition for missing data", () => {
     expect(weatherCondition(null)).toBe("unknown")

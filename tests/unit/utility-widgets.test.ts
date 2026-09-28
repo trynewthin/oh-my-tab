@@ -7,6 +7,7 @@ import {
 } from "@/lib/grid/registry"
 import { utilityWidgetKinds, type PomodoroItem } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
+import { encodeBackup, decodeBackup } from "@/lib/backup-codec"
 import {
   applyUtilityConfiguration,
   completePomodoro,
@@ -14,6 +15,7 @@ import {
   dateOrdinal,
   daysUntil,
   formatDuration,
+  localDateKey,
   NOTE_MAX_LENGTH,
   remainingTime,
   remoteUrl,
@@ -42,6 +44,20 @@ const timer = (): PomodoroItem => ({
 })
 
 describe("utility widgets", () => {
+  test("countdown offers only square 2x2 and horizontal 4x1 sizes", () => {
+    expect(
+      getComponentSizeOptions("countdown", "catalog").map(
+        ({ width, height }) => [width, height]
+      )
+    ).toEqual([
+      [2, 2],
+      [4, 1],
+    ])
+    expect(getItemGridDimensions(createCatalogComponent("countdown"))).toEqual({
+      width: 2,
+      height: 2,
+    })
+  })
   test("keeps supported widgets and rejects removed kinds", () => {
     expect(utilityWidgetKinds).toEqual([
       "clock",
@@ -54,7 +70,11 @@ describe("utility widgets", () => {
       "world-clock",
     ])
     expect(catalogComponentKinds).not.toContain("github-repo")
-    for (const kind of utilityWidgetKinds)
+    expect(catalogComponentKinds).toContain("pomodoro")
+    expect(catalogComponentKinds).toContain("countdown")
+    for (const kind of utilityWidgetKinds.filter(
+      (kind) => kind !== "pomodoro" && kind !== "countdown"
+    ))
       expect(catalogComponentKinds).not.toContain(kind)
     expect(
       validGridItem({ ...shared, kind: "github-repo", repository: "a/b" })
@@ -71,12 +91,15 @@ describe("utility widgets", () => {
         width: option.width,
         height: option.height,
       })
-      expect(option.width).toBeGreaterThanOrEqual(4)
+      expect(option.width).toBeGreaterThanOrEqual(kind === "countdown" ? 2 : 4)
     }
   })
 
   test("rejects invalid persisted fields", () => {
-    const countdown = createUtilityWidget("countdown", shared)
+    const countdown = createUtilityWidget("countdown", {
+      ...shared,
+      size: "small",
+    })
     const invalid = [
       {
         ...createUtilityWidget("note", shared),
@@ -88,7 +111,7 @@ describe("utility widgets", () => {
       },
       {
         ...countdown,
-        events: [{ id: "a", title: "Trip", date: "2026-02-30" }],
+        event: { title: "Trip", date: "2026-02-30" },
       },
       { ...timer(), minutes: 0 },
       {
@@ -145,6 +168,124 @@ describe("utility widgets", () => {
         name: "Renamed",
       })
     ).toMatchObject({ name: "Renamed", text: "latest" })
+  })
+
+  test("single focus and break cycle stops after the break", () => {
+    const start = togglePomodoro({ ...timer(), breakMinutes: 30 }, 0)
+    const rest = completePomodoro(start, 1_500_000)
+    expect(rest).toMatchObject({
+      phase: "break",
+      endsAt: 3_300_000,
+      completedToday: 1,
+    })
+    expect(remainingTime(rest, 1_500_000)).toBe(1_800_000)
+    expect(validGridItem(rest)).toBe(true)
+    const paused = togglePomodoro(rest, 1_560_000)
+    expect(paused).toMatchObject({
+      phase: "break",
+      endsAt: null,
+      remainingMs: 1_740_000,
+    })
+    const resumed = togglePomodoro(paused, 2_000_000)
+    const done = completePomodoro(resumed, resumed.endsAt!)
+    expect(done).toMatchObject({
+      phase: "focus",
+      endsAt: null,
+      remainingMs: 0,
+      completedToday: 1,
+    })
+    expect(togglePomodoro(done, 4_000_000).endsAt).toBe(5_500_000)
+    expect(resetPomodoro(rest)).toMatchObject({
+      phase: "focus",
+      endsAt: null,
+      remainingMs: 1_500_000,
+    })
+  })
+
+  test.each([0, 5])(
+    "looping timer recovers elapsed cycles with %s minute breaks",
+    (breakMinutes) => {
+      const now = new Date(2026, 8, 24, 12).getTime()
+      const period = (25 + breakMinutes) * 60_000
+      const start = togglePomodoro(
+        { ...timer(), loop: true, breakMinutes },
+        now
+      )
+      const restored = completePomodoro(start, now + period * 3 + 10_000)
+      expect(restored).toMatchObject({
+        phase: "focus",
+        endsAt: now + period * 3 + 1_500_000,
+        completedToday: 3,
+      })
+      expect(remainingTime(restored, now + period * 3 + 10_000)).toBe(1_490_000)
+      expect(completePomodoro(restored, now + period * 3 + 10_000)).toBe(
+        restored
+      )
+      const boundary = completePomodoro(start, start.endsAt!)
+      expect(boundary.phase).toBe(breakMinutes ? "break" : "focus")
+      const nextFocus = completePomodoro(boundary, now + period)
+      expect(nextFocus).toMatchObject({
+        phase: "focus",
+        endsAt: now + period + 1_500_000,
+        completedToday: 1,
+      })
+    }
+  )
+
+  test("loop recovery counts only focus completions on the latest completion date", () => {
+    const now = new Date(2026, 8, 24, 23, 30).getTime()
+    const start = togglePomodoro(
+      { ...timer(), loop: true, breakMinutes: 5 },
+      now
+    )
+    const nextDay = new Date(2026, 8, 25, 1, 10).getTime()
+    expect(completePomodoro(start, nextDay)).toMatchObject({
+      completedOn: localDateKey(nextDay),
+      completedToday: 2,
+    })
+    const yearsLater = completePomodoro(start, now + 10 * 365 * 86_400_000)
+    expect(validGridItem(yearsLater)).toBe(true)
+    expect(yearsLater.endsAt).toBeGreaterThan(now + 10 * 365 * 86_400_000)
+  })
+
+  test("configuration preserves the live phase and resets changed durations", () => {
+    const original = { ...timer(), breakMinutes: 5, loop: true }
+    const rest = completePomodoro(togglePomodoro(original, 0), 1_500_000)
+    const edited = applyUtilityConfiguration(rest, { ...original, loop: false })
+    expect(edited).toMatchObject({
+      phase: "break",
+      loop: false,
+      endsAt: rest.endsAt,
+    })
+    expect(
+      applyUtilityConfiguration(rest, { ...original, breakMinutes: 0 })
+    ).toMatchObject({ phase: "focus", remainingMs: 1_500_000, endsAt: null })
+    expect(
+      applyUtilityConfiguration(rest, { ...original, minutes: 10 })
+    ).toMatchObject({ phase: "focus", remainingMs: 600_000, endsAt: null })
+  })
+
+  test("legacy and current timer state survive ZIP backup", async () => {
+    const legacy = timer()
+    const rest = completePomodoro(
+      togglePomodoro({ ...timer(), breakMinutes: 5, loop: true }, 0),
+      1_500_000
+    )
+    const config = { items: [legacy, rest] }
+    const restored = await decodeBackup(await encodeBackup(config))
+    expect(restored.config).toEqual(config)
+    expect(validGridItem(legacy)).toBe(true)
+    expect(validGridItem(rest)).toBe(true)
+    for (const fields of [
+      { breakMinutes: -1 },
+      { breakMinutes: 181 },
+      { breakMinutes: 0.5 },
+      { loop: "yes" },
+      { phase: "invalid" },
+      { phase: "break", breakMinutes: 0 },
+    ]) {
+      expect(validGridItem({ ...legacy, ...fields })).toBe(false)
+    }
   })
 
   test("remote sources and response schemas are bounded", () => {

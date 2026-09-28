@@ -434,8 +434,8 @@ export const componentRegistry = {
   ),
   countdown: utilityDefinition(
     "countdown",
-    "medium",
-    [gridSize("medium", "4x2", "medium"), gridSize("large", "4x4", "large")],
+    "small",
+    [gridSize("small", "2x2", "small"), gridSize("wide", "4x1", "wide")],
     "productivity",
     "#d49b6c"
   ),
@@ -492,12 +492,15 @@ export const componentRegistry = {
   ),
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
-// Utility widgets remain registered for saved layouts but are temporarily absent here.
+// Only widgets listed here can be added; other registered utilities remain
+// available to saved layouts.
 export const catalogComponentKinds = [
   "button",
   "dot-canvas",
   "todo",
   "calendar",
+  "pomodoro",
+  "countdown",
   "search-minimal",
   "ecosystem",
 ] as const satisfies readonly GridItemKind[]

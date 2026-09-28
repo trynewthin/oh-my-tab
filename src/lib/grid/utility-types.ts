@@ -13,7 +13,7 @@ export type UtilityWidgetKind = (typeof utilityWidgetKinds)[number]
 export type UtilityWidgetSize =
   "small" | "medium" | "large" | "tall" | "wide" | "wide-tall"
 
-export type CountdownEvent = { id: string; title: string; date: string }
+export type CountdownEvent = { title: string; date: string }
 export type WorldClockZone = { id: string; label: string; timeZone: string }
 
 type UtilityBase = {
@@ -32,11 +32,14 @@ export type UtilityWidgetItem = UtilityBase &
         showSeconds: boolean
         timeZone: string
       }
-    | { kind: "countdown"; events: CountdownEvent[] }
+    | { kind: "countdown"; event: CountdownEvent | null }
     | { kind: "note"; text: string }
     | {
         kind: "pomodoro"
         minutes: number
+        breakMinutes?: number
+        loop?: boolean
+        phase?: "focus" | "break"
         remainingMs: number
         endsAt: number | null
         completedOn: string

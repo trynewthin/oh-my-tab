@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import SettingItem from "@/components/settings/shared/setting-item"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import DatePicker from "@/components/ui/date-picker"
 import { Switch } from "@/components/ui/switch"
 import ColorPicker from "@/components/ui/color-picker"
 import ComponentEditorFrame from "./component-editor-frame"
@@ -29,7 +31,6 @@ import { validGridItem } from "@/lib/grid/validation"
 import {
   applyUtilityConfiguration,
   localDateKey,
-  MAX_COUNTDOWN_EVENTS,
   MAX_WORLD_CLOCKS,
 } from "@/lib/widgets/model"
 import { prepareWidgetPhoto } from "@/lib/widgets/photo"
@@ -116,7 +117,15 @@ export default function UtilityWidgetEditor({
   onSaved: () => void
 }) {
   const { t } = useTranslation()
-  const [draft, setDraft] = useState(item)
+  const eventFieldId = useId()
+  const durationId = useId()
+  const breakDurationId = useId()
+  const loopId = useId()
+  const [draft, setDraft] = useState<UtilityWidgetItem>(() =>
+    item.kind === "countdown" && item.event === null
+      ? { ...item, event: { title: "", date: localDateKey() } }
+      : item
+  )
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const uploadSequence = useRef(0)
@@ -172,10 +181,9 @@ export default function UtilityWidgetEditor({
     if (clean.kind === "countdown")
       clean = {
         ...clean,
-        events: clean.events.map((entry) => ({
-          ...entry,
-          title: entry.title.trim(),
-        })),
+        event: clean.event
+          ? { ...clean.event, title: clean.event.title.trim() }
+          : null,
       }
     if (clean.kind === "world-clock")
       clean = {
@@ -231,81 +239,45 @@ export default function UtilityWidgetEditor({
       case "countdown":
         return (
           <>
-            <p className="utility-editor-help">{t("widgets.countdownHelp")}</p>
-            {draft.events.map((entry, index) => (
-              <fieldset key={entry.id} className="utility-editor-group">
-                <legend className="px-1 text-xs">
-                  {t("widgets.eventIndex", { index: index + 1 })}
-                </legend>
-                <Field label={t("widgets.eventTitle")}>
-                  <Input
-                    required
-                    maxLength={40}
-                    value={entry.title}
-                    onChange={(event) =>
-                      patch({
-                        events: draft.events.map((value) =>
-                          value.id === entry.id
-                            ? { ...value, title: event.target.value }
-                            : value
-                        ),
-                      })
-                    }
-                  />
-                </Field>
-                <Field label={t("widgets.date")}>
-                  <Input
-                    type="date"
-                    required
-                    min="1000-01-01"
-                    max="9999-12-31"
-                    value={entry.date}
-                    onChange={(event) =>
-                      patch({
-                        events: draft.events.map((value) =>
-                          value.id === entry.id
-                            ? { ...value, date: event.target.value }
-                            : value
-                        ),
-                      })
-                    }
-                  />
-                </Field>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    patch({
-                      events: draft.events.filter(
-                        (value) => value.id !== entry.id
-                      ),
-                    })
-                  }
-                >
-                  {t("widgets.remove")}
-                </Button>
-              </fieldset>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              disabled={draft.events.length >= MAX_COUNTDOWN_EVENTS}
-              onClick={() =>
-                patch({
-                  events: [
-                    ...draft.events,
-                    {
-                      id: crypto.randomUUID(),
-                      title: t("widgets.event"),
-                      date: localDateKey(),
-                    },
-                  ],
-                })
-              }
+            <SettingItem
+              label={t("widgets.eventTitle")}
+              htmlFor={`${eventFieldId}-title`}
             >
-              {t("widgets.addEvent")}
-            </Button>
+              <Input
+                id={`${eventFieldId}-title`}
+                required
+                maxLength={40}
+                value={draft.event?.title ?? ""}
+                onChange={(event) =>
+                  patch({
+                    event: {
+                      title: event.target.value,
+                      date: draft.event?.date ?? localDateKey(),
+                    },
+                  })
+                }
+              />
+            </SettingItem>
+            <SettingItem
+              label={t("widgets.date")}
+              htmlFor={`${eventFieldId}-date`}
+              description={t("widgets.countdownHelp")}
+            >
+              <DatePicker
+                id={`${eventFieldId}-date`}
+                value={
+                  new Date(`${draft.event?.date ?? localDateKey()}T00:00:00`)
+                }
+                onChange={(date) =>
+                  patch({
+                    event: {
+                      title: draft.event?.title ?? "",
+                      date: localDateKey(date),
+                    },
+                  })
+                }
+              />
+            </SettingItem>
           </>
         )
       case "note":
@@ -313,8 +285,13 @@ export default function UtilityWidgetEditor({
       case "pomodoro":
         return (
           <>
-            <Field label={t("widgets.durationMinutes")}>
+            <SettingItem
+              label={t("widgets.durationMinutes")}
+              htmlFor={durationId}
+              description={t("widgets.pomodoroHelp")}
+            >
               <Input
+                id={durationId}
                 type="number"
                 required
                 min={1}
@@ -325,8 +302,37 @@ export default function UtilityWidgetEditor({
                   patch({ minutes: event.target.valueAsNumber })
                 }
               />
-            </Field>
-            <p className="utility-editor-help">{t("widgets.pomodoroHelp")}</p>
+            </SettingItem>
+            <SettingItem
+              label={t("widgets.breakMinutes")}
+              htmlFor={breakDurationId}
+              description={t("widgets.breakHelp")}
+            >
+              <Input
+                id={breakDurationId}
+                type="number"
+                required
+                min={0}
+                max={180}
+                step={1}
+                value={draft.breakMinutes ?? 0}
+                onChange={(event) =>
+                  patch({ breakMinutes: event.target.valueAsNumber })
+                }
+              />
+            </SettingItem>
+            <SettingItem
+              label={t("widgets.loop")}
+              htmlFor={loopId}
+              description={t("widgets.loopHelp")}
+            >
+              <Switch
+                id={loopId}
+                checked={draft.loop ?? false}
+                onCheckedChange={(loop) => patch({ loop })}
+                className="justify-self-end data-checked:bg-foreground [&_[data-slot=switch-thumb]]:bg-background"
+              />
+            </SettingItem>
           </>
         )
       case "weather":
@@ -560,7 +566,12 @@ export default function UtilityWidgetEditor({
       width={dimensions.width}
       height={dimensions.height}
       preview={
-        <UtilityWidgetTile item={previewItem} preview onOpen={() => {}} />
+        <UtilityWidgetTile
+          item={previewItem}
+          preview
+          sample={false}
+          onOpen={() => {}}
+        />
       }
       previewBorder={getComponentDefinition(item.kind).tileBorder}
       sizeOptions={sizes}
@@ -574,23 +585,35 @@ export default function UtilityWidgetEditor({
       onClose={onClose}
     >
       <div className="utility-editor-fields">
-        <Field label={t("grid.editor.name")}>
-          <Input
-            required
-            maxLength={40}
-            value={draft.name}
-            onChange={(event) => patch({ name: event.target.value })}
-          />
-        </Field>
-        {getComponentDefinition(item.kind).actions.randomColor && (
-          <div className="utility-editor-field">
-            <span>{t("grid.editor.backgroundColor")}</span>
+        {draft.kind !== "pomodoro" && draft.kind !== "countdown" && (
+          <Field label={t("grid.editor.name")}>
+            <Input
+              required
+              maxLength={40}
+              value={draft.name}
+              onChange={(event) => patch({ name: event.target.value })}
+            />
+          </Field>
+        )}
+        {draft.kind === "pomodoro" || draft.kind === "countdown" ? (
+          <SettingItem label={t("grid.editor.backgroundColor")}>
             <ColorPicker
               label={t("grid.editor.backgroundColor")}
               value={draft.color}
               onChange={(color) => patch({ color })}
             />
-          </div>
+          </SettingItem>
+        ) : (
+          getComponentDefinition(item.kind).actions.randomColor && (
+            <div className="utility-editor-field">
+              <span>{t("grid.editor.backgroundColor")}</span>
+              <ColorPicker
+                label={t("grid.editor.backgroundColor")}
+                value={draft.color}
+                onChange={(color) => patch({ color })}
+              />
+            </div>
+          )
         )}
         {fields()}
         {(item.kind === "weather" || item.kind === "rss") && (

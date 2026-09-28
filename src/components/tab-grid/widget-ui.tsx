@@ -79,6 +79,7 @@ export function WidgetTile({
   item,
   onOpen,
   preview = false,
+  sample = false,
   compactTab = false,
   folderTabs,
   todoTasks,
@@ -86,12 +87,20 @@ export function WidgetTile({
   item: GridItem
   onOpen: () => void
   preview?: boolean
+  sample?: boolean
   compactTab?: boolean
   folderTabs?: TabEntry[]
   todoTasks?: TodoTask[]
 }) {
   if (isUtilityWidget(item))
-    return <UtilityWidgetTile item={item} onOpen={onOpen} preview={preview} />
+    return (
+      <UtilityWidgetTile
+        item={item}
+        onOpen={onOpen}
+        preview={preview}
+        sample={sample}
+      />
+    )
 
   switch (item.kind) {
     case "button":
@@ -232,5 +241,5 @@ export function WidgetCatalogPreview({
     item.pixels = resizeDots(pixels, 24, dimensions.columns, dimensions.rows)
     item.pixelColumns = dimensions.columns
   }
-  return <WidgetTile item={item} preview onOpen={() => {}} />
+  return <WidgetTile item={item} preview sample onOpen={() => {}} />
 }

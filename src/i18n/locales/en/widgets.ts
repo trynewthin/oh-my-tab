@@ -6,7 +6,7 @@ export const utilityComponents = {
   },
   countdown: {
     label: "Countdown",
-    description: "Track up to four dates as calendar days.",
+    description: "Count down to or count up from an event date.",
     defaultName: "Countdown",
   },
   note: {
@@ -15,9 +15,9 @@ export const utilityComponents = {
     defaultName: "Quick note",
   },
   pomodoro: {
-    label: "Focus timer",
+    label: "Pomodoro timer",
     description: "A reload-safe start, pause, and reset timer.",
-    defaultName: "Focus timer",
+    defaultName: "Pomodoro timer",
   },
   weather: {
     label: "Weather",
@@ -72,10 +72,10 @@ export default {
   },
   configure: "Configure",
   today: "Today",
+  dayUnit: "days",
   daysLeft: "{{count}} days left",
   daysAgo: "{{count}} days ago",
   event: "My event",
-  eventIndex: "Event {{index}}",
   eventTitle: "Event title",
   date: "Date",
   remove: "Remove",
@@ -86,12 +86,20 @@ export default {
     "Type directly on the card. Changes are stored locally and included in ZIP backups. Up to 4,000 characters.",
   completed: "Focus session complete",
   sessionsToday: "{{count}} sessions today",
-  start: "Start or resume focus timer",
-  pause: "Pause focus timer",
+  start: "Start or resume timer",
+  pause: "Pause timer",
+  stop: "Stop timer",
   reset: "Reset focus timer",
   durationMinutes: "Session length (1–180 minutes)",
   pomodoroHelp:
     "Changing the duration resets the current timer. Reloading or hiding the page does not reset it.",
+  breakMinutes: "Break duration (0–180 minutes)",
+  breakHelp: "Set to 0 to skip breaks. Changing the duration resets the timer.",
+  loop: "Repeat",
+  loopHelp:
+    "Repeat focus and break periods automatically. With no break, start the next focus period immediately. When off, stop after the current focus and break cycle.",
+  breakPhase: "Break",
+  workPhase: "Work",
   photoPreview: "Your picture, kept on your device",
   photoFile: "Choose a local picture",
   photoHelp:
@@ -112,7 +120,7 @@ export default {
   timeZoneHelp:
     "Use names such as Asia/Tokyo, Europe/London, America/New_York, or UTC.",
   countdownHelp:
-    "4×2 highlights the first event; 4×4 adds the remaining dates below it. Dates are compared as calendar days.",
+    "Future dates count down, past dates count up, and the current date shows Today. Days are calculated using local calendar dates.",
   locationName: "Location label",
   latitude: "Latitude",
   longitude: "Longitude",

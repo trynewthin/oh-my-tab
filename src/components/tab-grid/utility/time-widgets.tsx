@@ -1,7 +1,9 @@
 import { useEffect, type CSSProperties } from "react"
 import {
-  ArrowCounterClockwise,
-  CalendarBlank,
+  Stop,
+  Plus,
+  Briefcase,
+  Coffee,
   Pause,
   Play,
   Moon,
@@ -10,6 +12,11 @@ import {
 import { useTranslation } from "react-i18next"
 import { useWallClock } from "@/components/effects/use-wall-clock"
 import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import type { UtilityWidgetItem } from "@/lib/grid/utility-types"
 import {
   completePomodoro,
@@ -17,11 +24,11 @@ import {
   formatDuration,
   localDateKey,
   remainingTime,
+  pomodoroPhaseMinutes,
   resetPomodoro,
   togglePomodoro,
 } from "@/lib/widgets/model"
 import {
-  calendarLabel,
   clockReading,
   countdownFontSize,
   timerProgress,
@@ -32,13 +39,7 @@ import {
   CollectionRow,
   CollectionViewport,
 } from "../collection/layout"
-import {
-  Dial,
-  WidgetAction,
-  WidgetEmpty,
-  WidgetSurface,
-  type WidgetProps,
-} from "./surface"
+import { Dial, WidgetAction, WidgetSurface, type WidgetProps } from "./surface"
 
 type KindProps<K extends UtilityWidgetItem["kind"]> = WidgetProps<
   Extract<UtilityWidgetItem, { kind: K }>
@@ -113,47 +114,49 @@ export function ClockTile(props: KindProps<"clock">) {
 }
 
 export function CountdownTile(props: KindProps<"countdown">) {
-  const { item, preview, sample = preview } = props
-  const { t, i18n } = useTranslation()
-  const now = useWallClock(preview)
-  const events =
-    sample && item.events.length === 0
-      ? [
-          {
-            id: "sample",
-            title: t("widgets.design.eventPreview"),
-            date: "2026-01-22",
-          },
-        ]
-      : item.events
-  const first = events[0]
-  const compact = item.size === "medium"
+  const { item, preview, sample = false, onOpen } = props
+  const { t } = useTranslation()
+  const now = useWallClock(sample)
+  const first = item.event
+  const compact = item.size === "wide"
   const days = first ? daysUntil(first.date, now) : null
   const digits = days === null ? "—" : String(Math.abs(days))
-  const relation =
-    days === null
-      ? ""
-      : t(
-          days === 0
-            ? "widgets.today"
-            : days > 0
-              ? "widgets.design.remaining"
-              : "widgets.design.elapsed"
-        )
   return (
-    <WidgetSurface {...props} className="utility-countdown">
+    <WidgetSurface {...props} header={false} className="utility-countdown">
       {!first ? (
-        <WidgetEmpty
-          {...props}
-          icon={<CalendarBlank size={30} weight="light" />}
-          title={t("widgets.design.addDate")}
-          hint={t("widgets.design.countdownHint")}
-        />
+        <div className="utility-countdown-empty">
+          {preview ? (
+            <span className="utility-countdown-add" aria-hidden="true">
+              <Plus size={24} weight="bold" />
+            </span>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="utility-countdown-add"
+              aria-label={t("widgets.addEvent")}
+              onClick={onOpen}
+            >
+              <Plus className="size-6" weight="bold" />
+            </Button>
+          )}
+          <span>{t("widgets.addEvent")}</span>
+        </div>
       ) : (
         <>
           <div className="utility-countdown-hero">
             <div
               className="utility-countdown-number"
+              aria-label={
+                days === 0
+                  ? t("widgets.today")
+                  : t(
+                      days !== null && days > 0
+                        ? "widgets.daysLeft"
+                        : "widgets.daysAgo",
+                      { count: Math.abs(days ?? 0) }
+                    )
+              }
               data-long={digits.length > 4 || undefined}
               style={
                 {
@@ -162,58 +165,12 @@ export function CountdownTile(props: KindProps<"countdown">) {
               }
             >
               <strong>{digits}</strong>
-              <span>{relation}</span>
+              {compact && <span>{t("widgets.dayUnit")}</span>}
             </div>
             <div className="utility-countdown-event">
               <strong title={first.title}>{first.title}</strong>
-              <time dateTime={first.date}>
-                {calendarLabel(first.date, i18n.resolvedLanguage ?? "en")}
-              </time>
             </div>
           </div>
-          {!compact && events.length > 1 && (
-            <CollectionViewport
-              label={item.name}
-              className="utility-countdown-list"
-            >
-              <CollectionGrid>
-                {events.slice(1).map((event) => {
-                  const distance = daysUntil(event.date, now)
-                  return (
-                    <CollectionRow
-                      key={event.id}
-                      className="utility-countdown-row"
-                    >
-                      <span title={event.title}>{event.title}</span>
-                      <strong>
-                        {distance === null
-                          ? "—"
-                          : distance === 0
-                            ? t("widgets.today")
-                            : t(
-                                distance > 0
-                                  ? "widgets.daysLeft"
-                                  : "widgets.daysAgo",
-                                { count: Math.abs(distance) }
-                              )}
-                      </strong>
-                    </CollectionRow>
-                  )
-                })}
-              </CollectionGrid>
-            </CollectionViewport>
-          )}
-          {!compact && events.length === 1 && (
-            <div className="utility-countdown-rule" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          )}
         </>
       )}
     </WidgetSurface>
@@ -221,42 +178,76 @@ export function CountdownTile(props: KindProps<"countdown">) {
 }
 
 export function PomodoroTile(props: KindProps<"pomodoro">) {
-  const { item, preview, sample = preview } = props
+  const { item: sourceItem, preview, sample = false } = props
   const { t } = useTranslation()
-  const now = useWallClock(preview)
+  const now = useWallClock(sample)
+  const item =
+    preview && !sample ? completePomodoro(sourceItem, now) : sourceItem
   const left = remainingTime(item, now)
   const shownLeft = sample ? 18 * 60_000 + 42_000 : left
-  const progress = timerProgress(shownLeft, item.minutes)
+  const progress = timerProgress(shownLeft, pomodoroPhaseMinutes(item))
   useEffect(() => {
     if (preview || item.endsAt === null || item.endsAt > now) return
     updateUtilityWidget(item.id, (current) =>
       current.kind === "pomodoro" ? completePomodoro(current, now) : current
     )
   }, [item.id, item.endsAt, now, preview])
-  const count = item.completedOn === localDateKey(now) ? item.completedToday : 0
   const running = item.endsAt !== null
-  const label = t(
-    running ? "widgets.design.pauseShort" : "widgets.design.startShort"
+  const count = item.completedOn === localDateKey(now) ? item.completedToday : 0
+  const countLabel = t("widgets.sessionsToday", { count })
+  const countText = count > 99 ? "99+" : count
+  const phaseLabel = t(
+    item.phase === "break" ? "widgets.breakPhase" : "widgets.workPhase"
   )
   return (
-    <WidgetSurface
-      {...props}
-      className="utility-pomodoro"
-      footer={
-        <span role={preview ? undefined : "status"}>
-          {left === 0 && !preview
-            ? t("widgets.completed")
-            : t("widgets.sessionsToday", { count })}
+    <WidgetSurface {...props} header={false} className="utility-pomodoro">
+      <span
+        className="utility-timer-status"
+        role="img"
+        aria-label={phaseLabel}
+        title={phaseLabel}
+      >
+        {item.phase === "break" ? (
+          <Coffee size={20} aria-hidden="true" />
+        ) : (
+          <Briefcase size={20} aria-hidden="true" />
+        )}
+      </span>
+      {preview ? (
+        <span className="utility-timer-count" aria-label={countLabel}>
+          {countText}
         </span>
-      }
-    >
+      ) : (
+        <Popover>
+          <PopoverTrigger
+            aria-label={countLabel}
+            title={countLabel}
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="utility-timer-count"
+              />
+            }
+          >
+            {countText}
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            className="w-auto rounded-xl p-3"
+            aria-label={countLabel}
+          >
+            {countLabel}
+          </PopoverContent>
+        </Popover>
+      )}
       <div className="utility-focus-ring">
         <svg viewBox="0 0 160 160" aria-hidden="true">
-          <circle cx="80" cy="80" r="74" className="utility-ring-track" />
+          <circle cx="80" cy="80" r="70" className="utility-ring-track" />
           <circle
             cx="80"
             cy="80"
-            r="74"
+            r="70"
             pathLength="100"
             strokeDasharray="100"
             strokeDashoffset={100 * (1 - progress)}
@@ -265,9 +256,6 @@ export function PomodoroTile(props: KindProps<"pomodoro">) {
           />
         </svg>
         <div className="utility-focus-readout">
-          <span className="utility-eyebrow">
-            {t(running ? "widgets.design.focusing" : "widgets.design.yourPace")}
-          </span>
           <span className="utility-focus-time" role="timer" aria-live="off">
             {formatDuration(shownLeft)}
           </span>
@@ -275,14 +263,35 @@ export function PomodoroTile(props: KindProps<"pomodoro">) {
       </div>
       <div className="utility-timer-controls">
         {preview ? (
-          <span className="utility-timer-primary">
-            <Play size={14} weight="fill" />
-            {label}
-          </span>
+          <>
+            <span className="utility-action utility-timer-stop">
+              <Stop size={16} weight="fill" />
+            </span>
+            <span className="utility-timer-primary">
+              {running ? (
+                <Pause size={18} weight="fill" />
+              ) : (
+                <Play size={18} weight="fill" />
+              )}
+            </span>
+          </>
         ) : (
           <>
+            <WidgetAction
+              label={t("widgets.stop")}
+              className="utility-timer-stop"
+              onClick={() =>
+                updateUtilityWidget(item.id, (current) =>
+                  current.kind === "pomodoro" ? resetPomodoro(current) : current
+                )
+              }
+            >
+              <Stop size={16} weight="fill" />
+            </WidgetAction>
             <Button
+              size="icon"
               className="utility-timer-primary"
+              title={t(running ? "widgets.pause" : "widgets.start")}
               onClick={() =>
                 updateUtilityWidget(item.id, (current) =>
                   current.kind === "pomodoro"
@@ -293,25 +302,19 @@ export function PomodoroTile(props: KindProps<"pomodoro">) {
               aria-label={t(running ? "widgets.pause" : "widgets.start")}
             >
               {running ? (
-                <Pause size={14} weight="fill" />
+                <Pause size={18} weight="fill" />
               ) : (
-                <Play size={14} weight="fill" />
+                <Play size={18} weight="fill" />
               )}
-              {label}
             </Button>
-            <WidgetAction
-              label={t("widgets.reset")}
-              onClick={() =>
-                updateUtilityWidget(item.id, (current) =>
-                  current.kind === "pomodoro" ? resetPomodoro(current) : current
-                )
-              }
-            >
-              <ArrowCounterClockwise size={16} />
-            </WidgetAction>
           </>
         )}
       </div>
+      {!preview && (
+        <span className="sr-only" role="status">
+          {left === 0 ? t("widgets.completed") : ""}
+        </span>
+      )}
     </WidgetSurface>
   )
 }

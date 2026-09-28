@@ -113,7 +113,7 @@ export function timerProgress(remainingMs: number, minutes: number) {
 export function countdownFontSize(value: string, compact: boolean) {
   // Preserve the whole value, including very distant dates, without ellipsis.
   return Math.min(
-    compact ? 54 : 82,
-    (compact ? 108 : 228) / (Math.max(value.length, 1) * 0.64)
+    compact ? 28 : 64,
+    (compact ? 96 : 100) / (Math.max(value.length, 1) * 0.64)
   )
 }

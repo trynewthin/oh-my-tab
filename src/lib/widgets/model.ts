@@ -8,7 +8,6 @@ import type {
 export const NOTE_MAX_LENGTH = 4000
 export const PHOTO_MAX_BYTES = 512 * 1024
 const PHOTO_MAX_DATA_LENGTH = Math.ceil(PHOTO_MAX_BYTES / 3) * 4 + 40
-export const MAX_COUNTDOWN_EVENTS = 4
 export const MAX_WORLD_CLOCKS = 4
 const DAY_MS = 86_400_000
 
@@ -50,28 +49,74 @@ export function validTimeZone(value: unknown): value is string {
   }
 }
 
+export function pomodoroPhaseMinutes(item: PomodoroItem) {
+  return item.phase === "break" ? (item.breakMinutes ?? 0) : item.minutes
+}
+
 export function remainingTime(item: PomodoroItem, now = Date.now()) {
   return Math.max(
     0,
     Math.min(
-      item.minutes * 60_000,
+      pomodoroPhaseMinutes(item) * 60_000,
       item.endsAt === null ? item.remainingMs : item.endsAt - now
     )
   )
 }
 
-export function completePomodoro(item: PomodoroItem, now = Date.now()) {
+export function completePomodoro(
+  item: PomodoroItem,
+  now = Date.now()
+): PomodoroItem {
   if (item.endsAt === null || now < item.endsAt) return item
-  const day = localDateKey(item.endsAt)
+  const focusMs = item.minutes * 60_000
+  const breakMs = (item.breakMinutes ?? 0) * 60_000
+  const period = focusMs + breakMs
+  const firstFocusEnd =
+    item.phase === "break" ? item.endsAt + focusMs : item.endsAt
+  const completions = item.loop
+    ? Math.max(0, Math.floor((now - firstFocusEnd) / period) + 1)
+    : item.phase === "break"
+      ? 0
+      : 1
+  let next = { ...item }
+  if (completions > 0) {
+    const lastEnd = firstFocusEnd + (completions - 1) * period
+    const day = localDateKey(lastEnd)
+    const midnight = new Date(lastEnd)
+    midnight.setHours(0, 0, 0, 0)
+    const count = Math.min(
+      completions,
+      Math.floor((lastEnd - midnight.getTime()) / period) + 1
+    )
+    next = {
+      ...next,
+      completedOn: day,
+      completedToday: Math.min(
+        1_000_000,
+        (item.completedOn === day ? item.completedToday : 0) + count
+      ),
+    }
+  }
+  if (!item.loop) {
+    if (item.phase !== "break" && breakMs > 0 && now < item.endsAt + breakMs)
+      return {
+        ...next,
+        phase: "break",
+        endsAt: item.endsAt + breakMs,
+        remainingMs: breakMs,
+      }
+    return { ...next, phase: "focus", endsAt: null, remainingMs: 0 }
+  }
+  const base = firstFocusEnd - focusMs
+  const elapsed = now - base
+  const cycleStart = base + Math.floor(elapsed / period) * period
+  const phase = elapsed % period < focusMs ? "focus" : "break"
+  const duration = phase === "focus" ? focusMs : breakMs
   return {
-    ...item,
-    endsAt: null,
-    remainingMs: 0,
-    completedOn: day,
-    completedToday: Math.min(
-      1_000_000,
-      item.completedOn === day ? item.completedToday + 1 : 1
-    ),
+    ...next,
+    phase,
+    endsAt: cycleStart + (phase === "focus" ? focusMs : period),
+    remainingMs: duration,
   }
 }
 
@@ -83,12 +128,18 @@ export function togglePomodoro(item: PomodoroItem, now = Date.now()) {
       remainingMs: remainingTime(current, now),
       endsAt: null,
     }
-  const remainingMs = current.remainingMs || current.minutes * 60_000
+  const remainingMs =
+    current.remainingMs || pomodoroPhaseMinutes(current) * 60_000
   return { ...current, remainingMs, endsAt: now + remainingMs }
 }
 
-export function resetPomodoro(item: PomodoroItem) {
-  return { ...item, endsAt: null, remainingMs: item.minutes * 60_000 }
+export function resetPomodoro(item: PomodoroItem): PomodoroItem {
+  return {
+    ...item,
+    phase: "focus",
+    endsAt: null,
+    remainingMs: item.minutes * 60_000,
+  }
 }
 
 export function formatDuration(milliseconds: number) {
@@ -173,23 +224,25 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
       )
     case "countdown":
       return (
-        Array.isArray(item.events) &&
-        item.events.length <= MAX_COUNTDOWN_EVENTS &&
-        item.events.every(
-          (event) =>
-            event &&
-            text(event.id, 100, true) &&
-            text(event.title, 40, true) &&
-            dateOrdinal(event.date) !== null
-        ) &&
-        distinctIds(item.events)
+        item.event === null ||
+        (typeof item.event === "object" &&
+          item.event !== null &&
+          text(item.event.title, 40, true) &&
+          dateOrdinal(item.event.date) !== null)
       )
     case "note":
       return text(item.text, NOTE_MAX_LENGTH)
     case "pomodoro":
       return (
         integer(item.minutes, 1, 180) &&
-        integer(item.remainingMs, 0, item.minutes * 60_000) &&
+        (item.breakMinutes === undefined ||
+          integer(item.breakMinutes, 0, 180)) &&
+        (item.loop === undefined || typeof item.loop === "boolean") &&
+        (item.phase === undefined ||
+          item.phase === "focus" ||
+          item.phase === "break") &&
+        (item.phase !== "break" || (item.breakMinutes ?? 0) > 0) &&
+        integer(item.remainingMs, 0, pomodoroPhaseMinutes(item) * 60_000) &&
         (item.endsAt === null ||
           integer(item.endsAt, 0, 8_640_000_000_000_000)) &&
         (item.completedOn === "" || dateOrdinal(item.completedOn) !== null) &&
@@ -253,7 +306,7 @@ export function createUtilityWidget(
         timeZone: "",
       }
     case "countdown":
-      return { ...shared, kind, events: [] }
+      return { ...shared, kind, event: null }
     case "note":
       return { ...shared, kind, text: "" }
     case "pomodoro":
@@ -261,6 +314,9 @@ export function createUtilityWidget(
         ...shared,
         kind,
         minutes: 25,
+        breakMinutes: 0,
+        loop: false,
+        phase: "focus",
         remainingMs: 25 * 60_000,
         endsAt: null,
         completedOn: "",
@@ -303,11 +359,17 @@ export function applyUtilityConfiguration(
     return { ...draft, text: current.text }
   if (current.kind === "pomodoro" && draft.kind === "pomodoro") {
     const live =
-      current.minutes === draft.minutes
+      current.minutes === draft.minutes &&
+      (current.breakMinutes ?? 0) === (draft.breakMinutes ?? 0)
         ? current
-        : resetPomodoro({ ...current, minutes: draft.minutes })
+        : resetPomodoro({
+            ...current,
+            minutes: draft.minutes,
+            breakMinutes: draft.breakMinutes,
+          })
     return {
       ...draft,
+      phase: live.phase,
       endsAt: live.endsAt,
       remainingMs: live.remainingMs,
       completedOn: live.completedOn,

@@ -20,7 +20,7 @@ describe("utility widget backups", () => {
         case "countdown":
           return {
             ...item,
-            events: [{ id: "event", title: "Trip", date: "2027-01-15" }],
+            event: { title: "Trip", date: "2027-01-15" },
           }
         case "pomodoro":
           return { ...item, endsAt: 1_800_000_000_000 }

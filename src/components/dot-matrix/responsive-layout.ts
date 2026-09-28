@@ -5,6 +5,20 @@ export const CELL_GAP = 3
 export function matrixColumns(width: number) {
   return Math.max(1, Math.floor((width + CELL_GAP) / (CELL_SIZE + CELL_GAP)))
 }
+
+export function framedClockBitmap(time: string, stacked = false): Bitmap {
+  const lines = stacked ? time.split(":") : [time]
+  const bitmaps = lines.map(stacked ? compactTime : textBitmap)
+  const columns = Math.max(...bitmaps.map((bitmap) => bitmap[0].length))
+  const blank = () => Array(columns + 2).fill(0) as number[]
+  const rows: Bitmap = [blank()]
+  bitmaps.forEach((bitmap, index) => {
+    if (index > 0) rows.push(blank(), blank(), blank())
+    rows.push(...fitBitmap(bitmap, columns).map((row) => [0, ...row, 0]))
+  })
+  rows.push(blank())
+  return rows
+}
 const compactDigits: Record<string, string> = {
   "0": "111/101/101/101/101/101/111",
   "1": "010/110/010/010/010/010/111",

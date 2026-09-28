@@ -36,11 +36,13 @@ export default function WorkdayTile(
         data-celebrating={(!preview && reading.celebrating) || undefined}
       >
         <div className="workday-readout">
-          <span className="workday-label" role="status">
-            {label}
-          </span>
+          {!done && (
+            <span className="workday-label" role="status">
+              {label}
+            </span>
+          )}
           {done ? (
-            <strong className="workday-free">
+            <strong className="workday-free" role="status">
               {t("widgets.workday.free")}
             </strong>
           ) : (

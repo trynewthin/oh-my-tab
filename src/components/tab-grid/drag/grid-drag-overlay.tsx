@@ -141,18 +141,22 @@ export default function GridDragOverlay({
               // pixel-identical while dragging — a missing 1px border reads
               // as the icon and texture sliding on grab and drop.
               boxShadow:
-                !preview && releaseProgress > 0
+                !preview &&
+                releaseProgress > 0 &&
+                getComponentDefinition(dragging.item.kind).tileBorder
                   ? `0 10px 15px -3px rgb(0 0 0 / ${0.1 * releaseProgress}), 0 4px 6px -4px rgb(0 0 0 / ${0.1 * releaseProgress})`
                   : undefined,
-              borderWidth: searchWidget
-                ? 0
-                : preview
-                  ? getComponentDefinition(dragging.item.kind).tileBorder
-                    ? 1
-                    : 0
-                  : releaseProgress > 0
-                    ? 1
-                    : 0,
+              borderWidth:
+                searchWidget ||
+                !getComponentDefinition(dragging.item.kind).tileBorder
+                  ? 0
+                  : preview
+                    ? getComponentDefinition(dragging.item.kind).tileBorder
+                      ? 1
+                      : 0
+                    : releaseProgress > 0
+                      ? 1
+                      : 0,
               borderStyle: "solid",
               borderColor: preview
                 ? "var(--tile-border)"

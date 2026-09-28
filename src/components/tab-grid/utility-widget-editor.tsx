@@ -123,6 +123,7 @@ export default function UtilityWidgetEditor({
   const breakDurationId = useId()
   const loopId = useId()
   const workdayId = useId()
+  const clockId = useId()
   const [draft, setDraft] = useState<UtilityWidgetItem>(() =>
     item.kind === "countdown" && item.event === null
       ? { ...item, event: { title: "", date: localDateKey() } }
@@ -221,25 +222,46 @@ export default function UtilityWidgetEditor({
       case "clock":
         return (
           <>
-            <Field label={t("widgets.timeZone")}>
+            <SettingItem
+              label={t("widgets.clockEffect")}
+              htmlFor={`${clockId}-effect`}
+            >
+              <Select
+                value={draft.effect}
+                onValueChange={(effect) => {
+                  if (effect === "plain" || effect === "dots") patch({ effect })
+                }}
+              >
+                <SelectTrigger id={`${clockId}-effect`} className="w-full">
+                  <SelectValue>
+                    {t(
+                      draft.effect === "dots"
+                        ? "widgets.clockDots"
+                        : "widgets.clockPlain"
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="plain">
+                    {t("widgets.clockPlain")}
+                  </SelectItem>
+                  <SelectItem value="dots">{t("widgets.clockDots")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </SettingItem>
+            <SettingItem
+              label={t("widgets.timeZone")}
+              htmlFor={`${clockId}-zone`}
+              description={t("widgets.timeZoneHelp")}
+            >
               <Input
+                id={`${clockId}-zone`}
                 value={draft.timeZone}
                 maxLength={100}
                 placeholder={t("widgets.deviceTimeZone")}
                 onChange={(event) => patch({ timeZone: event.target.value })}
               />
-            </Field>
-            <SwitchField
-              label={t("widgets.hour12")}
-              checked={draft.hour12}
-              onChange={(hour12) => patch({ hour12 })}
-            />
-            <SwitchField
-              label={t("widgets.showSeconds")}
-              checked={draft.showSeconds}
-              onChange={(showSeconds) => patch({ showSeconds })}
-            />
-            <p className="utility-editor-help">{t("widgets.timeZoneHelp")}</p>
+            </SettingItem>
           </>
         )
       case "countdown":
@@ -623,7 +645,8 @@ export default function UtilityWidgetEditor({
       <div className="utility-editor-fields">
         {draft.kind !== "pomodoro" &&
           draft.kind !== "countdown" &&
-          draft.kind !== "workday" && (
+          draft.kind !== "workday" &&
+          draft.kind !== "clock" && (
             <Field label={t("grid.editor.name")}>
               <Input
                 required
@@ -635,10 +658,21 @@ export default function UtilityWidgetEditor({
           )}
         {draft.kind === "pomodoro" ||
         draft.kind === "countdown" ||
-        draft.kind === "workday" ? (
-          <SettingItem label={t("grid.editor.backgroundColor")}>
+        draft.kind === "workday" ||
+        draft.kind === "clock" ? (
+          <SettingItem
+            label={t(
+              draft.kind === "clock"
+                ? "widgets.clockColor"
+                : "grid.editor.backgroundColor"
+            )}
+          >
             <ColorPicker
-              label={t("grid.editor.backgroundColor")}
+              label={t(
+                draft.kind === "clock"
+                  ? "widgets.clockColor"
+                  : "grid.editor.backgroundColor"
+              )}
               value={draft.color}
               onChange={(color) => patch({ color })}
             />

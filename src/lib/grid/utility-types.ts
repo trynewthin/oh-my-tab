@@ -29,8 +29,7 @@ export type UtilityWidgetItem = UtilityBase &
   (
     | {
         kind: "clock"
-        hour12: boolean
-        showSeconds: boolean
+        effect: "plain" | "dots"
         timeZone: string
       }
     | { kind: "countdown"; event: CountdownEvent | null }

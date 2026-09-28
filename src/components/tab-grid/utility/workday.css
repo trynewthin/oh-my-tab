@@ -53,6 +53,9 @@
   font-weight: 600;
   letter-spacing: -0.04em;
 }
+.workday-scene[data-phase="done"] .workday-readout {
+  justify-content: center;
+}
 .workday-route {
   display: flex;
   align-items: center;

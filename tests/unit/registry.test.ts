@@ -4,6 +4,7 @@ import {
   catalogComponentKinds,
   componentRegistry,
   getItemGridDimensions,
+  getComponentSizeOptions,
   occupancyMark,
   sizeLabel,
 } from "@/lib/grid/registry"
@@ -12,6 +13,26 @@ import { utilityWidgetKinds } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
 
 describe("component occupancy registration", () => {
+  test("clock offers 2x1, 4x2 and 2x4 without a background border or background effects", () => {
+    expect(
+      getComponentSizeOptions("clock", "catalog").map(({ width, height }) => [
+        width,
+        height,
+      ])
+    ).toEqual([
+      [2, 1],
+      [4, 2],
+      [2, 4],
+    ])
+    expect(componentRegistry.clock.tileBorder).toBe(false)
+    expect(componentRegistry.clock.actions.dynamicEffect).toBe(false)
+    expect(componentRegistry.clock.menu.operations).not.toContain(
+      "dynamicEffect"
+    )
+    expect(
+      validGridItem({ ...createCatalogComponent("clock"), size: "large" })
+    ).toBe(false)
+  })
   test("every size picks a unique occupancy from the shared scale", () => {
     for (const [kind, definition] of Object.entries(componentRegistry)) {
       const occupancies = definition.sizes.map((size) => size.occupancy)
@@ -54,6 +75,7 @@ describe("component occupancy registration", () => {
       )
     ).toEqual({
       button: "common",
+      clock: "common",
       "dot-canvas": "dots",
       todo: "productivity",
       calendar: "productivity",
@@ -66,7 +88,10 @@ describe("component occupancy registration", () => {
     for (const kind of [
       ...utilityWidgetKinds.filter(
         (kind) =>
-          kind !== "pomodoro" && kind !== "countdown" && kind !== "workday"
+          kind !== "pomodoro" &&
+          kind !== "countdown" &&
+          kind !== "workday" &&
+          kind !== "clock"
       ),
       "bookmark-list",
       "search-full",

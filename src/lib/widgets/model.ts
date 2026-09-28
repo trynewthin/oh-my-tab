@@ -219,8 +219,7 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
   switch (item.kind) {
     case "clock":
       return (
-        typeof item.hour12 === "boolean" &&
-        typeof item.showSeconds === "boolean" &&
+        (item.effect === "plain" || item.effect === "dots") &&
         validTimeZone(item.timeZone)
       )
     case "countdown":
@@ -304,8 +303,7 @@ export function createUtilityWidget(
       return {
         ...shared,
         kind,
-        hour12: false,
-        showSeconds: false,
+        effect: "plain",
         timeZone: "",
       }
     case "countdown":

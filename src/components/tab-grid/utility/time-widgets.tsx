@@ -1,3 +1,4 @@
+import ClockDigits from "@/components/dot-matrix/clock-digits"
 import { useEffect, type CSSProperties } from "react"
 import {
   Stop,
@@ -46,69 +47,44 @@ type KindProps<K extends UtilityWidgetItem["kind"]> = WidgetProps<
 >
 
 export function ClockTile(props: KindProps<"clock">) {
-  const { item, preview, onOpen } = props
-  const { i18n, t } = useTranslation()
-  const now = useWallClock(preview)
+  const { item, sample = false } = props
+  const { i18n } = useTranslation()
+  const now = useWallClock(sample)
   const value = clockReading(
     now,
     i18n.resolvedLanguage ?? "en",
     item.timeZone,
-    item.hour12
+    false
   )
-  const content = (
-    <>
-      <span className="utility-clock-caption">
-        <span className="utility-eyebrow">
-          {item.size === "small" ? item.name : value.weekday}
-        </span>
-        <span className="utility-pixels" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
-      </span>
+  const tall = item.size === "tall"
+  const parts = tall ? value.time.split(":") : [value.time]
+  return (
+    <WidgetSurface
+      {...props}
+      header={false}
+      background={false}
+      className="utility-clock"
+    >
       <time
         className="utility-clock-time"
         dateTime={new Date(now).toISOString()}
-        aria-label={`${value.time}${item.showSeconds ? `:${value.seconds}` : ""} ${value.period}`}
+        aria-label={value.time}
+        style={{ color: item.color }}
       >
-        <span>{value.time}</span>
-        {(item.showSeconds || item.hour12) && (
-          <span className="utility-clock-detail">
-            {item.showSeconds && <span>{value.seconds}</span>}
-            {value.period && (
-              <span className="utility-period">{value.period}</span>
-            )}
-          </span>
+        {item.effect === "dots" ? (
+          <ClockDigits text={value.time} color={item.color} stacked={tall} />
+        ) : (
+          parts.map((part, index) => (
+            <span
+              key={index}
+              className="utility-clock-digits"
+              aria-hidden="true"
+            >
+              {part}
+            </span>
+          ))
         )}
       </time>
-      {item.size !== "small" && (
-        <span className="utility-clock-date">
-          <span>{value.date}</span>
-          <span className="utility-clock-zone">
-            {item.timeZone
-              ? item.timeZone.split("/").at(-1)?.replaceAll("_", " ")
-              : item.name}
-          </span>
-        </span>
-      )}
-    </>
-  )
-  return (
-    <WidgetSurface {...props} header={false} className="utility-clock">
-      {preview ? (
-        <div className="utility-clock-layout">{content}</div>
-      ) : (
-        <button
-          type="button"
-          className="utility-clock-layout utility-focus"
-          aria-label={`${item.name} · ${t("widgets.configure")}`}
-          onClick={onOpen}
-        >
-          {content}
-        </button>
-      )}
     </WidgetSurface>
   )
 }

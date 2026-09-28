@@ -13,6 +13,13 @@ describe("utility widget backups", () => {
     const items = utilityWidgetKinds.map((kind) => {
       const item = createCatalogComponent(kind)
       switch (item.kind) {
+        case "clock":
+          return {
+            ...item,
+            size: "tall",
+            effect: "dots",
+            timeZone: "Asia/Tokyo",
+          }
         case "note":
           return { ...item, text: "First line\n第二行" }
         case "photo":

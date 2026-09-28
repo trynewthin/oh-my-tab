@@ -115,118 +115,54 @@
   color: var(--utility-secondary);
 }
 .utility-clock .utility-body {
-  padding: 22px;
-}
-.utility-clock-layout {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-  min-height: 0;
-  text-align: left;
-}
-.utility-clock-caption {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
-}
-.utility-pixels {
-  display: grid;
-  grid-template-columns: repeat(2, 3px);
-  gap: 3px;
-  color: var(--utility-accent);
-  flex-shrink: 0;
-}
-.utility-pixels i {
-  width: 3px;
-  height: 3px;
-  background: currentColor;
-  border-radius: 1px;
-}
-.utility-pixels i:first-child {
-  opacity: 0.35;
+  padding: 8px;
+  justify-content: center;
 }
 .utility-clock-time {
   display: flex;
+  width: 100%;
   align-items: baseline;
-  gap: 8px;
-  margin-block: auto;
-  padding-block: 12px;
-  color: var(--utility-ink);
-  font-size: clamp(40px, 22cqw, 68px);
-  font-weight: 450;
-  letter-spacing: -0.065em;
-  line-height: 1;
+  justify-content: center;
+  gap: 6px;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.utility-clock-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 20px;
-  letter-spacing: -0.025em;
-  color: var(--utility-secondary);
-}
-.utility-period {
-  font-size: 11px;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: -0.055em;
 }
-.utility-clock-date {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
+.utility-clock-digits {
+  font-size: 31cqw;
+  font-weight: 650;
 }
-.utility-clock-zone {
-  max-width: 55%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-  color: var(--utility-secondary);
+.utility-clock[data-size="small"] .utility-clock-digits {
+  font-size: 29cqw;
 }
-.utility-clock[data-size="medium"] .utility-body {
-  padding: 13px 18px;
+.utility-clock[data-size="small"] .utility-clock-matrix {
+  flex: 0 1 auto;
+  width: min(100%, calc(38px * var(--clock-matrix-ratio)));
 }
-.utility-clock[data-size="medium"] .utility-clock-time {
-  font-size: 42px;
-  padding-block: 4px;
-}
-.utility-clock[data-size="small"] .utility-body {
-  padding: 12px 16px;
-}
-.utility-clock[data-size="small"] .utility-clock-layout {
-  flex-direction: row;
+.utility-clock[data-size="tall"] .utility-clock-time {
+  height: 100%;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: space-around;
+  gap: 0;
 }
-.utility-clock[data-size="small"] .utility-clock-caption {
-  order: 1;
+.utility-clock[data-size="tall"] .utility-clock-digits {
+  font-size: 72cqw;
+}
+.utility-clock-matrix {
+  display: block;
   flex: 1;
   min-width: 0;
-  justify-content: flex-end;
+  width: 100%;
 }
-.utility-clock[data-size="small"] .utility-pixels {
-  display: none;
+.utility-clock[data-size="tall"] .utility-clock-matrix {
+  flex: none;
 }
-.utility-clock[data-size="small"] .utility-clock-time {
-  margin: 0;
-  padding: 0;
-  font-size: 28px;
-  gap: 5px;
-}
-.utility-clock[data-size="small"] .utility-clock-detail {
-  font-size: 13px;
-  gap: 2px;
-}
-.utility-clock[data-size="small"] .utility-period {
-  font-size: 10px;
+.utility-clock-matrix svg,
+.utility-clock-matrix canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
 }
 .utility-countdown-empty {
   display: flex;

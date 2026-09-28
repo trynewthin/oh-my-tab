@@ -1,7 +1,8 @@
 export const utilityComponents = {
   clock: {
     label: "Clock",
-    description: "Readable time, date, and optional seconds.",
+    description:
+      "A 24-hour clock showing hours and minutes in plain or home-header dot-matrix style.",
     defaultName: "Clock",
   },
   countdown: {
@@ -129,6 +130,10 @@ export default {
   photoFit: "Image fit",
   cover: "Fill and crop",
   contain: "Show entire picture",
+  clockEffect: "Display style",
+  clockPlain: "Plain",
+  clockDots: "Dot matrix",
+  clockColor: "Digit color",
   timeZone: "IANA time zone",
   deviceTimeZone: "Use device time zone",
   hour12: "Use 12-hour time",

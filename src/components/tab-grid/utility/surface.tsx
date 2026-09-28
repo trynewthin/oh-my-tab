@@ -46,12 +46,14 @@ export function WidgetSurface({
   children,
   title = item.name,
   header = true,
+  background = true,
   className,
   footer,
 }: WidgetProps & {
   children: ReactNode
   title?: string
   header?: boolean
+  background?: boolean
   className?: string
   footer?: ReactNode
 }) {
@@ -79,10 +81,12 @@ export function WidgetSurface({
           event.stopPropagation()
       }}
     >
-      <ComponentBackground
-        color={item.color}
-        animated={!preview && !!item.dynamicEffect}
-      />
+      {background && (
+        <ComponentBackground
+          color={item.color}
+          animated={!preview && !!item.dynamicEffect}
+        />
+      )}
       <div className="utility-body">
         {header && (
           <CollectionCardHeader className="utility-header">

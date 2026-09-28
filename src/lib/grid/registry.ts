@@ -13,7 +13,9 @@ export const GRID_UNIT = 1
  */
 export const GRID_OCCUPANCY = {
   "1x1": { width: 1, height: 1 },
+  "2x1": { width: 2, height: 1 },
   "2x2": { width: 2, height: 2 },
+  "2x4": { width: 2, height: 4 },
   "4x1": { width: 4, height: 1 },
   "4x2": { width: 4, height: 2 },
   "8x1": { width: 8, height: 1 },
@@ -107,7 +109,9 @@ function utilityDefinition(
     menu: {
       sizes: values.length > 1 ? values : [],
       operations: appearance
-        ? ["edit", "randomColor", "dynamicEffect"]
+        ? kind === "clock"
+          ? ["edit", "randomColor"]
+          : ["edit", "randomColor", "dynamicEffect"]
         : ["edit"],
     },
     editorSizes: values,
@@ -115,13 +119,13 @@ function utilityDefinition(
     catalogDirectAdd: true,
     catalogSection,
     detailPreviewWidth: kind === "rss" ? "wide" : "compact",
-    showNameInEditor: true,
-    tileBorder: true,
+    showNameInEditor: kind !== "clock",
+    tileBorder: kind !== "clock",
     openAction: "edit",
     actions: {
       resize: values.length > 1,
       randomColor: appearance,
-      dynamicEffect: appearance,
+      dynamicEffect: appearance && kind !== "clock",
       groupable: false,
       expandable: false,
     },
@@ -424,11 +428,11 @@ export const componentRegistry = {
   },
   clock: utilityDefinition(
     "clock",
-    "large",
+    "medium",
     [
-      gridSize("small", "4x1", "small"),
+      gridSize("small", "2x1", "small"),
       gridSize("medium", "4x2", "medium"),
-      gridSize("large", "4x4", "large"),
+      gridSize("tall", "2x4", "tall"),
     ],
     "common"
   ),
@@ -502,6 +506,7 @@ export const componentRegistry = {
 // Only widgets listed here can be added; other registered utilities remain
 // available to saved layouts.
 export const catalogComponentKinds = [
+  "clock",
   "button",
   "dot-canvas",
   "todo",

@@ -13,16 +13,54 @@ vi.mock("@/components/effects/use-wall-clock", () => ({
 }))
 
 vi.mock("@/components/tab-grid/shared/component-background", () => ({
-  default: () => null,
+  default: () => createElement("div", { "data-test-background": true }),
 }))
 vi.mock("@/stores/tab-grid-store", () => ({
   useTabGridStore: (selector: (state: { items: never[] }) => unknown) =>
     selector({ items: [] }),
 }))
+vi.mock("@/stores/matrix-renderer-store", () => ({
+  useMatrixRendererStore: () => "dom",
+}))
+
 afterEach(() => vi.unstubAllGlobals())
 
 // Server rendering only: does not launch a browser or claim layout/visual QA.
 describe("widget render contracts", () => {
+  test.each(["small", "medium", "tall"] as const)(
+    "clock %s shows only the time on a transparent surface in both styles",
+    async (size) => {
+      await i18n.changeLanguage("en")
+      const item = createCatalogComponent("clock", size)
+      if (item.kind !== "clock") throw new Error("Expected clock")
+      for (const effect of ["plain", "dots"] as const) {
+        const html = renderToStaticMarkup(
+          createElement(UtilityWidgetTile, {
+            item: {
+              ...item,
+              effect,
+              timeZone: "Asia/Tokyo",
+            },
+            preview: true,
+            sample: true,
+            onOpen: () => {},
+          })
+        )
+        expect(html).toContain('aria-label="19:08"')
+        expect(html).not.toContain("data-test-background")
+        expect(html).not.toContain("utility-header")
+        expect(html).not.toContain("utility-clock-date")
+        expect(html.includes("<svg")).toBe(effect === "dots")
+        if (effect === "dots") {
+          expect(html).toContain('fill="var(--muted)"')
+          expect(html.match(/<svg/g)).toHaveLength(1)
+        }
+        expect(html).not.toContain("utility-clock-seconds")
+        expect(html).not.toContain("utility-clock-period")
+        expect(html).not.toContain("<button")
+      }
+    }
+  )
   test("clock-out preview shows milliseconds without interactive controls", () => {
     const item = createCatalogComponent("workday")
     if (item.kind !== "workday") throw new Error("Expected workday")

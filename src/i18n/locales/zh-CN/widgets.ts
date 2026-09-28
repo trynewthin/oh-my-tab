@@ -1,7 +1,7 @@
 export const utilityComponents = {
   clock: {
     label: "时钟",
-    description: "清晰显示时间、日期，可选择显示秒。",
+    description: "24 小时时钟，仅显示时分，支持普通和主页点阵样式。",
     defaultName: "时钟",
   },
   countdown: {
@@ -127,6 +127,10 @@ export default {
   photoFit: "显示方式",
   cover: "填满并裁切",
   contain: "显示完整图片",
+  clockEffect: "显示效果",
+  clockPlain: "普通",
+  clockDots: "点阵",
+  clockColor: "数字颜色",
   timeZone: "IANA 时区",
   deviceTimeZone: "跟随设备时区",
   hour12: "使用 12 小时制",

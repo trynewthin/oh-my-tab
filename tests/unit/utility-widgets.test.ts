@@ -75,7 +75,10 @@ describe("utility widgets", () => {
     expect(catalogComponentKinds).toContain("countdown")
     for (const kind of utilityWidgetKinds.filter(
       (kind) =>
-        kind !== "pomodoro" && kind !== "countdown" && kind !== "workday"
+        kind !== "pomodoro" &&
+        kind !== "countdown" &&
+        kind !== "workday" &&
+        kind !== "clock"
     ))
       expect(catalogComponentKinds).not.toContain(kind)
     expect(
@@ -93,7 +96,9 @@ describe("utility widgets", () => {
         width: option.width,
         height: option.height,
       })
-      expect(option.width).toBeGreaterThanOrEqual(kind === "countdown" ? 2 : 4)
+      expect(option.width).toBeGreaterThanOrEqual(
+        kind === "countdown" || kind === "clock" ? 2 : 4
+      )
     }
   })
 
@@ -116,6 +121,7 @@ describe("utility widgets", () => {
         event: { title: "Trip", date: "2026-02-30" },
       },
       { ...timer(), minutes: 0 },
+      { ...createCatalogComponent("clock"), effect: "unknown" },
       {
         ...createUtilityWidget("weather", shared),
         latitude: 91,

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -13,6 +14,10 @@ export default function WebdavSyncDialog({
 }) {
   const { t } = useTranslation()
   const { syncPlan: plan, busy, setSyncPlan, run, finishSync } = state
+  const snapshots = plan ? syncPlanSnapshots(plan) : []
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected =
+    snapshots.find((snapshot) => snapshot.id === selectedId) ?? snapshots[0]
   return (
     <Dialog
       open={!!plan}
@@ -37,7 +42,12 @@ export default function WebdavSyncDialog({
                 })}
               </span>
             </SettingItem>
-            <WebdavSnapshotList snapshots={syncPlanSnapshots(plan)} />
+            <WebdavSnapshotList
+              snapshots={snapshots}
+              busy={busy}
+              selectedId={selected?.id}
+              onSelect={(snapshot) => setSelectedId(snapshot.id)}
+            />
             <div className="flex flex-wrap justify-end gap-2">
               <Button
                 variant="outline"
@@ -54,8 +64,10 @@ export default function WebdavSyncDialog({
                 {t("settings.webdav.useLocal")}
               </Button>
               <Button
-                disabled={busy}
-                onClick={() => void run(() => finishSync(plan, "download"))}
+                disabled={busy || !selected}
+                onClick={() =>
+                  void run(() => finishSync(plan, "download", selected?.id))
+                }
               >
                 {t("settings.webdav.useRemote")}
               </Button>

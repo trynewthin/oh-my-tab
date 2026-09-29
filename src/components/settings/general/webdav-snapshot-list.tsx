@@ -1,8 +1,10 @@
 import {
   ArrowCounterClockwise,
+  Check,
   PencilSimple,
   Trash,
 } from "@phosphor-icons/react"
+import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { webdavSnapshotName } from "@/lib/webdav-sync"
 import { Button } from "@/components/ui/button"
@@ -14,12 +16,16 @@ export default function WebdavSnapshotList({
   onApply,
   onDelete,
   onRename,
+  selectedId,
+  onSelect,
 }: {
   snapshots: WebdavSnapshot[]
   busy?: boolean
   onApply?: (snapshot: WebdavSnapshot) => void
   onDelete?: (snapshot: WebdavSnapshot) => void
   onRename?: (snapshot: WebdavSnapshot) => void
+  selectedId?: string
+  onSelect?: (snapshot: WebdavSnapshot) => void
 }) {
   const { t } = useTranslation()
   if (!snapshots.length)
@@ -29,13 +35,15 @@ export default function WebdavSnapshotList({
       </p>
     )
   return (
-    <ul className="space-y-2" aria-label={t("settings.webdav.snapshots")}>
-      {snapshots.map((snapshot, index) => (
-        <li
-          key={snapshot.id}
-          className="rounded-xl border border-border bg-muted p-3"
-        >
-          <div className="flex items-center justify-between gap-3">
+    <ul
+      className="space-y-2"
+      aria-label={t("settings.webdav.snapshots")}
+      role={onSelect ? "radiogroup" : undefined}
+    >
+      {snapshots.map((snapshot, index) => {
+        const selected = snapshot.id === selectedId
+        const content = (
+          <>
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-sm font-medium">
               <span className="break-words">
                 {webdavSnapshotName(snapshot)}
@@ -51,6 +59,18 @@ export default function WebdavSnapshotList({
                 </span>
               )}
             </div>
+            {onSelect && (
+              <span
+                className={cn(
+                  "flex size-5 shrink-0 items-center justify-center rounded-full border",
+                  selected
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-muted-foreground text-transparent"
+                )}
+              >
+                <Check weight="bold" aria-hidden="true" />
+              </span>
+            )}
             {(onApply || onRename || onDelete) && (
               <div className="flex shrink-0 items-center gap-1">
                 {onApply && (
@@ -91,9 +111,36 @@ export default function WebdavSnapshotList({
                 )}
               </div>
             )}
-          </div>
-        </li>
-      ))}
+          </>
+        )
+        return (
+          <li
+            key={snapshot.id}
+            className={cn(
+              "rounded-xl border bg-muted",
+              selected ? "border-foreground/60" : "border-border",
+              !onSelect && "p-3"
+            )}
+          >
+            {onSelect ? (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                disabled={busy}
+                className="flex w-full items-center justify-between gap-3 rounded-xl p-3 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => onSelect(snapshot)}
+              >
+                {content}
+              </button>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                {content}
+              </div>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }

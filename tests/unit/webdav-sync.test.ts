@@ -14,7 +14,7 @@ import {
 import { createBackup, readBackup } from "@/application/backup"
 import { rehydrateData } from "@/application/hydrate"
 import { contentHash, defaultWebdavSnapshotName } from "@/lib/webdav-sync"
-import { decodeBackup } from "@/lib/backup-codec"
+import { decodeBackup, encodeBackup } from "@/lib/backup-codec"
 import {
   prepareWebdavSync,
   executeWebdavSync,
@@ -194,6 +194,45 @@ describe("persisted WebDAV connections", () => {
 })
 
 describe("WebDAV snapshot sync", () => {
+  it("accepts snapshots created before newer config defaults were introduced", async () => {
+    const oldConfig = structuredClone(initial)
+    delete (oldConfig.home as Partial<Config["home"]>).newTabsDynamicEffect
+    const blob = await encodeBackup(oldConfig)
+    const hash = await contentHash(oldConfig)
+    const id = crypto.randomUUID()
+    const file = `oh-my-tab-snapshot-${id}.zip`
+    files.set(file, { blob, etag: '"old-snapshot"' })
+    files.set("oh-my-tab-sync.json", {
+      blob: new Blob([
+        JSON.stringify({
+          version: 1,
+          snapshotLimit: 5,
+          snapshots: [
+            {
+              id,
+              file,
+              deviceId: "old-release",
+              uploadedAt: Date.now(),
+              hash,
+              change: null,
+            },
+          ],
+          garbage: [],
+        }),
+      ]),
+      etag: '"old-index"',
+    })
+    await saveWebdavSettings(connection, 5)
+
+    const plan = await prepareWebdavSync()
+
+    expect(plan.direction).toBe("download")
+    expect(plan.remote.backup?.config.home.newTabsDynamicEffect).toBe(false)
+    await executeWebdavSync(plan, "download")
+    expect((await currentBackup()).config.home.newTabsDynamicEffect).toBe(false)
+    expect((await prepareWebdavSync()).direction).toBe("equal")
+  })
+
   it("uploads an initial snapshot, persists the baseline and excludes credentials from ZIP", async () => {
     await saveWebdavSettings(connection, 5)
     await sync()
@@ -300,6 +339,27 @@ describe("WebDAV snapshot sync", () => {
       /本机数据已变化/
     )
     expect(await readIndex()).toEqual(remoteBefore)
+  })
+  it("restores a selected remote snapshot and promotes it to the latest version", async () => {
+    await saveWebdavSettings(connection, 5)
+    await sync()
+    const baseline = (await readWebdavSettings()).saved!
+    await seed("REMOTE EDIT")
+    await sync()
+    await useDevice(
+      { ...baseline, deviceId: crypto.randomUUID() },
+      "LOCAL EDIT"
+    )
+    const plan = await prepareWebdavSync()
+    const snapshots = syncPlanSnapshots(plan)
+    const selected = snapshots.at(-1)!
+
+    expect(plan.direction).toBe("choose")
+    await executeWebdavSync(plan, "download", { snapshotId: selected.id })
+
+    expect((await currentBackup()).config.home.text).toBe("INITIAL")
+    expect((await readIndex()).snapshots[0].id).toBe(selected.id)
+    expect((await prepareWebdavSync()).direction).toBe("equal")
   })
   it("rejects concurrent remote writes without dropping existing snapshots", async () => {
     await saveWebdavSettings(connection, 5)

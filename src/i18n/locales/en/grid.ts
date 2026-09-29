@@ -108,7 +108,7 @@ const grid = {
     backgroundColor: "Background color",
     icon: "Icon",
     iconHint:
-      "Refresh fetches the website icon again and replaces a custom icon. You can also upload a PNG, JPEG, or WebP image up to 2 MB. Images are processed locally.",
+      "Refresh fetches the website icon again and replaces a custom icon. You can also upload and square-crop a PNG, JPEG, or WebP image up to 2 MB. Images are processed locally.",
     refreshIcon: "Refresh",
     uploadIcon: "Upload",
     processingIcon: "Processing…",
@@ -119,6 +119,10 @@ const grid = {
     refreshCustomIconDescription:
       "A successful refresh removes the uploaded custom icon and uses the website icon instead.",
     confirmRefreshIcon: "Refresh icon",
+    cropIconTitle: "Crop icon",
+    cropIconPreview: "Square icon crop preview",
+    cropIconZoom: "Zoom",
+    cropIcon: "Crop icon",
     buttonAction: "Assigned action",
     cancel: "Cancel",
     save: "Save",

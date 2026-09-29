@@ -108,6 +108,13 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
       "base64"
     ),
   })
+  const cropIcon = page.getByRole("dialog", {
+    name: "裁剪图标",
+    exact: true,
+  })
+  await expect(cropIcon).toBeVisible()
+  await cropIcon.getByRole("button", { name: "确认裁剪", exact: true }).click()
+  await expect(cropIcon).not.toBeVisible()
   const refreshIcon = editor.getByRole("button", {
     name: "刷新",
     exact: true,

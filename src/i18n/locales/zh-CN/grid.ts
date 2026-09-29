@@ -104,7 +104,7 @@ const grid = {
     backgroundColor: "背景颜色",
     icon: "图标",
     iconHint:
-      "刷新会重新获取网站图标并替换自定义图标；也可上传不超过 2 MB 的 PNG、JPEG 或 WebP 图片。图片仅在本地处理。",
+      "刷新会重新获取网站图标并替换自定义图标；也可上传不超过 2 MB 的 PNG、JPEG 或 WebP 图片并进行正方形裁剪。图片仅在本地处理。",
     refreshIcon: "刷新",
     uploadIcon: "上传",
     processingIcon: "处理中…",
@@ -115,6 +115,10 @@ const grid = {
     refreshCustomIconDescription:
       "刷新成功后将移除当前上传的自定义图标，改为使用网站图标。",
     confirmRefreshIcon: "确认刷新",
+    cropIconTitle: "裁剪图标",
+    cropIconPreview: "正方形图标裁剪预览",
+    cropIconZoom: "缩放",
+    cropIcon: "确认裁剪",
     buttonAction: "绑定行为",
     cancel: "取消",
     save: "保存",

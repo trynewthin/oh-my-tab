@@ -21,6 +21,7 @@ import {
 } from "@/lib/backup-codec"
 export { MAX_BACKUP_BYTES } from "@/lib/backup-codec"
 export type Backup = { config: Config; image?: Blob }
+export type BackupContents = { backup: Backup; sourceConfig: unknown }
 export async function createBackup(): Promise<Blob> {
   await flushStorage()
   const revision = await storageRevision()
@@ -39,24 +40,35 @@ export async function createBackup(): Promise<Blob> {
     throw new Error(i18n.t("settings.errors.backupChanged"))
   return result
 }
-export async function readBackup(file: Blob): Promise<Backup> {
+export async function readBackupContents(file: Blob): Promise<BackupContents> {
   if (!file.size || file.size > MAX_BACKUP_BYTES)
     throw new Error(i18n.t("settings.errors.backupFileSizeLimit"))
   const signature = new Uint8Array(await file.slice(0, 2).arrayBuffer())
   if (signature[0] !== 0x50 || signature[1] !== 0x4b) {
     if (file.size > 16 * 1024 * 1024)
       throw new Error(i18n.t("settings.errors.legacyBackupTooLarge"))
-    return { config: await parseConfig(await file.text()) }
+    const config = await parseConfig(await file.text())
+    return { backup: { config }, sourceConfig: config }
   }
   const decoded = await decodeBackup(file)
-  const config = validateConfig(decoded.config)
+  // Validation also fills defaults introduced by newer releases. Keep the
+  // original config for WebDAV integrity checks so a valid older snapshot is
+  // not mistaken for a damaged file after a schema migration.
+  const sourceConfig = decoded.config
+  const config = validateConfig(structuredClone(sourceConfig))
   if (config.home.backgroundImage !== null)
     throw new Error(i18n.t("settings.errors.zipImageReference"))
   if (decoded.image) {
     const bitmap = await createImageBitmap(decoded.image)
     bitmap.close()
   }
-  return { config, image: decoded.image }
+  return {
+    backup: { config, image: decoded.image },
+    sourceConfig,
+  }
+}
+export async function readBackup(file: Blob): Promise<Backup> {
+  return (await readBackupContents(file)).backup
 }
 export async function restoreBackup(
   backup: Backup,

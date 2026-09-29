@@ -1,5 +1,11 @@
 import { i18n } from "@/i18n"
-import { createBackup, readBackup, restoreBackup, type Backup } from "./backup"
+import {
+  createBackup,
+  readBackup,
+  readBackupContents,
+  restoreBackup,
+  type Backup,
+} from "./backup"
 import {
   fetchRemoteBackup,
   requestWebdav,
@@ -71,6 +77,23 @@ export type WebdavSyncPlan = {
 }
 function invalidIndex(): never {
   throw new Error(i18n.t("settings.webdav.invalidHistory"))
+}
+async function readIndexedSnapshot(
+  connection: WebdavConnection,
+  snapshot: WebdavSnapshot
+) {
+  const file = await fetchRemoteBackup(connection, snapshot.file)
+  if (!file) invalidIndex()
+  const contents = await readBackupContents(file.blob)
+  const sourceHash = await contentHash(
+    contents.sourceConfig,
+    contents.backup.image
+  )
+  if (sourceHash !== snapshot.hash) invalidIndex()
+  return {
+    backup: contents.backup,
+    hash: await contentHash(contents.backup.config, contents.backup.image),
+  }
 }
 export function parseRemoteIndex(text: string): RemoteIndex {
   const value = JSON.parse(text)
@@ -170,16 +193,11 @@ async function remoteState(connection: WebdavConnection): Promise<RemoteState> {
       large: false,
       change: null,
     }
-  const file = await fetchRemoteBackup(connection, latest.file)
-  if (!file) invalidIndex()
-  const backup = await readBackup(file.blob)
-  const hash = await contentHash(backup.config, backup.image)
-  if (hash !== latest.hash) invalidIndex()
+  const contents = await readIndexedSnapshot(connection, latest)
   return {
     index,
     indexEtag: indexFile.etag,
-    backup,
-    hash,
+    ...contents,
     id: latest.id,
     deviceId: latest.deviceId,
     uploadedAt: latest.uploadedAt,
@@ -501,12 +519,18 @@ export async function applyWebdavSnapshot(
     )
     if (!target) throw new Error(i18n.t("settings.webdav.conflict"))
     const revision = await storageRevision()
-    const file = await fetchRemoteBackup(current.saved, target.file)
-    if (!file || (!current.index && file.etag !== current.legacyEtag))
+    const contents = current.index
+      ? await readIndexedSnapshot(current.saved, target)
+      : null
+    const file = current.index ? null : await fetchRemoteBackup(current.saved)
+    if (!current.index && (!file || file.etag !== current.legacyEtag))
       throw new Error(i18n.t("settings.webdav.conflict"))
-    const backup = await readBackup(file.blob)
-    if ((await contentHash(backup.config, backup.image)) !== target.hash)
-      invalidIndex()
+    const backup = contents?.backup ?? (await readBackup(file!.blob))
+    if (
+      !current.index &&
+      (await contentHash(backup.config, backup.image)) !== target.hash
+    )
+      throw new Error(i18n.t("settings.webdav.conflict"))
     await currentHistory(current)
     await restoreBackup(backup, revision)
     const latest = current.snapshots[0]
@@ -586,7 +610,7 @@ export function syncPlanSnapshots(plan: WebdavSyncPlan): WebdavSnapshot[] {
 export async function executeWebdavSync(
   plan: WebdavSyncPlan,
   direction: Exclude<SyncDirection, "choose">,
-  options: { forceSnapshot?: boolean } = {}
+  options: { forceSnapshot?: boolean; snapshotId?: string } = {}
 ) {
   return navigator.locks.request("omt-webdav", async () => {
     await assertCurrent(plan)
@@ -696,8 +720,34 @@ export async function executeWebdavSync(
     } else if (direction === "download") {
       if (!current.backup)
         throw new Error(i18n.t("settings.webdav.noRemoteBackup"))
-      await restoreBackup(current.backup, plan.revision)
+      const selected = options.snapshotId
+        ? syncPlanSnapshots(plan).find(
+            (snapshot) => snapshot.id === options.snapshotId
+          )
+        : undefined
+      if (options.snapshotId && !selected)
+        throw new Error(i18n.t("settings.webdav.conflict"))
+      let backup = current.backup
       localHash = current.hash!
+      if (selected && selected.id !== current.id) {
+        const contents = current.index
+          ? await readIndexedSnapshot(plan.saved, selected)
+          : null
+        if (!contents) throw new Error(i18n.t("settings.webdav.conflict"))
+        backup = contents.backup
+        localHash = contents.hash
+        const index = retainedIndex(current.index!, [
+          selected,
+          ...current.index!.snapshots.filter(
+            (snapshot) => snapshot.id !== selected.id
+          ),
+        ])
+        await assertCurrent(plan)
+        await putIndex(plan.saved, index, current.indexEtag, true)
+        cleanupComplete = await cleanHistory(plan.saved, index)
+        remoteId = selected.id
+      }
+      await restoreBackup(backup, plan.revision)
     } else if (current.index) {
       const settled = await settleHistory(
         plan.saved,

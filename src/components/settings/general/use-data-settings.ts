@@ -146,10 +146,11 @@ export function useDataSettingsState() {
   }
   async function finishSync(
     plan: WebdavSyncPlan,
-    direction: Exclude<SyncDirection, "choose">
+    direction: Exclude<SyncDirection, "choose">,
+    snapshotId?: string
   ) {
     try {
-      const result = await executeWebdavSync(plan, direction)
+      const result = await executeWebdavSync(plan, direction, { snapshotId })
       setSaved(result.saved)
       setSyncPlan(null)
       if (result.restored) {

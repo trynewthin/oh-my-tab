@@ -1,5 +1,5 @@
 import { ArrowClockwise, UploadSimple } from "@phosphor-icons/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import SettingItem from "@/components/settings/shared/setting-item"
 import { settingsControlClassName } from "@/components/settings/shared/control-styles"
@@ -15,9 +15,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { refreshFavicon } from "@/application/favicon-cache"
-import { prepareTabIcon } from "@/lib/grid/tab-icon"
+import { encodeTabIcon, readTabIcon } from "@/lib/grid/tab-icon"
 import { normalizeTabUrl } from "@/lib/grid/types"
 import { toast } from "@/stores/toast-store"
+import TabIconCrop from "./tab-icon-crop"
 
 export default function TabIconControls({
   url,
@@ -35,6 +36,9 @@ export default function TabIconControls({
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
   const [refreshOpen, setRefreshOpen] = useState(false)
+  const [cropImage, setCropImage] = useState<ImageBitmap | null>(null)
+
+  useEffect(() => () => cropImage?.close(), [cropImage])
 
   async function refresh() {
     const normalized = normalizeTabUrl(url)
@@ -59,7 +63,20 @@ export default function TabIconControls({
     if (!file) return
     setBusy(true)
     try {
-      onIconChange(await prepareTabIcon(file))
+      setCropImage(await readTabIcon(file))
+    } catch {
+      toast(t("grid.editor.iconInvalid"), "error")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function confirmCrop(crop: Parameters<typeof encodeTabIcon>[1]) {
+    if (!cropImage) return
+    setBusy(true)
+    try {
+      onIconChange(await encodeTabIcon(cropImage, crop))
+      setCropImage(null)
     } catch {
       toast(t("grid.editor.iconInvalid"), "error")
     } finally {
@@ -68,81 +85,95 @@ export default function TabIconControls({
   }
 
   return (
-    <SettingItem
-      label={t("grid.editor.icon")}
-      description={t("grid.editor.iconHint")}
-    >
-      <div className="grid w-full grid-cols-2 gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className={`min-w-0 px-2 ${settingsControlClassName}`}
-          disabled={busy}
-          onClick={() => {
-            if (icon) setRefreshOpen(true)
-            else void refresh()
+    <>
+      <SettingItem
+        label={t("grid.editor.icon")}
+        description={t("grid.editor.iconHint")}
+      >
+        <div className="grid w-full grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className={`min-w-0 px-2 ${settingsControlClassName}`}
+            disabled={busy}
+            onClick={() => {
+              if (icon) setRefreshOpen(true)
+              else void refresh()
+            }}
+          >
+            <ArrowClockwise aria-hidden="true" />
+            <span className="truncate">{t("grid.editor.refreshIcon")}</span>
+          </Button>
+          <Button
+            variant="outline"
+            render={<label />}
+            className={`relative min-w-0 cursor-pointer px-2 ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName}`}
+            aria-disabled={busy}
+          >
+            <UploadSimple aria-hidden="true" />
+            <span className="truncate">
+              {t(
+                busy ? "grid.editor.processingIcon" : "grid.editor.uploadIcon"
+              )}
+            </span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="sr-only"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0]
+                event.currentTarget.value = ""
+                void upload(file)
+              }}
+            />
+          </Button>
+        </div>
+        <AlertDialog
+          open={refreshOpen}
+          onOpenChange={(open) => {
+            if (!busy) setRefreshOpen(open)
           }}
         >
-          <ArrowClockwise aria-hidden="true" />
-          <span className="truncate">{t("grid.editor.refreshIcon")}</span>
-        </Button>
-        <Button
-          variant="outline"
-          render={<label />}
-          className={`relative min-w-0 cursor-pointer px-2 ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName}`}
-          aria-disabled={busy}
-        >
-          <UploadSimple aria-hidden="true" />
-          <span className="truncate">
-            {t(busy ? "grid.editor.processingIcon" : "grid.editor.uploadIcon")}
-          </span>
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="sr-only"
-            disabled={busy}
-            onChange={(event) => {
-              const file = event.currentTarget.files?.[0]
-              event.currentTarget.value = ""
-              void upload(file)
-            }}
-          />
-        </Button>
-      </div>
-      <AlertDialog
-        open={refreshOpen}
-        onOpenChange={(open) => {
-          if (!busy) setRefreshOpen(open)
-        }}
-      >
-        <AlertDialogContent
-          className={alertClassName}
+          <AlertDialogContent
+            className={alertClassName}
+            overlayClassName={alertOverlayClassName}
+          >
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t("grid.editor.refreshCustomIconTitle")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("grid.editor.refreshCustomIconDescription")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>
+                {t("grid.editor.cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={busy}
+                onClick={() => {
+                  setRefreshOpen(false)
+                  void refresh()
+                }}
+              >
+                {t("grid.editor.confirmRefreshIcon")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </SettingItem>
+      {cropImage && (
+        <TabIconCrop
+          image={cropImage}
+          busy={busy}
+          contentClassName={alertClassName}
           overlayClassName={alertOverlayClassName}
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("grid.editor.refreshCustomIconTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("grid.editor.refreshCustomIconDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>
-              {t("grid.editor.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={busy}
-              onClick={() => {
-                setRefreshOpen(false)
-                void refresh()
-              }}
-            >
-              {t("grid.editor.confirmRefreshIcon")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </SettingItem>
+          onClose={() => setCropImage(null)}
+          onConfirm={(crop) => void confirmCrop(crop)}
+        />
+      )}
+    </>
   )
 }

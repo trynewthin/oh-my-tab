@@ -106,7 +106,7 @@ test("personalization persists global burning controls", async ({ page }) => {
   await page.goto("/")
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await dialog.getByRole("button", { name: "材质", exact: true }).click()
   const amplitude = dialog.getByRole("slider", { name: "燃烧幅度" })
   await expect(amplitude).toHaveValue("1")
   await amplitude.focus()
@@ -127,7 +127,7 @@ test("personalization persists global burning controls", async ({ page }) => {
     .toEqual([2, true])
   await page.reload()
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await dialog.getByRole("button", { name: "材质", exact: true }).click()
   await expect(amplitude).toHaveValue("2")
   await expect(entrance).toBeChecked()
 })
@@ -161,7 +161,9 @@ test("switching from a dragged folder preview keeps settings open", async ({
 
   await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(dialog).toBeVisible()
-  await expect(dialog.getByRole("slider", { name: "燃烧幅度" })).toBeVisible()
+  await expect(
+    dialog.getByRole("button", { name: "选择标签材质", exact: true })
+  ).toBeVisible()
 })
 
 test("mobile settings uses full-screen application navigation", async ({

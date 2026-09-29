@@ -52,7 +52,9 @@ test("settings flame mounts with its pane and stops when hidden", async ({
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
   await dialog.getByRole("button", { name: "主页", exact: true }).click()
-  await expect(dialog.locator("[data-effect-phase]")).toHaveCount(0)
+  await expect(
+    dialog.locator('[aria-label="标签预览"] [data-effect-phase]')
+  ).toHaveCount(0)
   await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
@@ -79,14 +81,16 @@ test("particle style switches across surfaces and persists", async ({
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await dialog.getByRole("button", { name: "标签", exact: true }).click()
   const preview = dialog.locator('[aria-label="标签预览"]')
-  await dialog.getByRole("button", { name: "选择标签纹理" }).click()
+  await dialog.getByRole("button", { name: "选择标签材质" }).click()
   await page.getByRole("radio", { name: "浮游点阵", exact: true }).click()
+  await page.keyboard.press("Escape")
   const surfaces = preview.locator('[data-effect-style="particles"]')
   await expect(surfaces).toHaveCount(3)
   await expect(surfaces.first()).toHaveAttribute("data-effect-phase", "visible")
   await expect(
     surfaces.first().locator("canvas[data-particle-canvas]")
   ).toBeAttached()
+  await dialog.getByRole("button", { name: "材质", exact: true }).click()
   const slider = dialog.getByRole("slider", { name: "呼吸幅度" })
   await slider.focus()
   await slider.press("Home")
@@ -104,13 +108,16 @@ test("particle style switches across surfaces and persists", async ({
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   await dialog.getByRole("button", { name: "标签", exact: true }).click()
   await expect(
-    dialog.getByRole("button", { name: "选择标签纹理" })
+    dialog.getByRole("button", { name: "选择标签材质" })
   ).toContainText("浮游点阵")
+  await dialog.getByRole("button", { name: "材质", exact: true }).click()
   await expect(dialog.getByRole("slider", { name: "呼吸幅度" })).toHaveValue(
     "0"
   )
-  await dialog.getByRole("button", { name: "选择标签纹理" }).click()
+  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await dialog.getByRole("button", { name: "选择标签材质" }).click()
   await page.getByRole("radio", { name: "像素火焰", exact: true }).click()
+  await page.keyboard.press("Escape")
   await expect(
     preview.locator('[data-effect-style="burning"]').first()
   ).toBeVisible()

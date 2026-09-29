@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test"
+import sharp from "sharp"
 import { readStoredState } from "../helpers/storage"
 
 async function expectCatalogPreviews(catalog: Locator, count: number) {
@@ -103,10 +104,16 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await editor.locator('input[type="file"]').setInputFiles({
     name: "icon.png",
     mimeType: "image/png",
-    buffer: Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/54AAAAASUVORK5CYII=",
-      "base64"
-    ),
+    buffer: await sharp({
+      create: {
+        width: 96,
+        height: 64,
+        channels: 4,
+        background: "#8b7cc8",
+      },
+    })
+      .png()
+      .toBuffer(),
   })
   const cropIcon = page.getByRole("dialog", {
     name: "裁剪图标",

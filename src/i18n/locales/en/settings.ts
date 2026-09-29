@@ -94,21 +94,79 @@ export default {
       "Prepare a WebDAV-capable service, create a backup folder, and get its HTTPS directory URL, username and password.",
     step2: "Click Manage, fill in those details, then click Connect.",
     step3:
-      "Once connected, click Upload to save this device's backup; on another device enter the same folder, connect, click Download and confirm the restore.",
+      "Click Sync after connecting. On first sync, use an existing remote backup directly, or upload this device if the server is empty. After initialization, the uploader and changes determine the direction; choose a version for large changes or conflicts. Click the status light to edit the connection and snapshot limit.",
     url: "Server directory",
     username: "Username",
     password: "Password",
+    removeTitle: "Remove WebDAV connection?",
     disconnectNotice:
-      "Removing only closes the connection. It does not delete local data or the cloud backup.",
+      "This clears the server address, account, password and sync records saved on this device. Local data and remote snapshots are kept.",
     confirmRemove: "Confirm removal",
     connected: "Connected",
+    disconnected: "Disconnected",
+    connectionSettings: "{{status}}. Configure WebDAV",
+    syncNow: "Sync",
+    protectedSnapshot: "Kept",
+    renameSnapshot: "Rename",
+    renameSnapshotTitle: "Rename snapshot",
+    snapshotName: "Snapshot name",
+    snapshotNameHint:
+      "Names default to the snapshot time. Renaming keeps a snapshot out of automatic cleanup; you can still delete it manually.",
+    saveSnapshotName: "Save",
+    snapshotRenamed: "Snapshot name saved",
+    snapshotRenameCleanupFailed:
+      "The name was saved, but some expired files could not be cleaned up. Cleanup will retry on the next sync.",
+    invalidSnapshotName:
+      "Snapshot names must contain 1–80 characters without line breaks or control characters",
+    historyFull:
+      "Snapshot records have reached the storage limit. Manually delete unneeded snapshots and retry.",
+    snapshots: "Sync snapshots",
+    manageSnapshots: "Manage sync snapshots",
+    createSnapshot: "Manual sync",
+    snapshotCreated: "Sync snapshot created",
+    snapshotsHint:
+      "View retained remote snapshots, newest first. Regular sync keeps identical content once; Manual sync always creates a new snapshot. Names default to the snapshot time; renamed snapshots are excluded from automatic cleanup. Manual deletion requires confirmation.",
+    snapshotCount: "{{count}} snapshots",
+    noSnapshots: "No snapshots yet",
+    loadingSnapshots: "Loading snapshots…",
+    reloadSnapshots: "Reload",
+    latestSnapshot: "Latest",
+    snapshotExists: "An identical snapshot already exists; no upload is needed",
+    snapshotDeleted: "Snapshot deleted",
+    snapshotCleanupFailed:
+      "The snapshot was removed from the list, but its file could not be deleted. Cleanup will retry on the next sync.",
+    deleteSnapshotTitle: "Delete sync snapshot?",
+    deleteSnapshotDescription:
+      "Delete the remote snapshot {{snapshot}}? This cannot be undone. Local data is kept.",
+    deleteLatestSnapshotNotice:
+      "The preceding snapshot will become the latest remote version.",
+    deleteLastSnapshotNotice:
+      "No remote snapshots will remain. The next sync will upload this device's data.",
+    snapshotLimit: "Upload snapshots to keep",
+    snapshotHint:
+      "Automatically keep the latest 5 snapshots that have not been renamed, or choose 1–100. Applies on the next upload. Renamed snapshots are kept in addition.",
+    passwordHint:
+      "Connection details and password are saved on this device and excluded from exported backups.",
+    invalidSnapshotLimit: "Snapshot retention must be an integer from 1 to 100",
+    saveConnection: "Save and connect",
+    synced: "Sync complete",
+    cleanupFailed:
+      "Sync completed, but some expired snapshots could not be deleted. Cleanup will retry on the next sync.",
+    invalidHistory: "The remote version index or snapshot is damaged",
+    connectionChanged: "Connection settings changed. Please sync again.",
+    chooseVersion: "Choose a version",
+    chooseDescription:
+      "The two versions differ and this sync needs your choice. Use this device to upload a new snapshot, or use the remote version to replace local data.",
+    uploadedAt: "Uploaded: {{time}}",
+    useLocal: "Use this device",
+    useRemote: "Use remote",
     remove: "Remove",
     connecting: "Connecting…",
     connect: "Connect",
     notConnected: "Connect to WebDAV first",
     weakEtag:
       "The server must support strong ETags to safely overwrite the cloud backup",
-    dataChanged: "Local data changed, please upload again",
+    dataChanged: "Local data changed, please sync again",
     uploaded: "Local data uploaded; other devices can download and restore it",
     upload: "Upload",
     noRemoteBackup:

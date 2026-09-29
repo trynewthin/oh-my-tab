@@ -43,10 +43,12 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  headerAction,
   overlayClassName,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  headerAction?: React.ReactNode
   overlayClassName?: string
 }) {
   const { t } = useTranslation()
@@ -72,6 +74,16 @@ function DialogContent({
           </div>
         ) : (
           children
+        )}
+        {headerAction && (
+          <div
+            className={cn(
+              "absolute top-4",
+              showCloseButton ? "right-12" : "right-4"
+            )}
+          >
+            {headerAction}
+          </div>
         )}
         {showCloseButton && (
           <DialogPrimitive.Close

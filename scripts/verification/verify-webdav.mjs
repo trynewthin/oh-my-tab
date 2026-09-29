@@ -57,7 +57,7 @@ const caddyConfig = `localhost {
   tls internal
   header {
     Access-Control-Allow-Origin "${new URL(appUrl).origin}"
-    Access-Control-Allow-Methods "GET, PUT, PROPFIND, OPTIONS"
+    Access-Control-Allow-Methods "GET, PUT, DELETE, PROPFIND, OPTIONS"
     Access-Control-Allow-Headers "Authorization, Content-Type, Depth, If-Match, If-None-Match"
     Access-Control-Expose-Headers "ETag"
     Vary "Origin"
@@ -218,57 +218,74 @@ try {
   }, image)
   await setText(a, "DEVICE A")
   await setText(b, "DEVICE B")
-  async function openDav(page) {
+  async function openSettings(page) {
     await page.getByRole("button", { name: "打开设置", exact: true }).click()
     await page.getByRole("button", { name: "常规", exact: true }).click()
-    await page.getByRole("combobox", { name: "多端同步", exact: true }).click()
-    await page.getByRole("option", { name: "WebDAV", exact: true }).click()
-    await page
-      .locator('section[aria-labelledby="sync-settings-title"]')
-      .getByRole("button", { name: "管理", exact: true })
+    return page.locator('section[aria-labelledby="sync-settings-title"]')
+  }
+  async function configure(page) {
+    const section = await openSettings(page)
+    await section
+      .getByRole("combobox", { name: "多端同步", exact: true })
       .click()
+    await page.getByRole("option", { name: "WebDAV", exact: true }).click()
+    await section.getByRole("button", { name: "管理", exact: true }).click()
     const dialog = page.getByRole("dialog", { name: "WebDAV", exact: true })
     await dialog.getByLabel("服务器目录", { exact: true }).fill(serverUrl)
     await dialog.getByLabel("用户名", { exact: true }).fill("omt-test")
-    return dialog
+    return { section, dialog }
   }
-  const da = await openDav(a)
-  await expect(
-    da.getByRole("button", { name: "上传", exact: true })
-  ).toBeDisabled()
+  async function connect(page) {
+    const { section, dialog } = await configure(page)
+    await dialog.getByLabel("密码", { exact: true }).fill(password)
+    await dialog.getByRole("button", { name: "连接", exact: true }).click()
+    await expect(dialog).not.toBeVisible()
+    await expect(
+      section.getByRole("status", { name: "已连接", exact: true })
+    ).toBeVisible()
+    return section
+  }
+  const { section: sa, dialog: da } = await configure(a)
   await da.getByLabel("密码", { exact: true }).fill("incorrect")
   await da.getByRole("button", { name: "连接", exact: true }).click()
   await expect(
     a.getByText("WebDAV 认证失败或没有访问权限", { exact: true })
   ).toBeVisible()
-  await expect(
-    da.getByRole("button", { name: "上传", exact: true })
-  ).toBeDisabled()
-  pass("wrong credentials rejected; transfer buttons remain disabled")
   await da.getByLabel("密码", { exact: true }).fill(password)
   await da.getByRole("button", { name: "连接", exact: true }).click()
-  await expect(da.getByText("已连接", { exact: true })).toBeVisible()
-  await da.getByRole("button", { name: "上传", exact: true }).click()
+  await expect(da).not.toBeVisible()
   await expect(
-    da.getByText("已上传本机数据，其他设备可下载恢复", { exact: true })
+    sa.getByRole("status", { name: "已连接", exact: true })
   ).toBeVisible()
-  pass("real HTTPS WebDAV connection and ZIP upload through the UI")
-  const db = await openDav(b)
-  await db.getByLabel("密码", { exact: true }).fill(password)
-  await db.getByRole("button", { name: "连接", exact: true }).click()
-  await expect(db.getByText("已连接", { exact: true })).toBeVisible()
-  await db.getByRole("button", { name: "下载", exact: true }).click()
+  pass(
+    "incorrect credentials rejected; successful connection replaces Manage with controls"
+  )
+  await sa.getByRole("button", { name: "同步", exact: true }).click()
+  await expect(a.getByText("同步完成", { exact: true })).toBeVisible()
+  await a.reload()
+  const reloaded = await openSettings(a)
   await expect(
-    db.getByText("云端数据将替换本地数据，是否继续？", { exact: true })
+    reloaded.getByRole("status", { name: "已连接", exact: true })
   ).toBeVisible()
-  assert.equal(await getText(b), "DEVICE B")
-  await db.getByRole("button", { name: "取消", exact: true }).click()
-  assert.equal(await getText(b), "DEVICE B")
-  pass("download confirmation and cancel preserve device B data")
-  await db.getByRole("button", { name: "下载", exact: true }).click()
+  await reloaded
+    .getByRole("button", { name: "已连接，点击配置 WebDAV", exact: true })
+    .click()
+  const settings = a.getByRole("dialog", { name: "WebDAV", exact: true })
+  await expect(settings.getByLabel("密码", { exact: true })).toHaveValue(
+    password
+  )
+  await expect(
+    settings.getByLabel("保留上传快照数", { exact: true })
+  ).toHaveValue("5")
+  await settings.getByLabel("保留上传快照数", { exact: true }).fill("2")
+  await settings
+    .getByRole("button", { name: "保存并连接", exact: true })
+    .click()
+  pass("credentials, device identity and retention survive reload")
+  const sb = await connect(b)
   await Promise.all([
     b.waitForEvent("load"),
-    db.getByRole("button", { name: "确认覆盖本机", exact: true }).click(),
+    sb.getByRole("button", { name: "同步", exact: true }).click(),
   ])
   await expect.poll(() => getText(b)).toBe("DEVICE A")
   const restoredImage = await b.evaluate(async () => {
@@ -283,68 +300,181 @@ try {
     ]
   })
   assert.deepEqual(restoredImage, image)
-  pass("device B restores device A settings and byte-identical original image")
-  // Exercise real conditional PUT against Apache; do not mock fetch.
-  const conditional = await a.evaluate(
-    async ({ url, password }) => {
-      const dav = await import("/src/application/webdav.ts")
-      const connection = { url, username: "omt-test", password }
-      const old = await dav.fetchRemoteBackup(connection)
-      const data = await (
-        await import("/src/application/backup.ts")
-      ).createBackup()
-      await dav.uploadRemoteBackup(connection, data, old.etag, true)
-      try {
-        await dav.uploadRemoteBackup(connection, data, old.etag, true)
-        return false
-      } catch (error) {
-        return error.message.includes("云端数据已变化")
-      }
-    },
-    { url: serverUrl, password }
+  pass(
+    "first sync uses the remote version directly and restores byte-identical images"
   )
-  assert.equal(conditional, true)
-  pass("stale ETag rejected by actual WebDAV server")
-  const remoteBefore = await a.evaluate(
-    async ({ url, password }) => {
-      const remote = await (
-        await import("/src/application/webdav.ts")
-      ).fetchRemoteBackup({ url, username: "omt-test", password })
-      return [...new Uint8Array(await remote.blob.arrayBuffer())]
-    },
-    { url: serverUrl, password }
-  )
-  await da.getByRole("button", { name: "删除", exact: true }).click()
+  for (const text of ["A SECOND", "A THIRD"]) {
+    await setText(a, text)
+    await reloaded.getByRole("button", { name: "同步", exact: true }).click()
+    await expect(
+      reloaded.getByRole("button", { name: "同步", exact: true })
+    ).toBeEnabled()
+  }
+  const history = await a.evaluate(async () => {
+    const { readWebdavSettings } =
+      await import("/src/application/webdav-settings.ts")
+    const { fetchRemoteBackup } = await import("/src/application/webdav.ts")
+    const { saved } = await readWebdavSettings()
+    const remote = await fetchRemoteBackup(saved, "oh-my-tab-sync.json")
+    return JSON.parse(await remote.blob.text())
+  })
+  assert.equal(history.snapshots.length, 2)
+  assert.equal(history.garbage.length, 0)
+  pass("snapshot retention setting prunes expired uploads on real WebDAV")
+  await setText(b, "B LOCAL EDIT")
+  const bControls = await openSettings(b)
+  await bControls.getByRole("button", { name: "同步", exact: true }).click()
+  const choice = b.getByRole("dialog", { name: "选择同步版本", exact: true })
+  await expect(choice).toBeVisible()
   await expect(
-    da.getByText("删除只会关闭连接，不会删除本地数据或云端备份。", {
-      exact: true,
+    choice
+      .getByRole("list", { name: "同步快照", exact: true })
+      .getByRole("listitem")
+  ).toHaveCount(2)
+  await choice.getByRole("button", { name: "取消", exact: true }).click()
+  assert.equal(await getText(b), "B LOCAL EDIT")
+  pass(
+    "established devices with changes on both sides ask for a version; cancellation preserves local data"
+  )
+  await setText(b, "DEVICE A")
+  await Promise.all([
+    b.waitForEvent("load"),
+    bControls.getByRole("button", { name: "同步", exact: true }).click(),
+  ])
+  await expect.poll(() => getText(b)).toBe("A THIRD")
+  pass("small update from another device downloads without a version prompt")
+  await setText(a, "A SECOND")
+  await reloaded.getByRole("button", { name: "同步", exact: true }).click()
+  await expect(
+    a.getByText("相同内容的快照已存在，无需重复上传", { exact: true })
+  ).toBeVisible()
+  await setText(a, "A THIRD")
+  await reloaded
+    .getByRole("button", { name: "管理同步快照", exact: true })
+    .click()
+  const snapshotDialog = a.getByRole("dialog", {
+    name: "同步快照",
+    exact: true,
+  })
+  const snapshotRows = snapshotDialog.getByRole("listitem")
+  await expect(snapshotRows).toHaveCount(2)
+  const manualSync = snapshotDialog.getByRole("button", {
+    name: "手动同步",
+    exact: true,
+  })
+  await manualSync.click()
+  await expect(manualSync).toBeEnabled()
+  const manualHistory = await a.evaluate(async () => {
+    const { readWebdavSettings } =
+      await import("/src/application/webdav-settings.ts")
+    const { fetchRemoteBackup } = await import("/src/application/webdav.ts")
+    const { saved } = await readWebdavSettings()
+    const remote = await fetchRemoteBackup(saved, "oh-my-tab-sync.json")
+    return JSON.parse(await remote.blob.text())
+  })
+  assert.equal(manualHistory.version, 3)
+  assert.equal(manualHistory.snapshots.length, 2)
+  assert.equal(manualHistory.snapshots[0].manual, true)
+  assert.notEqual(manualHistory.snapshots[0].id, history.snapshots[0].id)
+  await snapshotRows
+    .last()
+    .getByRole("button", { name: "重命名", exact: true })
+    .click()
+  const renameDialog = a.getByRole("dialog", {
+    name: "重命名快照",
+    exact: true,
+  })
+  await renameDialog
+    .getByLabel("快照名称", { exact: true })
+    .fill("测试保留快照")
+  await renameDialog.getByRole("button", { name: "取消", exact: true }).click()
+  await expect(
+    snapshotDialog.getByText("测试保留快照", { exact: true })
+  ).not.toBeVisible()
+  await snapshotRows
+    .last()
+    .getByRole("button", { name: "重命名", exact: true })
+    .click()
+  await renameDialog
+    .getByLabel("快照名称", { exact: true })
+    .fill("测试保留快照")
+  await renameDialog.getByRole("button", { name: "保存", exact: true }).click()
+  await expect(renameDialog).not.toBeVisible()
+  await expect(
+    snapshotRows.last().getByText("测试保留快照", { exact: true })
+  ).toBeVisible()
+  await expect(
+    snapshotRows.last().getByText("保留", { exact: true })
+  ).toBeVisible()
+  await snapshotRows
+    .last()
+    .getByRole("button", { name: "删除", exact: true })
+    .click()
+  const deleteSnapshotDialog = a.getByRole("alertdialog", {
+    name: "删除同步快照？",
+    exact: true,
+  })
+  await expect(deleteSnapshotDialog).toBeVisible()
+  await deleteSnapshotDialog
+    .getByRole("button", { name: "取消", exact: true })
+    .click()
+  await expect(snapshotRows).toHaveCount(2)
+  await snapshotRows
+    .last()
+    .getByRole("button", { name: "删除", exact: true })
+    .click()
+  await deleteSnapshotDialog
+    .getByRole("button", { name: "确认删除", exact: true })
+    .click()
+  await expect(deleteSnapshotDialog).not.toBeVisible()
+  await expect(snapshotRows).toHaveCount(1)
+  await snapshotDialog
+    .getByRole("button", { name: "关闭", exact: true })
+    .click()
+  pass(
+    "regular sync deduplicates content; manual sync creates a fresh snapshot, renaming keeps it and deletion requires confirmation"
+  )
+  await reloaded.getByRole("button", { name: "删除", exact: true }).click()
+  const removal = a.getByRole("alertdialog", {
+    name: "删除 WebDAV 连接？",
+    exact: true,
+  })
+  await expect(removal).toBeVisible()
+  const hasConnection = () =>
+    a.evaluate(async () => {
+      const { readWebdavSettings } =
+        await import("/src/application/webdav-settings.ts")
+      return !!(await readWebdavSettings()).saved
     })
-  ).toBeVisible()
-  await da.getByRole("button", { name: "确认删除", exact: true }).click()
+  assert.equal(await hasConnection(), true)
+  await removal.getByRole("button", { name: "取消", exact: true }).click()
+  await expect(removal).not.toBeVisible()
+  assert.equal(await hasConnection(), true)
+  await reloaded.getByRole("button", { name: "删除", exact: true }).click()
+  await expect(removal).toBeVisible()
+  await a.keyboard.press("Escape")
+  await expect(removal).not.toBeVisible()
+  assert.equal(await hasConnection(), true)
+  await reloaded.getByRole("button", { name: "删除", exact: true }).click()
+  await removal.getByRole("button", { name: "确认删除", exact: true }).click()
+  await expect(removal).not.toBeVisible()
   await expect(
-    da.getByRole("button", { name: "连接", exact: true })
+    reloaded.getByRole("button", { name: "管理", exact: true })
   ).toBeVisible()
-  await expect(
-    da.getByRole("button", { name: "下载", exact: true })
-  ).toBeDisabled()
-  assert.equal(await getText(a), "DEVICE A")
-  const remoteAfter = await a.evaluate(
-    async ({ url, password }) => {
-      const remote = await (
-        await import("/src/application/webdav.ts")
-      ).fetchRemoteBackup({ url, username: "omt-test", password })
-      return [...new Uint8Array(await remote.blob.arrayBuffer())]
-    },
-    { url: serverUrl, password }
+  assert.equal(await getText(a), "A THIRD")
+  const removed = await a.evaluate(async () => {
+    const { readWebdavSettings } =
+      await import("/src/application/webdav-settings.ts")
+    return !(await readWebdavSettings()).saved
+  })
+  assert.equal(removed, true)
+  pass(
+    "cancel and Escape preserve the connection; confirmed deletion clears credentials and preserves business data"
   )
-  assert.deepEqual(remoteAfter, remoteBefore)
-  pass("disconnect leaves local data and remote ZIP unchanged")
   const extensionDir = path.join(dir, "extension")
   await cp("dist", extensionDir, { recursive: true })
   const manifestPath = path.join(extensionDir, "manifest.json")
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"))
-  // Pre-authorize only the loopback test server in this disposable copy.
-  // Native browser permission prompts require separate interactive coverage.
   manifest.host_permissions = ["https://localhost/*"]
   await writeFile(manifestPath, JSON.stringify(manifest))
   extensionContext = await chromium.launchPersistentContext(
@@ -352,7 +482,6 @@ try {
     {
       executablePath: chromium.executablePath(),
       headless: true,
-      // Same reason as the isolated contexts: the script drives zh-CN labels.
       locale: "zh-CN",
       ignoreHTTPSErrors: true,
       viewport: { width: 1438, height: 961 },
@@ -382,42 +511,38 @@ try {
     .getByRole("button", { name: "打开设置", exact: true })
     .waitFor()
   assert.ok(extensionPage.url().startsWith("chrome-extension://"))
-  const de = await openDav(extensionPage)
-  await de.getByLabel("密码", { exact: true }).fill(password)
-  await de.getByRole("button", { name: "连接", exact: true }).click()
-  await expect(de.getByText("已连接", { exact: true })).toBeVisible()
-  await de.getByRole("button", { name: "下载", exact: true }).click()
-  await expect(
-    de.getByText("云端数据将替换本地数据，是否继续？", { exact: true })
-  ).toBeVisible()
+  const extensionControls = await connect(extensionPage)
   await Promise.all([
     extensionPage.waitForEvent("load"),
-    de.getByRole("button", { name: "确认覆盖本机", exact: true }).click(),
+    extensionControls
+      .getByRole("button", { name: "同步", exact: true })
+      .click(),
   ])
   const extensionData = await extensionPage.evaluate(async () => {
-    const values = await chrome.storage.local.get(["omt.home-settings"])
+    const values = await chrome.storage.local.get([
+      "omt.home-settings",
+      "omt.webdav",
+    ])
     const home = JSON.parse(values["omt.home-settings"]).state
     const image = await chrome.storage.local.get([home.backgroundImage])
-    return { text: home.text, image: image[home.backgroundImage].value }
+    return {
+      text: home.text,
+      image: image[home.backgroundImage].value,
+      hasPassword: !!JSON.parse(values["omt.webdav"]).password,
+    }
   })
-  assert.equal(extensionData.text, "DEVICE A")
+  assert.equal(extensionData.text, "A THIRD")
+  assert.equal(extensionData.hasPassword, true)
   assert.deepEqual(
     [...Buffer.from(extensionData.image.split(",")[1], "base64")],
     image
   )
-  const reopened = await openDav(extensionPage)
-  await reopened.getByLabel("密码", { exact: true }).fill(password)
-  await reopened.getByRole("button", { name: "连接", exact: true }).click()
-  await expect(reopened.getByText("已连接", { exact: true })).toBeVisible()
-  await reopened.getByRole("button", { name: "上传", exact: true }).click()
-  await reopened
-    .getByRole("button", { name: "确认覆盖云端", exact: true })
-    .click()
+  const extensionReopened = await openSettings(extensionPage)
   await expect(
-    reopened.getByText("已上传本机数据，其他设备可下载恢复", { exact: true })
+    extensionReopened.getByRole("status", { name: "已连接", exact: true })
   ).toBeVisible()
   pass(
-    "Chrome extension connects, restores original image into chrome.storage.local and uploads ZIP"
+    "Chrome extension restores data and persists credentials in chrome.storage.local"
   )
   assert.deepEqual(failures, [])
   await mkdir(resultDir, { recursive: true })

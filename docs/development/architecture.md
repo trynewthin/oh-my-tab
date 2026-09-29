@@ -76,7 +76,7 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 
 `src/lib/storage.ts` 统一持久化接口：扩展使用 `chrome.storage.local`，开发预览使用 IndexedDB。应用完成数据恢复后再显示主要界面，跨页面写入带版本检查。
 
-`src/lib/backup-codec.ts` 负责 ZIP 格式和完整性校验；`src/application/backup.ts` 组织资源与状态快照，`src/application/config-transfer.ts` 校验并恢复配置，`src/application/webdav.ts` 编排远端备份协议与授权状态。
+`src/lib/backup-codec.ts` 负责 ZIP 格式和完整性校验；`src/application/backup.ts` 组织资源与状态快照，`src/application/config-transfer.ts` 校验并恢复配置，`src/application/webdav.ts` 负责远端请求与授权，`webdav-settings.ts` 管理设备连接配置，`webdav-sync.ts` 编排版本索引、快照上传下载及保留清理；`src/lib/webdav-sync.ts` 定义差异计算与同步方向判断。
 
 更改持久化字段时必须同时更新：
 

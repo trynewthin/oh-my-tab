@@ -142,7 +142,7 @@ const shell = {
       },
       dataManagement: {
         title: "Data management: backup and restore",
-        text: "In General → Data click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set the multi-device sync option to WebDAV and fill in your own directory under Manage for WebDAV to upload and download backups manually across devices; backing up local data first is recommended before restoring.",
+        text: "In General → Data click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set cross-device sync to WebDAV and enter your directory and account under Manage. Connection details are saved on this device. Click Sync to transfer data; a version choice appears when needed, and choosing the remote version replaces local data.",
       },
       quickSave: {
         title: "Quickly bookmark the current page",

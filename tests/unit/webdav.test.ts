@@ -79,4 +79,23 @@ describe("webdav", () => {
     expect(result!.etag).toBe('"version"')
     expect(await result!.blob.text()).toBe("backup")
   })
+  it.each([
+    ["Tue, 29 Sep 2026 12:00:00 GMT", Date.UTC(2026, 8, 29, 12)],
+    ["invalid", null],
+    [null, null],
+  ])(
+    "reads Last-Modified %s without inventing missing or invalid times",
+    async (header, expected) => {
+      vi.stubGlobal(
+        "fetch",
+        async () =>
+          new Response("backup", {
+            headers: header ? { "Last-Modified": header } : {},
+          })
+      )
+      expect((await webdav.fetchRemoteBackup(connection))?.lastModified).toBe(
+        expected
+      )
+    }
+  )
 })

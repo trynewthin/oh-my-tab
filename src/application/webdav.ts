@@ -4,7 +4,11 @@ import { MAX_BACKUP_BYTES } from "@/application/backup"
 
 export type WebdavSettings = { url: string; username: string }
 export type WebdavConnection = WebdavSettings & { password: string }
-export type RemoteBackup = { blob: Blob; etag: string | null }
+export type RemoteBackup = {
+  blob: Blob
+  etag: string | null
+  lastModified: number | null
+}
 export function normalizeWebdav(settings: WebdavSettings): WebdavSettings {
   let url: URL
   try {
@@ -45,19 +49,20 @@ function authorization(connection: WebdavConnection) {
   for (const byte of bytes) binary += String.fromCharCode(byte)
   return `Basic ${btoa(binary)}`
 }
-async function request(
+export async function requestWebdav(
   connection: WebdavConnection,
   method: string,
   options: {
     directory?: boolean
     headers?: Record<string, string>
     body?: Blob
+    file?: string
   } = {}
 ) {
   const settings = normalizeWebdav(connection)
   const target = options.directory
     ? settings.url
-    : new URL("oh-my-tab.zip", settings.url).href
+    : new URL(options.file ?? "oh-my-tab.zip", settings.url).href
   try {
     return await fetch(target, {
       method,
@@ -76,7 +81,7 @@ async function request(
     throw new Error(i18n.t("settings.webdav.networkFailed"))
   }
 }
-function checkResponse(response: Response) {
+export function checkWebdavResponse(response: Response) {
   if (response.status === 401 || response.status === 403)
     throw new Error(i18n.t("settings.webdav.authFailed"))
   if (response.status === 412)
@@ -87,22 +92,24 @@ function checkResponse(response: Response) {
     )
 }
 export async function testWebdav(connection: WebdavConnection) {
-  const response = await request(connection, "PROPFIND", {
+  const response = await requestWebdav(connection, "PROPFIND", {
     directory: true,
     headers: { Depth: "0" },
   })
-  checkResponse(response)
+  checkWebdavResponse(response)
   await response.body?.cancel()
 }
 export async function fetchRemoteBackup(
-  connection: WebdavConnection
+  connection: WebdavConnection,
+  file = "oh-my-tab.zip",
+  maxBytes = MAX_BACKUP_BYTES
 ): Promise<RemoteBackup | null> {
-  const response = await request(connection, "GET")
+  const response = await requestWebdav(connection, "GET", { file })
   if (response.status === 404) {
     await response.body?.cancel()
     return null
   }
-  checkResponse(response)
+  checkWebdavResponse(response)
   if (!response.body) throw new Error(i18n.t("settings.webdav.emptyRemote"))
   const reader = response.body.getReader()
   const chunks: Uint8Array<ArrayBuffer>[] = []
@@ -112,7 +119,7 @@ export async function fetchRemoteBackup(
       const { done, value } = await reader.read()
       if (done) break
       size += value.byteLength
-      if (size > MAX_BACKUP_BYTES) {
+      if (size > maxBytes) {
         await reader.cancel()
         throw new Error(i18n.t("settings.webdav.remoteTooLarge"))
       }
@@ -121,9 +128,11 @@ export async function fetchRemoteBackup(
   } finally {
     reader.releaseLock()
   }
+  const lastModified = Date.parse(response.headers.get("Last-Modified") ?? "")
   return {
     blob: new Blob(chunks, { type: "application/zip" }),
     etag: response.headers.get("ETag"),
+    lastModified: Number.isFinite(lastModified) ? lastModified : null,
   }
 }
 export async function uploadRemoteBackup(
@@ -134,13 +143,13 @@ export async function uploadRemoteBackup(
 ) {
   if (exists && (!etag || etag.startsWith("W/")))
     throw new Error(i18n.t("settings.webdav.weakEtagServer"))
-  const response = await request(connection, "PUT", {
+  const response = await requestWebdav(connection, "PUT", {
     headers: {
       "Content-Type": "application/zip",
       ...(exists ? { "If-Match": etag! } : { "If-None-Match": "*" }),
     },
     body: blob,
   })
-  checkResponse(response)
+  checkWebdavResponse(response)
   await response.body?.cancel()
 }

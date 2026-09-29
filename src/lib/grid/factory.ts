@@ -44,6 +44,7 @@ export function configureComponent({
   size,
   color,
   url,
+  icon,
   action,
 }: {
   existing?: ConfigurableItem
@@ -53,6 +54,7 @@ export function configureComponent({
   size: GridItemSize
   color: string
   url?: string
+  icon?: string
   action?: ButtonItem["action"]
 }): ConfigurableItem {
   if (!isComponentSize(kind, size))
@@ -66,6 +68,7 @@ export function configureComponent({
       url,
       color,
       size: size as TabItem["size"],
+      ...(icon === undefined ? {} : { icon }),
       dynamicEffect: existing?.kind === "tab" ? existing.dynamicEffect : false,
     }
   }
@@ -128,10 +131,12 @@ export function createTabItem({
   name,
   url,
   color,
+  dynamicEffect,
 }: {
   name: string
   url: string
   color?: string
+  dynamicEffect?: boolean
 }): TabItem {
   const definition = getComponentDefinition("tab")
   return {
@@ -141,6 +146,7 @@ export function createTabItem({
     url,
     size: "small",
     color: color ?? definition.defaultColor,
+    ...(dynamicEffect === undefined ? {} : { dynamicEffect }),
   }
 }
 
@@ -148,10 +154,12 @@ export function createFolderItem({
   name,
   tabs = [],
   color,
+  dynamicEffect = false,
 }: {
   name: string
   tabs?: TabEntry[]
   color?: string
+  dynamicEffect?: boolean
 }): FolderItem {
   const definition = getComponentDefinition("folder")
   return {
@@ -161,7 +169,7 @@ export function createFolderItem({
     tabs,
     size: "large",
     color: color ?? definition.defaultColor,
-    dynamicEffect: false,
+    dynamicEffect,
   }
 }
 

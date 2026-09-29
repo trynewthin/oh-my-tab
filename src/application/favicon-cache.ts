@@ -251,9 +251,10 @@ export function subscribeFavicon(listener: (key: string) => void) {
 
 export async function refreshFavicon(url: string) {
   const key = faviconKey(url)
-  if (!key) return
-  await getCachedFavicon(url, true)
+  if (!key) return null
+  const icon = await getCachedFavicon(url, true)
   listeners.forEach((listener) => listener(key))
+  return icon
 }
 
 export function reloadVisibleFavicons() {

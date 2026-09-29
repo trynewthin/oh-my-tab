@@ -54,6 +54,7 @@ export function snapshot() {
       searchShortcuts: home.searchShortcuts,
       folderStyle: home.folderStyle,
       tabTexture: home.tabTexture,
+      newTabsDynamicEffect: home.newTabsDynamicEffect,
       topComponent: home.topComponent,
       traditionalTopSpacing: home.traditionalTopSpacing,
       content: home.content,
@@ -131,6 +132,8 @@ export function validateConfig(value: unknown): Config {
       !["classic", "noise", "none"].includes(home.folderStyle)) ||
     (home.tabTexture !== undefined &&
       !["none", "burning", "particles"].includes(home.tabTexture)) ||
+    (home.newTabsDynamicEffect !== undefined &&
+      typeof home.newTabsDynamicEffect !== "boolean") ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
     !["time", "text", "pet", "breathing"].includes(home.content) ||
     typeof home.text !== "string" ||
@@ -229,6 +232,7 @@ export function validateConfig(value: unknown): Config {
   home.searchShortcuts ??= defaultSearchShortcuts()
   home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
   home.folderStyle ??= "noise"
+  home.newTabsDynamicEffect ??= false
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=
     (home as { burningEntrance?: unknown }).burningEntrance === true

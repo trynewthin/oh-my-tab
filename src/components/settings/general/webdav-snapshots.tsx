@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import {
   readWebdavHistory,
+  applyWebdavSnapshot,
   deleteWebdavSnapshot,
   renameWebdavSnapshot,
   type WebdavHistory,
@@ -46,6 +47,7 @@ export default function WebdavSnapshots({
   } = state
   const [open, setOpen] = useState(false)
   const [history, setHistory] = useState<WebdavHistory | null>(null)
+  const [applying, setApplying] = useState<WebdavSnapshot | null>(null)
   const [target, setTarget] = useState<WebdavSnapshot | null>(null)
   const [editing, setEditing] = useState<WebdavSnapshot | null>(null)
   const [name, setName] = useState("")
@@ -70,6 +72,19 @@ export default function WebdavSnapshots({
       )
     } catch (error) {
       setTarget(null)
+      setHistory(null)
+      await refresh().catch(() => {})
+      throw error
+    }
+  }
+  async function applySnapshot() {
+    if (!history || !applying) return
+    try {
+      await applyWebdavSnapshot(history, applying.id)
+      setApplying(null)
+      window.location.reload()
+    } catch (error) {
+      setApplying(null)
       setHistory(null)
       await refresh().catch(() => {})
       throw error
@@ -150,6 +165,7 @@ export default function WebdavSnapshots({
             <WebdavSnapshotList
               snapshots={history.snapshots}
               busy={busy}
+              onApply={setApplying}
               onDelete={setTarget}
               onRename={(snapshot) => {
                 setEditing(snapshot)
@@ -219,6 +235,36 @@ export default function WebdavSnapshots({
           </div>
         </DialogContent>
       </Dialog>
+      <AlertDialog
+        open={!!applying}
+        onOpenChange={(value) => {
+          if (!value && !busy) setApplying(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.webdav.applySnapshotTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.webdav.applySnapshotDescription", {
+                snapshot: applying ? webdavSnapshotName(applying) : "",
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>
+              {t("settings.common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy || !applying}
+              onClick={() => void run(applySnapshot)}
+            >
+              {t("settings.webdav.confirmApplySnapshot")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog
         open={!!target}
         onOpenChange={(value) => {

@@ -122,7 +122,7 @@ const shell = {
       },
       gridManage: {
         title: "Right-click management and delete undo",
-        text: "Right-click to edit a component's content; tabs and folders also support resizing, a random color, and toggling dynamic effects, and tabs can refresh their icon. Deleting requires a second confirmation; afterwards a notification at the top offers Undo to restore the tab or the whole folder, and batch deletes can be restored in one step too.",
+        text: "Right-click to edit component content. Tabs and folders support resizing and random colors; tabs can toggle dynamic effects, and their editor can refresh the website icon or upload a custom one. A folder’s dynamic toggle controls all tabs inside it while the folder background stays static. Deleting requires a second confirmation; afterwards a notification at the top offers Undo to restore the tab or whole folder, and batch deletes can be restored in one step too.",
       },
       settings: {
         title: "Settings: organized by category",
@@ -134,7 +134,7 @@ const shell = {
       },
       personalization: {
         title: "Personalization: theme color and burn",
-        text: "The theme color applies consistently to the matrix, notifications, and the selection bar. Click a swatch to choose a preset, a custom color, or enter a hex value. Burn amount adjusts the global intensity, transition controls entrance and exit animations, and the page background previews live.",
+        text: "The theme color applies consistently to the matrix, notifications, and the selection bar. Click a swatch to choose a preset, a custom color, or enter a hex value. Burn amount adjusts the global intensity and transition controls entrance and exit animations. Tab settings can control dynamic effects for new tabs and optionally update existing tabs whenever the default is enabled or disabled.",
       },
       importBookmarks: {
         title: "General: import browser bookmarks",
@@ -142,7 +142,7 @@ const shell = {
       },
       dataManagement: {
         title: "Data management: backup and restore",
-        text: "In General → Data click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set cross-device sync to WebDAV and enter your directory and account under Manage. Connection details are saved on this device. Click Sync to transfer data; a version choice appears when needed, and choosing the remote version replaces local data.",
+        text: "In General → Data click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set cross-device sync to WebDAV and enter your directory and account under Manage. Connection details are saved on this device. Click Sync to transfer data; a version choice appears when needed, or confirm applying a specific version from Sync snapshots to this device.",
       },
       quickSave: {
         title: "Quickly bookmark the current page",

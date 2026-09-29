@@ -108,6 +108,11 @@ export default {
     syncNow: "Sync",
     protectedSnapshot: "Kept",
     renameSnapshot: "Rename",
+    applySnapshot: "Apply",
+    applySnapshotTitle: "Apply sync snapshot?",
+    applySnapshotDescription:
+      'Replace this device’s data with "{{snapshot}}"? This cannot be undone. Remote snapshots will not change. Export a local backup first if needed.',
+    confirmApplySnapshot: "Apply snapshot",
     renameSnapshotTitle: "Rename snapshot",
     snapshotName: "Snapshot name",
     snapshotNameHint:
@@ -125,7 +130,7 @@ export default {
     createSnapshot: "Manual sync",
     snapshotCreated: "Sync snapshot created",
     snapshotsHint:
-      "View retained remote snapshots, newest first. Regular sync keeps identical content once; Manual sync always creates a new snapshot. Names default to the snapshot time; renamed snapshots are excluded from automatic cleanup. Manual deletion requires confirmation.",
+      "View and apply retained remote snapshots, newest first. Regular sync keeps identical content once; Manual sync always creates a new snapshot. Names default to the snapshot time; renamed snapshots are excluded from automatic cleanup. Applying and deleting both require confirmation.",
     snapshotCount: "{{count}} snapshots",
     noSnapshots: "No snapshots yet",
     loadingSnapshots: "Loading snapshots…",
@@ -312,6 +317,19 @@ export default {
   },
   tabs: {
     texture: "Tab texture",
+    newDynamicEffect: "Dynamic effects for new tabs",
+    newDynamicEffectHint:
+      "New and imported tabs use dynamic effects by default. Tabs inside a folder are enabled or disabled together, while the folder background stays static. Turning this off does not change existing tabs.",
+    applyExistingEnableTitle: "Enable existing tabs too?",
+    applyExistingEnableDescription:
+      "Dynamic effects are now the default for new tabs. Enable them again for every standalone tab and every folder containing tabs?",
+    applyExistingDisableTitle: "Disable existing tabs too?",
+    applyExistingDisableDescription:
+      "Dynamic effects are no longer the default for new tabs. Disable them for every standalone tab and every folder containing tabs now?",
+    onlyNewTabsEnable: "New tabs only",
+    onlyNewTabsDisable: "New tabs only",
+    applyAllTabsEnable: "Enable all",
+    applyAllTabsDisable: "Disable all",
     burningAmplitude: "Flame intensity",
     breathingAmplitude: "Breathing intensity",
     transition: "Transition effect",
@@ -363,6 +381,7 @@ export default {
     confirmDelete: "Confirm delete",
   },
   about: {
+    releaseNotes: "Release notes",
     supportTitleLine1: "Light up a star",
     supportTitleLine2: "for your next open.",
     supportBody:

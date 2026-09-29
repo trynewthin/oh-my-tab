@@ -41,7 +41,11 @@ export function mergeBookmarks(
       )
       const folder = items[index]
       if (folder?.kind === "folder")
-        items[index] = { ...folder, tabs: [...folder.tabs, tab] }
+        items[index] = {
+          ...folder,
+          tabs: [...folder.tabs, tab],
+          dynamicEffect: tab.dynamicEffect || folder.dynamicEffect,
+        }
       else
         items.push(
           factory.createFolder({

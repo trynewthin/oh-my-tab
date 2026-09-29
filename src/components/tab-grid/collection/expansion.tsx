@@ -169,6 +169,7 @@ export default function CollectionExpansion({
   closeLabel,
   onClose,
   suspended = false,
+  backgroundAnimated = true,
   headerActions,
   children,
 }: {
@@ -176,6 +177,7 @@ export default function CollectionExpansion({
   closeLabel: string
   onClose: () => void
   suspended?: boolean
+  backgroundAnimated?: boolean
   headerActions?: ReactNode
   children: ReactNode
 }) {
@@ -563,7 +565,7 @@ export default function CollectionExpansion({
     >
       <ComponentBackground
         color={collection.color}
-        animated={!!collection.dynamicEffect}
+        animated={backgroundAnimated && !!collection.dynamicEffect}
       />
       <div
         data-expansion-content

@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useToastStore } from "@/stores/toast-store"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import type { FolderItem, GridItem, TabItem } from "@/lib/grid/types"
 
 let seq = 0
@@ -20,6 +21,7 @@ function reset(items: GridItem[] = []) {
     lastLayoutColumns: undefined,
   })
   useToastStore.setState({ messages: [] })
+  useHomeSettingsStore.setState({ newTabsDynamicEffect: false })
 }
 
 beforeEach(() => reset())
@@ -119,6 +121,71 @@ describe("tab-grid-store", () => {
     const items = useTabGridStore.getState().items
     expect(items).toHaveLength(1)
     expect(items[0].name).toBe("new")
+  })
+
+  it("applies the new-tab dynamic effect default across creation paths", () => {
+    useHomeSettingsStore.setState({ newTabsDynamicEffect: true })
+    useTabGridStore.getState().upsertBookmark("new", "https://fresh.example/")
+    useTabGridStore.getState().importBookmarks([
+      {
+        name: "Imported",
+        url: "https://imported.example/",
+        folder: "",
+      },
+    ])
+    useTabGridStore.getState().saveItem(tab({ dynamicEffect: false }))
+    const folder = {
+      id: "folder",
+      kind: "folder",
+      name: "Folder",
+      size: "large",
+      color: "#6c8bd4",
+      tabs: [],
+    } satisfies FolderItem
+    useTabGridStore.getState().saveItem(folder)
+    useTabGridStore.getState().addFolderTab("folder", {
+      id: "nested",
+      name: "Nested",
+      url: "https://nested.example/",
+      dynamicEffect: false,
+    })
+    const items = useTabGridStore.getState().items
+    expect(
+      items
+        .filter((item) => item.kind === "tab")
+        .every((item) => item.dynamicEffect === true)
+    ).toBe(true)
+    expect(
+      (items.find((item) => item.id === "folder") as FolderItem).tabs[0]
+        .dynamicEffect
+    ).toBe(false)
+    expect(
+      (items.find((item) => item.id === "folder") as FolderItem).dynamicEffect
+    ).toBe(true)
+  })
+
+  it("re-enables dynamic effects for all existing root and folder tabs", () => {
+    const root = tab({ dynamicEffect: false })
+    const nested = tab({ dynamicEffect: false })
+    const container = {
+      id: "folder",
+      kind: "folder",
+      name: "Folder",
+      size: "large",
+      color: "#6c8bd4",
+      tabs: [nested],
+      dynamicEffect: false,
+    } satisfies FolderItem
+    reset([root, container])
+    useTabGridStore.getState().setAllTabDynamicEffects(true)
+    const items = useTabGridStore.getState().items
+    expect((items[0] as TabItem).dynamicEffect).toBe(true)
+    expect((items[1] as FolderItem).tabs[0].dynamicEffect).toBe(false)
+    expect((items[1] as FolderItem).dynamicEffect).toBe(true)
+    useTabGridStore.getState().setAllTabDynamicEffects(false)
+    const disabled = useTabGridStore.getState().items
+    expect((disabled[0] as TabItem).dynamicEffect).toBe(false)
+    expect((disabled[1] as FolderItem).dynamicEffect).toBe(false)
   })
 
   it("rejects bookmark upserts with empty name or invalid URL", () => {

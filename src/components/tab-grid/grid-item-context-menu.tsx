@@ -1,13 +1,6 @@
 import type { ReactElement } from "react"
 import { useState } from "react"
-import {
-  ArrowClockwise,
-  Fire,
-  PencilSimple,
-  Shuffle,
-  Trash,
-} from "@phosphor-icons/react"
-import { refreshFavicon } from "@/application/favicon-cache"
+import { Fire, PencilSimple, Shuffle, Trash } from "@phosphor-icons/react"
 import { Badge } from "@/components/ui/badge"
 import {
   ContextMenu,
@@ -52,17 +45,6 @@ export default function GridItemContextMenu({
 
   function renderOperation(operation: ComponentMenuOperation) {
     switch (operation) {
-      case "refreshIcon":
-        if (item.kind !== "tab") return null
-        return (
-          <ContextMenuItem
-            key={operation}
-            onClick={() => void refreshFavicon(item.url)}
-          >
-            <ArrowClockwise />
-            {t("grid.menu.refreshIcon")}
-          </ContextMenuItem>
-        )
       case "edit":
         return (
           <ContextMenuItem key={operation} onClick={onEdit}>

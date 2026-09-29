@@ -490,6 +490,40 @@ export async function renameWebdavSnapshot(
     }
   })
 }
+export async function applyWebdavSnapshot(
+  history: WebdavHistory,
+  snapshotId: string
+) {
+  return navigator.locks.request("omt-webdav", async () => {
+    const current = await currentHistory(history)
+    const target = current.snapshots.find(
+      (snapshot) => snapshot.id === snapshotId
+    )
+    if (!target) throw new Error(i18n.t("settings.webdav.conflict"))
+    const revision = await storageRevision()
+    const file = await fetchRemoteBackup(current.saved, target.file)
+    if (!file || (!current.index && file.etag !== current.legacyEtag))
+      throw new Error(i18n.t("settings.webdav.conflict"))
+    const backup = await readBackup(file.blob)
+    if ((await contentHash(backup.config, backup.image)) !== target.hash)
+      invalidIndex()
+    await currentHistory(current)
+    await restoreBackup(backup, revision)
+    const latest = current.snapshots[0]
+    const saved: SavedWebdav = {
+      ...current.saved,
+      ...(latest
+        ? { baseline: { localHash: latest.hash, remoteId: latest.id } }
+        : {}),
+      lastSyncAt: Date.now(),
+      connectedAt: Date.now(),
+    }
+    await writeEntries({ [WEBDAV_KEY]: JSON.stringify(saved) }, true, {
+      [WEBDAV_KEY]: current.raw,
+    })
+    return { saved }
+  })
+}
 export async function deleteWebdavSnapshot(
   history: WebdavHistory,
   snapshotId: string

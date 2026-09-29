@@ -358,6 +358,20 @@ try {
   })
   const snapshotRows = snapshotDialog.getByRole("listitem")
   await expect(snapshotRows).toHaveCount(2)
+  await snapshotRows
+    .last()
+    .getByRole("button", { name: "应用", exact: true })
+    .click()
+  const applySnapshotDialog = a.getByRole("alertdialog", {
+    name: "应用同步快照？",
+    exact: true,
+  })
+  await expect(applySnapshotDialog).toBeVisible()
+  await applySnapshotDialog
+    .getByRole("button", { name: "取消", exact: true })
+    .click()
+  await expect(applySnapshotDialog).not.toBeVisible()
+  assert.equal(await getText(a), "A THIRD")
   const manualSync = snapshotDialog.getByRole("button", {
     name: "手动同步",
     exact: true,

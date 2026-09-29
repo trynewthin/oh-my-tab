@@ -32,7 +32,7 @@ const state = (
 describe("transferTab", () => {
   it("moves a grid tab into a folder and drops its layout slot", () => {
     const f = folder()
-    const t = tab()
+    const t = tab({ icon: "data:image/webp;base64,custom" })
     const before = state([f, t], { 24: { [t.id]: { x: 0, y: 0 } } })
     const next = transferTab(before, {
       tabId: t.id,
@@ -41,6 +41,7 @@ describe("transferTab", () => {
     })
     const target = next.items.find((i) => i.id === f.id) as FolderItem
     expect(target.tabs.map((e) => e.id)).toEqual([t.id])
+    expect(target.tabs[0].icon).toBe(t.icon)
     expect(next.items.find((i) => i.id === t.id)).toBeUndefined()
     expect(next.layouts[24][t.id]).toBeUndefined()
   })
@@ -50,6 +51,7 @@ describe("transferTab", () => {
       id: "inner1",
       name: "in",
       url: "https://in.example/",
+      icon: "data:image/webp;base64,custom",
     }
     const f = folder({ tabs: [inner] })
     const before = state([f], { 24: { [f.id]: { x: 0, y: 0 } } })
@@ -63,6 +65,7 @@ describe("transferTab", () => {
     expect(target.tabs).toHaveLength(0)
     const extracted = next.items.find((i) => i.id === inner.id)
     expect(extracted?.kind).toBe("tab")
+    expect((extracted as TabItem | undefined)?.icon).toBe(inner.icon)
     expect(next.layouts[24][inner.id]).toBeDefined()
   })
 

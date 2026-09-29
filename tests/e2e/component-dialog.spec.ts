@@ -88,6 +88,9 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await expect(
     page.getByRole("menuitem", { name: "添加组件", exact: true })
   ).toHaveCount(0)
+  await expect(
+    page.getByRole("menuitem", { name: "刷新图标", exact: true })
+  ).toHaveCount(0)
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click()
   const editor = page.getByRole("dialog", { name: "编辑标签", exact: true })
   await expect(editor.getByLabel("名称", { exact: true })).toHaveValue(
@@ -97,15 +100,36 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await editor
     .getByLabel("网址", { exact: true })
     .fill("https://example.com/docs")
+  await editor.locator('input[type="file"]').setInputFiles({
+    name: "icon.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/54AAAAASUVORK5CYII=",
+      "base64"
+    ),
+  })
+  const refreshIcon = editor.getByRole("button", {
+    name: "刷新",
+    exact: true,
+  })
+  await expect(refreshIcon).toBeEnabled()
+  await refreshIcon.click()
+  const replaceIcon = page.getByRole("alertdialog", {
+    name: "替换自定义图标？",
+    exact: true,
+  })
+  await expect(replaceIcon).toBeVisible()
+  await replaceIcon.getByRole("button", { name: "取消", exact: true }).click()
   await editor.getByRole("button", { name: "保存", exact: true }).click()
   await expect
     .poll(async () => {
       const state = await readStoredState<{
-        items: { name: string; url?: string }[]
+        items: { name: string; url?: string; icon?: string }[]
       }>(page, "omt.tab-grid")
-      return state.items.find((item) => item.name === "文档")?.url
+      const item = state.items.find((item) => item.name === "文档")
+      return { url: item?.url, customIcon: item?.icon?.startsWith("data:") }
     })
-    .toBe("https://example.com/docs")
+    .toEqual({ url: "https://example.com/docs", customIcon: true })
   await page.reload()
   await expect(
     page.getByRole("link", { name: "文档", exact: true })

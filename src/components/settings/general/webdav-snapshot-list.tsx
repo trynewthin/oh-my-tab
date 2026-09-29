@@ -1,4 +1,8 @@
-import { PencilSimple, Trash } from "@phosphor-icons/react"
+import {
+  ArrowCounterClockwise,
+  PencilSimple,
+  Trash,
+} from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 import { webdavSnapshotName } from "@/lib/webdav-sync"
 import { Button } from "@/components/ui/button"
@@ -7,11 +11,13 @@ import type { WebdavSnapshot } from "@/application/webdav-sync"
 export default function WebdavSnapshotList({
   snapshots,
   busy = false,
+  onApply,
   onDelete,
   onRename,
 }: {
   snapshots: WebdavSnapshot[]
   busy?: boolean
+  onApply?: (snapshot: WebdavSnapshot) => void
   onDelete?: (snapshot: WebdavSnapshot) => void
   onRename?: (snapshot: WebdavSnapshot) => void
 }) {
@@ -45,8 +51,20 @@ export default function WebdavSnapshotList({
                 </span>
               )}
             </div>
-            {(onRename || onDelete) && (
+            {(onApply || onRename || onDelete) && (
               <div className="flex shrink-0 items-center gap-1">
+                {onApply && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
+                    aria-label={t("settings.webdav.applySnapshot")}
+                    disabled={busy}
+                    onClick={() => onApply(snapshot)}
+                  >
+                    <ArrowCounterClockwise aria-hidden="true" />
+                  </Button>
+                )}
                 {onRename && (
                   <Button
                     variant="ghost"

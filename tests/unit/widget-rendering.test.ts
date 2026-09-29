@@ -2,6 +2,7 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, describe, expect, test, vi } from "vitest"
 import UtilityWidgetTile from "@/components/tab-grid/utility-widget-tile"
+import { WidgetTile } from "@/components/tab-grid/widget-ui"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import { getComponentSizeOptions } from "@/lib/grid/registry"
 import { isUtilityWidget, utilityWidgetKinds } from "@/lib/grid/utility-types"
@@ -13,7 +14,11 @@ vi.mock("@/components/effects/use-wall-clock", () => ({
 }))
 
 vi.mock("@/components/tab-grid/shared/component-background", () => ({
-  default: () => createElement("div", { "data-test-background": true }),
+  default: ({ animated = false }: { animated?: boolean }) =>
+    createElement("div", {
+      "data-test-background": true,
+      "data-animated": animated ? "true" : undefined,
+    }),
 }))
 vi.mock("@/stores/tab-grid-store", () => ({
   useTabGridStore: (selector: (state: { items: never[] }) => unknown) =>
@@ -27,6 +32,26 @@ afterEach(() => vi.unstubAllGlobals())
 
 // Server rendering only: does not launch a browser or claim layout/visual QA.
 describe("widget render contracts", () => {
+  test("folder backgrounds stay static when their tabs are animated", () => {
+    const html = renderToStaticMarkup(
+      createElement(WidgetTile, {
+        item: {
+          id: "folder",
+          kind: "folder",
+          name: "Folder",
+          size: "large",
+          color: "#6c8bd4",
+          tabs: [],
+          dynamicEffect: true,
+        },
+        preview: true,
+        onOpen: () => {},
+      })
+    )
+    expect(html).toContain("data-test-background")
+    expect(html).not.toContain('data-animated="true"')
+  })
+
   test.each(["small", "medium", "tall"] as const)(
     "clock %s shows only the time on a transparent surface in both styles",
     async (size) => {

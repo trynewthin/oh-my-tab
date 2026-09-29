@@ -20,6 +20,7 @@ import {
   executeWebdavSync,
   parseRemoteIndex,
   readWebdavHistory,
+  applyWebdavSnapshot,
   deleteWebdavSnapshot,
   renameWebdavSnapshot,
   createWebdavSnapshot,
@@ -412,6 +413,25 @@ describe("WebDAV snapshot sync", () => {
 })
 
 describe("WebDAV snapshot history", () => {
+  it("applies a selected snapshot locally without changing remote history", async () => {
+    await saveWebdavSettings(connection, 5)
+    await sync()
+    await seed("LATEST")
+    await sync()
+    const history = await readWebdavHistory()
+    const latest = history.snapshots[0]
+    const older = history.snapshots[1]
+    const remoteBefore = structuredClone(await readIndex())
+    const result = await applyWebdavSnapshot(history, older.id)
+    expect((await currentBackup()).config.home.text).toBe("INITIAL")
+    expect(await readIndex()).toEqual(remoteBefore)
+    expect(result.saved.baseline).toEqual({
+      localHash: latest.hash,
+      remoteId: latest.id,
+    })
+    expect((await readWebdavSettings()).saved).toEqual(result.saved)
+    expect((await prepareWebdavSync()).direction).toBe("upload")
+  })
   it("creates distinct manual snapshots even when their contents match", async () => {
     await saveWebdavSettings(connection, 5)
     await sync()

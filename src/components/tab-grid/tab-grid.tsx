@@ -463,6 +463,7 @@ export default function TabGrid({
           {expandedFolder && (
             <CollectionExpansion
               collection={expandedFolder}
+              backgroundAnimated={false}
               closeLabel={t("grid.chrome.closeComponent", {
                 label: componentLabel("folder", t),
               })}

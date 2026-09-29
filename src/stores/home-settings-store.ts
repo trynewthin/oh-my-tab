@@ -64,6 +64,7 @@ type HomeSettings = {
   searchShortcuts: SearchShortcutConfig
   folderStyle: FolderStyle
   tabTexture: TabTexture
+  newTabsDynamicEffect: boolean
   topComponent: TopComponent
   traditionalTopSpacing: TraditionalTopSpacing
   content: MatrixContent
@@ -97,6 +98,7 @@ type HomeSettingsStore = HomeSettings & {
   setSearchShortcutBoundary: (index: number) => void
   setFolderStyle: (value: FolderStyle) => void
   setTabTexture: (value: TabTexture) => void
+  setNewTabsDynamicEffect: (value: boolean) => void
   setTopComponent: (value: TopComponent) => void
   setTraditionalTopSpacing: (value: TraditionalTopSpacing) => void
   setContent: (value: MatrixContent) => void
@@ -121,6 +123,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       searchShortcuts: defaultSearchShortcuts(),
       folderStyle: "noise",
       tabTexture: "burning",
+      newTabsDynamicEffect: false,
       topComponent: "dot-matrix",
       traditionalTopSpacing: defaultTraditionalTopSpacing,
       content: "time",
@@ -244,6 +247,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
+      setNewTabsDynamicEffect: (newTabsDynamicEffect) =>
+        set({ newTabsDynamicEffect }),
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
           set({ burningAmplitude: Math.min(2, Math.max(0, value)) })
@@ -276,6 +281,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchShortcuts,
         folderStyle,
         tabTexture,
+        newTabsDynamicEffect,
         topComponent,
         traditionalTopSpacing,
         content,
@@ -296,6 +302,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchShortcuts,
         folderStyle,
         tabTexture,
+        newTabsDynamicEffect,
         topComponent,
         traditionalTopSpacing,
         content,
@@ -360,6 +367,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
               ? legacy
               : "burning"
           })(),
+          newTabsDynamicEffect: saved?.newTabsDynamicEffect === true,
           burningAmplitude:
             typeof saved?.burningAmplitude === "number" &&
             Number.isFinite(saved.burningAmplitude)

@@ -15,7 +15,7 @@ import {
 import { validGridItem } from "../../src/lib/grid/validation"
 
 test("component registry is the shared source for sizes and capabilities", () => {
-  for (const [kind, definition] of Object.entries(componentRegistry)) {
+  for (const definition of Object.values(componentRegistry)) {
     const values = definition.sizes.map((size) => size.value)
     expect(new Set(values).size).toBe(values.length)
     expect(values).toContain(definition.defaultSize)
@@ -43,7 +43,6 @@ test("component registry is the shared source for sizes and capabilities", () =>
     for (const operation of definition.menu.operations) {
       if (operation === "randomColor" || operation === "dynamicEffect")
         expect(definition.actions[operation]).toBe(true)
-      if (operation === "refreshIcon") expect(kind).toBe("tab")
     }
   }
 
@@ -72,7 +71,6 @@ test("component registry is the shared source for sizes and capabilities", () =>
   expect(supportsComponentAction("calendar", "groupable")).toBe(false)
   expect(supportsComponentAction("folder", "groupable")).toBe(true)
   expect(getComponentMenuOperations("tab")).toEqual([
-    "refreshIcon",
     "edit",
     "randomColor",
     "dynamicEffect",

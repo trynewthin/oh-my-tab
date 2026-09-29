@@ -1,6 +1,7 @@
 import { GithubLogo } from "@phosphor-icons/react"
 import PrivacySettings from "./privacy-settings"
 import ProjectSupport from "./project-support"
+import ReleaseNotesCard from "./release-notes-card"
 
 export default function AboutSettings({
   pane,
@@ -13,7 +14,10 @@ export default function AboutSettings({
         <PrivacySettings />
       ) : (
         <>
-          <ProjectSupport />
+          <ReleaseNotesCard />
+          <div className="-mx-4 overflow-x-clip px-4 sm:-mx-6 sm:px-6">
+            <ProjectSupport />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex min-w-0 items-center gap-4 p-4">
               <img

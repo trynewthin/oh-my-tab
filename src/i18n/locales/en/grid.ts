@@ -71,7 +71,6 @@ const grid = {
     closeComponent: "Close {{label}}",
   },
   menu: {
-    refreshIcon: "Refresh icon",
     edit: "Edit",
     randomColor: "Random color",
     dynamicEffect: "Dynamic effect",
@@ -107,6 +106,19 @@ const grid = {
     displaySize: "Display size",
     folderColor: "Folder color",
     backgroundColor: "Background color",
+    icon: "Icon",
+    iconHint:
+      "Refresh fetches the website icon again and replaces a custom icon. You can also upload a PNG, JPEG, or WebP image up to 2 MB. Images are processed locally.",
+    refreshIcon: "Refresh",
+    uploadIcon: "Upload",
+    processingIcon: "Processing…",
+    iconRefreshed: "Website icon refreshed",
+    iconRefreshFailed: "Could not fetch the website icon",
+    iconInvalid: "Choose a PNG, JPEG, or WebP image no larger than 2 MB",
+    refreshCustomIconTitle: "Replace the custom icon?",
+    refreshCustomIconDescription:
+      "A successful refresh removes the uploaded custom icon and uses the website icon instead.",
+    confirmRefreshIcon: "Refresh icon",
     buttonAction: "Assigned action",
     cancel: "Cancel",
     save: "Save",

@@ -8,6 +8,7 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
 import ComponentEditorFrame from "./component-editor-frame"
 import FolderTabRow from "./folder-tab-row"
+import TabIconControls from "./tab-icon-controls"
 
 export default function FolderTabEditor({
   folderId,
@@ -21,6 +22,7 @@ export default function FolderTabEditor({
   const { t } = useTranslation()
   const [name, setName] = useState(tab.name)
   const [url, setUrl] = useState(tab.url)
+  const [icon, setIcon] = useState(tab.icon)
   const folder = useTabGridStore((state) =>
     state.items.find((item) => item.kind === "folder" && item.id === folderId)
   )
@@ -30,6 +32,7 @@ export default function FolderTabEditor({
     ...tab,
     name: name.trim() || tab.name,
     url: normalizeTabUrl(url) ?? tab.url,
+    icon,
   }
 
   function save() {
@@ -38,7 +41,11 @@ export default function FolderTabEditor({
       toast(t("grid.folder.invalidTab"), "error")
       return
     }
-    updateFolderTab(folderId, tab.id, { name: name.trim(), url: normalized })
+    updateFolderTab(folderId, tab.id, {
+      name: name.trim(),
+      url: normalized,
+      icon,
+    })
     onClose()
   }
 
@@ -90,6 +97,13 @@ export default function FolderTabEditor({
           onChange={(event) => setUrl(event.target.value)}
         />
       </SettingItem>
+      <TabIconControls
+        url={url}
+        icon={icon}
+        onIconChange={setIcon}
+        alertClassName="z-[100]"
+        alertOverlayClassName="z-[100]"
+      />
     </ComponentEditorFrame>
   )
 }

@@ -60,6 +60,7 @@ export function transferTab(state: GridData, move: TabTransfer): GridData {
           url: tab.url,
           size: tab.size,
           color: tab.color,
+          icon: tab.icon,
           dynamicEffect: tab.dynamicEffect,
         }
         tabs.splice(
@@ -89,6 +90,7 @@ export function transferTab(state: GridData, move: TabTransfer): GridData {
         tab.color ??
         source?.color ??
         getComponentDefinition("tab").defaultColor,
+      icon: tab.icon,
       dynamicEffect: tab.dynamicEffect,
     }
     items = [...items, extracted]

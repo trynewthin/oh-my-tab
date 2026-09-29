@@ -4,6 +4,7 @@ import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { validUtilityWidget } from "@/lib/widgets/model"
 import { isSystemActionOnSurface } from "@/lib/system-actions"
 import { normalizeTabUrl, type GridItem, type TabEntry } from "@/lib/grid/types"
+import { validTabIcon } from "@/lib/grid/tab-icon"
 
 function validDynamicEffect(value: unknown) {
   return value === undefined || typeof value === "boolean"
@@ -14,6 +15,7 @@ export function validTabEntry(value: unknown): value is TabEntry {
   const entry = value as TabEntry
   return (
     validDynamicEffect(entry.dynamicEffect) &&
+    validTabIcon(entry.icon) &&
     typeof entry.id === "string" &&
     typeof entry.name === "string" &&
     (entry.size === undefined || isComponentSize("tab", entry.size)) &&

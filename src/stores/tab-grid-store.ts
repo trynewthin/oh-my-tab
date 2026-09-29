@@ -12,7 +12,7 @@ import { persist } from "zustand/middleware"
 import { type GridItem, type TabEntry, type TodoTask } from "@/lib/grid/types"
 import { validGridItem } from "@/lib/grid/validation"
 import { dropRemovedGridItems } from "@/lib/grid/removed-items"
-import { bookmarkItemFactory } from "@/lib/grid/factory"
+import { createFolderItem, createTabItem } from "@/lib/grid/factory"
 import {
   addFolderTab,
   describeRemoval,
@@ -22,6 +22,7 @@ import {
   resizeItem,
   restoreItems,
   setItemDynamicEffect,
+  setAllTabDynamicEffects,
   updateFolderTab,
   updateTodoTasks,
   upsertBookmark,
@@ -43,6 +44,7 @@ import { transferTab, type TabTransfer } from "@/lib/grid/tab-transfer"
 
 import { randomComponentColor } from "@/lib/component-colors"
 import { i18n } from "@/i18n"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 type TabGridState = {
   updateTodoTasks: (
@@ -58,6 +60,7 @@ type TabGridState = {
   items: GridItem[]
 
   setItemDynamicEffect: (id: string, enabled: boolean) => void
+  setAllTabDynamicEffects: (enabled: boolean) => void
   randomizeItemColor: (id: string) => void
   resizeItem: (id: string, size: GridItem["size"]) => void
   removeItem: (id: string) => void
@@ -72,7 +75,7 @@ type TabGridState = {
   updateFolderTab: (
     folderId: string,
     tabId: string,
-    changes: Pick<TabEntry, "name" | "url">
+    changes: Pick<TabEntry, "name" | "url"> & { icon?: string }
   ) => void
   addFolderTab: (folderId: string, tab: TabEntry) => void
   removeFolderTab: (folderId: string, tabId: string) => void
@@ -148,6 +151,10 @@ export const useTabGridStore = create<TabGridState>()(
         set((state) => ({
           items: setItemDynamicEffect(state.items, id, enabled),
         })),
+      setAllTabDynamicEffects: (enabled) =>
+        set((state) => ({
+          items: setAllTabDynamicEffects(state.items, enabled),
+        })),
       randomizeItemColor: (id) =>
         set((state) => ({
           items: randomizeItemColor(state.items, id, randomComponentColor),
@@ -199,30 +206,53 @@ export const useTabGridStore = create<TabGridState>()(
         return true
       },
       importBookmarks: (bookmarks) => {
-        const result = mergeBookmarks(
-          get().items,
-          bookmarks,
-          bookmarkItemFactory
-        )
+        const dynamicEffect =
+          useHomeSettingsStore.getState().newTabsDynamicEffect
+        const result = mergeBookmarks(get().items, bookmarks, {
+          createTab: (input) => createTabItem({ ...input, dynamicEffect }),
+          createFolder: (input) =>
+            createFolderItem({ ...input, dynamicEffect }),
+        })
         if (result.added) set({ items: result.items })
         return { added: result.added, duplicates: result.duplicates }
       },
       upsertBookmark: (name, url) => {
-        const { items, result } = upsertBookmark(get().items, name, url)
+        const { items, result } = upsertBookmark(
+          get().items,
+          name,
+          url,
+          useHomeSettingsStore.getState().newTabsDynamicEffect
+        )
         if (result.kind === "invalid")
           throw new Error(i18n.t("grid.notify.invalidBookmark"))
         set({ items })
       },
       saveItem: (item) =>
-        set((state) => ({ items: upsertItem(state.items, item) })),
+        set((state) => {
+          const isNew = !state.items.some((existing) => existing.id === item.id)
+          const next =
+            isNew &&
+            item.kind === "tab" &&
+            useHomeSettingsStore.getState().newTabsDynamicEffect
+              ? { ...item, dynamicEffect: true }
+              : item
+          return { items: upsertItem(state.items, next) }
+        }),
       updateFolderTab: (folderId, tabId, changes) =>
         set((state) => ({
           items: updateFolderTab(state.items, folderId, tabId, changes),
         })),
       addFolderTab: (folderId, tab) =>
-        set((state) => ({
-          items: addFolderTab(state.items, folderId, tab),
-        })),
+        set((state) => {
+          const dynamicEffect =
+            useHomeSettingsStore.getState().newTabsDynamicEffect
+          const items = addFolderTab(state.items, folderId, tab)
+          return {
+            items: dynamicEffect
+              ? setItemDynamicEffect(items, folderId, true)
+              : items,
+          }
+        }),
       removeFolderTab: (folderId, tabId) =>
         set((state) => ({
           items: removeFolderTab(state.items, folderId, tabId),

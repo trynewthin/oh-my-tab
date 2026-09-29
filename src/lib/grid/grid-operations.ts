@@ -26,6 +26,7 @@ function tabEntry(item: Extract<GridItem, { kind: "tab" }>): TabEntry {
     url: item.url,
     size: item.size,
     color: item.color,
+    icon: item.icon,
     dynamicEffect: item.dynamicEffect,
   }
 }

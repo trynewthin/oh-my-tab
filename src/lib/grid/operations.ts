@@ -43,6 +43,18 @@ export function setItemDynamicEffect(
   )
 }
 
+export function setAllTabDynamicEffects(
+  items: GridItem[],
+  enabled: boolean
+): GridItem[] {
+  return items.map((item) => {
+    if (item.kind === "tab") return { ...item, dynamicEffect: enabled }
+    if (item.kind === "folder" && item.tabs.length)
+      return { ...item, dynamicEffect: enabled }
+    return item
+  })
+}
+
 export function randomizeItemColor(
   items: GridItem[],
   id: string,
@@ -78,7 +90,7 @@ export function updateFolderTab(
   items: GridItem[],
   folderId: string,
   tabId: string,
-  changes: Pick<TabEntry, "name" | "url">
+  changes: Pick<TabEntry, "name" | "url"> & { icon?: string }
 ): GridItem[] {
   return mapItem(items, folderId, (item) =>
     item.kind === "folder"
@@ -186,7 +198,8 @@ export type UpsertBookmarkResult =
 export function upsertBookmark(
   items: GridItem[],
   name: string,
-  url: string
+  url: string,
+  dynamicEffect = false
 ): { items: GridItem[]; result: UpsertBookmarkResult } {
   const address = normalizeTabUrl(url)
   if (!name.trim() || !address) return { items, result: { kind: "invalid" } }
@@ -210,7 +223,11 @@ export function upsertBookmark(
   return {
     items: upsertItem(
       items,
-      createTabItem({ name: name.trim(), url: address }) as GridItem
+      createTabItem({
+        name: name.trim(),
+        url: address,
+        dynamicEffect,
+      }) as GridItem
     ),
     result: { kind: "created" },
   }

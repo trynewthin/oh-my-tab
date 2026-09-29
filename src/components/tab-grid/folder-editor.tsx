@@ -88,10 +88,7 @@ export default function FolderEditor({
       height={current.height}
       preview={
         <>
-          <ComponentBackground
-            color={preview.color}
-            animated={!!preview.dynamicEffect}
-          />
+          <ComponentBackground color={preview.color} />
           <FolderUI item={preview} preview onOpen={() => {}} />
         </>
       }

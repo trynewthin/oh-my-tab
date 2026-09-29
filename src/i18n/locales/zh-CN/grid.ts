@@ -68,7 +68,6 @@ const grid = {
     closeComponent: "关闭{{label}}",
   },
   menu: {
-    refreshIcon: "刷新图标",
     edit: "编辑",
     randomColor: "随机颜色",
     dynamicEffect: "动态效果",
@@ -103,6 +102,19 @@ const grid = {
     displaySize: "显示大小",
     folderColor: "文件夹颜色",
     backgroundColor: "背景颜色",
+    icon: "图标",
+    iconHint:
+      "刷新会重新获取网站图标并替换自定义图标；也可上传不超过 2 MB 的 PNG、JPEG 或 WebP 图片。图片仅在本地处理。",
+    refreshIcon: "刷新",
+    uploadIcon: "上传",
+    processingIcon: "处理中…",
+    iconRefreshed: "网站图标已刷新",
+    iconRefreshFailed: "无法获取网站图标",
+    iconInvalid: "请选择不超过 2 MB 的 PNG、JPEG 或 WebP 图片",
+    refreshCustomIconTitle: "替换自定义图标？",
+    refreshCustomIconDescription:
+      "刷新成功后将移除当前上传的自定义图标，改为使用网站图标。",
+    confirmRefreshIcon: "确认刷新",
     buttonAction: "绑定行为",
     cancel: "取消",
     save: "保存",

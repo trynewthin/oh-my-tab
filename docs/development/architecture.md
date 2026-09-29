@@ -26,6 +26,7 @@ Oh My Tab 的网页预览与浏览器扩展共用 React 应用。新标签页负
 | `src/components/tab-grid/shared/`     | 多种网格组件共用的视觉表面                   |
 | `src/stores/`                         | 状态操作、持久化入口和跨组件状态             |
 | `src/application/`                    | 启动恢复、备份、同步、搜索等应用用例编排     |
+| `src/content/`                        | 随构建发布的 YAML 内容配置                   |
 | `src/lib/`                            | 纯模型、领域计算及浏览器和存储基础设施适配器 |
 | `scripts/`                            | 素材生成、发布校验和集成验证脚本             |
 | `tests/`                              | 端到端测试、单元测试、辅助代码和测试产物     |

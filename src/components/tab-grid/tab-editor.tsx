@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import ComponentEditorFrame from "./component-editor-frame"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
+import TabIconControls from "./tab-icon-controls"
 
 // The tab is the first component on the shared editor. It supplies its own
 // fields and live preview; the frame owns the dialog chrome.
@@ -40,6 +41,7 @@ export default function TabEditor({
     item?.size ?? definition.defaultSize
   )
   const [color, setColor] = useState(item?.color ?? definition.defaultColor)
+  const [icon, setIcon] = useState(item?.icon)
   const saveItem = useTabGridStore((state) => state.saveItem)
   const sizeOptions = getComponentSizeOptions("tab", "editor", item?.size)
   const current = getComponentSize("tab", size) ?? definition.sizes[0]
@@ -54,7 +56,7 @@ export default function TabEditor({
     url: normalizeTabUrl(url) ?? "https://example.com",
     size: resolvedSize,
     color,
-    icon: item?.icon,
+    icon,
     dynamicEffect: item?.dynamicEffect,
   }
 
@@ -74,6 +76,7 @@ export default function TabEditor({
         size: resolvedSize,
         color,
         url: normalized,
+        icon,
       })
     )
     onSaved()
@@ -130,6 +133,7 @@ export default function TabEditor({
           onChange={setColor}
         />
       </SettingItem>
+      <TabIconControls url={url} icon={icon} onIconChange={setIcon} />
     </ComponentEditorFrame>
   )
 }

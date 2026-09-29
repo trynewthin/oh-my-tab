@@ -65,7 +65,10 @@ describe("resolveGroupAction", () => {
 describe("groupComponents", () => {
   it("moves tabs into a folder and clears their grid slots", () => {
     const f = folder({ tabs: [] })
-    const [a, b] = [tab(), tab()]
+    const [a, b] = [
+      tab({ icon: "data:image/webp;base64,first" }),
+      tab({ icon: "data:image/webp;base64,second" }),
+    ]
     const before = data([f, a, b], {
       24: {
         [f.id]: { x: 0, y: 0 },
@@ -78,6 +81,10 @@ describe("groupComponents", () => {
     const merged = next!.items.find((i) => i.id === f.id)
     expect(merged?.kind).toBe("folder")
     expect((merged as FolderItem).tabs.map((t) => t.id)).toEqual([a.id, b.id])
+    expect((merged as FolderItem).tabs.map((t) => t.icon)).toEqual([
+      a.icon,
+      b.icon,
+    ])
     expect(next!.items).toHaveLength(1)
     expect(next!.layouts[24][a.id]).toBeUndefined()
     expect(next!.layouts[24][b.id]).toBeUndefined()

@@ -140,10 +140,7 @@ export function WidgetTile({
     case "folder":
       return (
         <>
-          <ComponentBackground
-            color={item.color}
-            animated={!!item.dynamicEffect}
-          />
+          <ComponentBackground color={item.color} />
           <FolderUI
             item={item}
             onOpen={onOpen}

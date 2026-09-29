@@ -1,5 +1,3 @@
-import { refreshFavicon } from "@/application/favicon-cache"
-import { ArrowClockwise } from "@phosphor-icons/react"
 import { useCallback, useRef, useState } from "react"
 import { useDraggable } from "@dnd-kit/core"
 import { PencilSimple, Trash } from "@phosphor-icons/react"
@@ -103,10 +101,6 @@ export default function DraggableFolderTab({
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent positionerClassName="z-[80]">
-        <ContextMenuItem onClick={() => void refreshFavicon(tab.url)}>
-          <ArrowClockwise />
-          {t("grid.menu.refreshIcon")}
-        </ContextMenuItem>
         <ContextMenuItem onClick={() => setEditing(true)}>
           <PencilSimple />
           {t("grid.menu.edit")}

@@ -10,7 +10,7 @@ export default function ProjectSupport() {
       backgroundColor="var(--card)"
       glowColor="270 90 75"
       colors={["#c084fc", "#f472b6", "#38bdf8"]}
-      className="mx-auto w-full max-w-[34rem] text-card-foreground"
+      className="w-full min-w-0 text-card-foreground"
     >
       <section
         aria-labelledby="project-support-title"

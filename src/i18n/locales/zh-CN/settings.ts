@@ -105,6 +105,11 @@ export default {
     syncNow: "同步",
     protectedSnapshot: "保留",
     renameSnapshot: "重命名",
+    applySnapshot: "应用",
+    applySnapshotTitle: "应用同步快照？",
+    applySnapshotDescription:
+      "将使用「{{snapshot}}」覆盖当前设备的数据，无法撤销；远端快照不会改变。建议先导出本地备份。",
+    confirmApplySnapshot: "确认应用",
     renameSnapshotTitle: "重命名快照",
     snapshotName: "快照名称",
     snapshotNameHint:
@@ -120,7 +125,7 @@ export default {
     createSnapshot: "手动同步",
     snapshotCreated: "已创建同步快照",
     snapshotsHint:
-      "查看远端保留的快照，按版本从新到旧排列。普通同步的相同内容只保留一份；手动同步会强制创建新快照。名称默认为时间，改名后不会自动清理，手动删除需要确认。",
+      "查看和应用远端保留的快照，按版本从新到旧排列。普通同步的相同内容只保留一份；手动同步会强制创建新快照。名称默认为时间，改名后不会自动清理；应用和删除均需要确认。",
     snapshotCount: "{{count}} 份快照",
     noSnapshots: "暂无快照",
     loadingSnapshots: "正在读取快照…",
@@ -297,6 +302,19 @@ export default {
   },
   tabs: {
     texture: "标签纹理",
+    newDynamicEffect: "新标签默认动态效果",
+    newDynamicEffectHint:
+      "开启后，新建和导入的标签默认使用动态效果；文件夹内标签跟随文件夹统一开启或关闭，文件夹背景保持静态。关闭时不修改已有标签。",
+    applyExistingEnableTitle: "同时开启现有标签？",
+    applyExistingEnableDescription:
+      "新标签的默认动态效果已经开启。是否立即为当前所有独立标签和含标签的文件夹重新开启动态效果？",
+    applyExistingDisableTitle: "同时关闭现有标签？",
+    applyExistingDisableDescription:
+      "新标签的默认动态效果已经关闭。是否立即关闭当前所有独立标签和含标签文件夹的动态效果？",
+    onlyNewTabsEnable: "仅新标签开启",
+    onlyNewTabsDisable: "仅新标签关闭",
+    applyAllTabsEnable: "全部开启",
+    applyAllTabsDisable: "全部关闭",
     burningAmplitude: "燃烧幅度",
     breathingAmplitude: "呼吸幅度",
     transition: "过渡效果",
@@ -345,6 +363,7 @@ export default {
     confirmDelete: "确认删除",
   },
   about: {
+    releaseNotes: "更新日志",
     supportTitleLine1: "为下一次打开，",
     supportTitleLine2: "点亮一颗星。",
     supportBody:

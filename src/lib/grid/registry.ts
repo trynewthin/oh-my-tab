@@ -44,8 +44,7 @@ export function occupancyPreviewStyle(width: number, height: number) {
 export type ComponentAction =
   "resize" | "randomColor" | "dynamicEffect" | "groupable" | "expandable"
 
-export type ComponentMenuOperation =
-  "refreshIcon" | "edit" | "randomColor" | "dynamicEffect"
+export type ComponentMenuOperation = "edit" | "randomColor" | "dynamicEffect"
 
 // Occupancy role vocabulary. The role is the word shown before the size mark
 // ("Small · 4×1"); the mark itself is numeric and locale-independent.
@@ -167,7 +166,7 @@ export const componentRegistry = {
     ],
     menu: {
       sizes: ["medium", "small"],
-      operations: ["refreshIcon", "edit", "randomColor", "dynamicEffect"],
+      operations: ["edit", "randomColor", "dynamicEffect"],
     },
     editorSizes: ["small", "medium"],
     catalogSizes: [],

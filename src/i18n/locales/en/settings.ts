@@ -15,6 +15,7 @@ export default {
     search: "Search",
     personalization: "Personalization",
     personalizationAppearance: "Appearance",
+    personalizationMaterial: "Material",
     personalizationTabs: "Tabs",
     personalizationFolders: "Folders",
     about: "About",
@@ -313,10 +314,17 @@ export default {
     selectAria: "Select {{label}}",
     burning: "Pixel flame",
     particles: "Floating dots",
+    storm: "Thundercloud",
     none: "None",
   },
+  material: {
+    previewTexture: "Preview material",
+    burningAmplitude: "Flame intensity",
+    breathingAmplitude: "Breathing intensity",
+    transition: "Transition effect",
+  },
   tabs: {
-    texture: "Tab texture",
+    texture: "Tab material",
     newDynamicEffect: "Dynamic effects for new tabs",
     newDynamicEffectHint:
       "New and imported tabs use dynamic effects by default. Tabs inside a folder are enabled or disabled together, while the folder background stays static. Turning this off does not change existing tabs.",
@@ -330,9 +338,6 @@ export default {
     onlyNewTabsDisable: "New tabs only",
     applyAllTabsEnable: "Enable all",
     applyAllTabsDisable: "Disable all",
-    burningAmplitude: "Flame intensity",
-    breathingAmplitude: "Breathing intensity",
-    transition: "Transition effect",
   },
   folders: {
     texture: "Folder texture",

@@ -2,8 +2,22 @@ import { lazy, Suspense, useEffect, useState } from "react"
 import AppRouter from "@/router"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
-const SettingsApplication = lazy(
-  () => import("@/components/settings/settings-application")
+async function retryDevImport<T>(load: () => Promise<T>): Promise<T> {
+  const delays = import.meta.env.DEV ? [0, 100, 300] : [0]
+  let failure: unknown
+  for (const delay of delays) {
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay))
+    try {
+      return await load()
+    } catch (error) {
+      failure = error
+    }
+  }
+  throw failure
+}
+
+const SettingsApplication = lazy(() =>
+  retryDevImport(() => import("@/components/settings/settings-application"))
 )
 const ComponentsApplication = lazy(
   () => import("@/components/tab-grid/grid-item-dialog")

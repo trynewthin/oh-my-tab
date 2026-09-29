@@ -13,18 +13,31 @@ import type { EffectStyle } from "@/stores/home-settings-store"
 const options = [
   { value: "burning", labelKey: "settings.effects.burning" },
   { value: "particles", labelKey: "settings.effects.particles" },
+  { value: "storm", labelKey: "settings.effects.storm" },
   { value: "none", labelKey: "settings.effects.none" },
 ] as const
+
+export type EffectPickerValue = EffectStyle | "storm"
 
 function EffectPreview({
   value,
   color,
   textureId,
 }: {
-  value: EffectStyle
+  value: EffectPickerValue
   color: string
   textureId: string
 }) {
+  if (value === "storm")
+    return (
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-muted"
+        style={{
+          backgroundImage: `radial-gradient(ellipse at 72% 48%, color-mix(in srgb, ${color} 80%, transparent) 0%, color-mix(in srgb, ${color} 34%, transparent) 28%, transparent 64%)`,
+        }}
+      />
+    )
   return (
     <EffectSurface
       color={color}
@@ -40,11 +53,13 @@ export default function EffectStylePicker({
   color,
   onChange,
   labelKey = "settings.effects.label",
+  showStorm = false,
 }: {
-  value: EffectStyle
+  value: EffectPickerValue
   color: string
-  onChange: (value: EffectStyle) => void
+  onChange: (value: EffectPickerValue) => void
   labelKey?: string
+  showStorm?: boolean
 }) {
   const { t } = useTranslation()
   const label = t(labelKey)
@@ -70,29 +85,31 @@ export default function EffectStylePicker({
         className="w-(--anchor-width) gap-2 rounded-2xl p-2"
       >
         <div role="radiogroup" aria-label={label} className="grid gap-2">
-          {options.map((option) => {
-            const selected = option.value === value
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                className="relative isolate h-9 w-full overflow-hidden rounded-xl border border-border/60 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={() => onChange(option.value)}
-              >
-                <EffectPreview
-                  value={option.value}
-                  color={color}
-                  textureId={`effect-option-${option.value}`}
-                />
-                <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3 text-sm font-medium">
-                  {t(option.labelKey)}
-                  {selected && <Check className="size-4" />}
-                </span>
-              </button>
-            )
-          })}
+          {options
+            .filter((option) => showStorm || option.value !== "storm")
+            .map((option) => {
+              const selected = option.value === value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className="relative isolate h-9 w-full overflow-hidden rounded-xl border border-border/60 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => onChange(option.value)}
+                >
+                  <EffectPreview
+                    value={option.value}
+                    color={color}
+                    textureId={`effect-option-${option.value}`}
+                  />
+                  <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-3 text-sm font-medium">
+                    {t(option.labelKey)}
+                    {selected && <Check className="size-4" />}
+                  </span>
+                </button>
+              )
+            })}
         </div>
       </PopoverContent>
     </Popover>

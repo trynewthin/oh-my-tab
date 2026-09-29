@@ -1,9 +1,11 @@
 import AppearancePane from "./appearance-pane"
 import FolderPane from "./folder-pane"
+import MaterialPane from "./material-pane"
 import TabsPane from "./tabs-pane"
 
 const panes = {
   appearance: AppearancePane,
+  material: MaterialPane,
   tabs: TabsPane,
   folders: FolderPane,
 } as const

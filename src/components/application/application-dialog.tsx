@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type Ref,
   type ReactNode,
 } from "react"
 import { createPortal } from "react-dom"
@@ -231,6 +232,8 @@ export default function ApplicationDialog<RouteId extends string>({
   activeRoute,
   onRouteChange,
   accentColor,
+  background,
+  dialogRef,
   children,
 }: {
   applicationId: string
@@ -246,6 +249,8 @@ export default function ApplicationDialog<RouteId extends string>({
   activeRoute: RouteId
   onRouteChange: (route: RouteId) => void
   accentColor: string
+  background?: ReactNode
+  dialogRef?: Ref<HTMLDivElement>
   children: ReactNode
 }) {
   const applicationNode = useRef<HTMLDivElement>(null)
@@ -286,12 +291,18 @@ export default function ApplicationDialog<RouteId extends string>({
       }}
     >
       <DialogContent
+        ref={dialogRef}
         showCloseButton={false}
         overlayClassName="bg-black/10 backdrop-blur-xl"
         className="h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:max-w-3xl sm:rounded-[min(var(--radius-4xl),24px)]"
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
+        {background && (
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]">
+            {background}
+          </div>
+        )}
         <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
           <div
             ref={applicationNode}

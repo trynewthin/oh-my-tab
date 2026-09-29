@@ -4,11 +4,11 @@ notes:
     - WebDAV 连接信息、同步基准与快照设置现在会在当前设备持久保存。
     - 新增同步快照管理，可手动创建、重命名、应用和删除远端快照。
     - 优化多设备同步、冲突判断、快照保留与重复内容处理。
-    - 标签设置可控制新标签的默认动态效果，并可一次开启或关闭所有现有标签。
+    - 标签设置可选择标签材质并控制新标签的默认动态效果；材质设置支持全屏调试，并新增随机触发的雷暴云展示效果。
     - 标签编辑支持刷新网站图标，或裁剪并上传本地自定义图标。
   en:
     - WebDAV connection details, sync baselines, and snapshot settings now persist on this device.
     - Added sync snapshot management for manually creating, renaming, applying, and deleting remote snapshots.
     - Improved multi-device sync, conflict detection, snapshot retention, and duplicate handling.
-    - Tab settings can control dynamic effects for new tabs and enable or disable them across all existing tabs at once.
+    - Tab settings select tab materials and control dynamic effects for new tabs; material settings support full-dialog tuning with a randomly triggered thundercloud preview.
     - Tab editing can refresh website icons or crop and use a locally uploaded custom icon.

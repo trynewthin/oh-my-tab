@@ -18,6 +18,10 @@
           "id": "personalization-appearance",
           "labelKey": "settings.nav.personalizationAppearance"
         },
+        {
+          "id": "personalization-material",
+          "labelKey": "settings.nav.personalizationMaterial"
+        },
         { "id": "home-top", "labelKey": "settings.nav.home" },
         {
           "id": "personalization-tabs",

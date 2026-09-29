@@ -4,6 +4,7 @@ export const settingsSections = [
   "home-top",
   "search-engines",
   "personalization-appearance",
+  "personalization-material",
   "personalization-tabs",
   "personalization-folders",
   "about-project",

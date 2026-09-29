@@ -15,6 +15,7 @@ export default {
     search: "搜索",
     personalization: "个性化",
     personalizationAppearance: "外观",
+    personalizationMaterial: "材质",
     personalizationTabs: "标签",
     personalizationFolders: "文件夹",
     about: "关于",
@@ -298,10 +299,17 @@ export default {
     selectAria: "选择{{label}}",
     burning: "像素火焰",
     particles: "浮游点阵",
+    storm: "雷暴云",
     none: "无",
   },
+  material: {
+    previewTexture: "展示材质",
+    burningAmplitude: "燃烧幅度",
+    breathingAmplitude: "呼吸幅度",
+    transition: "过渡效果",
+  },
   tabs: {
-    texture: "标签纹理",
+    texture: "标签材质",
     newDynamicEffect: "新标签默认动态效果",
     newDynamicEffectHint:
       "开启后，新建和导入的标签默认使用动态效果；文件夹内标签跟随文件夹统一开启或关闭，文件夹背景保持静态。关闭时不修改已有标签。",
@@ -315,9 +323,6 @@ export default {
     onlyNewTabsDisable: "仅新标签关闭",
     applyAllTabsEnable: "全部开启",
     applyAllTabsDisable: "全部关闭",
-    burningAmplitude: "燃烧幅度",
-    breathingAmplitude: "呼吸幅度",
-    transition: "过渡效果",
   },
   folders: {
     texture: "文件夹纹理",

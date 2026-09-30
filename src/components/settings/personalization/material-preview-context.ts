@@ -1,11 +1,16 @@
 import { createContext, useContext } from "react"
-import type { EffectStyle } from "@/stores/home-settings-store"
+import type { MaterialStyle } from "@/components/effects/material-surface"
 
-export type MaterialPreviewStyle = EffectStyle
+export type MaterialPreviewStyle = MaterialStyle
+export type StarTrailMode = "dynamic" | "static"
 
 export type MaterialPreviewContextValue = {
   value: MaterialPreviewStyle
   setValue: (value: MaterialPreviewStyle) => void
+  starTrailSpeed: number
+  setStarTrailSpeed: (value: number) => void
+  starTrailMode: StarTrailMode
+  setStarTrailMode: (value: StarTrailMode) => void
 }
 
 export const MaterialPreviewContext =

@@ -1,6 +1,7 @@
 import { settingsControlClassName } from "../shared/control-styles"
 import { CaretDown, Check } from "@phosphor-icons/react"
-import EffectSurface from "@/components/effects/effect-surface"
+import MaterialSurface from "@/components/effects/material-surface"
+import type { MaterialStyle } from "@/components/effects/material-surface"
 import { Button } from "@/components/ui/button"
 import {
   Popover,
@@ -16,7 +17,24 @@ const options = [
   { value: "none", labelKey: "settings.effects.none" },
 ] as const
 
-export type EffectPickerValue = EffectStyle
+export type EffectPickerValue = MaterialStyle
+
+type PickerProps = {
+  color: string
+  labelKey?: string
+  opaqueHover?: boolean
+} & (
+  | {
+      includeStarTrails: true
+      value: EffectPickerValue
+      onChange: (value: EffectPickerValue) => void
+    }
+  | {
+      includeStarTrails?: false
+      value: EffectStyle
+      onChange: (value: EffectStyle) => void
+    }
+)
 
 function EffectPreview({
   value,
@@ -28,7 +46,7 @@ function EffectPreview({
   textureId: string
 }) {
   return (
-    <EffectSurface
+    <MaterialSurface
       color={color}
       textureId={textureId}
       effectStyle={value}
@@ -37,22 +55,26 @@ function EffectPreview({
   )
 }
 
-export default function EffectStylePicker({
-  value,
-  color,
-  onChange,
-  labelKey = "settings.effects.label",
-  opaqueHover = false,
-}: {
-  value: EffectPickerValue
-  color: string
-  onChange: (value: EffectPickerValue) => void
-  labelKey?: string
-  opaqueHover?: boolean
-}) {
+export default function EffectStylePicker(props: PickerProps) {
+  const {
+    value,
+    color,
+    labelKey = "settings.effects.label",
+    opaqueHover = false,
+  } = props
   const { t } = useTranslation()
   const label = t(labelKey)
-  const current = options.find((option) => option.value === value) ?? options[0]
+  const choices = props.includeStarTrails
+    ? [
+        ...options.slice(0, -1),
+        {
+          value: "star-trails",
+          labelKey: "settings.effects.starTrails",
+        } as const,
+        options[options.length - 1],
+      ]
+    : options
+  const current = choices.find((option) => option.value === value) ?? choices[0]
 
   return (
     <Popover>
@@ -74,7 +96,7 @@ export default function EffectStylePicker({
         className="w-(--anchor-width) gap-2 rounded-2xl p-2"
       >
         <div role="radiogroup" aria-label={label} className="grid gap-2">
-          {options.map((option) => {
+          {choices.map((option) => {
             const selected = option.value === value
             return (
               <button
@@ -83,7 +105,11 @@ export default function EffectStylePicker({
                 role="radio"
                 aria-checked={selected}
                 className="relative isolate h-9 w-full overflow-hidden rounded-xl border border-border/60 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={() => onChange(option.value)}
+                onClick={() => {
+                  if (option.value === "star-trails") {
+                    if (props.includeStarTrails) props.onChange(option.value)
+                  } else props.onChange(option.value)
+                }}
               >
                 <EffectPreview
                   value={option.value}

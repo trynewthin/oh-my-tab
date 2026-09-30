@@ -314,12 +314,17 @@ export default {
     selectAria: "Select {{label}}",
     burning: "Pixel flame",
     particles: "Floating dots",
+    starTrails: "Star Trail Record",
     none: "None",
   },
   material: {
     previewTexture: "Preview material",
     burningAmplitude: "Flame intensity",
     breathingAmplitude: "Breathing intensity",
+    runningSpeed: "Running speed",
+    runningMode: "Animation mode",
+    dynamic: "Dynamic",
+    static: "Static",
     transition: "Transition effect",
   },
   tabs: {

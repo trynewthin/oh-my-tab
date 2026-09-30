@@ -299,12 +299,17 @@ export default {
     selectAria: "选择{{label}}",
     burning: "像素火焰",
     particles: "浮游点阵",
+    starTrails: "星轨唱片",
     none: "无",
   },
   material: {
     previewTexture: "展示材质",
     burningAmplitude: "燃烧幅度",
     breathingAmplitude: "呼吸幅度",
+    runningSpeed: "运行速度",
+    runningMode: "运行模式",
+    dynamic: "动态",
+    static: "静态",
     transition: "过渡效果",
   },
   tabs: {

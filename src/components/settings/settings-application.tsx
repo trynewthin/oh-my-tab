@@ -4,9 +4,17 @@ import { useTranslation } from "react-i18next"
 import ApplicationDialog, {
   type ApplicationNavigationGroup,
 } from "@/components/application/application-dialog"
-import EffectSurface from "@/components/effects/effect-surface"
+import MaterialSurface from "@/components/effects/material-surface"
+import {
+  DEFAULT_STAR_TRAIL_SPEED,
+  MAX_STAR_TRAIL_SPEED,
+  MIN_STAR_TRAIL_SPEED,
+} from "@/lib/star-trails"
 import { MaterialPreviewContext } from "./personalization/material-preview-context"
-import type { MaterialPreviewStyle } from "./personalization/material-preview-context"
+import type {
+  MaterialPreviewStyle,
+  StarTrailMode,
+} from "./personalization/material-preview-context"
 import {
   defaultSettingsSection,
   type SettingsSection,
@@ -53,6 +61,8 @@ export default function SettingsApplication() {
   const materialVisible = material
   const [materialPreview, setMaterialPreview] =
     useState<MaterialPreviewStyle>(tabTexture)
+  const [starTrailSpeed, setStarTrailSpeed] = useState(DEFAULT_STAR_TRAIL_SPEED)
+  const [starTrailMode, setStarTrailMode] = useState<StarTrailMode>("dynamic")
 
   return (
     <ApplicationDialog
@@ -83,12 +93,16 @@ export default function SettingsApplication() {
           className="absolute inset-0"
           style={{ opacity: materialVisible ? 1 : 0 }}
         >
-          <EffectSurface
+          <MaterialSurface
             color={accentColor}
             textureId="settings-material-background"
-            coverage={72}
+            coverage={materialPreview === "star-trails" ? 90 : 72}
             effectStyle={materialPreview}
-            animated
+            speed={starTrailSpeed}
+            animated={
+              materialPreview !== "star-trails" || starTrailMode === "dynamic"
+            }
+            staticFrame={starTrailMode === "static"}
             entrance
             transparent
             visible={materialVisible}
@@ -98,7 +112,22 @@ export default function SettingsApplication() {
     >
       <div data-settings-content className="contents">
         <MaterialPreviewContext.Provider
-          value={{ value: materialPreview, setValue: setMaterialPreview }}
+          value={{
+            value: materialPreview,
+            setValue: setMaterialPreview,
+            starTrailSpeed,
+            starTrailMode,
+            setStarTrailMode,
+            setStarTrailSpeed: (value) => {
+              if (Number.isFinite(value))
+                setStarTrailSpeed(
+                  Math.min(
+                    MAX_STAR_TRAIL_SPEED,
+                    Math.max(MIN_STAR_TRAIL_SPEED, value)
+                  )
+                )
+            },
+          }}
         >
           <View />
         </MaterialPreviewContext.Provider>

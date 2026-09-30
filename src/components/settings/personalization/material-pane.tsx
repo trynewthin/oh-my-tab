@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { Switch } from "@/components/ui/switch"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import EffectStylePicker from "./effect-style-picker"
 import { useMaterialPreview } from "./material-preview-context"
 import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
+import { MAX_STAR_TRAIL_SPEED, MIN_STAR_TRAIL_SPEED } from "@/lib/star-trails"
 
 export default function MaterialPane() {
   const { t } = useTranslation()
@@ -18,6 +20,9 @@ export default function MaterialPane() {
     (state) => state.setTransitionsEnabled
   )
   const color = useHomeSettingsStore((state) => state.color)
+  const starTrails = materialPreview.value === "star-trails"
+  const controlId = starTrails ? "star-trail-speed" : "burning-amplitude"
+  const controlValue = starTrails ? materialPreview.starTrailSpeed : amplitude
 
   return (
     <div className="space-y-4">
@@ -28,38 +33,70 @@ export default function MaterialPane() {
           onChange={materialPreview.setValue}
           labelKey="settings.material.previewTexture"
           opaqueHover
+          includeStarTrails
         />
       </SettingItem>
+      {starTrails && (
+        <SettingItem
+          label={t("settings.material.runningMode")}
+          labelId="star-trail-mode-label"
+        >
+          <ToggleGroup
+            aria-labelledby="star-trail-mode-label"
+            className={settingsControlSurface}
+            value={[materialPreview.starTrailMode]}
+            onValueChange={(values) => {
+              const value = values[0]
+              if (value === "dynamic" || value === "static")
+                materialPreview.setStarTrailMode(value)
+            }}
+          >
+            <ToggleGroupItem value="dynamic">
+              {t("settings.material.dynamic")}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="static">
+              {t("settings.material.static")}
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </SettingItem>
+      )}
       {(materialPreview.value === "burning" ||
-        materialPreview.value === "particles") && (
+        materialPreview.value === "particles" ||
+        starTrails) && (
         <>
           <SettingItem
             label={
-              materialPreview.value === "burning"
-                ? t("settings.material.burningAmplitude")
-                : t("settings.material.breathingAmplitude")
+              starTrails
+                ? t("settings.material.runningSpeed")
+                : materialPreview.value === "burning"
+                  ? t("settings.material.burningAmplitude")
+                  : t("settings.material.breathingAmplitude")
             }
-            htmlFor="burning-amplitude"
+            htmlFor={controlId}
           >
             <div
               className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
             >
               <input
-                id="burning-amplitude"
+                id={controlId}
                 type="range"
-                min="0"
-                max="2"
+                min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
+                max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
                 step="0.1"
-                value={amplitude}
-                onChange={(event) => setAmplitude(Number(event.target.value))}
+                value={controlValue}
+                onChange={(event) => {
+                  const value = Number(event.target.value)
+                  if (starTrails) materialPreview.setStarTrailSpeed(value)
+                  else setAmplitude(value)
+                }}
                 className="min-w-0 flex-1"
                 style={{ accentColor: color }}
               />
               <output
-                htmlFor="burning-amplitude"
+                htmlFor={controlId}
                 className="w-10 text-right text-xs tabular-nums"
               >
-                {Math.round(amplitude * 100)}%
+                {Math.round(controlValue * 100)}%
               </output>
             </div>
           </SettingItem>

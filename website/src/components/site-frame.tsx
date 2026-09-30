@@ -61,13 +61,18 @@ export function SiteHeader({ language, page }: SiteChromeProps) {
   return (
     <header className="site-header">
       <a className="brand" href={homePath} aria-label={t("header.brandLabel")}>
-        <img src={logoUrl} alt="" />
+        <img src={logoUrl} width="32" height="32" alt="" />
         <span>Oh My Tab</span>
       </a>
       <nav aria-label={t("header.navLabel")}>
         <a href={`${homePath}#features`}>{t("header.features")}</a>
         <a href={`${homePath}#showcase`}>{t("header.showcase")}</a>
-        <a href={pathFor("privacy", language)}>{t("header.privacy")}</a>
+        <a
+          href={pathFor("privacy", language)}
+          aria-current={page === "privacy" ? "page" : undefined}
+        >
+          {t("header.privacy")}
+        </a>
       </nav>
       <div className="header-actions">
         <LanguageSwitcher language={language} page={page} />
@@ -128,9 +133,6 @@ export function SiteFooter() {
                     width="8"
                     height="8"
                     rx="1.5"
-                    style={{
-                      animationDelay: `${(index * 5 + x + y) * -0.12}s`,
-                    }}
                   />
                 ) : null
               )

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client"
 import { LandingPage, PrivacyPage } from "./pages"
 import { initI18n } from "./i18n"
 import { languageFromPath, pageFromPath } from "./i18n/language"
+import "@fontsource-variable/inter"
 import "./styles.css"
 
 // The URL owns language and page on the web, so a reload always matches the

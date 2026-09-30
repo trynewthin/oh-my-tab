@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { landingDetailIds, type LandingDetailId } from "../i18n/types"
+import { ProductPreview, type PreviewTheme } from "./product-preview"
 import { chromeStoreUrl, releaseUrl } from "./site-frame"
 
 type DetailVisual = {
@@ -8,8 +9,8 @@ type DetailVisual = {
   tone: string
 }
 
-// Each detail card uses a dedicated tightly-framed capture — cropping a wide
-// screenshot used to leak neighbouring tiles' borders into the frame.
+// Product captures, not fabricated UI: every detail shown here exists in the
+// extension. Keep the dedicated crops so neighbouring tiles never leak in.
 const detailVisuals: Record<LandingDetailId, DetailVisual> = {
   colors: { image: "detail-colors", tone: "lilac" },
   todos: { image: "detail-todos", tone: "blue" },
@@ -19,72 +20,45 @@ const detailVisuals: Record<LandingDetailId, DetailVisual> = {
 
 export function LandingContent() {
   const { t } = useTranslation()
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const [theme, setTheme] = useState<PreviewTheme>("dark")
 
   return (
     <main className="landing">
-      <section className="hero">
+      <section className="hero" aria-labelledby="hero-title">
         <div className="hero-copy">
-          <h1>
-            {t("landing.hero.titleLead")}
-            <span>{t("landing.hero.titleTail")}</span>
-          </h1>
+          <div className="hero-heading">
+            <p className="eyebrow">Oh My Tab · Chrome / Edge</p>
+            <h1 id="hero-title">
+              {t("landing.hero.titleLead")}
+              <span>{t("landing.hero.titleTail")}</span>
+            </h1>
+          </div>
           <div className="hero-actions">
             <a className="button button--primary" href={chromeStoreUrl}>
               {t("landing.hero.chromeStore")}
+              <span aria-hidden="true">↗</span>
             </a>
             <a className="button button--quiet" href={releaseUrl}>
               {t("landing.hero.release")}
             </a>
           </div>
         </div>
-        <div className="preview-toolbar">
-          <div
-            className="theme-switch"
-            role="group"
-            aria-label={t("landing.hero.themeLabel")}
-          >
-            <button
-              type="button"
-              aria-pressed={theme === "dark"}
-              onClick={() => setTheme("dark")}
-            >
-              ☾ {t("landing.hero.themeDark")}
-            </button>
-            <button
-              type="button"
-              aria-pressed={theme === "light"}
-              onClick={() => setTheme("light")}
-            >
-              ☼ {t("landing.hero.themeLight")}
-            </button>
-          </div>
-        </div>
-        <div className={`hero-visual hero-visual--${theme}`}>
-          <div className="browser-bar" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </div>
-          <img
-            width="2400"
-            height="1840"
-            src={`/showcase/home-${theme}.webp`}
-            alt={t(
-              theme === "dark"
-                ? "landing.hero.previewAltDark"
-                : "landing.hero.previewAltLight"
-            )}
-          />
-        </div>
+        <ProductPreview theme={theme} onThemeChange={setTheme} />
       </section>
 
-      <section className="feature-section" id="features">
+      <section
+        className="feature-section"
+        id="features"
+        aria-labelledby="features-title"
+      >
         <div className="section-heading">
-          <h2>{t("landing.features.heading")}</h2>
+          <span className="section-index" aria-hidden="true">
+            01
+          </span>
+          <h2 id="features-title">{t("landing.features.heading")}</h2>
         </div>
         <div className="detail-grid">
-          {landingDetailIds.map((id) => {
+          {landingDetailIds.map((id, index) => {
             const visual = detailVisuals[id]
             const title = t(`landing.features.details.${id}.title`)
             return (
@@ -95,13 +69,19 @@ export function LandingContent() {
                 <div className="detail-art">
                   <img
                     loading="lazy"
+                    decoding="async"
                     src={`/showcase/${visual.image}.webp`}
                     alt={title}
                   />
                 </div>
                 <div className="detail-copy">
-                  <h3>{title}</h3>
-                  <p>{t(`landing.features.details.${id}.text`)}</p>
+                  <span className="detail-index" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{t(`landing.features.details.${id}.text`)}</p>
+                  </div>
                 </div>
               </article>
             )
@@ -109,11 +89,16 @@ export function LandingContent() {
         </div>
       </section>
 
-      <section className="showcase-section" id="showcase">
-        <div className="section-heading section-heading--split">
-          <div>
-            <h2>{t("landing.showcase.heading")}</h2>
-          </div>
+      <section
+        className="showcase-section"
+        id="showcase"
+        aria-labelledby="showcase-title"
+      >
+        <div className="section-heading">
+          <span className="section-index" aria-hidden="true">
+            02
+          </span>
+          <h2 id="showcase-title">{t("landing.showcase.heading")}</h2>
         </div>
         <div className="showcase-list">
           <article className="showcase-item">
@@ -124,6 +109,7 @@ export function LandingContent() {
             <div className="showcase-shot">
               <img
                 loading="lazy"
+                decoding="async"
                 width="2400"
                 height="920"
                 src="/showcase/organize.webp"
@@ -139,6 +125,7 @@ export function LandingContent() {
             <div className="showcase-shot">
               <img
                 loading="lazy"
+                decoding="async"
                 width="2400"
                 height="920"
                 src="/showcase/widgets.webp"

@@ -64,9 +64,7 @@ describe("settings presentation", () => {
         children: createElement("input", { id: "setting-input" }),
       })
     )
-    expect(html).toContain(
-      `data-setting-item="${wide ? "wide" : "standard"}"`
-    )
+    expect(html).toContain(`data-setting-item="${wide ? "wide" : "standard"}"`)
     expect(html).toContain('id="setting-label" for="setting-input"')
     expect(html).toContain('id="setting-input"')
     expect(html).toContain("data-setting-label")

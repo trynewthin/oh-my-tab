@@ -1,0 +1,109 @@
+/* Interface chrome only. Tile geometry, saved palettes and canvas clocks keep
+   their own contracts; feedback must never animate a drag transform. */
+:root {
+  --interface-feedback: 140ms;
+  --interface-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-slot="button"] {
+  transition-property:
+    color, background-color, border-color, box-shadow, translate;
+  transition-duration: var(--interface-feedback);
+  transition-timing-function: var(--interface-ease);
+}
+
+[data-slot="dialog-title"]:not(.sr-only) {
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+[data-slot="dialog-description"]:not(.sr-only) {
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+[data-application-content] {
+  container-name: application-content;
+  container-type: inline-size;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 1.5rem;
+}
+
+[data-application] aside {
+  overscroll-behavior-y: contain;
+}
+
+[data-setting-item] > * {
+  min-width: 0;
+}
+
+[data-setting-label] {
+  align-items: flex-start;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+[data-setting-label] > :is(label, span) {
+  padding-block: 0.125rem;
+}
+
+[data-setting-label] > [data-slot="popover-trigger"] {
+  flex-shrink: 0;
+}
+
+/* A settings pane can be narrow even on a wide screen. Respond to its actual
+   available width instead of guessing from the viewport or label length. */
+@container application-content (max-width: 26rem) {
+  [data-setting-item] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 479px) {
+  [data-setting-item] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 639px) {
+  [data-application] > header {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  [data-application-content] {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (pointer: coarse) {
+  [data-application] > header [data-slot="button"],
+  [data-slot="dialog-footer"] [data-slot="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  [data-setting-label] [data-slot="button"] {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="button"] {
+    transition: none;
+  }
+
+  [data-slot="button"]:active {
+    translate: none;
+  }
+}
+
+@media (forced-colors: active) {
+  [data-slot="button"]:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 3px;
+  }
+}

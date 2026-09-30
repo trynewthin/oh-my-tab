@@ -29,6 +29,7 @@ export default function SettingItem({
 
   return (
     <div
+      data-setting-item={wide ? "wide" : "standard"}
       className={cn(
         "grid items-center gap-3",
         wide
@@ -36,7 +37,7 @@ export default function SettingItem({
           : "grid-cols-2 sm:grid-cols-[minmax(0,1fr)_11rem]"
       )}
     >
-      <div className="flex items-center gap-1">
+      <div data-setting-label className="flex items-center gap-1">
         {htmlFor ? (
           <label id={labelId} htmlFor={htmlFor} className="text-sm">
             {label}

@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next"
 import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
 import ScaledGridPreview from "./scaled-grid-preview"
+import { ArrowCounterClockwise } from "@phosphor-icons/react"
+import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
   AlertDialog,
@@ -15,7 +17,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import type { GridItem, TabItem } from "@/lib/grid/types"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import {
+  DEFAULT_TAB_EFFECT_COVERAGE,
+  MAX_TAB_EFFECT_COVERAGE,
+  MIN_TAB_EFFECT_COVERAGE,
+  useHomeSettingsStore,
+} from "@/stores/home-settings-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
@@ -68,6 +75,12 @@ export default function TabsPane() {
   const { t } = useTranslation()
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
   const setTabTexture = useHomeSettingsStore((state) => state.setTabTexture)
+  const tabEffectCoverage = useHomeSettingsStore(
+    (state) => state.tabEffectCoverage
+  )
+  const setTabEffectCoverage = useHomeSettingsStore(
+    (state) => state.setTabEffectCoverage
+  )
   const color = useHomeSettingsStore((state) => state.color)
   const newTabsDynamicEffect = useHomeSettingsStore(
     (state) => state.newTabsDynamicEffect
@@ -127,6 +140,49 @@ export default function TabsPane() {
           labelKey="settings.tabs.texture"
         />
       </SettingItem>
+      {(tabTexture === "burning" || tabTexture === "particles") && (
+        <SettingItem
+          label={t("settings.tabs.effectCoverage")}
+          htmlFor="tab-effect-coverage"
+        >
+          <div className="flex w-full min-w-0 items-center gap-2">
+            <div
+              className={`flex h-8 min-w-0 flex-1 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
+            >
+              <input
+                id="tab-effect-coverage"
+                type="range"
+                min={MIN_TAB_EFFECT_COVERAGE}
+                max={MAX_TAB_EFFECT_COVERAGE}
+                step="1"
+                value={tabEffectCoverage}
+                onChange={(event) =>
+                  setTabEffectCoverage(Number(event.target.value))
+                }
+                className="min-w-0 flex-1"
+                style={{ accentColor: color }}
+              />
+              <output
+                htmlFor="tab-effect-coverage"
+                className="w-10 text-right text-xs tabular-nums"
+              >
+                {tabEffectCoverage}%
+              </output>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="size-8 shrink-0 rounded-2xl border border-border"
+              aria-label={t("settings.tabs.resetEffectCoverage")}
+              title={t("settings.tabs.resetEffectCoverage")}
+              onClick={() => setTabEffectCoverage(DEFAULT_TAB_EFFECT_COVERAGE)}
+            >
+              <ArrowCounterClockwise />
+            </Button>
+          </div>
+        </SettingItem>
+      )}
       <AlertDialog
         open={applyExisting !== null}
         onOpenChange={(open) => {

@@ -13,7 +13,12 @@ import {
   itemWidth,
 } from "@/lib/grid/grid-layout"
 import { isMatrixPet } from "@/lib/matrix-pets"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import {
+  DEFAULT_TAB_EFFECT_COVERAGE,
+  MAX_TAB_EFFECT_COVERAGE,
+  MIN_TAB_EFFECT_COVERAGE,
+  useHomeSettingsStore,
+} from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { validGridItem } from "@/lib/grid/validation"
@@ -54,6 +59,7 @@ export function snapshot() {
       searchShortcuts: home.searchShortcuts,
       folderStyle: home.folderStyle,
       tabTexture: home.tabTexture,
+      tabEffectCoverage: home.tabEffectCoverage,
       newTabsDynamicEffect: home.newTabsDynamicEffect,
       topComponent: home.topComponent,
       traditionalTopSpacing: home.traditionalTopSpacing,
@@ -132,6 +138,10 @@ export function validateConfig(value: unknown): Config {
       !["classic", "noise", "none"].includes(home.folderStyle)) ||
     (home.tabTexture !== undefined &&
       !["none", "burning", "particles"].includes(home.tabTexture)) ||
+    (home.tabEffectCoverage !== undefined &&
+      (!Number.isFinite(home.tabEffectCoverage) ||
+        home.tabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
+        home.tabEffectCoverage > MAX_TAB_EFFECT_COVERAGE)) ||
     (home.newTabsDynamicEffect !== undefined &&
       typeof home.newTabsDynamicEffect !== "boolean") ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
@@ -232,6 +242,7 @@ export function validateConfig(value: unknown): Config {
   home.searchShortcuts ??= defaultSearchShortcuts()
   home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
   home.folderStyle ??= "noise"
+  home.tabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
   home.newTabsDynamicEffect ??= false
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??=

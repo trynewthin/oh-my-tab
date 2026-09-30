@@ -309,6 +309,8 @@ export default {
   },
   tabs: {
     texture: "标签材质",
+    effectCoverage: "效果蔓延范围",
+    resetEffectCoverage: "恢复默认蔓延范围",
     newDynamicEffect: "新标签默认动态效果",
     newDynamicEffectHint:
       "开启后，新建和导入的标签默认使用动态效果；文件夹内标签跟随文件夹统一开启或关闭，文件夹背景保持静态。关闭时不修改已有标签。",

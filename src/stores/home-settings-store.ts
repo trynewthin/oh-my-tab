@@ -51,6 +51,9 @@ export type TabTexture = EffectStyle
 export type BackgroundType = "solid" | "image"
 export type SearchBoxStyle = "full" | "minimal"
 export type HomeLayoutMode = "traditional" | "free"
+export const MIN_TAB_EFFECT_COVERAGE = 20
+export const MAX_TAB_EFFECT_COVERAGE = 100
+export const DEFAULT_TAB_EFFECT_COVERAGE = 65
 
 type HomeSettings = {
   layoutMode: HomeLayoutMode
@@ -64,6 +67,7 @@ type HomeSettings = {
   searchShortcuts: SearchShortcutConfig
   folderStyle: FolderStyle
   tabTexture: TabTexture
+  tabEffectCoverage: number
   newTabsDynamicEffect: boolean
   topComponent: TopComponent
   traditionalTopSpacing: TraditionalTopSpacing
@@ -98,6 +102,7 @@ type HomeSettingsStore = HomeSettings & {
   setSearchShortcutBoundary: (index: number) => void
   setFolderStyle: (value: FolderStyle) => void
   setTabTexture: (value: TabTexture) => void
+  setTabEffectCoverage: (value: number) => void
   setNewTabsDynamicEffect: (value: boolean) => void
   setTopComponent: (value: TopComponent) => void
   setTraditionalTopSpacing: (value: TraditionalTopSpacing) => void
@@ -123,6 +128,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       searchShortcuts: defaultSearchShortcuts(),
       folderStyle: "noise",
       tabTexture: "burning",
+      tabEffectCoverage: DEFAULT_TAB_EFFECT_COVERAGE,
       newTabsDynamicEffect: false,
       topComponent: "dot-matrix",
       traditionalTopSpacing: defaultTraditionalTopSpacing,
@@ -247,6 +253,17 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
+      setTabEffectCoverage: (value) => {
+        if (Number.isFinite(value))
+          set({
+            tabEffectCoverage: Math.round(
+              Math.min(
+                MAX_TAB_EFFECT_COVERAGE,
+                Math.max(MIN_TAB_EFFECT_COVERAGE, value)
+              )
+            ),
+          })
+      },
       setNewTabsDynamicEffect: (newTabsDynamicEffect) =>
         set({ newTabsDynamicEffect }),
       setBurningAmplitude: (value) => {
@@ -281,6 +298,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchShortcuts,
         folderStyle,
         tabTexture,
+        tabEffectCoverage,
         newTabsDynamicEffect,
         topComponent,
         traditionalTopSpacing,
@@ -302,6 +320,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchShortcuts,
         folderStyle,
         tabTexture,
+        tabEffectCoverage,
         newTabsDynamicEffect,
         topComponent,
         traditionalTopSpacing,
@@ -367,6 +386,16 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
               ? legacy
               : "burning"
           })(),
+          tabEffectCoverage:
+            typeof saved?.tabEffectCoverage === "number" &&
+            Number.isFinite(saved.tabEffectCoverage)
+              ? Math.round(
+                  Math.min(
+                    MAX_TAB_EFFECT_COVERAGE,
+                    Math.max(MIN_TAB_EFFECT_COVERAGE, saved.tabEffectCoverage)
+                  )
+                )
+              : DEFAULT_TAB_EFFECT_COVERAGE,
           newTabsDynamicEffect: saved?.newTabsDynamicEffect === true,
           burningAmplitude:
             typeof saved?.burningAmplitude === "number" &&

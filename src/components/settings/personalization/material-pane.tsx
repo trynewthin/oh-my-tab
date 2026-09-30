@@ -27,6 +27,7 @@ export default function MaterialPane() {
           color={color}
           onChange={materialPreview.setValue}
           labelKey="settings.material.previewTexture"
+          opaqueHover
         />
       </SettingItem>
       {(materialPreview.value === "burning" ||

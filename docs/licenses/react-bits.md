@@ -1,6 +1,6 @@
 # React Bits license
 
-The source in `src/components/effects/gradual-blur.tsx` and `src/components/effects/ghost-cursor.tsx` is adapted from [React Bits Gradual Blur](https://www.reactbits.dev/animations/gradual-blur) and [React Bits Ghost Cursor](https://www.reactbits.dev/animations/ghost-cursor).
+The source in `src/components/effects/gradual-blur.tsx` is adapted from [React Bits Gradual Blur](https://www.reactbits.dev/animations/gradual-blur).
 
 MIT + Commons Clause License Condition v1.0
 

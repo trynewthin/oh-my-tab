@@ -42,11 +42,13 @@ export default function EffectStylePicker({
   color,
   onChange,
   labelKey = "settings.effects.label",
+  opaqueHover = false,
 }: {
   value: EffectPickerValue
   color: string
   onChange: (value: EffectPickerValue) => void
   labelKey?: string
+  opaqueHover?: boolean
 }) {
   const { t } = useTranslation()
   const label = t(labelKey)
@@ -59,7 +61,7 @@ export default function EffectStylePicker({
         render={
           <Button
             variant="outline"
-            className={`w-full min-w-0 justify-between ${settingsControlClassName}`}
+            className={`w-full min-w-0 justify-between ${settingsControlClassName} ${opaqueHover ? "hover:!bg-muted dark:hover:!bg-muted" : ""}`}
           />
         }
       >

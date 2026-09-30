@@ -324,6 +324,8 @@ export default {
   },
   tabs: {
     texture: "Tab material",
+    effectCoverage: "Effect spread",
+    resetEffectCoverage: "Reset effect spread",
     newDynamicEffect: "Dynamic effects for new tabs",
     newDynamicEffectHint:
       "New and imported tabs use dynamic effects by default. Tabs inside a folder are enabled or disabled together, while the folder background stays static. Turning this off does not change existing tabs.",

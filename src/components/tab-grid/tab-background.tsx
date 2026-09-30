@@ -9,6 +9,7 @@ export default function TabBackground({
   showIcon = true,
   compact = false,
   textureId = item.id,
+  coverage,
   ...effects
 }: Omit<ComponentProps<typeof EffectSurface>, "color" | "textureId"> & {
   item: TabItem
@@ -17,12 +18,16 @@ export default function TabBackground({
   textureId?: string
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const tabEffectCoverage = useHomeSettingsStore(
+    (state) => state.tabEffectCoverage
+  )
 
   return (
     <>
       <EffectSurface
         color={item.color}
         textureId={textureId}
+        coverage={coverage ?? tabEffectCoverage}
         {...effects}
         glass={backgroundType !== "solid"}
       />

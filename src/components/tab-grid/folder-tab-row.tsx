@@ -33,7 +33,6 @@ export default function FolderTabRow({
       <TabBackground
         item={item}
         compact
-        coverage={52}
         textureId={textureId}
         offsetY={index * (rowPitch ?? 54)}
         animated={animated}

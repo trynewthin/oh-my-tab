@@ -20,14 +20,13 @@ export default function MaterialPane() {
   const color = useHomeSettingsStore((state) => state.color)
 
   return (
-    <div className="space-y-4 rounded-3xl border border-black/10 bg-white/65 p-4 shadow-lg backdrop-blur-xl sm:p-5 dark:border-white/10 dark:bg-black/55">
+    <div className="space-y-4">
       <SettingItem label={t("settings.material.previewTexture")}>
         <EffectStylePicker
           value={materialPreview.value}
           color={color}
           onChange={materialPreview.setValue}
           labelKey="settings.material.previewTexture"
-          showStorm
         />
       </SettingItem>
       {(materialPreview.value === "burning" ||

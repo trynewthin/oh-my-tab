@@ -299,7 +299,6 @@ export default {
     selectAria: "选择{{label}}",
     burning: "像素火焰",
     particles: "浮游点阵",
-    storm: "雷暴云",
     none: "无",
   },
   material: {

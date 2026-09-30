@@ -37,6 +37,7 @@ export default function EffectSurface({
   visible = true,
   entrance = false,
   glass = false,
+  transparent = false,
 }: {
   color: string
   textureId: string
@@ -47,6 +48,7 @@ export default function EffectSurface({
   visible?: boolean
   entrance?: boolean
   glass?: boolean
+  transparent?: boolean
 }) {
   const configuredEffectStyle = useHomeSettingsStore(
     (state) => state.tabTexture
@@ -269,7 +271,7 @@ export default function EffectSurface({
       data-burning-entrance={entering ? "running" : undefined}
       data-effect-phase={phase}
       data-effect-style={effectStyle}
-      className={`pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] [contain:layout_paint_style] ${glass ? "bg-card/55 backdrop-blur-xl" : "bg-card"}`}
+      className={`pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] [contain:layout_paint_style] ${transparent ? "" : glass ? "bg-card/55 backdrop-blur-xl" : "bg-card"}`}
     >
       <div
         ref={region}

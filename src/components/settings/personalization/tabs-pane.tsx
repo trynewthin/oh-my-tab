@@ -123,9 +123,7 @@ export default function TabsPane() {
         <EffectStylePicker
           value={tabTexture}
           color={color}
-          onChange={(value) => {
-            if (value !== "storm") setTabTexture(value)
-          }}
+          onChange={setTabTexture}
           labelKey="settings.tabs.texture"
         />
       </SettingItem>

@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react"
 import type { EffectStyle } from "@/stores/home-settings-store"
 
-export type MaterialPreviewStyle = EffectStyle | "storm"
+export type MaterialPreviewStyle = EffectStyle
 
 export type MaterialPreviewContextValue = {
   value: MaterialPreviewStyle

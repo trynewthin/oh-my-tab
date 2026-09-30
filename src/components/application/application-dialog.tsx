@@ -117,12 +117,12 @@ function ApplicationNavigation<RouteId extends string>({
               <Button
                 key={item.id}
                 variant="ghost"
-                className={`w-full justify-start px-4 text-sm hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,transparent)] ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full"}`}
+                className={`relative w-full justify-start px-4 text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full"}`}
                 style={
                   selected
                     ? {
                         backgroundColor:
-                          "color-mix(in srgb, var(--application-accent) 22%, transparent)",
+                          "color-mix(in srgb, var(--application-accent) 22%, var(--popover))",
                         color: "var(--application-accent)",
                       }
                     : undefined
@@ -233,6 +233,7 @@ export default function ApplicationDialog<RouteId extends string>({
   onRouteChange,
   accentColor,
   background,
+  backgroundEffect,
   dialogRef,
   children,
 }: {
@@ -250,6 +251,7 @@ export default function ApplicationDialog<RouteId extends string>({
   onRouteChange: (route: RouteId) => void
   accentColor: string
   background?: ReactNode
+  backgroundEffect?: ReactNode
   dialogRef?: Ref<HTMLDivElement>
   children: ReactNode
 }) {
@@ -303,15 +305,20 @@ export default function ApplicationDialog<RouteId extends string>({
             {background}
           </div>
         )}
+        {backgroundEffect && (
+          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-[inherit]">
+            {backgroundEffect}
+          </div>
+        )}
         <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
           <div
             ref={applicationNode}
             role="application"
             aria-label={title}
             data-application={applicationId}
-            className="relative z-10 flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row"
+            className="relative flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row"
           >
-            <header className="flex shrink-0 items-center gap-3 px-4 pt-4 pb-2 sm:hidden">
+            <header className="relative z-30 flex shrink-0 items-center gap-3 px-4 pt-4 pb-2 sm:hidden">
               <ApplicationNavigationMenu
                 groups={navigation}
                 activeRoute={activeRoute}
@@ -340,14 +347,18 @@ export default function ApplicationDialog<RouteId extends string>({
               </Button>
             </header>
             <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent px-4 pt-6 pb-4">
-                <div className="text-left text-base leading-6 font-medium">
+              <div className="pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent"
+                />
+                <div className="relative z-30 text-left text-base leading-6 font-medium">
                   {title}
                 </div>
               </div>
               <div
                 ref={setNavNode}
-                className="h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
+                className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
               >
                 <ApplicationNavigation
                   groups={navigation}
@@ -357,13 +368,13 @@ export default function ApplicationDialog<RouteId extends string>({
                   accentColor={accentColor}
                 />
               </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 isolate z-10 px-4 pb-4">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4">
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 -z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
+                  className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
                 />
                 <div
-                  className={`relative overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
+                  className={`relative z-30 overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
                 >
                   <Button
                     type="button"
@@ -390,7 +401,7 @@ export default function ApplicationDialog<RouteId extends string>({
             <section
               aria-label={activeItem?.label}
               data-application-content
-              className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
+              className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
             >
               {children}
             </section>

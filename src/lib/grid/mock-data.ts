@@ -37,7 +37,7 @@ function baseMockGridItems(t: (key: string) => string): GridItem[] {
       id: "mock-design",
       kind: "folder",
       name: t("grid.mock.designFolder"),
-      size: "small",
+      size: "large",
       color: "#b58ac8",
       tabs: [
         { id: "mock-dribbble", name: "Dribbble", url: "https://dribbble.com" },
@@ -105,28 +105,12 @@ function additionalMockGridItems(t: (key: string) => string): GridItem[] {
       color: "#4f9e70",
     },
     {
-      id: "mock-more-photos",
-      kind: "tab",
-      name: t("grid.mock.unsplash"),
-      url: "https://unsplash.com",
-      size: "medium",
-      color: "#ce805b",
-    },
-    {
       id: "mock-more-codepen",
       kind: "tab",
       name: "CodePen",
       url: "https://codepen.io",
       size: "small",
       color: "#659ca8",
-    },
-    {
-      id: "mock-more-figjam",
-      kind: "tab",
-      name: t("grid.mock.figjam"),
-      url: "https://www.figma.com/figjam",
-      size: "medium",
-      color: "#cda44e",
     },
     {
       id: "mock-more-reading",
@@ -237,7 +221,7 @@ function additionalMockGridItems(t: (key: string) => string): GridItem[] {
       id: "mock-more-music",
       kind: "folder",
       name: t("grid.mock.musicFolder"),
-      size: "small",
+      size: "large",
       color: "#c5708d",
       tabs: [
         {
@@ -261,14 +245,6 @@ function additionalMockGridItems(t: (key: string) => string): GridItem[] {
           url: "https://open.spotify.com",
         },
       ],
-    },
-    {
-      id: "mock-more-inbox",
-      kind: "folder",
-      name: t("grid.mock.inboxFolder"),
-      size: "small",
-      color: "#829f59",
-      tabs: [],
     },
   ]
 }

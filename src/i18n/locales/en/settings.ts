@@ -314,7 +314,6 @@ export default {
     selectAria: "Select {{label}}",
     burning: "Pixel flame",
     particles: "Floating dots",
-    storm: "Thundercloud",
     none: "None",
   },
   material: {

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useId, useState, type CSSProperties } from "react"
 import { WidgetEditor } from "./widget-ui"
 import CatalogComponentPreview from "./catalog-component-preview"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -49,6 +49,7 @@ export default function GridItemDialog({
   const [selected, setSelected] = useState<CatalogComponentKind | null>(null)
   const [confirmSize, setConfirmSize] = useState<GridItemSize | false>(false)
   const [route, setRoute] = useState<CatalogRoute>("common")
+  const id = useId()
   const { t } = useTranslation()
   const saveItem = useTabGridStore((state) => state.saveItem)
   const accentColor = useHomeSettingsStore((state) => state.color)
@@ -89,9 +90,12 @@ export default function GridItemDialog({
   const visibleKinds = catalogComponentKinds.filter(
     (kind) => getComponentDefinition(kind).catalogSection === route
   )
-  function closeCatalog() {
+  function closeDetail() {
     setSelected(null)
     setConfirmSize(false)
+  }
+  function closeCatalog() {
+    closeDetail()
     setRoute("common")
     onClose()
   }
@@ -101,12 +105,17 @@ export default function GridItemDialog({
   }
   if (item)
     return <WidgetEditor item={item} onClose={onClose} onSaved={onClose} />
+
+  const selectedSize = selected
+    ? confirmSize || getComponentDefinition(selected).defaultSize
+    : undefined
+
   return (
     <ApplicationDialog
       applicationId="components"
       open={open}
-      onOpenChange={(open: boolean) => {
-        if (!open) closeCatalog()
+      onOpenChange={(next) => {
+        if (!next) closeCatalog()
       }}
       title={t("grid.dialog.catalogTitle")}
       description={t("grid.dialog.catalogDescription")}
@@ -118,120 +127,132 @@ export default function GridItemDialog({
       activeRoute={route}
       onRouteChange={(nextRoute) => {
         setRoute(nextRoute)
-        setSelected(null)
-        setConfirmSize(false)
+        closeDetail()
       }}
       accentColor={accentColor}
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <p className="catalog-introduction">
+        {t("grid.dialog.catalogDescription")}
+      </p>
+      <div className="catalog-gallery" data-single={visibleKinds.length === 1}>
         {visibleKinds.map((kind) => {
+          const descriptionId = `${id}-${kind}`
+          const sizes = getComponentSizeOptions(kind, "catalog")
           return (
-            <div key={kind} className="min-w-0">
+            <article className="catalog-card" key={kind}>
+              <div className="catalog-card-preview" aria-hidden="true">
+                <CatalogComponentPreview kind={kind} fill />
+              </div>
+              <div className="catalog-card-copy">
+                <h3>{componentLabel(kind, t)}</h3>
+                <p id={descriptionId}>{componentDescription(kind, t)}</p>
+                <div className="catalog-card-meta" aria-hidden="true">
+                  <span>
+                    {sizes
+                      .map((size) => occupancyMark(size.width, size.height))
+                      .join(" / ")}
+                  </span>
+                  <span className="catalog-card-arrow">↗</span>
+                </div>
+              </div>
               <button
                 type="button"
                 aria-label={t("grid.dialog.selectComponent", {
                   label: componentLabel(kind, t),
                 })}
+                aria-describedby={descriptionId}
                 aria-haspopup="dialog"
-                className="relative h-64 w-full min-w-0 overflow-hidden rounded-2xl border border-border text-left transition-[border-color,box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 hover:border-ring/40 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transform-none dark:border-white/15 dark:hover:border-white/30"
+                className="catalog-card-open"
                 onClick={() => {
-                  if (selected !== kind) {
-                    setSelected(kind)
-                    setConfirmSize(false)
-                  } else {
-                    setSelected(null)
-                    setConfirmSize(false)
-                  }
+                  setSelected(kind)
+                  setConfirmSize(false)
                 }}
-              >
-                <CatalogComponentPreview kind={kind} fill />
-                <span className="absolute right-3 bottom-3 left-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-zinc-950 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/80 dark:text-white">
-                  <span className="block text-sm font-medium">
-                    {componentLabel(kind, t)}
-                  </span>
-                  <span className="mt-1 block truncate text-xs leading-relaxed text-zinc-600 dark:text-white/65">
-                    {componentDescription(kind, t)}
-                  </span>
-                </span>
-              </button>
-            </div>
+              />
+            </article>
           )
         })}
-        {selected && (
-          <Dialog
-            open
-            onOpenChange={(open) => {
-              if (!open) {
-                setSelected(null)
-                setConfirmSize(false)
-              }
-            }}
+      </div>
+      {selected && (
+        <Dialog
+          open
+          onOpenChange={(next) => {
+            if (!next) closeDetail()
+          }}
+        >
+          <DialogContent
+            className="catalog-detail"
+            style={{ "--workspace-accent": accentColor } as CSSProperties}
           >
-            <DialogContent className="h-[min(36rem,calc(100svh-2rem))] gap-0 overflow-hidden bg-transparent p-0 sm:max-w-xl">
-              <CatalogComponentPreview
-                kind={selected}
-                detail
-                fill
-                size={
-                  confirmSize || getComponentDefinition(selected).defaultSize
-                }
-              />
-              <div className="absolute right-3 bottom-3 left-3 min-w-0 rounded-2xl border border-black/10 bg-white/80 p-4 text-zinc-950 shadow-lg backdrop-blur-md sm:right-4 sm:bottom-4 sm:left-4 dark:border-white/10 dark:bg-zinc-900/80 dark:text-white">
-                <DialogTitle className="text-xl font-semibold">
-                  {componentLabel(selected, t)}
-                </DialogTitle>
-                <DialogDescription className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-white/65">
-                  {componentDescription(selected, t)}
-                </DialogDescription>
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <div
-                    role="group"
-                    aria-label={t("grid.dialog.availableSizes")}
-                    className="flex min-w-0 items-center gap-2 overflow-x-auto py-1"
-                  >
+            <header className="catalog-detail-heading">
+              <DialogTitle className="studio-title">
+                {componentLabel(selected, t)}
+              </DialogTitle>
+              <DialogDescription className="studio-description">
+                {componentDescription(selected, t)}
+              </DialogDescription>
+            </header>
+            <div className="catalog-detail-layout">
+              <div className="catalog-detail-stage">
+                <CatalogComponentPreview
+                  kind={selected}
+                  detail
+                  fill
+                  size={selectedSize}
+                />
+              </div>
+              <div className="catalog-detail-options">
+                <fieldset className="studio-size-field">
+                  <legend>{t("grid.dialog.availableSizes")}</legend>
+                  <div className="catalog-size-options">
                     {getComponentSizeOptions(selected, "catalog").map(
                       (option) => (
-                        <Button
+                        <button
                           key={option.value}
-                          className="shrink-0"
-                          variant={
-                            (confirmSize ||
-                              getComponentDefinition(selected).defaultSize) ===
-                            option.value
-                              ? "default"
-                              : "outline"
-                          }
-                          aria-pressed={
-                            (confirmSize ||
-                              getComponentDefinition(selected).defaultSize) ===
-                            option.value
-                          }
+                          type="button"
+                          className="catalog-size-option"
+                          aria-pressed={selectedSize === option.value}
                           onClick={() => setConfirmSize(option.value)}
                         >
-                          {occupancyMark(option.width, option.height)}
-                        </Button>
+                          <span
+                            className="catalog-size-diagram"
+                            aria-hidden="true"
+                          >
+                            <i
+                              style={{
+                                width: `${(option.width / Math.max(option.width, option.height)) * 100}%`,
+                                aspectRatio: `${option.width} / ${option.height}`,
+                              }}
+                            />
+                          </span>
+                          <span>
+                            {occupancyMark(option.width, option.height)}
+                          </span>
+                          <span
+                            className="catalog-size-selected"
+                            aria-hidden="true"
+                          />
+                        </button>
                       )
                     )}
                   </div>
+                </fieldset>
+                <div className="catalog-detail-actions">
                   <Button
-                    className="shrink-0"
-                    onClick={() =>
-                      addComponent(
-                        selected,
-                        confirmSize ||
-                          getComponentDefinition(selected).defaultSize
-                      )
-                    }
+                    className="studio-submit"
+                    onClick={() => addComponent(selected, selectedSize)}
                   >
                     <Plus />
                     {t("grid.dialog.add")}
                   </Button>
+                  <Button variant="ghost" onClick={closeDetail}>
+                    {t("grid.editor.cancel")}
+                  </Button>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </ApplicationDialog>
   )
 }

@@ -6,6 +6,7 @@ import {
   type GridItemSize,
 } from "@/lib/grid/registry"
 import { GRID_CELL_SIZE, GRID_GAP } from "@/lib/grid/grid-layout"
+import { fitPreview } from "@/lib/preview-fit"
 import HomeSurface from "@/components/home/home-surface"
 import { WidgetCatalogPreview } from "./widget-ui"
 
@@ -25,19 +26,23 @@ export default function CatalogComponentPreview({
   const definition = getComponentDefinition(kind)
   const resolved = size ?? definition.defaultSize
   const dimensions = getComponentSize(kind, resolved)!
-  const columns = dimensions.width
-  const width = columns * (GRID_CELL_SIZE + GRID_GAP) - GRID_GAP
+  const width = dimensions.width * (GRID_CELL_SIZE + GRID_GAP) - GRID_GAP
   const height = dimensions.height * (GRID_CELL_SIZE + GRID_GAP) - GRID_GAP
-  const scale = Math.min(1, available.width / width, available.height / height)
+  const fitted = fitPreview({ width, height }, available)
 
   useLayoutEffect(() => {
     const node = stage.current
     if (!node) return
     const observer = new ResizeObserver(([entry]) => {
-      setAvailable({
+      const next = {
         width: entry.contentRect.width,
         height: entry.contentRect.height,
-      })
+      }
+      setAvailable((current) =>
+        current.width === next.width && current.height === next.height
+          ? current
+          : next
+      )
     })
     observer.observe(node)
     return () => observer.disconnect()
@@ -45,7 +50,7 @@ export default function CatalogComponentPreview({
 
   return (
     <HomeSurface
-      className={`flex w-full items-center justify-center overflow-hidden ${fill ? `h-full ${detail ? "px-5 pt-8 pb-44 sm:px-8 sm:pt-10" : "p-5"}` : `rounded-2xl p-5 ${detail ? "h-64 sm:h-72" : "h-44"}`}`}
+      className={`flex w-full items-center justify-center overflow-hidden ${fill ? `h-full ${detail ? "p-8" : "p-5"}` : `rounded-2xl p-5 ${detail ? "h-64 sm:h-72" : "h-44"}`}`}
     >
       <div
         ref={stage}
@@ -54,13 +59,13 @@ export default function CatalogComponentPreview({
       >
         <div
           className="relative shrink-0"
-          style={{ width: width * scale, height: height * scale }}
+          style={{ width: fitted.width, height: fitted.height }}
         >
           <div
             data-catalog-preview-content
             inert
             className={`absolute top-0 left-0 isolate origin-top-left overflow-hidden rounded-2xl ${definition.tileBorder ? "border" : ""}`}
-            style={{ width, height, transform: `scale(${scale})` }}
+            style={{ width, height, transform: `scale(${fitted.scale})` }}
           >
             <WidgetCatalogPreview kind={kind} size={resolved} />
           </div>

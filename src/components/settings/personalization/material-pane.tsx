@@ -25,8 +25,9 @@ export default function MaterialPane() {
   const controlValue = starTrails ? materialPreview.starTrailSpeed : amplitude
 
   return (
-    <div className="space-y-4">
-      <SettingItem label={t("settings.material.previewTexture")}>
+    <div className="material-workspace">
+      <section className="material-choice-section">
+        <h3>{t("settings.material.previewTexture")}</h3>
         <EffectStylePicker
           value={materialPreview.value}
           color={color}
@@ -34,83 +35,86 @@ export default function MaterialPane() {
           labelKey="settings.material.previewTexture"
           opaqueHover
           includeStarTrails
+          presentation="swatches"
         />
-      </SettingItem>
-      {starTrails && (
-        <SettingItem
-          label={t("settings.material.runningMode")}
-          labelId="star-trail-mode-label"
-        >
-          <ToggleGroup
-            aria-labelledby="star-trail-mode-label"
-            className={settingsControlSurface}
-            value={[materialPreview.starTrailMode]}
-            onValueChange={(values) => {
-              const value = values[0]
-              if (value === "dynamic" || value === "static")
-                materialPreview.setStarTrailMode(value)
-            }}
-          >
-            <ToggleGroupItem value="dynamic">
-              {t("settings.material.dynamic")}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="static">
-              {t("settings.material.static")}
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </SettingItem>
-      )}
-      {(materialPreview.value === "burning" ||
-        materialPreview.value === "particles" ||
-        starTrails) && (
-        <>
+      </section>
+      <div className="material-controls">
+        {starTrails && (
           <SettingItem
-            label={
-              starTrails
-                ? t("settings.material.runningSpeed")
-                : materialPreview.value === "burning"
-                  ? t("settings.material.burningAmplitude")
-                  : t("settings.material.breathingAmplitude")
-            }
-            htmlFor={controlId}
+            label={t("settings.material.runningMode")}
+            labelId="star-trail-mode-label"
           >
-            <div
-              className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
+            <ToggleGroup
+              aria-labelledby="star-trail-mode-label"
+              className={settingsControlSurface}
+              value={[materialPreview.starTrailMode]}
+              onValueChange={(values) => {
+                const value = values[0]
+                if (value === "dynamic" || value === "static")
+                  materialPreview.setStarTrailMode(value)
+              }}
             >
-              <input
-                id={controlId}
-                type="range"
-                min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
-                max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
-                step="0.1"
-                value={controlValue}
-                onChange={(event) => {
-                  const value = Number(event.target.value)
-                  if (starTrails) materialPreview.setStarTrailSpeed(value)
-                  else setAmplitude(value)
-                }}
-                className="min-w-0 flex-1"
-                style={{ accentColor: color }}
-              />
-              <output
-                htmlFor={controlId}
-                className="w-10 text-right text-xs tabular-nums"
+              <ToggleGroupItem value="dynamic">
+                {t("settings.material.dynamic")}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="static">
+                {t("settings.material.static")}
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </SettingItem>
+        )}
+        {(materialPreview.value === "burning" ||
+          materialPreview.value === "particles" ||
+          starTrails) && (
+          <>
+            <SettingItem
+              label={
+                starTrails
+                  ? t("settings.material.runningSpeed")
+                  : materialPreview.value === "burning"
+                    ? t("settings.material.burningAmplitude")
+                    : t("settings.material.breathingAmplitude")
+              }
+              htmlFor={controlId}
+            >
+              <div
+                className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
               >
-                {Math.round(controlValue * 100)}%
-              </output>
-            </div>
-          </SettingItem>
-          <SettingItem label={t("settings.material.transition")}>
-            <Switch
-              aria-label={t("settings.material.transition")}
-              checked={entrance}
-              className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
-              style={{ backgroundColor: entrance ? color : undefined }}
-              onCheckedChange={setEntrance}
-            />
-          </SettingItem>
-        </>
-      )}
+                <input
+                  id={controlId}
+                  type="range"
+                  min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
+                  max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
+                  step="0.1"
+                  value={controlValue}
+                  onChange={(event) => {
+                    const value = Number(event.target.value)
+                    if (starTrails) materialPreview.setStarTrailSpeed(value)
+                    else setAmplitude(value)
+                  }}
+                  className="min-w-0 flex-1"
+                  style={{ accentColor: color }}
+                />
+                <output
+                  htmlFor={controlId}
+                  className="w-10 text-right text-xs tabular-nums"
+                >
+                  {Math.round(controlValue * 100)}%
+                </output>
+              </div>
+            </SettingItem>
+            <SettingItem label={t("settings.material.transition")}>
+              <Switch
+                aria-label={t("settings.material.transition")}
+                checked={entrance}
+                className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
+                style={{ backgroundColor: entrance ? color : undefined }}
+                onCheckedChange={setEntrance}
+              />
+            </SettingItem>
+          </>
+        )}
+      </div>
     </div>
   )
 }

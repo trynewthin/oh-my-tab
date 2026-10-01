@@ -167,7 +167,7 @@ export default function QuickBarPreview() {
         data-quick-bar-preview
         role="group"
         aria-label={t("settings.home.quickBarPreview")}
-        className="grid h-7 w-full grid-cols-3 items-center"
+        className="desk-toolbar desk-toolbar--preview"
       >
         <PreviewSide
           side="left"

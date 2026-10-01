@@ -1,3 +1,5 @@
+import { rovingIndex } from "@/lib/roving-index"
+import type { KeyboardEvent } from "react"
 import { settingsControlClassName } from "../shared/control-styles"
 import { CaretDown, Check } from "@phosphor-icons/react"
 import MaterialSurface from "@/components/effects/material-surface"
@@ -23,6 +25,7 @@ type PickerProps = {
   color: string
   labelKey?: string
   opaqueHover?: boolean
+  presentation?: "menu" | "swatches"
 } & (
   | {
       includeStarTrails: true
@@ -51,6 +54,8 @@ function EffectPreview({
       textureId={textureId}
       effectStyle={value}
       coverage={100}
+      animated={false}
+      staticFrame={value === "star-trails"}
     />
   )
 }
@@ -75,6 +80,56 @@ export default function EffectStylePicker(props: PickerProps) {
       ]
     : options
   const current = choices.find((option) => option.value === value) ?? choices[0]
+
+  function select(next: EffectPickerValue) {
+    if (next === "star-trails") {
+      if (props.includeStarTrails) props.onChange(next)
+    } else props.onChange(next)
+  }
+
+  function navigate(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+    const next = rovingIndex(event.key, index, choices.length, true)
+    if (next === null) return
+    event.preventDefault()
+    select(choices[next].value)
+    event.currentTarget.parentElement
+      ?.querySelector<HTMLElement>(`[data-effect-index="${next}"]`)
+      ?.focus()
+  }
+
+  if (props.presentation === "swatches")
+    return (
+      <div className="material-swatches" role="radiogroup" aria-label={label}>
+        {choices.map((option, index) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            data-effect-index={index}
+            aria-checked={value === option.value}
+            tabIndex={value === option.value ? 0 : -1}
+            className="material-swatch"
+            onClick={() => select(option.value)}
+            onKeyDown={(event) => navigate(event, index)}
+          >
+            <span className="material-swatch-art" aria-hidden="true">
+              <EffectPreview
+                value={option.value}
+                color={color}
+                textureId={`material-swatch-${option.value}`}
+              />
+            </span>
+            <span className="material-swatch-label">
+              {t(option.labelKey)}
+              <span className="material-swatch-check" aria-hidden="true">
+                {value === option.value && <Check />}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+    )
 
   return (
     <Popover>

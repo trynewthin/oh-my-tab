@@ -1,13 +1,18 @@
 import { Globe } from "@phosphor-icons/react"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react"
 import { useTranslation } from "react-i18next"
-
 import { runSystemAction } from "@/application/system-actions"
-import GradualBlur from "@/components/effects/gradual-blur"
 import { systemActionIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
 import TabIcon from "@/components/tab-grid/tab-icon"
 import { systemActionRegistry } from "@/lib/system-actions"
+import { rovingIndex } from "@/lib/roving-index"
 import { resolveGridGeometry } from "@/lib/grid/grid-layout"
 import type {
   QuickBarCenter as QuickBarCenterConfig,
@@ -15,24 +20,19 @@ import type {
   QuickBarControl,
 } from "@/lib/quick-bar"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import "./home-composition.css"
 
 export function QuickBarGlyph({ control }: { control: QuickBarControl }) {
-  const { t } = useTranslation()
   if (control.kind === "site")
     return (
       <TabIcon
         url={control.url}
         className="size-5"
-        fallback={<Globe className="size-5" />}
+        fallback={<Globe className="size-5" aria-hidden="true" />}
       />
     )
   const Icon = systemActionIcons[control.action]
-  return (
-    <Icon
-      className="size-5"
-      aria-label={t(systemActionRegistry[control.action].labelKey)}
-    />
-  )
+  return <Icon className="size-5" aria-hidden="true" />
 }
 
 function SystemQuickControl({
@@ -42,17 +42,16 @@ function SystemQuickControl({
 }) {
   const { t } = useTranslation()
   const { disabled, pressed } = useSystemActionState(control.action)
-  const className =
-    "flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
   const label = t(systemActionRegistry[control.action].labelKey)
   return (
     <button
       type="button"
+      data-quick-control
       aria-label={label}
       title={label}
       aria-pressed={pressed}
       disabled={disabled}
-      className={className}
+      className="desk-control"
       onClick={() => runSystemAction(control.action)}
     >
       <QuickBarGlyph control={control} />
@@ -64,12 +63,13 @@ function QuickControl({ control }: { control: QuickBarControl }) {
   if (control.kind === "system") return <SystemQuickControl control={control} />
   return (
     <a
+      data-quick-control
       href={control.url}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={control.name}
       title={control.name}
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="desk-control"
     >
       <QuickBarGlyph control={control} />
     </a>
@@ -85,16 +85,45 @@ export function QuickBarCenter({ center }: { center: QuickBarCenterConfig }) {
     return () => window.clearInterval(timer)
   }, [center.kind])
   if (center.kind === "none") return <span aria-hidden="true" />
+  if (center.kind === "text")
+    return (
+      <span className="desk-center-text" title={center.text}>
+        {center.text}
+      </span>
+    )
   return (
-    <span className="block min-w-0 truncate text-center text-sm font-medium whitespace-nowrap text-foreground">
-      {center.kind === "time"
-        ? new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-            hour: "2-digit",
-            minute: "2-digit",
-          }).format(now)
-        : center.text}
-    </span>
+    <time className="desk-clock" dateTime={now.toISOString()}>
+      <span className="desk-clock-time">
+        {new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(now)}
+      </span>
+      <span className="desk-clock-date">
+        {new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+          month: "short",
+          day: "numeric",
+          weekday: "short",
+        }).format(now)}
+      </span>
+    </time>
   )
+}
+
+function moveToolbarFocus(event: KeyboardEvent<HTMLDivElement>) {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+  const controls = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>(
+      "[data-quick-control]:not(:disabled)"
+    )
+  )
+  const current = controls.findIndex(
+    (control) => control === document.activeElement
+  )
+  const next = rovingIndex(event.key, current, controls.length)
+  if (next === null) return
+  event.preventDefault()
+  controls[next].focus()
 }
 
 export function QuickBarTrack({ config }: { config: QuickBarConfig }) {
@@ -104,18 +133,19 @@ export function QuickBarTrack({ config }: { config: QuickBarConfig }) {
       data-quick-bar-track
       role="toolbar"
       aria-label={t("shell.home.quickBar")}
-      className="grid h-8 w-full grid-cols-3 items-center"
+      className="desk-toolbar"
+      onKeyDown={moveToolbarFocus}
     >
-      <div className="min-w-0 [scrollbar-width:none] overflow-x-auto [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max min-w-full items-center gap-1">
+      <div className="desk-control-scroll">
+        <div className="desk-controls">
           {config.left.map((control) => (
             <QuickControl key={control.id} control={control} />
           ))}
         </div>
       </div>
       <QuickBarCenter key={config.center.kind} center={config.center} />
-      <div className="min-w-0 [scrollbar-width:none] overflow-x-auto [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max min-w-full items-center justify-end gap-1">
+      <div className="desk-control-scroll">
+        <div className="desk-controls desk-controls--end">
           {config.right.map((control) => (
             <QuickControl key={control.id} control={control} />
           ))}
@@ -131,6 +161,7 @@ export default function QuickBar() {
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
+  const color = useHomeSettingsStore((state) => state.color)
   const container = useRef<HTMLDivElement>(null)
   const [availableWidth, setAvailableWidth] = useState(0)
   useLayoutEffect(() => {
@@ -151,23 +182,11 @@ export default function QuickBar() {
   const trackWidth = availableWidth > 0 ? geometry.visualWidth : undefined
 
   return (
-    <div ref={container} className="sticky top-0 z-40 w-full pt-2">
+    <div ref={container} className="desk-topbar">
       <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-10"
+        className="desk-topbar-track"
+        style={{ width: trackWidth, borderTopColor: color }}
       >
-        <GradualBlur
-          position="top"
-          target="parent"
-          exponential
-          strength={1}
-          height="2.5rem"
-          divCount={3}
-          opacity={1}
-          zIndex={0}
-        />
-      </div>
-      <div className="relative z-10 mx-auto" style={{ width: trackWidth }}>
         <QuickBarTrack config={quickBar} />
       </div>
     </div>

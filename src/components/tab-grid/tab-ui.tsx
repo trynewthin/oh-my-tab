@@ -1,4 +1,6 @@
+import { bookmarkHost } from "@/lib/bookmark-display"
 import type { TabItem } from "@/lib/grid/types"
+import "./bookmark-presentation.css"
 
 export default function TabUI({
   item,
@@ -7,29 +9,31 @@ export default function TabUI({
   item: TabItem
   preview?: boolean
 }) {
-  const className = `relative z-10 flex h-full min-w-0 items-center rounded-[inherit] py-2 pr-12 pl-3 outline-none focus-visible:ring-2 focus-visible:ring-ring sm:pr-16 sm:pl-4`
-  // Previews render a plain span: an anchor would hijack pointer gestures
-  // with the browser's native link drag and could navigate on click.
-  if (preview) {
+  const host = item.size === "medium" ? bookmarkHost(item.url) : ""
+  const content = (
+    <span className="bookmark-copy">
+      <span className="bookmark-name">{item.name}</span>
+      {host && <span className="bookmark-host">{host}</span>}
+    </span>
+  )
+  // A preview is not a second link or a native drag source.
+  if (preview)
     return (
-      <div className={className}>
-        <span className="truncate text-[13px] font-medium sm:text-sm">
-          {item.name}
-        </span>
+      <div className="bookmark-link" data-bookmark-size={item.size}>
+        {content}
       </div>
     )
-  }
   return (
     <a
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={className}
+      aria-label={item.name}
+      className="bookmark-link"
+      data-bookmark-size={item.size}
       title={item.name}
     >
-      <span className="truncate text-[13px] font-medium sm:text-sm">
-        {item.name}
-      </span>
+      {content}
     </a>
   )
 }

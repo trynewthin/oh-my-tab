@@ -1,0 +1,218 @@
+/* A masthead, a command surface, then the user's canvas. No forced dashboard,
+   greeting, or extra widget is added to a saved layout. */
+.desk-topbar {
+  position: sticky;
+  z-index: 40;
+  top: 0;
+  width: 100%;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: 22px;
+  pointer-events: none;
+}
+
+.desk-topbar-track {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+  border-top: 2px solid;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--foreground) 12%, transparent);
+  padding-block: 10px 12px;
+  background: color-mix(
+    in srgb,
+    var(--home-background, var(--background)) 90%,
+    transparent
+  );
+  backdrop-filter: blur(16px);
+  pointer-events: auto;
+}
+
+.desk-toolbar {
+  display: grid;
+  width: 100%;
+  min-height: 54px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.desk-control-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  padding: 4px;
+  scrollbar-width: none;
+}
+.desk-control-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.desk-controls {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  align-items: center;
+  gap: 4px;
+}
+.desk-controls--end {
+  justify-content: flex-end;
+}
+
+.desk-control {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    translate 160ms ease;
+}
+
+.desk-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.desk-control[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--foreground) 15%, transparent);
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+.desk-control:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+.desk-control:not(:disabled):active {
+  translate: 0 1px;
+}
+
+.desk-clock {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 3px;
+  color: var(--foreground);
+  text-align: center;
+}
+.desk-clock-time {
+  font-size: 26px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+.desk-clock-date {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desk-center-text {
+  min-width: 0;
+  overflow: hidden;
+  padding-inline: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Only the top-level search changes; grid-sized search widgets keep their
+   registry geometry and typography. */
+.home-search-composition [data-search-input-shell] {
+  min-height: 54px;
+  border-radius: 16px;
+  border-color: color-mix(in srgb, var(--foreground) 14%, transparent);
+  box-shadow: 0 6px 20px -14px rgb(0 0 0 / 20%);
+}
+.home-search-composition {
+  display: flow-root;
+}
+.home-search-composition input,
+.home-search-composition textarea {
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.015em;
+}
+.home-search-composition [data-search-input-shell]:focus-within {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+.home-search-composition [role="listbox"] {
+  margin-top: 10px;
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 20px 50px -20px rgb(0 0 0 / 30%);
+}
+.home-search-composition [role="option"] {
+  border-radius: 10px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .desk-control:not(:disabled):hover {
+    background: color-mix(in srgb, var(--foreground) 7%, transparent);
+    border-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+  }
+}
+
+@media (max-width: 639px) {
+  .desk-topbar {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: 16px;
+  }
+  .desk-toolbar {
+    gap: 4px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1fr);
+  }
+  .desk-clock-time {
+    font-size: 23px;
+  }
+  .desk-clock-date {
+    font-size: 9px;
+  }
+  .desk-center-text {
+    font-size: 14px;
+  }
+  .desk-control {
+    width: 40px;
+    height: 40px;
+  }
+  .home-search-composition [data-search-input-shell] {
+    min-height: 48px;
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-control {
+    transition: none;
+  }
+  .desk-control:not(:disabled):active {
+    translate: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .desk-control[aria-pressed="true"] {
+    border-color: Highlight;
+  }
+  .desk-topbar-track {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+}
+
+.desk-toolbar--preview {
+  min-height: 68px;
+  padding: 8px 4px;
+}

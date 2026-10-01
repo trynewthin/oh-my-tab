@@ -16,8 +16,6 @@ import { gridTrackWidth, resolveGridGeometry } from "@/lib/grid/grid-layout"
 import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import QuickBar from "@/components/home/quick-bar"
 
-// Only first-run users (or an explicit replay) need the tour; keep its bundle
-// off the initial page for everyone else.
 const OnboardingTour = lazy(
   () => import("@/components/onboarding/onboarding-tour")
 )
@@ -109,11 +107,13 @@ export default function HomeUI() {
                   />
                 </HomeContentContainer>
               )}
-              <SearchPrompt
-                onSubmit={search}
-                width={searchWidth}
-                topGap={topInsets.searchGap}
-              />
+              <div className="home-search-composition">
+                <SearchPrompt
+                  onSubmit={search}
+                  width={searchWidth}
+                  topGap={topInsets.searchGap}
+                />
+              </div>
             </div>
           </div>
         )}

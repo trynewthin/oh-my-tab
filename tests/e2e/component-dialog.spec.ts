@@ -186,7 +186,8 @@ test("dot canvas catalog preview keeps square proportions", async ({
   await page.getByRole("button", { name: "添加组件", exact: true }).click()
   await page.getByRole("button", { name: "点阵", exact: true }).click()
   const preview = page
-    .getByRole("button", { name: "选择点阵画布" })
+    .locator(".catalog-card")
+    .filter({ has: page.getByRole("button", { name: "选择点阵画布" }) })
     .locator("svg[role=img]")
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 969 })

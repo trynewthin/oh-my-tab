@@ -1,0 +1,39 @@
+name: Prepare design validation workspace
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/design-workspace.yml
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: github.head_ref == 'design/considered-interface-polish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Pack source and dependencies without credentials
+        run: |
+          git ls-files -z > "$RUNNER_TEMP/workspace-files"
+          printf 'node_modules\0' >> "$RUNNER_TEMP/workspace-files"
+          tar --exclude='.git' --exclude='.env' --exclude='.env.*' --exclude='.npmrc' \
+            --null -czf "$RUNNER_TEMP/design-workspace.tar.gz" \
+            -T "$RUNNER_TEMP/workspace-files"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: design-validation-workspace
+          path: ${{ runner.temp }}/design-workspace.tar.gz
+          retention-days: 1
+          if-no-files-found: error

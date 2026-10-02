@@ -22,8 +22,10 @@ const resources: SiteResources = {
   },
   landing: {
     hero: {
-      titleLead: "Open a new page, ",
-      titleTail: "settle back into your own rhythm.",
+      titleLead: "A world of tabs.",
+      titleTail: "One that's yours.",
+      scroll: "Scroll to explore",
+      assembled: "Everything you love. Right where it belongs.",
       chromeStore: "Go to Chrome Web Store",
       release: "Download the latest release",
       themeLabel: "Preview theme",
@@ -50,8 +52,8 @@ const resources: SiteResources = {
           text: "Month, date, and today's place, laid out without a sound.",
         },
         plant: {
-          title: "Grow a flower, draw a flower.",
-          text: "A pixel plant and a dot-matrix canvas. When the work is done, you can play a while.",
+          title: "A little landscape, dot by dot.",
+          text: "Sunset, distant hills, reflections on a lake. A pixel canvas for the colours you love.",
         },
       },
     },
@@ -65,9 +67,9 @@ const resources: SiteResources = {
         "Product interface with an expanded folder for browsing bookmarks",
       widgets: {
         title: "A little hobby, every day",
-        text: "A calendar, to-dos, pixel art, and a little plant share the same free canvas.",
+        text: "A calendar, to-dos, and pixel art share the same free canvas.",
       },
-      widgetsAlt: "Clock, note, timer, calendar, todo, and pixel widgets",
+      widgetsAlt: "Calendar, to-dos, and a sunset lake pixel canvas",
     },
   },
   privacy: {

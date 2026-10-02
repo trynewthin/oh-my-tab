@@ -4,7 +4,7 @@ import sharp from "sharp"
 
 const appUrl = process.env.SHOWCASE_URL || "http://localhost:5173"
 const output = "website/public/showcase"
-const now = new Date("2026-09-13T09:41:00+08:00").getTime()
+const now = new Date("2026-10-03T09:41:00+08:00").getTime()
 
 const tab = (id, name, url, color = "#7d91bd") => ({
   id,
@@ -59,10 +59,43 @@ const organizeItems = [
 const pixels = Array.from({ length: 576 }, (_, index) => {
   const x = index % 24
   const y = Math.floor(index / 24)
-  if (y >= 11 && y <= 21 && x === 12) return "#79a47e"
-  if (Math.abs(x - 12) + Math.abs(y - 8) <= 1) return "#e5bd67"
-  if (Math.abs(x - 12) + Math.abs(y - 8) <= 3) return "#d79dc4"
-  return ""
+  const sky = ["#202442", "#303154", "#48416c", "#70527b", "#a56b88", "#d79499"]
+  let color = sky[Math.min(5, Math.floor(y / 3))]
+  if ((x === 4 && y === 3) || (x === 19 && y === 2) || (x === 8 && y === 5))
+    color = "#f5dfbc"
+  if ((x - 16) ** 2 + (y - 8) ** 2 <= 12) color = y < 8 ? "#ffe1ae" : "#f4b18e"
+  if (y >= 15 - Math.floor(5 * Math.exp(-((x - 7) ** 2) / 22)))
+    color = "#685780"
+  if (y >= 17 - Math.floor(5 * Math.exp(-((x - 20) ** 2) / 26)))
+    color = "#413c66"
+  if (y >= 17) {
+    color = y % 2 === 0 ? "#353e60" : "#303650"
+    if (Math.abs(x - 16) <= (23 - y) / 3 && y % 2 === 0) color = "#c991a0"
+    if ((x + y * 3) % 17 === 0) color = "#657399"
+  }
+  if (y >= 22 + Math.floor(x / 9) || (x < 3 && y > 19)) color = "#252b42"
+  return color
+})
+
+const daylightPixels = Array.from({ length: 576 }, (_, index) => {
+  const x = index % 24
+  const y = Math.floor(index / 24)
+  const sky = ["#9acfe0", "#b4deea", "#cce9ed", "#e3efdf", "#f1ecd0", "#eee6bc"]
+  let color = sky[Math.min(5, Math.floor(y / 3))]
+  if ((x - 17) ** 2 + (y - 6) ** 2 <= 10) color = "#f5cb70"
+  if ((y === 4 && x >= 3 && x <= 6) || (y === 5 && x >= 2 && x <= 8))
+    color = "#fff7e8"
+  if (y >= 15 - Math.floor(5 * Math.exp(-((x - 7) ** 2) / 22)))
+    color = "#96bdac"
+  if (y >= 17 - Math.floor(5 * Math.exp(-((x - 20) ** 2) / 26)))
+    color = "#659e91"
+  if (y >= 17) {
+    color = y % 2 === 0 ? "#99cdd0" : "#b1dedb"
+    if (Math.abs(x - 17) <= (23 - y) / 3 && y % 2 === 0) color = "#f4e8b7"
+    if ((x + y * 3) % 17 === 0) color = "#e3f2e7"
+  }
+  if (y >= 22 + Math.floor(x / 9) || (x < 3 && y > 19)) color = "#729f88"
+  return color
 })
 
 const widgetItems = [
@@ -82,33 +115,15 @@ const widgetItems = [
     tasks: [
       { id: "task-1", text: "整理今天的工作", done: true },
       { id: "task-2", text: "读完收藏的文章", done: false },
-      { id: "task-3", text: "给植物浇水", done: false },
-    ],
-  },
-  {
-    id: "garden",
-    kind: "ecosystem",
-    name: "窗边小花",
-    size: "large",
-    color: "#83aa91",
-    species: "flowers",
-    plants: [
-      {
-        slot: 0,
-        species: "flowers",
-        seed: 718,
-        appearanceVersion: 2,
-        plantedAt: now - 4 * 86400000,
-        boost: 12,
-      },
+      { id: "task-3", text: "画一片落日", done: false },
     ],
   },
   {
     id: "canvas",
     kind: "dot-canvas",
-    name: "今天画朵花",
+    name: "暮色山湖",
     size: "large",
-    color: "#c795b7",
+    color: "#70618f",
     pixelColumns: 24,
     pixels,
   },
@@ -172,6 +187,18 @@ async function capture(
   positions,
   { width, height, clip, columns = 20 } = {}
 ) {
+  if (theme === "light") {
+    items = items.map((item) =>
+      item.kind === "dot-canvas"
+        ? {
+            ...item,
+            name: "晴日山湖",
+            color: "#96bdac",
+            pixels: daylightPixels,
+          }
+        : item
+    )
+  }
   const context = await browser.newContext({
     viewport: {
       width: width ?? 1500,
@@ -259,13 +286,51 @@ async function capture(
     clipRegion ? { clip: clipRegion } : undefined
   )
   await sharp(screenshot).webp({ quality: 90 }).toFile(`${output}/${name}.webp`)
+  if (name === "detail-colors" || name === "detail-colors-light") {
+    for (const item of items) {
+      const tile = page.locator(`[data-grid-item-id="${item.id}"]`)
+      const radius = await tile.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return (
+          parseFloat(style.borderTopLeftRadius) /
+          element.getBoundingClientRect().height
+        )
+      })
+      const image = await tile.screenshot()
+      const { width, height } = await sharp(image).metadata()
+      const mask = Buffer.from(
+        `<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius * height}" fill="white"/></svg>`
+      )
+      await sharp(image)
+        .ensureAlpha()
+        .composite([{ input: mask, blend: "dest-in" }])
+        .webp({ quality: 90, alphaQuality: 100 })
+        .toFile(
+          `${output}/detail-${item.id.replace("d-", "")}${theme === "light" ? "-light" : ""}.webp`
+        )
+    }
+  }
   await context.close()
 }
 
 await mkdir(output, { recursive: true })
 const browser = await chromium.launch()
-await capture(browser, "organize", "light", organizeItems, layouts.organize)
-await capture(browser, "widgets", "dark", widgetItems, layouts.widgets)
+for (const theme of ["dark", "light"]) {
+  await capture(
+    browser,
+    `organize-${theme}`,
+    theme,
+    organizeItems,
+    layouts.organize
+  )
+  await capture(
+    browser,
+    `widgets-${theme}`,
+    theme,
+    widgetItems,
+    layouts.widgets
+  )
+}
 await capture(
   browser,
   "home-dark",
@@ -317,8 +382,8 @@ const detailScenes = [
   {
     name: "detail-plant",
     theme: "dark",
-    items: [widgetItems[2], widgetItems[3]],
-    positions: { garden: { x: 0, y: 0 }, canvas: { x: 4, y: 0 } },
+    items: [widgetItems[2]],
+    positions: { canvas: { x: 0, y: 0 } },
     columns: 8,
   },
 ]
@@ -327,6 +392,21 @@ for (const scene of detailScenes) {
     browser,
     scene.name,
     scene.theme,
+    scene.items,
+    scene.positions,
+    {
+      width: 628,
+      height: 460,
+      clip: "grid",
+      columns: scene.columns,
+    }
+  )
+}
+for (const scene of detailScenes) {
+  await capture(
+    browser,
+    `${scene.name}-light`,
+    "light",
     scene.items,
     scene.positions,
     {

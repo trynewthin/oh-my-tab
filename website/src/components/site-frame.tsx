@@ -96,7 +96,7 @@ const glyphs: Record<string, string[]> = {
   B: ["11110", "11011", "11011", "11110", "11011", "11011", "11110"],
 }
 
-export function SiteFooter() {
+export function SiteFooter({ language, page }: SiteChromeProps) {
   const { t } = useTranslation()
 
   return (
@@ -108,9 +108,31 @@ export function SiteFooter() {
           href={chromeStoreUrl}
           aria-label={t("footer.installLabel")}
         >
-          {t("footer.install")} <span aria-hidden="true">↗</span>
+          <img src={logoUrl} width="64" height="64" alt="" />
         </a>
       </div>
+      <nav className="footer-links" aria-label={t("header.navLabel")}>
+        {page !== "privacy" && (
+          <a href={pathFor("privacy", language)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M7 1h2v1h4v1h2v6h-2v3h-2v2H9v1H7v-1H5v-2H3V9H1V3h2V2h4Zm-2 4v4h2v2h2V9h2V5H9v4H7V5Z" />
+            </svg>
+            {t("privacy.title")}
+          </a>
+        )}
+        <a href={repositoryUrl}>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M2 1h3v2h6V1h3v4h1v6h-2v2h-2v2H9v-4h2V6H5v5h2v4H5v-2H3v-2H1V5h1Z" />
+          </svg>
+          GitHub
+        </a>
+        <a href={chromeStoreUrl}>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M5 1h6v2h2v2h2v8h-2v2H3v-2H1V5h2V3h2Zm0 4h6V3H5Zm2 2v4H5l3 3 3-3H9V7Z" />
+          </svg>
+          {t("header.chromeStore")}
+        </a>
+      </nav>
       <a
         className="footer-stage"
         href={repositoryUrl}

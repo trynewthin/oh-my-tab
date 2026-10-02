@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { SiteFooter, SiteHeader } from "./components/site-frame"
 import { LandingContent } from "./components/landing-page"
 import { PrivacyContent } from "./components/privacy-page"
@@ -8,22 +9,22 @@ type PageProps = {
   page: PageId
 }
 
-export function LandingPage({ language, page }: PageProps) {
+export function LandingPage({ language }: PageProps) {
+  const [theme, setTheme] = useState<"dark" | "light">("dark")
   return (
-    <div className="site-shell">
-      <SiteHeader language={language} page={page} />
-      <LandingContent />
-      <SiteFooter />
+    <div className="site-shell landing-shell" data-theme={theme}>
+      <LandingContent theme={theme} setTheme={setTheme} />
+      <SiteFooter language={language} page="home" />
     </div>
   )
 }
 
 export function PrivacyPage({ language, page }: PageProps) {
   return (
-    <div className="site-shell">
+    <div className="site-shell privacy-shell">
       <SiteHeader language={language} page={page} />
       <PrivacyContent />
-      <SiteFooter />
+      <SiteFooter language={language} page="privacy" />
     </div>
   )
 }

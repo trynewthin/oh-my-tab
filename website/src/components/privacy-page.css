@@ -1,0 +1,260 @@
+.privacy-shell {
+  background: #171821;
+  color: #eeeaf3;
+}
+.privacy-shell .site-header {
+  border-bottom: 1px solid #c4a7ee18;
+  padding-block: 22px;
+}
+.privacy-shell .site-header > nav,
+.privacy-shell .header-action,
+.privacy-shell .header-github {
+  display: none;
+}
+.privacy-shell .language-switch {
+  height: auto;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font:
+    12px ui-monospace,
+    monospace;
+}
+.privacy-shell .language-switch a,
+.privacy-shell .language-switch span {
+  position: relative;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 0;
+  background: transparent;
+  color: #a59bae;
+  letter-spacing: 0.06em;
+}
+.privacy-shell .language-switch a::after,
+.privacy-shell .language-switch span::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  right: 4px;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0 3px,
+    transparent 3px 6px
+  );
+  opacity: 0.2;
+}
+.privacy-shell .language-switch a:hover,
+.privacy-shell .language-switch span[aria-current="page"] {
+  color: #d6f3b9;
+  background: transparent;
+}
+.privacy-shell .language-switch span[aria-current="page"]::after {
+  opacity: 1;
+}
+.privacy-shell .policy-page {
+  width: min(1100px, calc(100% - 48px));
+  margin: auto;
+  padding: 96px 0 100px;
+}
+.privacy-shell .policy-hero {
+  position: relative;
+  max-width: 850px;
+  padding-left: 100px;
+}
+.policy-mark {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 48px;
+  height: 48px;
+  fill: #d6f3b9;
+  shape-rendering: crispEdges;
+}
+.privacy-shell .policy-hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 6vw, 80px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+}
+.privacy-shell .policy-hero > p {
+  max-width: 690px;
+  margin: 28px 0 0;
+  color: #b8b0c4;
+  font-size: 17px;
+  line-height: 1.95;
+}
+.privacy-shell .policy-hero time {
+  margin-top: 28px;
+  color: #9990a7;
+  font:
+    12px ui-monospace,
+    monospace;
+}
+.privacy-shell .policy-summary {
+  margin-top: 76px;
+  gap: 40px;
+}
+.privacy-shell .policy-summary article,
+.privacy-shell .policy-summary article:first-child,
+.privacy-shell .policy-summary article:nth-child(2),
+.privacy-shell .policy-summary article:nth-child(3) {
+  padding: 26px 24px;
+  border-radius: 0;
+  background: #24232f;
+  border: 1px solid #bba0e52e;
+  border-top: 3px dotted #cbb1ed;
+  min-height: 0;
+}
+.privacy-shell .policy-summary-index {
+  margin-bottom: 20px;
+  color: #d6f3b9;
+  font:
+    11px ui-monospace,
+    monospace;
+  letter-spacing: 0.16em;
+}
+.privacy-shell .policy-summary strong {
+  color: #f5f1fa;
+  font-size: 18px;
+  font-weight: 500;
+}
+.privacy-shell .policy-summary p {
+  color: #cec6dc;
+}
+.privacy-shell .policy-layout {
+  grid-template-columns: 220px minmax(0, 700px);
+  gap: 64px;
+  margin-top: 100px;
+}
+.privacy-shell .policy-layout aside {
+  top: 36px;
+}
+.privacy-shell .policy-layout aside > p {
+  color: #8d829f;
+  margin: 0 0 20px;
+  font-size: 11px;
+}
+.privacy-shell .policy-layout aside nav {
+  gap: 5px;
+}
+.privacy-shell .policy-layout aside a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #a59bae;
+  font-size: 13px;
+}
+.privacy-shell .policy-layout aside a::before {
+  content: "";
+  flex: 0 0 5px;
+  height: 5px;
+  background: #504858;
+}
+.privacy-shell .policy-layout aside a[aria-current="location"] {
+  color: #d6f3b9;
+}
+.privacy-shell .policy-layout aside a[aria-current="location"]::before {
+  background: currentColor;
+  box-shadow: 0 0 10px #d6f3b933;
+}
+.privacy-shell .policy-layout aside a:hover {
+  color: #eeeaf3;
+}
+.privacy-shell .policy-body section,
+.privacy-shell .policy-body section + section {
+  padding: 0 0 56px;
+  margin-bottom: 48px;
+  border-bottom: 1px solid #bba0e51a;
+  scroll-margin-top: 48px;
+}
+.privacy-shell .policy-body section:last-child {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+.privacy-shell .policy-body h2 {
+  margin: 0 0 24px;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.privacy-shell .policy-body p {
+  color: #bab3c5;
+  font-size: 16px;
+  line-height: 2;
+  margin: 0 0 20px;
+  overflow-wrap: anywhere;
+}
+.privacy-shell .policy-body p:last-child {
+  margin-bottom: 0;
+}
+.privacy-shell .site-footer {
+  border-top: 1px solid #bba0e51a;
+}
+@media (max-width: 850px) {
+  .privacy-shell .policy-layout {
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 32px;
+  }
+}
+@media (max-width: 720px) {
+  .privacy-shell .policy-page {
+    width: calc(100% - 40px);
+    padding: 52px 0 60px;
+  }
+  .privacy-shell .policy-hero {
+    padding-left: 0;
+  }
+  .policy-mark {
+    position: static;
+    width: 32px;
+    height: 32px;
+    margin-bottom: 24px;
+  }
+  .privacy-shell .policy-hero > p {
+    font-size: 15px;
+  }
+  .privacy-shell .policy-summary {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin-top: 44px;
+  }
+  .privacy-shell .policy-summary-index {
+    margin-bottom: 12px;
+  }
+  .privacy-shell .policy-layout {
+    display: block;
+    margin-top: 56px;
+  }
+  .privacy-shell .policy-layout aside {
+    position: static;
+    margin-bottom: 48px;
+  }
+  .privacy-shell .policy-layout aside nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+  }
+  .privacy-shell .policy-layout aside a {
+    min-height: 44px;
+  }
+  .privacy-shell .policy-body h2 {
+    font-size: 25px;
+  }
+  .privacy-shell .policy-body p {
+    font-size: 15px;
+  }
+  .privacy-shell .policy-body section,
+  .privacy-shell .policy-body section + section {
+    padding-bottom: 36px;
+    margin-bottom: 36px;
+  }
+}

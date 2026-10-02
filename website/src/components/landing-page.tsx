@@ -1,15 +1,14 @@
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { landingDetailIds, type LandingDetailId } from "../i18n/types"
-import { chromeStoreUrl, releaseUrl } from "./site-frame"
+import { OpeningAct } from "./opening-act"
+import "./landing-story.css"
 
 type DetailVisual = {
   image: "detail-colors" | "detail-todos" | "detail-calendar" | "detail-plant"
   tone: string
 }
 
-// Each detail card uses a dedicated tightly-framed capture — cropping a wide
-// screenshot used to leak neighbouring tiles' borders into the frame.
+// Product captures stay separate so each bookmark keeps its own silhouette.
 const detailVisuals: Record<LandingDetailId, DetailVisual> = {
   colors: { image: "detail-colors", tone: "lilac" },
   todos: { image: "detail-todos", tone: "blue" },
@@ -17,136 +16,117 @@ const detailVisuals: Record<LandingDetailId, DetailVisual> = {
   plant: { image: "detail-plant", tone: "green" },
 }
 
-export function LandingContent() {
+export function LandingContent({
+  theme,
+  setTheme,
+}: {
+  theme: "dark" | "light"
+  setTheme: (theme: "dark" | "light") => void
+}) {
   const { t } = useTranslation()
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const suffix = theme === "light" ? "-light" : ""
 
   return (
     <main className="landing">
-      <section className="hero">
-        <div className="hero-copy">
-          <h1>
-            {t("landing.hero.titleLead")}
-            <span>{t("landing.hero.titleTail")}</span>
-          </h1>
-          <div className="hero-actions">
-            <a className="button button--primary" href={chromeStoreUrl}>
-              {t("landing.hero.chromeStore")}
-            </a>
-            <a className="button button--quiet" href={releaseUrl}>
-              {t("landing.hero.release")}
-            </a>
-          </div>
-        </div>
-        <div className="preview-toolbar">
-          <div
-            className="theme-switch"
-            role="group"
-            aria-label={t("landing.hero.themeLabel")}
-          >
-            <button
-              type="button"
-              aria-pressed={theme === "dark"}
-              onClick={() => setTheme("dark")}
-            >
-              ☾ {t("landing.hero.themeDark")}
-            </button>
-            <button
-              type="button"
-              aria-pressed={theme === "light"}
-              onClick={() => setTheme("light")}
-            >
-              ☼ {t("landing.hero.themeLight")}
-            </button>
-          </div>
-        </div>
-        <div className={`hero-visual hero-visual--${theme}`}>
-          <div className="browser-bar" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </div>
-          <img
-            width="2400"
-            height="1840"
-            src={`/showcase/home-${theme}.webp`}
-            alt={t(
-              theme === "dark"
-                ? "landing.hero.previewAltDark"
-                : "landing.hero.previewAltLight"
-            )}
-          />
-        </div>
-      </section>
+      <OpeningAct theme={theme} setTheme={setTheme} />
 
-      <section className="feature-section" id="features">
-        <div className="section-heading">
-          <h2>{t("landing.features.heading")}</h2>
+      <section
+        className="story-details"
+        id="features"
+        aria-labelledby="details-title"
+      >
+        <div className="story-heading">
+          <h2 id="details-title">{t("landing.features.heading")}</h2>
+          <div className="story-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
         </div>
-        <div className="detail-grid">
-          {landingDetailIds.map((id) => {
-            const visual = detailVisuals[id]
-            const title = t(`landing.features.details.${id}.title`)
-            return (
-              <article
-                className={`detail-card detail-card--${visual.tone}`}
-                key={id}
-              >
-                <div className="detail-art">
+        {landingDetailIds.map((id) => {
+          const visual = detailVisuals[id]
+          const title = t(`landing.features.details.${id}.title`)
+          return (
+            <article
+              className={`story-detail story-detail--${id} story-detail--${visual.tone}`}
+              key={id}
+            >
+              <div className="story-copy">
+                <h3>{title}</h3>
+                <p>{t(`landing.features.details.${id}.text`)}</p>
+              </div>
+              <div className="story-art">
+                <div className="story-art-grid" aria-hidden="true" />
+                {id === "colors" ? (
+                  <div
+                    className="story-bookmarks"
+                    role="img"
+                    aria-label={title}
+                  >
+                    {["github", "notion", "spotify"].map((site) => (
+                      <img
+                        key={site}
+                        loading="lazy"
+                        src={`/showcase/detail-${site}${suffix}.webp`}
+                        alt=""
+                        width="564"
+                        height="118"
+                      />
+                    ))}
+                  </div>
+                ) : (
                   <img
+                    className="story-widget"
                     loading="lazy"
-                    src={`/showcase/${visual.image}.webp`}
+                    src={`/showcase/${visual.image}${suffix}.webp`}
                     alt={title}
                   />
-                </div>
-                <div className="detail-copy">
-                  <h3>{title}</h3>
-                  <p>{t(`landing.features.details.${id}.text`)}</p>
-                </div>
-              </article>
-            )
-          })}
-        </div>
+                )}
+              </div>
+            </article>
+          )
+        })}
       </section>
 
-      <section className="showcase-section" id="showcase">
-        <div className="section-heading section-heading--split">
-          <div>
-            <h2>{t("landing.showcase.heading")}</h2>
+      <section
+        className="story-desktop"
+        id="showcase"
+        aria-labelledby="desktop-title"
+      >
+        <div className="story-heading">
+          <h2 id="desktop-title">{t("landing.showcase.heading")}</h2>
+        </div>
+        <article className="story-workspace story-workspace--organize">
+          <div className="story-workspace-copy">
+            <h3>{t("landing.showcase.organize.title")}</h3>
+            <p>{t("landing.showcase.organize.text")}</p>
           </div>
-        </div>
-        <div className="showcase-list">
-          <article className="showcase-item">
-            <div className="showcase-copy">
-              <h3>{t("landing.showcase.organize.title")}</h3>
-              <p>{t("landing.showcase.organize.text")}</p>
-            </div>
-            <div className="showcase-shot">
-              <img
-                loading="lazy"
-                width="2400"
-                height="920"
-                src="/showcase/organize.webp"
-                alt={t("landing.showcase.organizeAlt")}
-              />
-            </div>
-          </article>
-          <article className="showcase-item showcase-item--reverse">
-            <div className="showcase-copy">
-              <h3>{t("landing.showcase.widgets.title")}</h3>
-              <p>{t("landing.showcase.widgets.text")}</p>
-            </div>
-            <div className="showcase-shot">
-              <img
-                loading="lazy"
-                width="2400"
-                height="920"
-                src="/showcase/widgets.webp"
-                alt={t("landing.showcase.widgetsAlt")}
-              />
-            </div>
-          </article>
-        </div>
+          <div className="story-workspace-image">
+            <img
+              loading="lazy"
+              width="3000"
+              height="920"
+              src={`/showcase/organize-${theme}.webp`}
+              alt={t("landing.showcase.organizeAlt")}
+            />
+          </div>
+        </article>
+        <article className="story-workspace story-workspace--widgets">
+          <div className="story-workspace-copy">
+            <h3>{t("landing.showcase.widgets.title")}</h3>
+            <p>{t("landing.showcase.widgets.text")}</p>
+          </div>
+          <div className="story-workspace-image">
+            <img
+              loading="lazy"
+              width="3000"
+              height="920"
+              src={`/showcase/widgets-${theme}.webp`}
+              alt={t("landing.showcase.widgetsAlt")}
+            />
+          </div>
+        </article>
       </section>
     </main>
   )

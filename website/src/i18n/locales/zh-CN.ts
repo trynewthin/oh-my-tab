@@ -22,8 +22,10 @@ const resources: SiteResources = {
   },
   landing: {
     hero: {
-      titleLead: "打开新的一页，",
-      titleTail: "回到自己的节奏。",
+      titleLead: "世界很大，",
+      titleTail: "这一页，归你。",
+      scroll: "向下探索",
+      assembled: "散落的喜欢，有了自己的位置。",
       chromeStore: "前往 Chrome 商店",
       release: "下载最新版本",
       themeLabel: "预览主题",
@@ -48,8 +50,8 @@ const resources: SiteResources = {
           text: "月份、日期、今天的位置，安安静静地排好。",
         },
         plant: {
-          title: "养朵花，画朵花。",
-          text: "一盆像素植物，一张点阵画布。忙完了，也可以玩一会儿。",
+          title: "把风景，画成小小的点。",
+          text: "落日、远山、湖面倒影。一张点阵画布，留住喜欢的颜色。",
         },
       },
     },
@@ -62,9 +64,9 @@ const resources: SiteResources = {
       organizeAlt: "展开文件夹浏览常用网站的产品界面",
       widgets: {
         title: "每天，也留一点小爱好",
-        text: "日历、待办、点阵画布和一盆像素植物，共享同一张自由画布。",
+        text: "日历、待办和点阵画布，共享同一张自由画布。",
       },
-      widgetsAlt: "时钟、便签、计时、日历、待办和像素组件",
+      widgetsAlt: "日历、待办和暮色山湖点阵画布",
     },
   },
   privacy: {

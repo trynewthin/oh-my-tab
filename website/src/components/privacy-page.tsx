@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { privacySectionIds, privacySummaryIds } from "../i18n/types"
+import "./privacy-page.css"
 
 export function PrivacyContent() {
   const { t } = useTranslation()
@@ -25,17 +26,23 @@ export function PrivacyContent() {
   return (
     <main className="policy-page">
       <header className="policy-hero">
+        <svg className="policy-mark" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M5 1h6v2h2v4h2v8H1V7h2V3h2Zm0 2v4h6V3Zm2 6v4h2V9Z" />
+        </svg>
         <h1>{t("privacy.title")}</h1>
         <p>{t("privacy.intro")}</p>
-        <time dateTime="2026-09-13">{t("privacy.updatedLabel")}</time>
+        <time dateTime="2026-09-27">{t("privacy.updatedLabel")}</time>
       </header>
 
       <section
         className="policy-summary"
         aria-label={t("privacy.summaryLabel")}
       >
-        {privacySummaryIds.map((id) => (
+        {privacySummaryIds.map((id, index) => (
           <article key={id}>
+            <span className="policy-summary-index" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
             <strong>{t(`privacy.summary.${id}.title`)}</strong>
             <p>{t(`privacy.summary.${id}.text`)}</p>
           </article>
@@ -44,6 +51,7 @@ export function PrivacyContent() {
 
       <div className="policy-layout">
         <aside>
+          <p>{t("privacy.tocLabel")}</p>
           <nav aria-label={t("privacy.tocLabel")}>
             {privacySectionIds.map((id) => (
               <a
@@ -62,8 +70,8 @@ export function PrivacyContent() {
               returnObjects: true,
             }) as string[]
             return (
-              <section id={id} key={id}>
-                <h2>{t(`privacy.sections.${id}.title`)}</h2>
+              <section id={id} key={id} aria-labelledby={`${id}-title`}>
+                <h2 id={`${id}-title`}>{t(`privacy.sections.${id}.title`)}</h2>
                 {paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}

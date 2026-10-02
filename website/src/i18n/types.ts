@@ -51,6 +51,8 @@ export type SiteResources = {
     hero: {
       titleLead: string
       titleTail: string
+      scroll: string
+      assembled: string
       chromeStore: string
       release: string
       themeLabel: string

@@ -13,8 +13,11 @@ export function LandingPage({ language }: PageProps) {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
   return (
     <div className="site-shell landing-shell" data-theme={theme}>
-      <LandingContent theme={theme} setTheme={setTheme} />
-      <SiteFooter language={language} page="home" />
+      <LandingContent
+        theme={theme}
+        setTheme={setTheme}
+        footer={<SiteFooter language={language} page="home" />}
+      />
     </div>
   )
 }

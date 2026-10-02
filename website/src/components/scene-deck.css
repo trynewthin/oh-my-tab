@@ -1,0 +1,183 @@
+.scene-deck {
+  height: 100svh;
+  position: relative;
+  overflow: hidden;
+}
+.scene-panel {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  outline: none;
+  animation: scene-enter 600ms ease both;
+}
+.scene-panel--leaving {
+  animation: scene-exit 280ms ease both;
+  pointer-events: none;
+}
+.scene-deck .opening-act {
+  height: 100%;
+  background: transparent;
+}
+.scene-deck .act-stage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  opacity: 1;
+}
+.scene-deck .act-bottom {
+  opacity: 1;
+}
+.scene-deck .story-detail {
+  width: min(1100px, calc(100% - 64px));
+  min-height: 100%;
+  margin: auto;
+  padding: 60px 0 110px;
+}
+.scene-deck .story-copy h2,
+.scene-deck .story-workspace-copy h2 {
+  font-size: clamp(28px, 4vw, 56px);
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.scene-deck .story-art,
+.scene-deck .story-copy,
+.scene-deck .story-workspace-image {
+  animation: component-enter 600ms 100ms ease both;
+  animation-timeline: auto;
+}
+.scene-deck .story-art {
+  animation-delay: 180ms;
+}
+.scene-deck .story-bookmarks img {
+  animation: bookmark-enter 600ms ease both;
+}
+.scene-deck .story-bookmarks img:nth-child(2) {
+  animation-delay: 100ms;
+}
+.scene-deck .story-bookmarks img:nth-child(3) {
+  animation-delay: 200ms;
+}
+.scene-deck .story-workspace {
+  width: min(1180px, calc(100% - 64px));
+  min-height: 100%;
+  margin: auto;
+  padding: 80px 0 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.scene-deck .story-workspace-image {
+  flex-shrink: 0;
+}
+.scene-footer {
+  padding-bottom: 100px;
+}
+.scene-footer .site-footer {
+  margin-block: 0;
+}
+.scene-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 4px 18px;
+  background: #171821ed;
+  color: #d6f3b9;
+}
+.scene-panel--final .scene-controls {
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  justify-content: center;
+  margin: 0 auto 24px;
+  width: fit-content;
+}
+.scene-controls button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: 26px monospace;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.scene-controls button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.scene-controls span {
+  font: 11px monospace;
+  letter-spacing: 0.12em;
+}
+.landing-shell[data-theme="light"] .scene-controls {
+  background: #f5f3f0ed;
+  color: #4f6a3e;
+}
+@keyframes scene-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scene-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@keyframes component-enter {
+  from {
+    opacity: 0;
+    translate: 0 30px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes bookmark-enter {
+  from {
+    opacity: 0;
+    translate: -35px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@media (max-width: 720px) {
+  .scene-deck .story-detail {
+    width: calc(100% - 40px);
+    padding: 40px 0 100px;
+    min-height: 100%;
+    align-content: center;
+    gap: 20px;
+  }
+  .scene-deck .story-art {
+    min-height: 260px;
+  }
+  .scene-deck .story-widget {
+    max-height: 260px;
+  }
+  .scene-deck .story-workspace {
+    width: calc(100% - 40px);
+    padding: 40px 0 110px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-deck *,
+  .scene-deck *::before,
+  .scene-deck *::after {
+    animation: none !important;
+  }
+}

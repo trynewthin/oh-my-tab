@@ -445,7 +445,33 @@
   }
 }
 
+@media (min-height: 661px) and (max-aspect-ratio: 1/1) {
+  .act-stage {
+    justify-content: center;
+    padding-block: clamp(24px, 4svh, 64px);
+  }
+  .act-composition {
+    flex: 0 1 auto;
+    height: min(58vw, 620px);
+    min-height: 260px;
+    margin-top: clamp(28px, 4svh, 56px);
+  }
+  .act-heading {
+    padding-top: 0;
+  }
+  .act-bottom {
+    position: relative;
+    flex-shrink: 0;
+    margin-top: clamp(24px, 4svh, 56px);
+    padding-block: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce), (max-height: 660px) {
+  .act-bottom {
+    position: relative;
+    margin-top: 16px;
+  }
   .opening-act {
     height: auto;
     padding-bottom: 0;
@@ -455,6 +481,7 @@
     height: auto;
     min-height: 0;
     opacity: 1;
+    padding-block: 0;
   }
   .act-heading {
     transform: none;

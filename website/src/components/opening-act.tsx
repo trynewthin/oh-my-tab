@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { chromeStoreUrl, releaseUrl } from "./site-frame"
 import { pathFor, supportedLanguages } from "../i18n/language"
@@ -21,53 +20,11 @@ export function OpeningAct({
   setTheme: (theme: "dark" | "light") => void
 }) {
   const { t, i18n } = useTranslation()
-  const scene = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const element = scene.current
-    if (!element) return
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
-    let frame = 0
-    const update = () => {
-      frame = 0
-      const bounds = element.getBoundingClientRect()
-      const distance = bounds.height - window.innerHeight
-      const progress = motion.matches
-        ? 1
-        : Math.max(0, Math.min(1, -bounds.top / Math.max(1, distance)))
-      element.style.setProperty(
-        "--gather",
-        String(Math.min(1, progress / 0.78))
-      )
-      element.style.setProperty(
-        "--handoff",
-        String(
-          motion.matches
-            ? 0
-            : Math.max(0, Math.min(1, (progress - 0.78) / 0.22))
-        )
-      )
-    }
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(update)
-    }
-    update()
-    window.addEventListener("scroll", schedule, { passive: true })
-    window.addEventListener("resize", schedule)
-    motion.addEventListener("change", schedule)
-    return () => {
-      window.cancelAnimationFrame(frame)
-      window.removeEventListener("scroll", schedule)
-      window.removeEventListener("resize", schedule)
-      motion.removeEventListener("change", schedule)
-    }
-  }, [])
 
   return (
     <section
       className="opening-act"
       data-theme={theme}
-      ref={scene}
       aria-labelledby="opening-title"
     >
       <div className="act-stage">

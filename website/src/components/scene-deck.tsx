@@ -166,50 +166,60 @@ export function SceneDeck({
         tabIndex={0}
         aria-label={`${index + 1} / ${scenes.length}`}
       >
-        {scenes[index]}
-        {index > 0 && (
-          <nav
-            className="scene-controls"
-            aria-label={english ? "Page navigation" : "页面导航"}
-          >
-            <button
-              type="button"
-              disabled={leaving}
-              onClick={() => move(index - 1)}
-              aria-label={english ? "Previous" : "上一页"}
+        <div className="scene-content">
+          {scenes[index]}
+          {index > 0 && (
+            <nav
+              className="scene-controls"
+              aria-label={english ? "Page navigation" : "页面导航"}
             >
-              ↑
-            </button>
-            <span aria-live="polite">
-              {String(index + 1).padStart(2, "0")} /{" "}
-              {String(scenes.length).padStart(2, "0")}
-            </span>
-            <button
-              type="button"
-              disabled={leaving}
-              onClick={() => {
-                if (index === scenes.length - 1) {
-                  const panel =
-                    root.current?.querySelector<HTMLElement>(".scene-panel")
-                  const footerElement =
-                    panel?.querySelector<HTMLElement>(".scene-footer")
-                  if (panel && footerElement)
-                    panel.scrollTo({
-                      top: footerElement.offsetTop,
-                      behavior: window.matchMedia(
-                        "(prefers-reduced-motion: reduce)"
-                      ).matches
-                        ? "instant"
-                        : "smooth",
-                    })
-                } else move(index + 1)
-              }}
-              aria-label={english ? "Next" : "下一页"}
-            >
-              ↓
-            </button>
-          </nav>
-        )}
+              <button
+                type="button"
+                disabled={leaving}
+                className="scene-previous"
+                onClick={() => move(index - 1)}
+                aria-label={english ? "Previous" : "上一页"}
+              >
+                <span className="scene-chevron">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M2 5h4v3h3v3h2V8h3V5h4v4h-3v3h-3v3H8v-3H5V9H2Z" />
+                  </svg>
+                </span>
+              </button>
+              <span aria-live="polite">
+                {Math.round((index / (scenes.length - 1)) * 100)}%
+              </span>
+              <button
+                type="button"
+                disabled={leaving}
+                onClick={() => {
+                  if (index === scenes.length - 1) {
+                    const panel =
+                      root.current?.querySelector<HTMLElement>(".scene-panel")
+                    const footerElement =
+                      panel?.querySelector<HTMLElement>(".scene-footer")
+                    if (panel && footerElement)
+                      panel.scrollTo({
+                        top: footerElement.offsetTop,
+                        behavior: window.matchMedia(
+                          "(prefers-reduced-motion: reduce)"
+                        ).matches
+                          ? "instant"
+                          : "smooth",
+                      })
+                  } else move(index + 1)
+                }}
+                aria-label={english ? "Next" : "下一页"}
+              >
+                <span className="scene-chevron">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M2 5h4v3h3v3h2V8h3V5h4v4h-3v3h-3v3H8v-3H5V9H2Z" />
+                  </svg>
+                </span>
+              </button>
+            </nav>
+          )}
+        </div>
         {index === scenes.length - 1 && (
           <div className="scene-footer">{footer}</div>
         )}

@@ -11,6 +11,21 @@
   outline: none;
   animation: scene-enter 600ms ease both;
 }
+.scene-content {
+  position: relative;
+  height: 100%;
+}
+.scene-panel--final .scene-content {
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.scene-deck .scene-panel--final .story-workspace {
+  flex: 1 0 auto;
+  min-height: 0;
+  padding-block: clamp(24px, 4svh, 48px);
+}
 .scene-panel--leaving {
   animation: scene-exit 280ms ease both;
   pointer-events: none;
@@ -87,8 +102,8 @@
   gap: 24px;
   align-items: center;
   padding: 4px 18px;
-  background: #171821ed;
-  color: #d6f3b9;
+  background: transparent;
+  color: #c4a7ee;
 }
 .scene-panel--final .scene-controls {
   position: relative;
@@ -97,29 +112,54 @@
   left: auto;
   transform: none;
   justify-content: center;
-  margin: 0 auto 24px;
+  flex-shrink: 0;
+  margin: 0 auto 20px;
   width: fit-content;
 }
 .scene-controls button {
   border: 0;
   background: transparent;
   color: inherit;
-  font: 26px monospace;
-  min-width: 44px;
-  min-height: 44px;
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: 48px;
   cursor: pointer;
 }
 .scene-controls button:disabled {
   opacity: 0.25;
   cursor: default;
 }
-.scene-controls span {
-  font: 11px monospace;
-  letter-spacing: 0.12em;
+.scene-controls > span {
+  min-width: 48px;
+  text-align: center;
+  font:
+    12px ui-monospace,
+    monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
 }
 .landing-shell[data-theme="light"] .scene-controls {
-  background: #f5f3f0ed;
+  background: transparent;
   color: #4f6a3e;
+}
+.scene-chevron {
+  display: grid;
+  place-items: center;
+}
+.scene-previous .scene-chevron {
+  transform: rotate(180deg);
+}
+.scene-controls svg {
+  width: 36px;
+  height: 36px;
+  fill: currentColor;
+  shape-rendering: crispEdges;
+  animation: pixel-flow 1.65s ease-in-out infinite;
+}
+.scene-controls button:focus-visible {
+  outline: 2px dashed currentColor;
+  outline-offset: 4px;
 }
 @keyframes scene-enter {
   from {

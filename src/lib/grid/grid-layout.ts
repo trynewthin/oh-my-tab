@@ -1,15 +1,30 @@
 import type { GridItem } from "./types"
 import { getItemGridDimensions } from "./registry"
 
-export const GRID_COLUMNS = [4, 8, 12, 16, 20, 24] as const
-export const GRID_COMPONENT_COLUMNS = [1, 2, 3, 4, 5, 6] as const
+export const GRID_COMPONENT_COLUMNS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const
+export const GRID_COLUMNS = GRID_COMPONENT_COLUMNS.map(
+  (columns) => (columns * 4) as 4 | 8 | 12 | 16 | 20 | 24 | 28 | 32 | 36 | 40
+)
 export const GRID_CELL_SIZE = 59.5
 export const GRID_GAP = 16
 export const DEFAULT_WIDE_GRID_COLUMNS = 4
 export const DEFAULT_NARROW_GRID_COLUMNS = 2
 export const MIN_COMFORTABLE_GRID_SCALE = 0.8
+export const DEFAULT_GRID_SCALE = 1
+export const MIN_GRID_SCALE = 0.6
+export const MAX_GRID_SCALE = 2
+export const GRID_SCALE_STEP = 0.1
 
 export type GridComponentColumnCount = (typeof GRID_COMPONENT_COLUMNS)[number]
+
+export function clampGridScale(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null
+  const steps = Math.round(value / GRID_SCALE_STEP)
+  if (Math.abs(value - steps * GRID_SCALE_STEP) > 1e-9) return null
+  if (value < MIN_GRID_SCALE - 1e-9 || value > MAX_GRID_SCALE + 1e-9)
+    return null
+  return steps * GRID_SCALE_STEP
+}
 
 export function isGridComponentColumnCount(
   value: unknown
@@ -36,16 +51,17 @@ function gridMetrics(columns: number, compact: boolean) {
 export function resolveGridGeometry(
   availableWidth: number,
   wideComponentColumns: GridComponentColumnCount = DEFAULT_WIDE_GRID_COLUMNS,
-  narrowComponentColumns: GridComponentColumnCount = DEFAULT_NARROW_GRID_COLUMNS
+  narrowComponentColumns: GridComponentColumnCount = DEFAULT_NARROW_GRID_COLUMNS,
+  userScale: number = DEFAULT_GRID_SCALE
 ) {
   const wideColumns = wideComponentColumns * 4
   const wideTrackWidth = gridTrackWidth(wideColumns)
-  const wideScale =
+  const wideFitScale =
     availableWidth > 0 ? Math.min(1, availableWidth / wideTrackWidth) : 1
   const componentColumns =
     availableWidth > 0 &&
     narrowComponentColumns < wideComponentColumns &&
-    wideScale < MIN_COMFORTABLE_GRID_SCALE
+    wideFitScale < MIN_COMFORTABLE_GRID_SCALE
       ? narrowComponentColumns
       : wideComponentColumns
   const metrics = gridMetrics(
@@ -53,12 +69,16 @@ export function resolveGridGeometry(
     availableWidth > 0 && availableWidth < 640
   )
   const trackWidth = gridTrackWidth(metrics.columns)
-  const scale =
+  const fitScale =
     availableWidth > 0 ? Math.min(1, availableWidth / trackWidth) : 1
+  const appliedUserScale = clampGridScale(userScale) ?? DEFAULT_GRID_SCALE
+  const scale = fitScale * appliedUserScale
   return {
     metrics,
     componentColumns,
     trackWidth,
+    fitScale,
+    userScale: appliedUserScale,
     scale,
     visualWidth: trackWidth * scale,
   }

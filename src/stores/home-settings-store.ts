@@ -8,6 +8,8 @@ import {
   type BackgroundPaletteId,
 } from "@/lib/background-palettes"
 import {
+  clampGridScale,
+  DEFAULT_GRID_SCALE,
   DEFAULT_NARROW_GRID_COLUMNS,
   DEFAULT_WIDE_GRID_COLUMNS,
   isGridComponentColumnCount,
@@ -60,6 +62,7 @@ type HomeSettings = {
   quickBar: QuickBarConfig
   wideGridColumns: GridComponentColumnCount
   narrowGridColumns: GridComponentColumnCount
+  gridScale: number
   backgroundType: BackgroundType
   backgroundImage: string | null
   backgroundPalette: BackgroundPaletteId
@@ -93,6 +96,7 @@ type HomeSettingsStore = HomeSettings & {
   setLayoutMode: (value: HomeLayoutMode) => void
   setWideGridColumns: (value: GridComponentColumnCount) => void
   setNarrowGridColumns: (value: GridComponentColumnCount) => void
+  setGridScale: (value: number) => void
   setBackgroundImage: (value: string | null) => void
   setBackgroundPalette: (value: BackgroundPaletteId) => void
   setSearchBoxStyle: (value: SearchBoxStyle) => void
@@ -121,6 +125,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       quickBar: defaultQuickBar(),
       wideGridColumns: DEFAULT_WIDE_GRID_COLUMNS,
       narrowGridColumns: DEFAULT_NARROW_GRID_COLUMNS,
+      gridScale: DEFAULT_GRID_SCALE,
       backgroundType: "solid",
       backgroundImage: null,
       backgroundPalette: "gray",
@@ -217,6 +222,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             state.wideGridColumns
           ) as GridComponentColumnCount,
         })),
+      setGridScale: (value) => {
+        const gridScale = clampGridScale(value)
+        if (gridScale !== null) set({ gridScale })
+      },
       setBackgroundImage: (backgroundImage) => set({ backgroundImage }),
       setBackgroundPalette: (backgroundPalette) => set({ backgroundPalette }),
       setSearchBoxStyle: (searchBoxStyle) => set({ searchBoxStyle }),
@@ -291,6 +300,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         quickBar,
         wideGridColumns,
         narrowGridColumns,
+        gridScale,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -313,6 +323,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         quickBar,
         wideGridColumns,
         narrowGridColumns,
+        gridScale,
         backgroundType,
         backgroundImage,
         backgroundPalette,
@@ -358,6 +369,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
               : sanitizeQuickBarConfig(saved.quickBar),
           wideGridColumns,
           narrowGridColumns,
+          gridScale: clampGridScale(saved?.gridScale) ?? DEFAULT_GRID_SCALE,
           backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
           backgroundImage:
             typeof saved?.backgroundImage === "string"

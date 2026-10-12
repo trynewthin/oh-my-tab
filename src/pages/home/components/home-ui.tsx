@@ -33,6 +33,7 @@ export default function HomeUI() {
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
+  const gridScale = useHomeSettingsStore((state) => state.gridScale)
   const needsTour = useOnboardingStore((state) => !state.seen || state.replay)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const paletteId = useHomeSettingsStore((state) => state.backgroundPalette)
@@ -52,7 +53,8 @@ export default function HomeUI() {
   const traditionalGeometry = resolveGridGeometry(
     traditionalWidth,
     wideGridColumns,
-    narrowGridColumns
+    narrowGridColumns,
+    gridScale
   )
   const traditionalGridWidth =
     traditionalWidth > 0 ? traditionalGeometry.visualWidth : undefined

@@ -66,6 +66,7 @@ export default function TabGrid({
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
+  const gridScale = useHomeSettingsStore((state) => state.gridScale)
   const gridRef = useRef<HTMLDivElement>(null)
   const measurementRef = useRef<HTMLDivElement>(null)
   const { pointer, measuredWidth } = useGridMeasurement({
@@ -78,7 +79,8 @@ export default function TabGrid({
   const geometry = resolveGridGeometry(
     sourceWidth,
     wideGridColumns,
-    narrowGridColumns
+    narrowGridColumns,
+    gridScale
   )
   const metrics = geometry.metrics
   const box = area

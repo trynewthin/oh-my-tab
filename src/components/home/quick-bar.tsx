@@ -131,6 +131,7 @@ export default function QuickBar() {
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
+  const gridScale = useHomeSettingsStore((state) => state.gridScale)
   const container = useRef<HTMLDivElement>(null)
   const [availableWidth, setAvailableWidth] = useState(0)
   useLayoutEffect(() => {
@@ -146,7 +147,8 @@ export default function QuickBar() {
   const geometry = resolveGridGeometry(
     availableWidth,
     wideGridColumns,
-    narrowGridColumns
+    narrowGridColumns,
+    gridScale
   )
   const trackWidth = availableWidth > 0 ? geometry.visualWidth : undefined
 

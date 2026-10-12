@@ -200,6 +200,8 @@ export default {
     eraseConfirm: "确认清除",
   },
   home: {
+    gridScale: "网格缩放",
+    gridScaleHint: "默认 100%。可以缩小或放大，不会自动适配屏幕。",
     gridWideColumns: "宽屏列数",
     gridWideColumnsHint: "空间充足时使用的组件列数。",
     gridNarrowColumns: "窄屏列数",

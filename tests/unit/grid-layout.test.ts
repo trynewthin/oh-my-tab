@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest"
 import {
+  clampGridScale,
+  ensureLayoutColumns,
   GRID_CELL_SIZE,
+  GRID_COLUMNS,
+  GRID_COMPONENT_COLUMNS,
   GRID_GAP,
   gridOccupancyBox,
   gridTrackWidth,
@@ -108,10 +112,88 @@ describe("grid metrics", () => {
     expect(wide.metrics.columns).toBe(16)
     expect(wide.trackWidth).toBe(1192)
     expect(wide.scale).toBeCloseTo(1000 / 1192)
+    expect(wide.userScale).toBe(1)
+    expect(wide.fitScale).toBeCloseTo(1000 / 1192)
 
     const narrow = resolveGridGeometry(900)
     expect(narrow.metrics.columns).toBe(8)
     expect(narrow.trackWidth).toBe(588)
     expect(narrow.scale).toBe(1)
+  })
+
+  test("multiplies the fit scale by the user scale", () => {
+    const wideTrackWidth = gridTrackWidth(16)
+    const scaled = resolveGridGeometry(
+      wideTrackWidth * MIN_COMFORTABLE_GRID_SCALE,
+      4,
+      2,
+      1.5
+    )
+    expect(scaled.fitScale).toBeCloseTo(MIN_COMFORTABLE_GRID_SCALE)
+    expect(scaled.userScale).toBe(1.5)
+    expect(scaled.scale).toBeCloseTo(MIN_COMFORTABLE_GRID_SCALE * 1.5)
+    expect(scaled.visualWidth).toBeCloseTo(
+      wideTrackWidth * MIN_COMFORTABLE_GRID_SCALE * 1.5
+    )
+
+    const shrunk = resolveGridGeometry(3600, 4, 2, 0.6)
+    expect(shrunk.fitScale).toBe(1)
+    expect(shrunk.scale).toBeCloseTo(0.6)
+    expect(shrunk.visualWidth).toBeCloseTo(gridTrackWidth(16) * 0.6)
+  })
+
+  test("keeps a 4K-wide container at scale 1 and 16 columns by default", () => {
+    const wide = resolveGridGeometry(3600)
+    expect(wide.metrics.columns).toBe(16)
+    expect(wide.fitScale).toBe(1)
+    expect(wide.scale).toBe(1)
+    expect(wide.visualWidth).toBe(gridTrackWidth(16))
+  })
+
+  test("accepts 60 to 200 percent in 10 percent steps", () => {
+    expect(clampGridScale(0.6)).toBeCloseTo(0.6)
+    expect(clampGridScale(1)).toBe(1)
+    expect(clampGridScale(2)).toBe(2)
+    expect(clampGridScale(0.5)).toBeNull()
+    expect(clampGridScale(2.1)).toBeNull()
+    expect(clampGridScale(1.15)).toBeNull()
+  })
+
+  test("supports up to ten component columns", () => {
+    expect(GRID_COMPONENT_COLUMNS).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    expect(GRID_COLUMNS).toEqual(
+      GRID_COMPONENT_COLUMNS.map((columns) => columns * 4)
+    )
+
+    const wide = resolveGridGeometry(4000, 8, 4)
+    expect(wide.componentColumns).toBe(8)
+    expect(wide.metrics.columns).toBe(32)
+
+    const wideTrackWidth = gridTrackWidth(32)
+    const switched = resolveGridGeometry(
+      wideTrackWidth * MIN_COMFORTABLE_GRID_SCALE - 1,
+      8,
+      4
+    )
+    expect(switched.componentColumns).toBe(4)
+    expect(switched.metrics.columns).toBe(16)
+  })
+})
+
+describe("layout column derivation", () => {
+  test("derives a new column count without moving the source layout", () => {
+    const items = [template("a", "medium"), template("b", "wide")]
+    const source = {
+      a: { x: 4, y: 1 },
+      b: { x: 0, y: 0 },
+    }
+    const next = ensureLayoutColumns({ items, layouts: { 24: source } }, 32)
+    expect(next).not.toBeNull()
+    expect(next?.layouts[24]).toEqual(source)
+    expect(next?.layouts[32]).toEqual({
+      b: { x: 0, y: 0 },
+      a: { x: 4, y: 0 },
+    })
+    expect(next?.lastLayoutColumns).toBe(32)
   })
 })

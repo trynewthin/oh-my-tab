@@ -85,6 +85,7 @@ export default function ComponentEditorFrame({
   const narrowGridColumns = useHomeSettingsStore(
     (state) => state.narrowGridColumns
   )
+  const gridScale = useHomeSettingsStore((state) => state.gridScale)
   const [dialog, setDialog] = useState<HTMLDivElement | null>(null)
   const [panel, setPanel] = useState<HTMLFormElement | null>(null)
   const [trackWidth, setTrackWidth] = useState(homeGridTrackWidth)
@@ -92,7 +93,8 @@ export default function ComponentEditorFrame({
   const geometry = resolveGridGeometry(
     trackWidth,
     wideGridColumns,
-    narrowGridColumns
+    narrowGridColumns,
+    gridScale
   )
   const box = gridOccupancyBox(geometry.trackWidth, width, height)
   const visualWidth = box.width * geometry.scale

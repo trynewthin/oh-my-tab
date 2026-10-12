@@ -214,6 +214,9 @@ export default {
     eraseConfirm: "Clear data",
   },
   home: {
+    gridScale: "Grid scale",
+    gridScaleHint:
+      "Defaults to 100%. Shrink or enlarge the grid; it does not auto-fit the screen.",
     gridWideColumns: "Wide-screen columns",
     gridWideColumnsHint: "Component columns used when space is available.",
     gridNarrowColumns: "Narrow-screen columns",

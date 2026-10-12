@@ -6,6 +6,8 @@ import {
   migrateGarden,
 } from "@/stores/garden-store"
 import {
+  clampGridScale,
+  DEFAULT_GRID_SCALE,
   DEFAULT_NARROW_GRID_COLUMNS,
   DEFAULT_WIDE_GRID_COLUMNS,
   GRID_COLUMNS,
@@ -52,6 +54,7 @@ export function snapshot() {
       quickBar: home.quickBar,
       wideGridColumns: home.wideGridColumns,
       narrowGridColumns: home.narrowGridColumns,
+      gridScale: home.gridScale,
       backgroundType: home.backgroundType,
       backgroundImage: home.backgroundImage,
       backgroundPalette: home.backgroundPalette,
@@ -119,6 +122,7 @@ export function validateConfig(value: unknown): Config {
     (isGridComponentColumnCount(home.wideGridColumns) &&
       isGridComponentColumnCount(home.narrowGridColumns) &&
       home.narrowGridColumns > home.wideGridColumns) ||
+    (home.gridScale !== undefined && clampGridScale(home.gridScale) === null) ||
     (home.backgroundImage !== undefined &&
       home.backgroundImage !== null &&
       (typeof home.backgroundImage !== "string" ||
@@ -229,6 +233,7 @@ export function validateConfig(value: unknown): Config {
   home.layoutMode ??= "traditional"
   home.quickBar ??= defaultQuickBar()
   home.wideGridColumns ??= DEFAULT_WIDE_GRID_COLUMNS
+  home.gridScale ??= DEFAULT_GRID_SCALE
   home.narrowGridColumns = Math.min(
     home.narrowGridColumns ?? DEFAULT_NARROW_GRID_COLUMNS,
     home.wideGridColumns

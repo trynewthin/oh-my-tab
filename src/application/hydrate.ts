@@ -29,7 +29,9 @@ async function rehydrateStores(keys?: ReadonlySet<string>) {
     if (keys && !keys.has(store.persist.getOptions().name ?? "")) continue
     await store.persist.rehydrate()
     if (!store.persist.hasHydrated())
-      throw new Error(i18n.t("core.hydrate.readFailed"))
+      throw new Error(
+        `${i18n.t("core.hydrate.readFailed")} [rehydrate: ${store.persist.getOptions().name}]`
+      )
   }
 }
 
@@ -65,9 +67,17 @@ export function rehydrateData(keys?: string[]): Promise<void> {
 }
 export async function prepareData() {
   await navigator.locks.request("omt-startup", async () => {
-    await initializeStorage()
-    await rehydrateData()
-    await flushStorage()
+    let stage = "initializeStorage"
+    try {
+      await initializeStorage()
+      stage = "rehydrateData"
+      await rehydrateData()
+      stage = "flushStorage"
+      await flushStorage()
+    } catch (cause) {
+      const detail = cause instanceof Error ? cause.message : String(cause)
+      throw new Error(`[${stage}] ${detail}`, { cause })
+    }
   })
   const unsubscribe = subscribeStorage((keys) => {
     void rehydrateData(keys).catch(() =>

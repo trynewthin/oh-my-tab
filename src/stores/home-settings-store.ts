@@ -272,6 +272,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         color,
         burningAmplitude,
         transitionsEnabled,
+        tabAppearance,
       }) => ({
         layoutMode,
         quickBar,
@@ -295,6 +296,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         color,
         burningAmplitude,
         transitionsEnabled,
+        ...(tabAppearance === undefined ? {} : { tabAppearance }),
       }),
       merge: (persisted, current) => ({
         ...current,

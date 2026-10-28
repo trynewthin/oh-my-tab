@@ -29,8 +29,10 @@ async function start() {
     </StrictMode>
   )
 }
-void start().catch(() => {
-  document.getElementById("root")!.textContent = i18n.t(
-    "core.startup.popupError"
-  )
+void start().catch((error: unknown) => {
+  console.error("Oh My Tab popup startup failed", error)
+  document.getElementById("root")!.textContent = [
+    i18n.t("core.startup.popupError"),
+    error instanceof Error ? error.message : String(error),
+  ].join("\n")
 })

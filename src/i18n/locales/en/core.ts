@@ -5,8 +5,9 @@ const core = {
   },
   startup: {
     newTabError:
-      "Failed to load data. Check the browser storage permissions and refresh the page.",
-    popupError: "Failed to load data. Reopen the extension.",
+      "Startup failed. Keep the error details below; do not uninstall the extension or clear its data.",
+    popupError:
+      "Startup failed. Keep the error details below; do not uninstall the extension or clear its data.",
   },
   language: {
     label: "Language",

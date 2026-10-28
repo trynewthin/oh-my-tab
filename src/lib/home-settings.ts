@@ -62,6 +62,8 @@ export type HomeSettings = {
   color: string
   burningAmplitude: number
   transitionsEnabled: boolean
+  // Retained from version 3; the current UI does not expose these settings.
+  tabAppearance?: Record<string, unknown>
 }
 
 export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
@@ -79,6 +81,11 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
         wideGridColumns
       ) as GridComponentColumnCount)
   return {
+    ...(saved?.tabAppearance &&
+    typeof saved.tabAppearance === "object" &&
+    !Array.isArray(saved.tabAppearance)
+      ? { tabAppearance: saved.tabAppearance }
+      : {}),
     layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
     quickBar:
       saved?.quickBar === undefined

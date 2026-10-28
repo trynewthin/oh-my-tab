@@ -4,8 +4,8 @@ const core = {
     popupTitle: "快速添加 · Oh My Tab",
   },
   startup: {
-    newTabError: "数据读取失败，请检查浏览器存储权限后刷新页面。",
-    popupError: "数据读取失败，请重新打开扩展。",
+    newTabError: "启动失败。请保留以下错误信息，不要卸载扩展或清空数据。",
+    popupError: "启动失败。请保留以下错误信息，不要卸载扩展或清空数据。",
   },
   language: {
     label: "语言",

@@ -16,6 +16,7 @@ import { createCatalogComponent } from "@/lib/grid/factory"
 import { validGridItem } from "@/lib/grid/validation"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { legacyLocalStorage } from "./setup"
+import { usePrivacyStore } from "@/stores/privacy-store"
 
 const saved = (state: unknown, version = 0) =>
   JSON.stringify({ state, version })
@@ -64,6 +65,59 @@ afterEach(() => {
 })
 
 describe("committed local migrations", () => {
+  it("upgrades the version 3 development profile with version 1 privacy without losing data", async () => {
+    const tabAppearance = { padding: 12, fontSize: 14, iconSize: 32 }
+    const plant = { ...oldPlant, seed: 123, appearanceVersion: 2, name: "KEEP" }
+    const pot = { ...createCatalogComponent("ecosystem"), plants: [plant] }
+    const garden = {
+      points: 19,
+      pointsUpdatedAt: now,
+      initialized: true,
+      album: [plant],
+    }
+    await storage.writeEntries({
+      "omt.migrations": 3,
+      "omt.home-settings": saved({ text: "KEEP", tabAppearance }, 3),
+      "omt.tab-grid": saved({ items: [pot], layouts: {} }, 3),
+      "omt.garden": saved(garden, 3),
+      "omt.onboarding": saved({ seen: true }, 3),
+      "omt.theme-mode": saved({ theme: "dark" }, 3),
+      "omt.search-engines": saved(snapshot().search, 3),
+      "omt.privacy": saved(
+        { suggestions: true, icons: true, browserSearch: false },
+        1
+      ),
+    })
+    await rehydrateData()
+    expect(snapshot().home).toMatchObject({ text: "KEEP", tabAppearance })
+    expect(snapshot().theme.theme).toBe("dark")
+    expect(snapshot().garden).toMatchObject({
+      points: 19,
+      pointsUpdatedAt: now,
+    })
+    const migratedPlant = { ...plant, appearance: "varied" }
+    delete (migratedPlant as Partial<typeof plant>).appearanceVersion
+    expect(snapshot().grid.items).toEqual([{ ...pot, plants: [migratedPlant] }])
+    expect(snapshot().garden.album).toEqual([migratedPlant])
+    expect(usePrivacyStore.getState()).toMatchObject({
+      suggestions: true,
+      icons: true,
+      browserSearch: false,
+    })
+    for (const key of [...storage.DATA_KEYS, "omt.privacy"])
+      expect((await envelope(key)).version).toBe(STORAGE_VERSION)
+    expect(
+      (await storage.readEntries(["omt.migrations"]))["omt.migrations"]
+    ).toBe(STORAGE_VERSION)
+    useHomeSettingsStore.getState().setText("EDITED")
+    await storage.flushStorage()
+    expect((await envelope("omt.home-settings")).state.tabAppearance).toEqual(
+      tabAppearance
+    )
+    const before = await storage.allEntries()
+    await rehydrateData()
+    expect(await storage.allEntries()).toEqual(before)
+  })
   it.each(["http:", "chrome-extension:"])(
     "preserves v1.5.7 scale and columns, then skips conversion with %s storage",
     async (protocol) => {
@@ -126,16 +180,81 @@ describe("committed local migrations", () => {
     expect(convert).not.toHaveBeenCalled()
     expect(await storage.readEntries(Object.keys(before))).toEqual(before)
   })
-  it.each([0, STORAGE_VERSION + 1])(
-    "rejects a replaced envelope at version %s after migration completes",
+  it.each([0, 1])(
+    "migrates version %s records despite a completed marker without changing current records",
     async (version) => {
       await migrateStoredData()
-      const raw = saved({ text: "UNSUPPORTED" }, version)
-      await storage.writeEntries({ "omt.home-settings": raw })
-      await expect(rehydrateData()).rejects.toThrow()
+      const theme = saved({ mode: "dark" }, STORAGE_VERSION)
+      await storage.writeEntries({
+        "omt.home-settings": saved(
+          { text: "KEEP", gridScale: 1.8, effectStyle: "particles" },
+          version
+        ),
+        "omt.privacy": saved(
+          { suggestions: true, icons: true, browserSearch: false },
+          version
+        ),
+        "omt.theme-mode": theme,
+      })
+      const garden = await envelope("omt.garden")
+      legacyLocalStorage.set("omt.locale", saved({ locale: "en" }))
+      await rehydrateData()
+      expect(await envelope("omt.home-settings")).toMatchObject({
+        version: STORAGE_VERSION,
+        state: { text: "KEEP", gridScale: 1.8, tabTexture: "particles" },
+      })
+      expect(useHomeSettingsStore.getState()).toMatchObject({
+        text: "KEEP",
+        gridScale: 1.8,
+        tabTexture: "particles",
+      })
+      expect(await envelope("omt.privacy")).toEqual({
+        version: STORAGE_VERSION,
+        state: {
+          suggestions: version !== 0,
+          icons: true,
+          browserSearch: false,
+        },
+      })
+      expect(usePrivacyStore.getState()).toMatchObject({
+        suggestions: version !== 0,
+        icons: true,
+        browserSearch: false,
+      })
+      expect(await envelope("omt.garden")).toEqual(garden)
       expect(
-        (await storage.readEntries(["omt.home-settings"]))["omt.home-settings"]
-      ).toBe(raw)
+        await storage.readEntries([
+          "omt.theme-mode",
+          "omt.locale",
+          "omt.migrations",
+        ])
+      ).toEqual({
+        "omt.theme-mode": theme,
+        "omt.locale": undefined,
+        "omt.migrations": STORAGE_VERSION,
+      })
+      const before = await storage.allEntries()
+      await rehydrateData()
+      expect(await storage.allEntries()).toEqual(before)
+    }
+  )
+  it.each([
+    saved({ text: "UNSUPPORTED" }, STORAGE_VERSION + 1),
+    saved({ text: "INVALID" }, -1),
+    saved({ text: "INVALID" }, 0.5),
+    saved([], STORAGE_VERSION),
+    "{invalid json",
+  ])(
+    "rejects invalid or future records after migration completes",
+    async (raw) => {
+      await migrateStoredData()
+      await storage.writeEntries({
+        "omt.home-settings": saved({ text: "KEEP" }),
+        "omt.privacy": raw,
+      })
+      const before = await storage.allEntries()
+      await expect(rehydrateData()).rejects.toThrow()
+      expect(await storage.allEntries()).toEqual(before)
     }
   )
   it("commits fields, shared garden, images and versions before hydration, then skips conversion", async () => {
@@ -345,47 +464,53 @@ describe("committed local migrations", () => {
 })
 
 describe("backup migration boundary", () => {
-  it("preserves plant appearance, seeds and custom names while removing historical fields", async () => {
-    const source = JSON.parse(JSON.stringify(snapshot()))
-    source.version = 1
-    source.home.backgroundImage = null
-    const plants = [
-      { ...oldPlant, slot: 0 },
-      {
-        ...oldPlant,
-        slot: 1,
+  it.each([1, 2, 3])(
+    "preserves plants when importing historical format %s",
+    async (version) => {
+      const source = JSON.parse(JSON.stringify(snapshot()))
+      source.version = version
+      source.home.backgroundImage = null
+      source.home.tabAppearance = { padding: 12, fontSize: 14 }
+      const plants = [
+        { ...oldPlant, slot: 0 },
+        {
+          ...oldPlant,
+          slot: 1,
+          seed: 123,
+          appearanceVersion: 2,
+          name: "MY PLANT",
+        },
+      ]
+      source.grid.items = [{ ...createCatalogComponent("ecosystem"), plants }]
+      source.grid.layouts = {}
+      source.garden = {
+        points: 7,
+        pointsUpdatedAt: now,
+        initialized: true,
+        album: plants,
+      }
+      const converted = validateConfig(source)
+      expect(converted.home.tabAppearance).toEqual(source.home.tabAppearance)
+      const plant = converted.grid.items[0]
+      if (plant.kind !== "ecosystem") throw new Error("Expected ecosystem")
+      expect(plant.plants[0]).toMatchObject({
+        appearance: "classic",
+        seed: oldPlant.plantedAt >>> 0,
+      })
+      expect(plant.plants[1]).toMatchObject({
+        appearance: "varied",
         seed: 123,
-        appearanceVersion: 2,
         name: "MY PLANT",
-      },
-    ]
-    source.grid.items = [{ ...createCatalogComponent("ecosystem"), plants }]
-    source.grid.layouts = {}
-    source.garden = {
-      points: 7,
-      pointsUpdatedAt: now,
-      initialized: true,
-      album: plants,
+      })
+      expect(plant.plants[1]).not.toHaveProperty("appearanceVersion")
+      expect(converted.garden.album).toEqual(plant.plants)
+      await importConfig(converted, await storage.storageRevision())
+      await rehydrateData()
+      expect(snapshot().garden).toEqual(converted.garden)
+      expect(snapshot().grid.items).toEqual(converted.grid.items)
+      expect(snapshot().home.tabAppearance).toEqual(source.home.tabAppearance)
     }
-    const converted = validateConfig(source)
-    const plant = converted.grid.items[0]
-    if (plant.kind !== "ecosystem") throw new Error("Expected ecosystem")
-    expect(plant.plants[0]).toMatchObject({
-      appearance: "classic",
-      seed: oldPlant.plantedAt >>> 0,
-    })
-    expect(plant.plants[1]).toMatchObject({
-      appearance: "varied",
-      seed: 123,
-      name: "MY PLANT",
-    })
-    expect(plant.plants[1]).not.toHaveProperty("appearanceVersion")
-    expect(converted.garden.album).toEqual(plant.plants)
-    await importConfig(converted, await storage.storageRevision())
-    await rehydrateData()
-    expect(snapshot().garden).toEqual(converted.garden)
-    expect(snapshot().grid.items).toEqual(converted.grid.items)
-  })
+  )
   it.each([384, 1024])(
     "persists the displayed legacy %s-pixel artwork in the current canvas shape",
     async (length) => {

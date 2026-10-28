@@ -57,6 +57,9 @@ export function snapshot() {
       color: home.color,
       burningAmplitude: home.burningAmplitude,
       transitionsEnabled: home.transitionsEnabled,
+      ...(home.tabAppearance === undefined
+        ? {}
+        : { tabAppearance: home.tabAppearance }),
     },
     theme: { theme: useThemeStore.getState().theme },
     search: {

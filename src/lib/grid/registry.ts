@@ -168,7 +168,7 @@ export const componentRegistry = {
     catalogDirectAdd: false,
     detailPreviewWidth: "compact",
     showNameInEditor: true,
-    tileBorder: true,
+    tileBorder: false,
     openAction: "none",
     actions: {
       resize: true,

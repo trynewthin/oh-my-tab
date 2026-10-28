@@ -125,7 +125,7 @@ export default function GridDragOverlay({
           style={{ width: overlayWidth, height: overlayHeight }}
         >
           <div
-            className={`absolute top-0 left-0 isolate overflow-hidden ${searchWidget ? "rounded-full [&_[data-search-input-shell]]:border-transparent [&_[data-search-input-shell]]:ring-0" : "rounded-2xl"}`}
+            className={`absolute top-0 left-0 isolate ${dragging.item.kind === "tab" ? "" : searchWidget ? "overflow-hidden rounded-full [&_[data-search-input-shell]]:border-transparent [&_[data-search-input-shell]]:ring-0" : "overflow-hidden rounded-2xl"}`}
             style={{
               width: contentWidth,
               height: contentHeight,

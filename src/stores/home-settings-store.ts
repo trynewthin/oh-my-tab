@@ -27,6 +27,9 @@ import {
   removeSearchShortcut,
   setSearchShortcutBoundary,
 } from "@/lib/search-shortcuts"
+import { sanitizeTabAppearance, type TabAppearance } from "@/lib/tab-appearance"
+
+export type { TabAppearance } from "@/lib/tab-appearance"
 
 export type {
   TopComponent,
@@ -91,6 +94,7 @@ type HomeSettingsStore = HomeSettings & {
   setColor: (value: string) => void
   setBurningAmplitude: (value: number) => void
   setTransitionsEnabled: (value: boolean) => void
+  setTabAppearance: (patch: Partial<TabAppearance>) => void
 }
 
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
@@ -235,6 +239,13 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       },
       setTransitionsEnabled: (transitionsEnabled) =>
         set({ transitionsEnabled }),
+      setTabAppearance: (patch) =>
+        set((state) => ({
+          tabAppearance: sanitizeTabAppearance({
+            ...state.tabAppearance,
+            ...patch,
+          }),
+        })),
       setTopComponent: (topComponent) => set({ topComponent }),
       setTraditionalTopSpacing: (traditionalTopSpacing) =>
         set({ traditionalTopSpacing }),
@@ -296,7 +307,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         color,
         burningAmplitude,
         transitionsEnabled,
-        ...(tabAppearance === undefined ? {} : { tabAppearance }),
+        tabAppearance,
       }),
       merge: (persisted, current) => ({
         ...current,

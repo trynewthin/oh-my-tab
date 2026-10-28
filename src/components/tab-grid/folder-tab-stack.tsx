@@ -6,19 +6,19 @@ import FolderTabRow from "./folder-tab-row"
 import type { FolderItem, TabEntry } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
+import { TEXTURE_STEP } from "@/components/effects/texture-grid"
 
 const ROW_GAP = 8
 const MIN_ROW_GAP = 4
-const TEXTURE_CELL_STEP = 9
 const COMPACT_ROW_HEIGHT = 46
 const PREVIEW_ROW_HEIGHT = 55
 
 function snapRowHeight(height: number, method: "nearest" | "down") {
   const cells =
     method === "nearest"
-      ? Math.round((height - 1) / TEXTURE_CELL_STEP)
-      : Math.floor((height - 1) / TEXTURE_CELL_STEP)
-  return Math.max(10, cells * TEXTURE_CELL_STEP + 1)
+      ? Math.round((height - 1) / TEXTURE_STEP)
+      : Math.floor((height - 1) / TEXTURE_STEP)
+  return Math.max(10, cells * TEXTURE_STEP + 1)
 }
 
 function fixedRowLayout(availableHeight: number, visibleRows: number) {
@@ -58,6 +58,7 @@ export default function FolderTabStack({
   tabs?: TabEntry[]
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
+  const appearance = useHomeSettingsStore((state) => state.tabAppearance)
   const { t } = useTranslation()
   const glass = backgroundType !== "solid"
   const visibleTabs = tabs ?? folder.tabs
@@ -206,14 +207,16 @@ export default function FolderTabStack({
             data-stack-row
             data-tab-id={tab.id}
             role="listitem"
-            className={`relative rounded-2xl after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${
-              tab.id === "__folder-gap__"
+            className={`relative after:pointer-events-none after:absolute after:inset-0 after:z-20 after:rounded-[inherit] after:opacity-[var(--stack-shade,0)] ${
+              tab.id === "__folder-gap__" ||
+              appearance.backgroundMode !== "default"
                 ? ""
                 : glass
-                  ? "bg-transparent after:bg-card/55"
-                  : "bg-card after:bg-card"
+                  ? "after:bg-card/55"
+                  : "after:bg-card"
             }`}
             style={{
+              borderRadius: appearance.radius,
               height: rowHeight,
               marginBottom: index < visibleTabs.length - 1 ? stackGap : 0,
             }}
@@ -224,7 +227,7 @@ export default function FolderTabStack({
                 color={folder.color}
                 folderId={folder.id}
                 index={index}
-                rowPitch={Math.round(rowStep / 9) * 9}
+                rowPitch={rowStep}
                 animated={!!folder.dynamicEffect}
                 surface={surface}
               />
@@ -234,7 +237,7 @@ export default function FolderTabStack({
                 color={folder.color}
                 folderId={folder.id}
                 index={index}
-                rowPitch={Math.round(rowStep / 9) * 9}
+                rowPitch={rowStep}
                 animated={!!folder.dynamicEffect}
                 preview={!draggable}
               />

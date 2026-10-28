@@ -5,6 +5,7 @@ import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
+import TabSurface from "./tab-surface"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
 import FolderTabRow from "./folder-tab-row"
@@ -116,14 +117,14 @@ export function WidgetTile({
           preview
         />
       ) : (
-        <>
+        <TabSurface>
           <TabBackground
             item={item}
             animated={!!item.dynamicEffect}
             entrance={!preview}
           />
           <TabUI item={item} preview={preview} />
-        </>
+        </TabSurface>
       )
     case "folder":
       return (

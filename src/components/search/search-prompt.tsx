@@ -12,6 +12,8 @@ import { usePromptStore } from "@/stores/prompt-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import TabBackground from "@/components/tab-grid/tab-background"
+import TabSurface from "@/components/tab-grid/tab-surface"
+import TabUI from "@/components/tab-grid/tab-ui"
 import type { TabItem } from "@/lib/grid/types"
 import { useSearchSuggestions } from "@/components/search/use-search-suggestions"
 import SearchShortcuts from "@/components/search/search-shortcuts"
@@ -390,18 +392,13 @@ export default function SearchPrompt({
                   role="option"
                   aria-label={tab.name}
                   aria-selected={selected === index}
-                  className={`relative isolate min-w-0 cursor-pointer rounded-2xl border outline-none hover:ring-2 hover:ring-foreground/15 ${tab.size === "medium" ? "row-span-2" : ""} ${selected === index ? "ring-2 ring-foreground/30" : ""}`}
+                  className={`relative isolate min-w-0 cursor-pointer rounded-2xl outline-none hover:ring-2 hover:ring-foreground/15 ${tab.size === "medium" ? "row-span-2" : ""} ${selected === index ? "ring-2 ring-foreground/30" : ""}`}
                   onClick={() => choose(index)}
                 >
-                  <TabBackground item={tab} animated={!!tab.dynamicEffect} />
-                  <span
-                    className="relative z-10 flex h-full min-w-0 items-center rounded-[inherit] py-2 pr-16 pl-4"
-                    title={tab.name}
-                  >
-                    <span className="truncate text-sm font-medium">
-                      {tab.name}
-                    </span>
-                  </span>
+                  <TabSurface>
+                    <TabBackground item={tab} animated={!!tab.dynamicEffect} />
+                    <TabUI item={tab} preview />
+                  </TabSurface>
                 </div>
               ))}
             </div>

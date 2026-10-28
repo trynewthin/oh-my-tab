@@ -47,6 +47,7 @@ export default function ComponentEditorFrame({
   height,
   preview,
   previewBorder = true,
+  previewClip = true,
   previewInteractive = false,
   previewOverlap = true,
   sizeOptions = [],
@@ -68,6 +69,7 @@ export default function ComponentEditorFrame({
   height: number
   preview: ReactNode
   previewBorder?: boolean
+  previewClip?: boolean
   previewInteractive?: boolean
   previewOverlap?: boolean
   sizeOptions?: readonly ComponentSizeDefinition[]
@@ -196,7 +198,7 @@ export default function ComponentEditorFrame({
               <div
                 data-component-editor-preview
                 inert={previewInteractive ? undefined : true}
-                className={`absolute top-0 left-0 isolate origin-top-left overflow-hidden rounded-2xl ${previewBorder ? "border" : ""}`}
+                className={`absolute top-0 left-0 isolate origin-top-left ${previewClip ? "overflow-hidden rounded-2xl" : ""} ${previewBorder ? "border" : ""}`}
                 style={{
                   width: box.width,
                   height: box.height,

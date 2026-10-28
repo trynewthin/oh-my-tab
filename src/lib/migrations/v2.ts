@@ -8,6 +8,7 @@ import { DEFAULT_TAB_EFFECT_COVERAGE } from "@/lib/home-settings"
 import { defaultQuickBar } from "@/lib/quick-bar"
 import { defaultSearchShortcuts } from "@/lib/search-shortcuts"
 import { defaultTraditionalTopSpacing } from "@/lib/home-top-spacing"
+import { sanitizeTabAppearance } from "@/lib/tab-appearance"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { validGridItem } from "@/lib/grid/validation"
 import { migrateDotCanvas } from "./dot-canvas"
@@ -44,6 +45,7 @@ export function migrateHome(value: unknown) {
   home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
   home.folderStyle ??= "noise"
   home.tabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
+  home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
   home.newTabsDynamicEffect ??= false
   home.burningAmplitude ??= 1
   home.transitionsEnabled ??= home.burningEntrance === true

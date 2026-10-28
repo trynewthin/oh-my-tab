@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import {
   faviconKey,
   getCachedFavicon,
@@ -11,10 +17,12 @@ export default function TabIcon({
   className = "size-4",
   src: overrideSrc,
   fallback,
+  imageStyle,
 }: {
   url: string
   className?: string
   src?: string | null
+  imageStyle?: CSSProperties
   fallback?: ReactNode
 }) {
   const key = faviconKey(url)
@@ -74,6 +82,7 @@ export default function TabIcon({
         <img
           src={src}
           className="h-full w-full object-contain"
+          style={imageStyle}
           alt=""
           onError={() => setFailedSrc(src)}
         />

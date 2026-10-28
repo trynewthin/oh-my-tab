@@ -24,6 +24,7 @@ import { isBackgroundPaletteId } from "@/lib/background-palettes"
 import { isTraditionalTopSpacing } from "@/lib/home-top-spacing"
 import { validSearchShortcuts } from "@/lib/search-shortcuts"
 import { validQuickBarConfig } from "@/lib/quick-bar"
+import { sanitizeTabAppearance, validTabAppearance } from "@/lib/tab-appearance"
 import { i18n } from "@/i18n"
 
 export function snapshot() {
@@ -57,9 +58,7 @@ export function snapshot() {
       color: home.color,
       burningAmplitude: home.burningAmplitude,
       transitionsEnabled: home.transitionsEnabled,
-      ...(home.tabAppearance === undefined
-        ? {}
-        : { tabAppearance: home.tabAppearance }),
+      tabAppearance: home.tabAppearance,
     },
     theme: { theme: useThemeStore.getState().theme },
     search: {
@@ -126,6 +125,8 @@ export function validateConfig(value: unknown): Config {
     home.burningAmplitude < 0 ||
     home.burningAmplitude > 2 ||
     typeof home.transitionsEnabled !== "boolean" ||
+    (home.tabAppearance !== undefined &&
+      !validTabAppearance(home.tabAppearance)) ||
     !isMatrixPet(home.pet) ||
     !["light", "dark", "system"].includes(theme.theme) ||
     !Array.isArray(search.engines) ||
@@ -150,6 +151,7 @@ export function validateConfig(value: unknown): Config {
     Array.isArray(grid.layouts)
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
+  home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]

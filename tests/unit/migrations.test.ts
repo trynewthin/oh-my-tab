@@ -17,6 +17,7 @@ import { validGridItem } from "@/lib/grid/validation"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { legacyLocalStorage } from "./setup"
 import { usePrivacyStore } from "@/stores/privacy-store"
+import { sanitizeTabAppearance } from "@/lib/tab-appearance"
 
 const saved = (state: unknown, version = 0) =>
   JSON.stringify({ state, version })
@@ -66,7 +67,16 @@ afterEach(() => {
 
 describe("committed local migrations", () => {
   it("upgrades the version 3 development profile with version 1 privacy without losing data", async () => {
-    const tabAppearance = { padding: 12, fontSize: 14, iconSize: 32 }
+    const legacyAppearance = { padding: 12, fontSize: 14, iconSize: 32 }
+    const tabAppearance = sanitizeTabAppearance(legacyAppearance)
+    expect(tabAppearance).toMatchObject({
+      paddingX: 12,
+      paddingY: 12,
+      fontSize: 14,
+      iconScale: 114,
+    })
+    expect(tabAppearance).not.toHaveProperty("padding")
+    expect(tabAppearance).not.toHaveProperty("iconSize")
     const plant = { ...oldPlant, seed: 123, appearanceVersion: 2, name: "KEEP" }
     const pot = { ...createCatalogComponent("ecosystem"), plants: [plant] }
     const garden = {
@@ -77,7 +87,10 @@ describe("committed local migrations", () => {
     }
     await storage.writeEntries({
       "omt.migrations": 3,
-      "omt.home-settings": saved({ text: "KEEP", tabAppearance }, 3),
+      "omt.home-settings": saved(
+        { text: "KEEP", tabAppearance: legacyAppearance },
+        3
+      ),
       "omt.tab-grid": saved({ items: [pot], layouts: {} }, 3),
       "omt.garden": saved(garden, 3),
       "omt.onboarding": saved({ seen: true }, 3),
@@ -470,7 +483,14 @@ describe("backup migration boundary", () => {
       const source = JSON.parse(JSON.stringify(snapshot()))
       source.version = version
       source.home.backgroundImage = null
-      source.home.tabAppearance = { padding: 12, fontSize: 14 }
+      const legacyAppearance = { padding: 12, fontSize: 14 }
+      source.home.tabAppearance = legacyAppearance
+      const appearance = sanitizeTabAppearance(legacyAppearance)
+      expect(appearance).toMatchObject({
+        paddingX: 12,
+        paddingY: 12,
+        fontSize: 14,
+      })
       const plants = [
         { ...oldPlant, slot: 0 },
         {
@@ -490,7 +510,7 @@ describe("backup migration boundary", () => {
         album: plants,
       }
       const converted = validateConfig(source)
-      expect(converted.home.tabAppearance).toEqual(source.home.tabAppearance)
+      expect(converted.home.tabAppearance).toEqual(appearance)
       const plant = converted.grid.items[0]
       if (plant.kind !== "ecosystem") throw new Error("Expected ecosystem")
       expect(plant.plants[0]).toMatchObject({
@@ -508,7 +528,7 @@ describe("backup migration boundary", () => {
       await rehydrateData()
       expect(snapshot().garden).toEqual(converted.garden)
       expect(snapshot().grid.items).toEqual(converted.grid.items)
-      expect(snapshot().home.tabAppearance).toEqual(source.home.tabAppearance)
+      expect(snapshot().home.tabAppearance).toEqual(appearance)
     }
   )
   it.each([384, 1024])(

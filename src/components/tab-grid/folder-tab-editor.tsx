@@ -71,6 +71,7 @@ export default function FolderTabEditor({
         />
       }
       previewBorder={false}
+      previewClip={false}
       submitLabel={t("grid.folder.save")}
       cancelLabel={t("grid.folder.cancel")}
       onSubmit={save}

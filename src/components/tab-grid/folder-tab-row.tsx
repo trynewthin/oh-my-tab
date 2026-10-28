@@ -1,6 +1,8 @@
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
+import TabSurface from "./tab-surface"
 import type { TabEntry, TabItem } from "@/lib/grid/types"
+import { TEXTURE_STEP } from "@/components/effects/texture-grid"
 
 export default function FolderTabRow({
   tab,
@@ -18,8 +20,7 @@ export default function FolderTabRow({
   folderId: string
   textureId?: string
   index?: number
-  // Caller-snapped to a multiple of the 9px cell step, so the texture advances
-  // whole cells per row. Defaults to 54 (46px row + 8px gap).
+  // Convert the row pitch to texture rows; it must never shift local geometry.
   rowPitch?: number
   animated?: boolean
   entrance?: boolean
@@ -27,16 +28,17 @@ export default function FolderTabRow({
 }) {
   const item: TabItem = { ...tab, kind: "tab", size: "small", color }
   return (
-    <div className="pointer-events-auto relative isolate h-full min-w-0 shrink-0 rounded-2xl border border-tile-border transition-colors">
-      <TabBackground
-        item={item}
-        compact
-        textureId={textureId}
-        offsetY={index * (rowPitch ?? 54)}
-        animated={animated}
-        entrance={entrance}
-      />
-      <TabUI item={item} preview={preview} />
+    <div className="pointer-events-auto relative isolate h-full min-w-0 shrink-0">
+      <TabSurface>
+        <TabBackground
+          item={item}
+          textureId={textureId}
+          textureRow={index * Math.round((rowPitch ?? 54) / TEXTURE_STEP)}
+          animated={animated}
+          entrance={entrance}
+        />
+        <TabUI item={item} preview={preview} compact />
+      </TabSurface>
     </div>
   )
 }

@@ -1,20 +1,31 @@
 import { acquirePixiRenderer, presentPixi } from "@/lib/pixi/shared-renderer"
 import { createBurningTexture } from "./burning-texture"
 import { createParticleCell } from "./particle-texture"
+import {
+  TEXTURE_CELL_SIZE,
+  TEXTURE_STEP,
+  type TextureGrid,
+} from "./texture-grid"
 
 type Point = { x: number; y: number } | null
-type CellSteps = { stepX: number; stepY: number }
+export type PixiEffect = {
+  update: (color: string, grid: TextureGrid) => boolean
+  paint: (
+    time: number | undefined,
+    visibility: number,
+    amplitude: number,
+    pointer?: Point
+  ) => boolean
+  dispose: () => void
+}
 export function createPixiEffect(
   region: HTMLElement,
   color: string,
   seed: number,
-  columns: number,
-  rows: number,
-  offsetY: number,
-  size: { width: number; height: number },
-  steps: CellSteps,
+  geometry: TextureGrid,
+  textureRow: number,
   mode: "burning" | "particles"
-) {
+): PixiEffect {
   const canvas = document.createElement("canvas")
   canvas.style.cssText = "position:absolute;top:0;left:0"
   canvas.setAttribute("aria-hidden", "true")
@@ -34,14 +45,7 @@ export function createPixiEffect(
     1,
     null,
   ]
-  let bounds = region.getBoundingClientRect()
-  // step = cell edge + 1px gap, sized so the texture fills the surface exactly.
-  let { stepX, stepY } = steps
-  // Row phase follows the live pitch: a resize changes stepY, and a shift
-  // frozen at creation would slide every row off the canvas.
-  let firstRow = Math.floor(offsetY / stepY)
-  let shift = offsetY % stepY
-  let left = size.width - (columns * stepX - 1)
+  let { columns, rows } = geometry
   let burning = createBurningTexture(color, seed, columns)
   let updateScene:
     | ((previous: { color: string; columns: number; rows: number }) => void)
@@ -81,14 +85,11 @@ export function createPixiEffect(
             x,
             y,
             sprite,
-            sample: createParticleCell(color, seed, x, firstRow + y, columns),
+            sample: createParticleCell(color, seed, x, textureRow + y, columns),
           }
         })
       const cells = createCells()
       updateScene = (previous) => {
-        firstRow = Math.floor(offsetY / stepY)
-        shift = offsetY % stepY
-        left = size.width - (columns * stepX - 1)
         burning = createBurningTexture(color, seed, columns)
         if (previous.columns !== columns || previous.rows !== rows) {
           stage.removeChildren().forEach((child) => child.destroy())
@@ -102,7 +103,7 @@ export function createPixiEffect(
               color,
               seed,
               entry.x,
-              firstRow + entry.y,
+              textureRow + entry.y,
               columns
             )
           })
@@ -121,7 +122,7 @@ export function createPixiEffect(
               : null
           const fill =
             value?.backgroundColor ??
-            burning(x, firstRow + y, time, visibility, amplitude)
+            burning(x, textureRow + y, time, visibility, amplitude)
           const alpha = fill.match(/ ([\d.e-]+)%/)
           sprite.visible = !!alpha
           if (!alpha) continue
@@ -134,37 +135,35 @@ export function createPixiEffect(
               sprite.visible = false
               continue
             }
-            const length = Math.min(stepX, stepY) - 1
-            const scaled = length * Number(transform[3])
+            const scaled = TEXTURE_CELL_SIZE * Number(transform[3])
             sprite.position.set(
-              left + x * stepX + stepX / 2 + Number(transform[1]) - scaled / 2,
-              y * stepY - shift + stepY / 2 + Number(transform[2]) - scaled / 2
+              geometry.left +
+                x * TEXTURE_STEP +
+                TEXTURE_CELL_SIZE / 2 +
+                Number(transform[1]) -
+                scaled / 2,
+              geometry.top +
+                y * TEXTURE_STEP +
+                TEXTURE_CELL_SIZE / 2 +
+                Number(transform[2]) -
+                scaled / 2
             )
             sprite.width = sprite.height = scaled
           } else {
-            const cellX = bounds.left + left + x * stepX,
-              cellY = bounds.top + y * stepY - shift
             sprite.position.set(
-              Math.round(cellX) - Math.round(bounds.left),
-              Math.round(cellY) - Math.round(bounds.top)
+              geometry.left + x * TEXTURE_STEP,
+              geometry.top + y * TEXTURE_STEP
             )
-            sprite.width = Math.round(cellX + stepX - 1) - Math.round(cellX)
-            sprite.height = Math.round(cellY + stepY - 1) - Math.round(cellY)
+            sprite.width = sprite.height = TEXTURE_CELL_SIZE
           }
         }
-        canvas.style.left =
-          mode === "burning"
-            ? `${Math.round(bounds.left) - bounds.left}px`
-            : "0"
-        canvas.style.top =
-          mode === "burning" ? `${Math.round(bounds.top) - bounds.top}px` : "0"
         try {
           presentPixi(
             renderer,
             stage,
             canvas,
-            Math.ceil(size.width),
-            Math.ceil(size.height)
+            Math.ceil(geometry.width),
+            Math.ceil(geometry.height)
           )
           return true
         } catch {
@@ -176,26 +175,14 @@ export function createPixiEffect(
     })
     .catch(fail)
   return {
-    update(
-      nextColor: string,
-      nextColumns: number,
-      nextRows: number,
-      nextSize: { width: number; height: number },
-      nextSteps: CellSteps
-    ) {
+    update(nextColor: string, nextGrid: TextureGrid) {
       const previous = { color, columns, rows }
       color = nextColor
-      columns = nextColumns
-      rows = nextRows
-      size = nextSize
-      stepX = nextSteps.stepX
-      stepY = nextSteps.stepY
-      bounds = region.getBoundingClientRect()
+      geometry = nextGrid
+      columns = nextGrid.columns
+      rows = nextGrid.rows
       updateScene?.(previous)
       return draw?.() ?? !failed
-    },
-    prepare() {
-      bounds = region.getBoundingClientRect()
     },
     paint(
       time: number | undefined,

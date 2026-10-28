@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
 import ScaledGridPreview from "./scaled-grid-preview"
+import TabAppearanceControls from "./tab-appearance-controls"
 import { ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -107,13 +108,16 @@ export default function TabsPane() {
   return (
     <>
       {trackWidth > 0 && (
-        <ScaledGridPreview
-          items={preview.items}
-          trackWidth={trackWidth}
-          area={preview.area}
-          positions={preview.positions}
-        />
+        <div className="sticky top-0 z-10 bg-popover pb-1">
+          <ScaledGridPreview
+            items={preview.items}
+            trackWidth={trackWidth}
+            area={preview.area}
+            positions={preview.positions}
+          />
+        </div>
       )}
+      <TabAppearanceControls />
       <SettingItem
         label={t("settings.tabs.newDynamicEffect")}
         description={t("settings.tabs.newDynamicEffectHint")}

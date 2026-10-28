@@ -32,6 +32,8 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 3. Right-click a card to see its available editing, size, and deletion options.
 4. Open **Settings** to change the theme, language, search engine, background, and effects.
 
+Use **Settings → Personalization → Tabs** to adjust internal layout, borders, backgrounds, text, and icons. These settings apply globally without changing tile sizes or grid occupancy.
+
 ## Data and privacy
 
 Bookmarks, layouts, preferences, and background images are stored on your device by default. Oh My Tab contains no advertising or behavioral analytics.

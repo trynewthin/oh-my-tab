@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import ComponentEditorFrame from "./component-editor-frame"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
+import TabSurface from "./tab-surface"
 import TabIconControls from "./tab-icon-controls"
 
 export default function TabEditor({
@@ -90,11 +91,13 @@ export default function TabEditor({
       description={t("grid.editor.descriptionWithName")}
       width={current.width}
       height={current.height}
+      previewBorder={false}
+      previewClip={false}
       preview={
-        <>
+        <TabSurface>
           <TabBackground item={preview} />
           <TabUI item={preview} preview />
-        </>
+        </TabSurface>
       }
       sizeOptions={sizeOptions}
       size={size}

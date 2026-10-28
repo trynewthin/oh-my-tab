@@ -26,6 +26,7 @@ import {
   isTraditionalTopSpacing,
   type TraditionalTopSpacing,
 } from "@/lib/home-top-spacing"
+import { sanitizeTabAppearance, type TabAppearance } from "@/lib/tab-appearance"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -62,8 +63,7 @@ export type HomeSettings = {
   color: string
   burningAmplitude: number
   transitionsEnabled: boolean
-  // Retained from version 3; the current UI does not expose these settings.
-  tabAppearance?: Record<string, unknown>
+  tabAppearance: TabAppearance
 }
 
 export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
@@ -81,11 +81,7 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
         wideGridColumns
       ) as GridComponentColumnCount)
   return {
-    ...(saved?.tabAppearance &&
-    typeof saved.tabAppearance === "object" &&
-    !Array.isArray(saved.tabAppearance)
-      ? { tabAppearance: saved.tabAppearance }
-      : {}),
+    tabAppearance: sanitizeTabAppearance(saved?.tabAppearance),
     layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
     quickBar:
       saved?.quickBar === undefined

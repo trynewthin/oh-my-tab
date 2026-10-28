@@ -163,12 +163,24 @@ describe("persisted WebDAV connections", () => {
       expect((await readWebdavSettings()).saved).toBeUndefined()
     }
   )
-  it("preserves legacy fields without pretending to have saved credentials", () => {
-    expect(
-      parseWebdavSettings(
-        JSON.stringify({ url: connection.url, username: connection.username })
-      )
-    ).toEqual({ connection: { ...connection, password: "" }, saved: null })
+  it("persists incomplete legacy connections as current drafts", async () => {
+    await writeEntries({
+      "omt.webdav": JSON.stringify({
+        url: connection.url,
+        username: connection.username,
+      }),
+    })
+    const result = await readWebdavSettings()
+    expect(result.connection).toEqual({ ...connection, password: "" })
+    expect(result.saved).toBeNull()
+    expect(JSON.parse(result.raw as string)).toMatchObject({
+      version: 2,
+      status: "draft",
+    })
+    expect(parseWebdavSettings(result.raw)).toEqual({
+      connection: result.connection,
+      saved: null,
+    })
   })
   it("resets the sync baseline when changing directory even if form state carries saved fields", async () => {
     await saveWebdavSettings(connection, 5)
@@ -196,6 +208,7 @@ describe("persisted WebDAV connections", () => {
 describe("WebDAV snapshot sync", () => {
   it("accepts snapshots created before newer config defaults were introduced", async () => {
     const oldConfig = structuredClone(initial)
+    oldConfig.version = 1
     delete (oldConfig.home as Partial<Config["home"]>).newTabsDynamicEffect
     const blob = await encodeBackup(oldConfig)
     const hash = await contentHash(oldConfig)
@@ -499,7 +512,7 @@ describe("WebDAV snapshot history", () => {
     await createWebdavSnapshot()
     await createWebdavSnapshot()
     const index = await readIndex()
-    expect(index.version).toBe(3)
+    expect(index.version).toBe(4)
     expect(index.snapshots).toHaveLength(3)
     expect(index.snapshots.map((snapshot) => snapshot.hash)).toEqual([
       original.hash,
@@ -679,7 +692,8 @@ describe("WebDAV snapshot history", () => {
     files.set("oh-my-tab.zip", { blob: await createBackup(), etag: '"legacy"' })
     await saveWebdavSettings(connection, 5)
     const history = await readWebdavHistory()
-    expect(history.snapshots[0].file).toBe("oh-my-tab.zip")
+    expect(history.snapshots[0].file).toMatch(/^oh-my-tab-snapshot-/)
+    expect(history.index?.version).toBe(4)
     expect(
       (await deleteWebdavSnapshot(history, history.snapshots[0].id)).history
         .snapshots
@@ -737,7 +751,7 @@ describe("WebDAV snapshot history", () => {
     const history = await readWebdavHistory()
     const snapshots = syncPlanSnapshots(await prepareWebdavSync())
     expect(history.snapshots[0]).toMatchObject({
-      file: "oh-my-tab.zip",
+      file: expect.stringMatching(/^oh-my-tab-snapshot-/),
       uploadedAt: null,
       modifiedAt: Date.parse(modified),
     })
@@ -750,7 +764,7 @@ describe("WebDAV snapshot history", () => {
     })
     await saveWebdavSettings(connection, 5)
     expect((await readWebdavHistory()).snapshots[0]).toMatchObject({
-      file: "oh-my-tab.zip",
+      file: expect.stringMatching(/^oh-my-tab-snapshot-/),
       uploadedAt: null,
       modifiedAt: null,
     })
@@ -778,7 +792,7 @@ describe("snapshot names and retention", () => {
       "  发布前备份  "
     )
     expect(result.changed).toBe(true)
-    expect(result.history.index?.version).toBe(2)
+    expect(result.history.index?.version).toBe(4)
     expect(result.history.snapshots[0]).toEqual({
       ...original,
       name: "发布前备份",
@@ -976,6 +990,128 @@ describe("snapshot names and retention", () => {
     const result = (await readWebdavHistory()).snapshots
     expect(result).toHaveLength(102)
     expect(result.filter((snapshot) => snapshot.protected)).toHaveLength(101)
-    expect(snapshots.every((snapshot) => files.has(snapshot.file))).toBe(true)
+    expect(result.every((snapshot) => files.has(snapshot.file))).toBe(true)
+  })
+})
+
+describe("committed WebDAV migrations", () => {
+  async function oldRemote(hashOverride?: string) {
+    const config = structuredClone(initial)
+    config.version = 1
+    delete (config.home as Partial<Config["home"]>).searchShortcuts
+    const id = crypto.randomUUID()
+    const file = `oh-my-tab-snapshot-${id}.zip`
+    files.set(file, { blob: await encodeBackup(config), etag: '"old-source"' })
+    const index = {
+      version: 3,
+      snapshotLimit: 5,
+      snapshots: [
+        {
+          id,
+          file,
+          deviceId: "old",
+          name: "Keep",
+          protected: true,
+          uploadedAt: 123,
+          hash: hashOverride ?? (await contentHash(config)),
+          change: null,
+        },
+      ],
+      garbage: [],
+    }
+    files.set("oh-my-tab-sync.json", {
+      blob: new Blob([JSON.stringify(index)]),
+      etag: '"old-index"',
+    })
+    await saveWebdavSettings(connection, 5)
+    return { index, file }
+  }
+  it("rewrites old snapshot contents and index before returning, then performs reads only", async () => {
+    const old = await oldRemote()
+    const history = await readWebdavHistory()
+    expect(history.index?.version).toBe(4)
+    const migrated = history.snapshots[0]
+    expect(migrated).toMatchObject({
+      name: "Keep",
+      protected: true,
+      uploadedAt: 123,
+    })
+    expect(migrated.file).not.toBe(old.file)
+    const decoded = await decodeBackup(files.get(migrated.file)!.blob)
+    expect((decoded.config as Config).version).toBe(initial.version)
+    expect((decoded.config as Config).home.searchShortcuts).toEqual(
+      initial.home.searchShortcuts
+    )
+    expect(await contentHash(decoded.config, decoded.image)).toBe(migrated.hash)
+    expect(files.has(old.file)).toBe(false)
+    vi.mocked(fetch).mockClear()
+    expect(await readWebdavHistory()).toEqual(history)
+    expect(
+      vi
+        .mocked(fetch)
+        .mock.calls.every(([, options]) => options?.method === "GET")
+    ).toBe(true)
+  })
+  it("preserves the old index and files when conditional commit fails, and retries", async () => {
+    const old = await oldRemote()
+    denyIndex = true
+    await expect(readWebdavHistory()).rejects.toThrow(/云端数据已变化/)
+    expect(
+      JSON.parse(await files.get("oh-my-tab-sync.json")!.blob.text())
+    ).toEqual(old.index)
+    expect(files.has(old.file)).toBe(true)
+    denyIndex = false
+    expect((await readWebdavHistory()).index?.version).toBe(4)
+  })
+  it("checks the original content checksum before rewriting anything", async () => {
+    const old = await oldRemote("0".repeat(64))
+    const before = [...files.keys()]
+    await expect(readWebdavHistory()).rejects.toThrow(/损坏/)
+    expect([...files.keys()]).toEqual(before)
+    expect(
+      JSON.parse(await files.get("oh-my-tab-sync.json")!.blob.text())
+    ).toEqual(old.index)
+  })
+  it("requires a strong ETag before uploading converted snapshots", async () => {
+    await oldRemote()
+    weakIndex = true
+    vi.mocked(fetch).mockClear()
+    await expect(readWebdavHistory()).rejects.toThrow(/ETag/)
+    expect(
+      vi
+        .mocked(fetch)
+        .mock.calls.every(([, options]) => options?.method === "GET")
+    ).toBe(true)
+  })
+  it("serializes simultaneous legacy imports and never reads the old file after commit", async () => {
+    files.set("oh-my-tab.zip", { blob: await createBackup(), etag: '"legacy"' })
+    await saveWebdavSettings(connection, 5)
+    const [first, second] = await Promise.all([
+      readWebdavHistory(),
+      readWebdavHistory(),
+    ])
+    expect(first.snapshots).toEqual(second.snapshots)
+    expect(
+      [...files.keys()].filter((file) => file.startsWith("oh-my-tab-snapshot-"))
+    ).toHaveLength(1)
+    expect(files.has("oh-my-tab.zip")).toBe(false)
+    vi.mocked(fetch).mockClear()
+    await readWebdavHistory()
+    expect(
+      vi
+        .mocked(fetch)
+        .mock.calls.some(([url]) => String(url).endsWith("/oh-my-tab.zip"))
+    ).toBe(false)
+  })
+  it("keeps pending obsolete files in the current index if cleanup fails", async () => {
+    const old = await oldRemote()
+    denyDelete = true
+    const history = await readWebdavHistory()
+    expect(history.index?.version).toBe(4)
+    expect(history.index?.garbage).toContain(old.file)
+    expect(files.has(old.file)).toBe(true)
+    denyDelete = false
+    await sync()
+    expect(files.has(old.file)).toBe(false)
   })
 })

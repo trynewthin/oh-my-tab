@@ -37,6 +37,7 @@ describe("tab effect coverage", () => {
     expect(validateConfig(current).home.tabEffectCoverage).toBe(80)
 
     const legacy = JSON.parse(JSON.stringify(snapshot()))
+    legacy.version = 1
     delete legacy.home.tabEffectCoverage
     expect(validateConfig(legacy).home.tabEffectCoverage).toBe(
       DEFAULT_TAB_EFFECT_COVERAGE
@@ -44,6 +45,7 @@ describe("tab effect coverage", () => {
 
     for (const invalid of [19, 101, Number.NaN]) {
       const config = JSON.parse(JSON.stringify(snapshot()))
+      config.version = 1
       config.home.tabEffectCoverage = invalid
       expect(() => validateConfig(config)).toThrow()
     }

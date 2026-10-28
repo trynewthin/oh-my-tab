@@ -2,8 +2,9 @@ import { describe, expect, test } from "vitest"
 
 import { snapshot, validateConfig } from "@/application/config-transfer"
 import { createCatalogComponent } from "@/lib/grid/factory"
-import { dropRemovedGridItems } from "@/lib/grid/removed-items"
-import { sanitizePersisted } from "@/stores/tab-grid-store"
+import { dropRemovedGridItems } from "@/lib/migrations/removed-items"
+import { sanitizePersisted } from "@/lib/grid/persisted"
+import { migrateGrid } from "@/lib/migrations/v2"
 
 describe("removed grid components", () => {
   test("discarding retired kinds keeps hidden and supported components", () => {
@@ -27,6 +28,7 @@ describe("removed grid components", () => {
 
   test("legacy backups drop retired items and their layout positions", () => {
     const config = JSON.parse(JSON.stringify(snapshot()))
+    config.version = 1
     const search = createCatalogComponent("search-minimal", "small")
     const weather = createCatalogComponent("weather")
     config.grid.items = [
@@ -57,21 +59,23 @@ describe("removed grid components", () => {
 
   test("saved grid state drops retired items without losing hidden widgets", () => {
     const weather = createCatalogComponent("weather")
-    const saved = sanitizePersisted({
-      items: [
-        weather,
-        { id: "old-bookmarks", kind: "bookmark-list" },
-        { id: "old-search", kind: "search-full" },
-      ],
-      layouts: {
-        16: {
-          [weather.id]: { x: 0, y: 0 },
-          "old-bookmarks": { x: 4, y: 0 },
-          "old-search": { x: 8, y: 0 },
+    const saved = sanitizePersisted(
+      migrateGrid({
+        items: [
+          weather,
+          { id: "old-bookmarks", kind: "bookmark-list" },
+          { id: "old-search", kind: "search-full" },
+        ],
+        layouts: {
+          16: {
+            [weather.id]: { x: 0, y: 0 },
+            "old-bookmarks": { x: 4, y: 0 },
+            "old-search": { x: 8, y: 0 },
+          },
         },
-      },
-      mockDataVersion: 1,
-    })
+        mockDataVersion: 1,
+      })
+    )
     expect(saved.items).toEqual([weather])
     expect(Object.keys(saved.layouts[16])).toEqual([weather.id])
   })

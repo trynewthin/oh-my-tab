@@ -1,5 +1,7 @@
 import { createJSONStorage, type StateStorage } from "zustand/middleware"
 
+import { STORAGE_VERSION } from "@/lib/data-version"
+
 import { i18n } from "@/i18n"
 
 const DATABASE = "oh-my-tab-data"
@@ -151,23 +153,16 @@ export async function initializeStorage() {
   await chromeStorage()?.local.setAccessLevel?.({
     accessLevel: "TRUSTED_CONTEXTS",
   })
-  const keys = [...DATA_KEYS, ...DEVICE_KEYS]
-  const current = await readEntries(keys)
-  const migrated: Record<string, unknown> = {}
-  for (const key of keys) {
-    const legacy = localStorage.getItem(key)
-    if (current[key] === undefined && legacy !== null) {
-      JSON.parse(legacy)
-      migrated[key] = legacy
-    }
-  }
-  if (Object.keys(migrated).length) await writeEntries(migrated, false)
-  // Keep the legacy copy available for recovery after migration.
 }
 const loaded = new Map<string, unknown>()
 const adapter: StateStorage = {
   async getItem(name) {
     const value = (await readEntries([name]))[name]
+    if (value != null) {
+      const envelope = typeof value === "string" ? JSON.parse(value) : null
+      if (envelope?.version !== STORAGE_VERSION)
+        throw new Error(i18n.t("core.hydrate.readFailed"))
+    }
     loaded.set(name, value)
     return typeof value === "string" ? value : null
   },
@@ -184,7 +179,11 @@ const adapter: StateStorage = {
   },
 }
 export function storageOptions<T = unknown>() {
-  return { storage: createJSONStorage<T>(() => adapter), skipHydration: true }
+  return {
+    storage: createJSONStorage<T>(() => adapter),
+    skipHydration: true,
+    version: STORAGE_VERSION,
+  }
 }
 
 export async function putAsset(blob: Blob): Promise<string> {
@@ -198,7 +197,7 @@ export async function getAsset(id: string): Promise<Blob> {
   const value =
     record && typeof record === "object" && "value" in record
       ? record.value
-      : record
+      : undefined
   if (value instanceof Blob) return value
   if (typeof value === "string" && value.startsWith("data:image/"))
     return dataUrlToBlob(value)

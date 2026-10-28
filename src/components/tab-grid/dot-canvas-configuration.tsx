@@ -8,7 +8,6 @@ import ComponentEditorFrame from "./component-editor-frame"
 import {
   blankDots,
   dotDimensions,
-  displayDots,
   isDotVisible,
 } from "@/lib/grid/dot-canvas-data"
 import type { DotCanvasItem } from "@/lib/grid/types"
@@ -29,9 +28,7 @@ export default function DotCanvasConfiguration({
   onClose: () => void
   onSaved: () => void
 }) {
-  const [pixels, setPixels] = useState(() =>
-    item ? displayDots(item.pixels) : blankDots()
-  )
+  const [pixels, setPixels] = useState(() => (item ? item.pixels : blankDots()))
   const pixelColumns = item?.pixelColumns ?? 24
   const { columns, rows } = dotDimensions(pixels, pixelColumns)
   const { t } = useTranslation()

@@ -45,15 +45,6 @@ export const usePrivacyStore = create<PrivacyState>()(
     {
       ...storageOptions(),
       name: "omt.privacy",
-      version: 1,
-      migrate: (persisted) => {
-        const old = persisted as Partial<PrivacyState> | undefined
-        return {
-          suggestions: false,
-          icons: old?.icons === true,
-          browserSearch: old?.browserSearch !== false,
-        }
-      },
     }
   )
 )

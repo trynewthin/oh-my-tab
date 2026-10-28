@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest"
 import { snapshot, validateConfig } from "@/application/config-transfer"
 import { DEFAULT_GRID_SCALE, GRID_COLUMNS } from "@/lib/grid/grid-layout"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import { sanitizePersisted } from "@/stores/tab-grid-store"
+import { sanitizePersisted } from "@/lib/grid/persisted"
 
 beforeEach(() => {
   useHomeSettingsStore.setState({
@@ -42,6 +42,7 @@ describe("grid scale backups", () => {
     expect(snapshot().home.gridScale).toBe(1.5)
 
     const legacy = JSON.parse(JSON.stringify(snapshot()))
+    legacy.version = 1
     delete legacy.home.gridScale
     expect(validateConfig(legacy).home.gridScale).toBe(DEFAULT_GRID_SCALE)
 

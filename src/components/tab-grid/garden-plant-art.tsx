@@ -129,7 +129,7 @@ export default function GardenPlantArt({
   const gene = (index: number) => randomGene(seed, index)
   const { progress, level } = growth(plant, now)
   const kind = Math.floor(gene(50) * FAMILY_IDS.length)
-  const varied = plant.appearanceVersion === 2
+  const varied = plant.appearance === "varied"
   const height = Math.round(
     4 + progress * (varied ? 12 + gene(1) * 13 : 17 + gene(1) * 5)
   )

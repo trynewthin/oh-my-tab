@@ -53,16 +53,14 @@ export async function requestWebdav(
   connection: WebdavConnection,
   method: string,
   options: {
-    directory?: boolean
     headers?: Record<string, string>
     body?: Blob
-    file?: string
-  } = {}
+  } & ({ directory: true; file?: never } | { directory?: false; file: string })
 ) {
   const settings = normalizeWebdav(connection)
   const target = options.directory
     ? settings.url
-    : new URL(options.file ?? "oh-my-tab.zip", settings.url).href
+    : new URL(options.file, settings.url).href
   try {
     return await fetch(target, {
       method,
@@ -101,7 +99,7 @@ export async function testWebdav(connection: WebdavConnection) {
 }
 export async function fetchRemoteBackup(
   connection: WebdavConnection,
-  file = "oh-my-tab.zip",
+  file: string,
   maxBytes = MAX_BACKUP_BYTES
 ): Promise<RemoteBackup | null> {
   const response = await requestWebdav(connection, "GET", { file })
@@ -134,22 +132,4 @@ export async function fetchRemoteBackup(
     etag: response.headers.get("ETag"),
     lastModified: Number.isFinite(lastModified) ? lastModified : null,
   }
-}
-export async function uploadRemoteBackup(
-  connection: WebdavConnection,
-  blob: Blob,
-  etag: string | null,
-  exists: boolean
-) {
-  if (exists && (!etag || etag.startsWith("W/")))
-    throw new Error(i18n.t("settings.webdav.weakEtagServer"))
-  const response = await requestWebdav(connection, "PUT", {
-    headers: {
-      "Content-Type": "application/zip",
-      ...(exists ? { "If-Match": etag! } : { "If-None-Match": "*" }),
-    },
-    body: blob,
-  })
-  checkWebdavResponse(response)
-  await response.body?.cancel()
 }

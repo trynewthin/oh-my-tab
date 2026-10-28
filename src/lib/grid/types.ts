@@ -31,7 +31,7 @@ export type FolderItem = {
 
 export type DotCanvasItem = {
   id: string
-  pixelColumns?: number
+  pixelColumns: number
   kind: "dot-canvas"
   name: string
   size: "large" | "tall" | "wide" | "wide-tall"
@@ -44,8 +44,8 @@ export type GardenPlant = {
   slot: number
   plantedAt: number
   species: "flowers" | "ferns"
-  seed?: number
-  appearanceVersion?: 2
+  seed: number
+  appearance: "classic" | "varied"
   name?: string
   boost?: number
   rewardedLevel?: number

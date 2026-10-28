@@ -1,3 +1,5 @@
+import { migrateStoredData } from "@/lib/migrations/storage"
+import { STORAGE_VERSION } from "@/lib/data-version"
 import { describe, expect, it } from "vitest"
 import * as storage from "@/lib/storage"
 import { legacyLocalStorage } from "./setup"
@@ -11,9 +13,20 @@ describe("storage (IndexedDB backend)", () => {
       saved({ backgroundImage: null })
     )
     await storage.initializeStorage()
+    await migrateStoredData()
     expect(
       (await storage.readEntries(["omt.home-settings"]))["omt.home-settings"]
-    ).toBe(saved({ backgroundImage: null }))
+    ).toBeTruthy()
+    const migrated = JSON.parse(
+      (await storage.readEntries(["omt.home-settings"]))[
+        "omt.home-settings"
+      ] as string
+    )
+    expect(migrated).toMatchObject({
+      state: { backgroundImage: null },
+      version: STORAGE_VERSION,
+    })
+    expect(legacyLocalStorage.has("omt.home-settings")).toBe(false)
     const blob = new Blob([new Uint8Array([0, 128, 255, 18])], {
       type: "image/png",
     })

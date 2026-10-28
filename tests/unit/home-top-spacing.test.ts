@@ -37,6 +37,7 @@ describe("personalized top spacing", () => {
     expect(validateConfig(current).home.traditionalTopSpacing).toBe("near")
 
     const legacy = JSON.parse(JSON.stringify(snapshot()))
+    legacy.version = 1
     delete legacy.home.traditionalTopSpacing
     expect(validateConfig(legacy).home.traditionalTopSpacing).toBe("far")
 

@@ -1,8 +1,9 @@
+import { migrateStoredData } from "@/lib/migrations/storage"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { useGardenStore, initializeGarden } from "@/stores/garden-store"
+import { useGardenStore } from "@/stores/garden-store"
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import { usePrivacyStore } from "@/stores/privacy-store"
 import { useLocaleStore } from "@/stores/locale-store"
@@ -10,8 +11,6 @@ import {
   flushStorage,
   initializeStorage,
   subscribeStorage,
-  putAsset,
-  dataUrlToBlob,
 } from "@/lib/storage"
 import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
@@ -58,6 +57,7 @@ export function rehydrateData(keys?: string[]): Promise<void> {
     } catch {
       /* Re-read committed data after a failed write. */
     }
+    await migrateStoredData()
     await rehydrateStores(pending === "all" ? undefined : pending)
   })
   rehydrateTail = run.catch(() => {})
@@ -67,12 +67,6 @@ export async function prepareData() {
   await navigator.locks.request("omt-startup", async () => {
     await initializeStorage()
     await rehydrateData()
-    const home = useHomeSettingsStore.getState()
-    if (home.backgroundImage?.startsWith("data:image/")) {
-      const blob = dataUrlToBlob(home.backgroundImage)
-      home.setBackgroundImage(await putAsset(blob))
-    }
-    initializeGarden(useTabGridStore.getState().items)
     await flushStorage()
   })
   const unsubscribe = subscribeStorage((keys) => {

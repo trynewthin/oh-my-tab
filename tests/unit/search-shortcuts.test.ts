@@ -76,6 +76,7 @@ describe("search quick buttons", () => {
     )
 
     const legacy = JSON.parse(JSON.stringify(snapshot()))
+    legacy.version = 1
     delete legacy.home.searchShortcuts
     expect(validateConfig(legacy).home.searchShortcuts).toEqual(
       defaultSearchShortcuts()

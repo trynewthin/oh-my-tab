@@ -1,3 +1,4 @@
+import { STORAGE_VERSION } from "@/lib/data-version"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
@@ -19,7 +20,7 @@ export async function clearStorageCategories(categories: StorageCategory[]) {
     const updates: Record<string, unknown> = {}
     const remove: string[] = []
     const save = (key: string, state: unknown) => {
-      updates[key] = JSON.stringify({ state, version: 0 })
+      updates[key] = JSON.stringify({ state, version: STORAGE_VERSION })
     }
     for (const [key, value] of Object.entries(entries)) {
       const category = categoryFor(key, home.backgroundImage)

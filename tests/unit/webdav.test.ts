@@ -37,45 +37,41 @@ describe("webdav", () => {
     expect(requested).toEqual({ origins: ["https://dav.example.com/*"] })
   })
 
-  it("protects create and overwrite with conditional requests", async () => {
-    const calls: { url: string; options: RequestInit }[] = []
-    vi.stubGlobal("fetch", async (url: string, options: RequestInit) => {
-      calls.push({ url, options })
-      return new Response(null, { status: 201 })
+  it("passes conditional headers and isolates network credentials", async () => {
+    const fetch = vi.fn(async () => new Response(null, { status: 201 }))
+    vi.stubGlobal("fetch", fetch)
+    await webdav.requestWebdav(connection, "PUT", {
+      file: "snapshot.zip",
+      body: new Blob(["zip"]),
+      headers: { "If-None-Match": "*" },
     })
-    const blob = new Blob(["zip"])
-    await webdav.uploadRemoteBackup(connection, blob, null, false)
-    expect(calls[0].url).toBe("https://dav.example.com/backup/oh-my-tab.zip")
-    const headers = calls[0].options.headers as Record<string, string>
-    expect(headers["If-None-Match"]).toBe("*")
-    expect(calls[0].options.redirect).toBe("error")
-    expect(calls[0].options.credentials).toBe("omit")
-    await webdav.uploadRemoteBackup(connection, blob, '"revision"', true)
-    expect(
-      (calls[1].options.headers as Record<string, string>)["If-Match"]
-    ).toBe('"revision"')
-    await expect(
-      webdav.uploadRemoteBackup(connection, blob, null, true)
-    ).rejects.toThrow(/ETag/)
-    await expect(
-      webdav.uploadRemoteBackup(connection, blob, 'W/"revision"', true)
-    ).rejects.toThrow(/ETag/)
-    vi.stubGlobal("fetch", async () => new Response(null, { status: 412 }))
-    await expect(
-      webdav.uploadRemoteBackup(connection, blob, '"old"', true)
-    ).rejects.toThrow(/变化/)
+    expect(fetch).toHaveBeenCalledWith(
+      "https://dav.example.com/backup/snapshot.zip",
+      expect.objectContaining({
+        redirect: "error",
+        credentials: "omit",
+        headers: expect.objectContaining({ "If-None-Match": "*" }),
+      })
+    )
+    expect(() =>
+      webdav.checkWebdavResponse(new Response(null, { status: 412 }))
+    ).toThrow(/变化/)
   })
 
   it("distinguishes missing backups, authentication and downloads", async () => {
     vi.stubGlobal("fetch", async () => new Response(null, { status: 404 }))
-    expect(await webdav.fetchRemoteBackup(connection)).toBeNull()
+    expect(
+      await webdav.fetchRemoteBackup(connection, "snapshot.zip")
+    ).toBeNull()
     vi.stubGlobal("fetch", async () => new Response(null, { status: 401 }))
-    await expect(webdav.fetchRemoteBackup(connection)).rejects.toThrow(/认证/)
+    await expect(
+      webdav.fetchRemoteBackup(connection, "snapshot.zip")
+    ).rejects.toThrow(/认证/)
     vi.stubGlobal(
       "fetch",
       async () => new Response("backup", { headers: { ETag: '"version"' } })
     )
-    const result = await webdav.fetchRemoteBackup(connection)
+    const result = await webdav.fetchRemoteBackup(connection, "snapshot.zip")
     expect(result!.etag).toBe('"version"')
     expect(await result!.blob.text()).toBe("backup")
   })
@@ -93,9 +89,10 @@ describe("webdav", () => {
             headers: header ? { "Last-Modified": header } : {},
           })
       )
-      expect((await webdav.fetchRemoteBackup(connection))?.lastModified).toBe(
-        expected
-      )
+      expect(
+        (await webdav.fetchRemoteBackup(connection, "snapshot.zip"))
+          ?.lastModified
+      ).toBe(expected)
     }
   )
 })

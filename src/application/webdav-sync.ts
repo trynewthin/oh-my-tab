@@ -1,3 +1,12 @@
+import { CONFIG_VERSION } from "@/lib/data-version"
+import { migrateRemoteHistory } from "@/lib/migrations/webdav-history"
+import {
+  parseRemoteIndex,
+  type RemoteIndex,
+  type WebdavSnapshot,
+} from "@/lib/webdav-history"
+export { parseRemoteIndex, type WebdavSnapshot } from "@/lib/webdav-history"
+import { encodeBackup } from "@/lib/backup-codec"
 import { i18n } from "@/i18n"
 import {
   createBackup,
@@ -22,7 +31,6 @@ import {
   compareBackupContent,
   contentHash,
   syncDirection,
-  validSnapshotLimit,
   stableJson,
   defaultWebdavSnapshotName,
   validWebdavSnapshotName,
@@ -34,25 +42,6 @@ import {
 const INDEX_FILE = "oh-my-tab-sync.json"
 const MAX_INDEX_BYTES = 4 * 1024 * 1024
 const MAX_SNAPSHOTS = 10000
-const snapshotFile = /^oh-my-tab-snapshot-[a-f0-9-]{36}\.zip$/
-export type WebdavSnapshot = {
-  id: string
-  file: string
-  deviceId: string
-  manual?: boolean
-  name?: string
-  protected?: boolean
-  uploadedAt: number | null
-  modifiedAt?: number | null
-  hash: string
-  change: ChangeSummary | null
-}
-type RemoteIndex = {
-  version: 1 | 2 | 3
-  snapshotLimit: number
-  snapshots: WebdavSnapshot[]
-  garbage: string[]
-}
 type RemoteState = {
   index: RemoteIndex | null
   indexEtag: string | null
@@ -85,6 +74,11 @@ async function readIndexedSnapshot(
   const file = await fetchRemoteBackup(connection, snapshot.file)
   if (!file) invalidIndex()
   const contents = await readBackupContents(file.blob)
+  if (
+    (contents.sourceConfig as { version?: unknown } | null)?.version !==
+    CONFIG_VERSION
+  )
+    invalidIndex()
   const sourceHash = await contentHash(
     contents.sourceConfig,
     contents.backup.image
@@ -95,94 +89,61 @@ async function readIndexedSnapshot(
     hash: await contentHash(contents.backup.config, contents.backup.image),
   }
 }
-export function parseRemoteIndex(text: string): RemoteIndex {
-  const value = JSON.parse(text)
-  if (
-    ![1, 2, 3].includes(value?.version) ||
-    !validSnapshotLimit(value.snapshotLimit) ||
-    !Array.isArray(value.snapshots) ||
-    value.snapshots.length > MAX_SNAPSHOTS ||
-    !Array.isArray(value.garbage) ||
-    value.garbage.length > 1000
-  )
-    invalidIndex()
-  const ids = new Set<string>()
-  const protectedHashes = new Set<string>()
-  for (const item of value.snapshots) {
-    if (
-      !item ||
-      typeof item.id !== "string" ||
-      !snapshotFile.test(item.file) ||
-      item.file !== `oh-my-tab-snapshot-${item.id}.zip` ||
-      ids.has(item.id) ||
-      typeof item.deviceId !== "string" ||
-      (item.manual !== undefined && typeof item.manual !== "boolean") ||
-      (item.uploadedAt !== null &&
-        (!Number.isFinite(item.uploadedAt) ||
-          item.uploadedAt < 0 ||
-          item.uploadedAt > 8.64e15)) ||
-      (item.modifiedAt != null &&
-        (!Number.isFinite(item.modifiedAt) ||
-          item.modifiedAt < 0 ||
-          item.modifiedAt > 8.64e15)) ||
-      (item.name !== undefined && !validWebdavSnapshotName(item.name)) ||
-      (item.protected !== undefined && typeof item.protected !== "boolean") ||
-      !/^[a-f0-9]{64}$/.test(item.hash)
-    )
-      invalidIndex()
-    ids.add(item.id)
-    if (item.protected && !item.manual) {
-      if (protectedHashes.has(item.hash)) invalidIndex()
-      protectedHashes.add(item.hash)
-    }
-    if (
-      item.change !== null &&
-      (!item.change ||
-        typeof item.change.large !== "boolean" ||
-        !Number.isFinite(item.change.ratio) ||
-        item.change.ratio < 0 ||
-        item.change.ratio > 1 ||
-        !Number.isInteger(item.change.changed) ||
-        !Number.isInteger(item.change.removed) ||
-        !Number.isInteger(item.change.total))
-    )
-      invalidIndex()
-  }
-  const active = new Set(
-    value.snapshots.map((item: WebdavSnapshot) => item.file)
-  )
-  if (
-    !value.garbage.every(
-      (file: unknown) =>
-        typeof file === "string" && snapshotFile.test(file) && !active.has(file)
-    )
-  )
-    invalidIndex()
-  return value
+async function readCurrentIndex(connection: SavedWebdav) {
+  return migrateRemoteHistory({
+    snapshotLimit: connection.snapshotLimit,
+    fetch: (file, maxBytes) => fetchRemoteBackup(connection, file, maxBytes),
+    convert: async (blob) => {
+      const contents = await readBackupContents(blob)
+      const sourceHash = await contentHash(
+        contents.sourceConfig,
+        contents.backup.image
+      )
+      const hash = await contentHash(
+        contents.backup.config,
+        contents.backup.image
+      )
+      return {
+        blob:
+          sourceHash === hash
+            ? blob
+            : await encodeBackup(contents.backup.config, contents.backup.image),
+        sourceHash,
+        hash,
+      }
+    },
+    putSnapshot: async (file, body) => {
+      const response = await requestWebdav(connection, "PUT", {
+        file,
+        body,
+        headers: { "Content-Type": "application/zip", "If-None-Match": "*" },
+      })
+      checkWebdavResponse(response)
+      await response.body?.cancel()
+    },
+    cleanup: (index) => cleanHistory(connection, index),
+    putIndex: (index, etag, exists) =>
+      putIndex(connection, index, etag, exists),
+    removeSource: async (file, etag) => {
+      const response = await requestWebdav(connection, "DELETE", {
+        file,
+        headers: condition(etag, true),
+      })
+      if (response.status !== 404) checkWebdavResponse(response)
+      await response.body?.cancel()
+    },
+  })
 }
-async function remoteState(connection: WebdavConnection): Promise<RemoteState> {
-  const indexFile = await fetchRemoteBackup(
-    connection,
-    INDEX_FILE,
-    MAX_INDEX_BYTES
-  )
-  if (!indexFile) {
-    const legacy = await fetchRemoteBackup(connection)
-    const backup = legacy ? await readBackup(legacy.blob) : null
-    const hash = backup
-      ? await contentHash(backup.config, backup.image)
-      : undefined
+async function remoteState(connection: SavedWebdav): Promise<RemoteState> {
+  const indexFile = await readCurrentIndex(connection)
+  if (!indexFile)
     return {
       index: null,
       indexEtag: null,
-      backup,
-      hash,
-      id: hash,
-      modifiedAt: legacy?.lastModified ?? null,
-      large: !!backup,
+      backup: null,
+      large: false,
       change: null,
     }
-  }
   const index = parseRemoteIndex(await indexFile.blob.text())
   const latest = index.snapshots[0]
   if (!latest)
@@ -329,14 +290,7 @@ function retainedIndex(
   const files = new Set(retained.map((snapshot) => snapshot.file))
   return {
     ...index,
-    // Readers without protection support must reject this index instead of
-    // applying their old retention rule to renamed snapshots.
-    version:
-      index.version === 3 || retained.some((snapshot) => snapshot.manual)
-        ? 3
-        : index.version === 2 || retained.some((snapshot) => snapshot.protected)
-          ? 2
-          : 1,
+    version: 4,
     snapshotLimit,
     snapshots: retained,
     garbage: [
@@ -367,42 +321,18 @@ export type WebdavHistory = {
   raw: string
   index: RemoteIndex | null
   etag: string | null
-  legacyEtag: string | null
   snapshots: WebdavSnapshot[]
 }
 export async function readWebdavHistory(): Promise<WebdavHistory> {
   const { saved, raw } = await readWebdavSettings()
   if (!saved || typeof raw !== "string")
     throw new Error(i18n.t("settings.webdav.notConnected"))
-  const file = await fetchRemoteBackup(saved, INDEX_FILE, MAX_INDEX_BYTES)
-  let index: RemoteIndex | null = null
-  let legacyEtag: string | null = null
-  let snapshots: WebdavSnapshot[] = []
-  if (file) {
-    index = parseRemoteIndex(await file.blob.text())
-    snapshots = uniqueWebdavSnapshots(index.snapshots)
-  } else {
-    const legacy = await fetchRemoteBackup(saved)
-    if (legacy) {
-      const backup = await readBackup(legacy.blob)
-      const hash = await contentHash(backup.config, backup.image)
-      legacyEtag = legacy.etag
-      snapshots = [
-        {
-          id: hash,
-          file: "oh-my-tab.zip",
-          deviceId: "",
-          uploadedAt: null,
-          modifiedAt: legacy.lastModified,
-          hash,
-          change: null,
-        },
-      ]
-    }
-  }
+  const file = await readCurrentIndex(saved)
+  const index = file ? parseRemoteIndex(await file.blob.text()) : null
+  const snapshots = index ? uniqueWebdavSnapshots(index.snapshots) : []
   if ((await readEntries([WEBDAV_KEY]))[WEBDAV_KEY] !== raw)
     throw new Error(i18n.t("settings.webdav.connectionChanged"))
-  return { saved, raw, index, etag: file?.etag ?? null, legacyEtag, snapshots }
+  return { saved, raw, index, etag: file?.etag ?? null, snapshots }
 }
 async function currentHistory(history: WebdavHistory) {
   const current = await readWebdavHistory()
@@ -410,7 +340,6 @@ async function currentHistory(history: WebdavHistory) {
     throw new Error(i18n.t("settings.webdav.connectionChanged"))
   if (
     current.etag !== history.etag ||
-    current.legacyEtag !== history.legacyEtag ||
     stableJson(current.snapshots) !== stableJson(history.snapshots)
   )
     throw new Error(i18n.t("settings.webdav.conflict"))
@@ -432,74 +361,28 @@ export async function renameWebdavSnapshot(
     if (!target) throw new Error(i18n.t("settings.webdav.conflict"))
     if (name === webdavSnapshotName(target))
       return { history: current, changed: false, cleanupComplete: true }
-    let index: RemoteIndex
-    if (current.index) {
-      // Use the deduplicated view so naming one content version cannot create
-      // several protected copies of the same content.
-      const snapshots = current.snapshots.map((snapshot) =>
-        snapshot.id === snapshotId
-          ? { ...snapshot, name, protected: true }
-          : snapshot
-      )
-      const files = new Set(snapshots.map((snapshot) => snapshot.file))
-      index = retainedIndex(
-        {
-          ...current.index,
-          garbage: [
-            ...current.index.garbage,
-            ...current.index.snapshots
-              .filter((snapshot) => !files.has(snapshot.file))
-              .map((snapshot) => snapshot.file),
-          ],
-        },
-        snapshots
-      )
-      await putIndex(current.saved, index, current.etag, true)
-    } else {
-      const file = await fetchRemoteBackup(current.saved)
-      if (!file || file.etag !== current.legacyEtag)
-        throw new Error(i18n.t("settings.webdav.conflict"))
-      const backup = await readBackup(file.blob)
-      if ((await contentHash(backup.config, backup.image)) !== target.hash)
-        throw new Error(i18n.t("settings.webdav.conflict"))
-      const id = crypto.randomUUID()
-      const filename = `oh-my-tab-snapshot-${id}.zip`
-      const response = await requestWebdav(current.saved, "PUT", {
-        file: filename,
-        headers: { "Content-Type": "application/zip", "If-None-Match": "*" },
-        body: file.blob,
-      })
-      checkWebdavResponse(response)
-      await response.body?.cancel()
-      index = {
-        version: 2,
-        snapshotLimit: current.saved.snapshotLimit,
-        snapshots: [{ ...target, id, file: filename, name, protected: true }],
-        garbage: [],
-      }
-      try {
-        await currentHistory(current)
-        await putIndex(current.saved, index, null, false)
-      } catch (error) {
-        // A network error can occur after commit; only clean up an upload when
-        // a readable index proves it is not referenced.
-        try {
-          const observed = await readWebdavHistory()
-          if (
-            observed.index &&
-            !observed.index.snapshots.some((snapshot) => snapshot.id === id)
-          ) {
-            const removed = await requestWebdav(current.saved, "DELETE", {
-              file: filename,
-            })
-            await removed.body?.cancel()
-          }
-        } catch {
-          /* Keep an upload whose commit status is unknown. */
-        }
-        throw error
-      }
-    }
+    if (!current.index) throw new Error(i18n.t("settings.webdav.conflict"))
+    // Use the deduplicated view so naming one content version cannot create
+    // several protected copies of the same content.
+    const snapshots = current.snapshots.map((snapshot) =>
+      snapshot.id === snapshotId
+        ? { ...snapshot, name, protected: true }
+        : snapshot
+    )
+    const files = new Set(snapshots.map((snapshot) => snapshot.file))
+    const index = retainedIndex(
+      {
+        ...current.index,
+        garbage: [
+          ...current.index.garbage,
+          ...current.index.snapshots
+            .filter((snapshot) => !files.has(snapshot.file))
+            .map((snapshot) => snapshot.file),
+        ],
+      },
+      snapshots
+    )
+    await putIndex(current.saved, index, current.etag, true)
     const cleanupComplete = await cleanHistory(current.saved, index)
     return {
       history: await readWebdavHistory(),
@@ -519,18 +402,9 @@ export async function applyWebdavSnapshot(
     )
     if (!target) throw new Error(i18n.t("settings.webdav.conflict"))
     const revision = await storageRevision()
-    const contents = current.index
-      ? await readIndexedSnapshot(current.saved, target)
-      : null
-    const file = current.index ? null : await fetchRemoteBackup(current.saved)
-    if (!current.index && (!file || file.etag !== current.legacyEtag))
-      throw new Error(i18n.t("settings.webdav.conflict"))
-    const backup = contents?.backup ?? (await readBackup(file!.blob))
-    if (
-      !current.index &&
-      (await contentHash(backup.config, backup.image)) !== target.hash
-    )
-      throw new Error(i18n.t("settings.webdav.conflict"))
+    if (!current.index) throw new Error(i18n.t("settings.webdav.conflict"))
+    const contents = await readIndexedSnapshot(current.saved, target)
+    const backup = contents.backup
     await currentHistory(current)
     await restoreBackup(backup, revision)
     const latest = current.snapshots[0]
@@ -579,13 +453,6 @@ export async function deleteWebdavSnapshot(
       )
       await putIndex(current.saved, index, current.etag, true)
       cleanupComplete = await cleanHistory(current.saved, index)
-    } else {
-      const response = await requestWebdav(current.saved, "DELETE", {
-        file: "oh-my-tab.zip",
-        headers: condition(current.legacyEtag, true),
-      })
-      if (response.status !== 404) checkWebdavResponse(response)
-      await response.body?.cancel()
     }
     return { history: await readWebdavHistory(), cleanupComplete }
   })
@@ -593,18 +460,7 @@ export async function deleteWebdavSnapshot(
 export function syncPlanSnapshots(plan: WebdavSyncPlan): WebdavSnapshot[] {
   if (plan.remote.index)
     return uniqueWebdavSnapshots(plan.remote.index.snapshots)
-  if (!plan.remote.hash || !plan.remote.id) return []
-  return [
-    {
-      id: plan.remote.id,
-      file: "oh-my-tab.zip",
-      deviceId: "",
-      uploadedAt: null,
-      modifiedAt: plan.remote.modifiedAt ?? null,
-      hash: plan.remote.hash,
-      change: null,
-    },
-  ]
+  return []
 }
 
 export async function executeWebdavSync(
@@ -685,7 +541,7 @@ export async function executeWebdavSync(
       const all = [snapshot, ...(current.index?.snapshots ?? [])]
       const index = retainedIndex(
         current.index ?? {
-          version: 1,
+          version: 4,
           snapshotLimit: plan.saved.snapshotLimit,
           snapshots: [],
           garbage: [],
@@ -748,6 +604,8 @@ export async function executeWebdavSync(
         remoteId = selected.id
       }
       await restoreBackup(backup, plan.revision)
+      if (current.index && (!selected || selected.id === current.id))
+        cleanupComplete = await cleanHistory(plan.saved, current.index)
     } else if (current.index) {
       const settled = await settleHistory(
         plan.saved,

@@ -38,9 +38,9 @@ export type UtilityWidgetItem = UtilityBase &
     | {
         kind: "pomodoro"
         minutes: number
-        breakMinutes?: number
-        loop?: boolean
-        phase?: "focus" | "break"
+        breakMinutes: number
+        loop: boolean
+        phase: "focus" | "break"
         remainingMs: number
         endsAt: number | null
         completedOn: string

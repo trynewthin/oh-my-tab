@@ -40,6 +40,9 @@ Object.defineProperty(globalThis, "localStorage", {
   configurable: true,
   value: {
     getItem: (key: string) => legacyLocalStorage.get(key) ?? null,
+    removeItem: (key: string) => {
+      legacyLocalStorage.delete(key)
+    },
   },
 })
 export { legacyLocalStorage }

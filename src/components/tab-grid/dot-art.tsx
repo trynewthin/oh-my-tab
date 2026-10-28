@@ -1,5 +1,5 @@
 import { isDotVisible } from "@/lib/grid/dot-canvas-data"
-import { dotDimensions, displayDots } from "@/lib/grid/dot-canvas-data"
+import { dotDimensions } from "@/lib/grid/dot-canvas-data"
 import { useLayoutEffect, useRef, useState, type PointerEvent } from "react"
 import { useTranslation } from "react-i18next"
 
@@ -11,14 +11,13 @@ export default function DotArt({
   onPointerUp,
 }: {
   pixels: string[]
-  pixelColumns?: number
+  pixelColumns: number
   onPointerDown?: (event: PointerEvent<SVGSVGElement>) => void
   onPointerMove?: (event: PointerEvent<SVGSVGElement>) => void
   onPointerUp?: (event: PointerEvent<SVGSVGElement>) => void
 }) {
-  const dots = displayDots(pixels)
   const { t } = useTranslation()
-  const { columns, rows } = dotDimensions(dots, pixelColumns)
+  const { columns, rows } = dotDimensions(pixels, pixelColumns)
   const ref = useRef<SVGSVGElement>(null)
   const [size, setSize] = useState({ width: 240, height: 160 })
   useLayoutEffect(() => {
@@ -50,7 +49,7 @@ export default function DotArt({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {dots.map((color, index) => (
+      {pixels.map((color, index) => (
         <rect
           key={index}
           x={(index % columns) * pitchX + (pitchX - dotSize) / 2}

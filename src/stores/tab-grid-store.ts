@@ -1,17 +1,12 @@
 import { storageOptions } from "@/lib/storage"
 import { groupComponents, resolveGroupAction } from "@/lib/grid/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
-import {
-  GRID_COLUMNS,
-  ensureLayoutColumns,
-  itemWidth,
-} from "@/lib/grid/grid-layout"
+import { ensureLayoutColumns } from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { type GridItem, type TabEntry, type TodoTask } from "@/lib/grid/types"
-import { validGridItem } from "@/lib/grid/validation"
-import { dropRemovedGridItems } from "@/lib/grid/removed-items"
+import { sanitizePersisted } from "@/lib/grid/persisted"
 import { createFolderItem, createTabItem } from "@/lib/grid/factory"
 import {
   addFolderTab,
@@ -38,7 +33,7 @@ import { mockGridItems } from "@/lib/grid/mock-data"
 const devInitialItems = (): GridItem[] =>
   import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : []
 
-import type { GridPosition, GridPositions } from "@/lib/grid/grid-layout"
+import type { GridPositions } from "@/lib/grid/grid-layout"
 
 import { transferTab, type TabTransfer } from "@/lib/grid/tab-transfer"
 
@@ -79,56 +74,6 @@ type TabGridState = {
   ) => void
   addFolderTab: (folderId: string, tab: TabEntry) => void
   removeFolderTab: (folderId: string, tabId: string) => void
-}
-
-// Normalizes the persisted blob (any version) into the shape this store keeps.
-// Shared by migrate() and merge() so a legacy v0 blob and a current blob are
-// validated and clamped by exactly one code path. Throws on invalid items so a
-// corrupt blob is rejected instead of silently overwriting good data.
-export function sanitizePersisted(persisted: unknown): {
-  items: GridItem[]
-  layouts: Record<number, GridPositions>
-  mockDataVersion: number
-} {
-  const items = (persisted as { items?: unknown } | null)?.items
-  const retained = Array.isArray(items) ? dropRemovedGridItems(items) : null
-  if (
-    items !== undefined &&
-    (!retained || !retained.items.every(validGridItem))
-  ) {
-    throw new Error(i18n.t("grid.error.corruptGrid"))
-  }
-  const storedItems: GridItem[] = retained?.items ?? []
-  const savedLayouts = (
-    persisted as { layouts?: Record<string, unknown> } | null
-  )?.layouts
-  const layouts: Record<number, GridPositions> = {}
-  for (const columns of GRID_COLUMNS) {
-    const layout = savedLayouts?.[columns]
-    if (!layout || typeof layout !== "object") continue
-    layouts[columns] = Object.fromEntries(
-      Object.entries(layout).filter(([id, value]) => {
-        if (retained?.removedIds.has(id)) return false
-        if (
-          !value ||
-          !Number.isInteger((value as GridPosition).x) ||
-          !Number.isInteger((value as GridPosition).y)
-        )
-          return false
-        const { x, y } = value as GridPosition
-        const item = storedItems.find((entry) => entry.id === id)
-        const width = item ? itemWidth(item, columns) : 4
-        return x >= 0 && x <= columns - width && y >= 0 && y <= 500
-      })
-    )
-  }
-  const mockDataVersion =
-    (persisted as { mockDataVersion?: number } | null)?.mockDataVersion ?? 0
-  return {
-    items: Array.isArray(items) ? storedItems : devInitialItems(),
-    layouts,
-    mockDataVersion,
-  }
 }
 
 export const useTabGridStore = create<TabGridState>()(
@@ -261,11 +206,6 @@ export const useTabGridStore = create<TabGridState>()(
     {
       ...storageOptions(),
       name: "omt.tab-grid",
-      version: 1,
-      // v0 persisted blobs had no schema version. Reuse the same sanitizer for
-      // both migration and merge so a v0 blob and a fresh blob are normalized
-      // identically. Removed kinds are discarded; other invalid data throws.
-      migrate: (persisted) => sanitizePersisted(persisted),
       // lastLayoutColumns stays tab-local: persisting it makes tabs with
       // different column counts overwrite each other in a ping-pong loop.
       partialize: ({ items, layouts, mockDataVersion }) => ({
@@ -274,6 +214,7 @@ export const useTabGridStore = create<TabGridState>()(
         mockDataVersion,
       }),
       merge: (persisted, current) => {
+        if (persisted == null) return current
         const clean = sanitizePersisted(persisted)
         return {
           ...current,

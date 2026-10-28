@@ -373,7 +373,7 @@ export default function UtilityWidgetEditor({
                 min={0}
                 max={180}
                 step={1}
-                value={draft.breakMinutes ?? 0}
+                value={draft.breakMinutes}
                 onChange={(event) =>
                   patch({ breakMinutes: event.target.valueAsNumber })
                 }

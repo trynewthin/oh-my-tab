@@ -239,7 +239,7 @@ export default function EcosystemConfiguration({
                       ...(next.album ?? []),
                       ...next.plants,
                     ]),
-                    appearanceVersion: 2,
+                    appearance: "varied",
                     boost: 0,
                     rewardedLevel: 0,
                   },

@@ -6,6 +6,7 @@ describe("garden seed generation", () => {
     const history: {
       slot: number
       seed: number
+      appearance: "varied"
       plantedAt: number
       species: "flowers"
     }[] = []
@@ -19,7 +20,13 @@ describe("garden seed generation", () => {
       expect(history.some((p) => p.seed === seed)).toBe(false)
       counts[family]++
       expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1)
-      history.push({ slot: 4, seed, plantedAt: i, species: "flowers" })
+      history.push({
+        slot: 4,
+        seed,
+        appearance: "varied",
+        plantedAt: i,
+        species: "flowers",
+      })
     }
   })
 

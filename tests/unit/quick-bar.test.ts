@@ -87,6 +87,7 @@ describe("quick bar configuration", () => {
     expect(validateConfig(current).home.quickBar).toEqual(current.home.quickBar)
 
     const legacy = JSON.parse(JSON.stringify(snapshot()))
+    legacy.version = 1
     delete legacy.home.layoutMode
     delete legacy.home.quickBar
     expect(validateConfig(legacy).home).toMatchObject({

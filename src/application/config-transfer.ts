@@ -1,22 +1,16 @@
+import { CONFIG_VERSION, STORAGE_VERSION } from "@/lib/data-version"
+import { migrateConfig } from "@/lib/migrations/v2"
 import { replaceData, flushStorage } from "@/lib/storage"
 import { useOnboardingStore } from "@/stores/onboarding-store"
-import {
-  useGardenStore,
-  validSharedGarden,
-  migrateGarden,
-} from "@/stores/garden-store"
+import { useGardenStore, validSharedGarden } from "@/stores/garden-store"
 import {
   clampGridScale,
-  DEFAULT_GRID_SCALE,
-  DEFAULT_NARROW_GRID_COLUMNS,
-  DEFAULT_WIDE_GRID_COLUMNS,
   GRID_COLUMNS,
   isGridComponentColumnCount,
   itemWidth,
 } from "@/lib/grid/grid-layout"
 import { isMatrixPet } from "@/lib/matrix-pets"
 import {
-  DEFAULT_TAB_EFFECT_COVERAGE,
   MAX_TAB_EFFECT_COVERAGE,
   MIN_TAB_EFFECT_COVERAGE,
   useHomeSettingsStore,
@@ -24,21 +18,12 @@ import {
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { validGridItem } from "@/lib/grid/validation"
-import { dropRemovedGridItems } from "@/lib/grid/removed-items"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { isSearchUrl, defaultSearchEngines } from "@/lib/search-engines"
-import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
-import { decodeConfig } from "@/lib/config-codec"
 import { isBackgroundPaletteId } from "@/lib/background-palettes"
-import {
-  defaultTraditionalTopSpacing,
-  isTraditionalTopSpacing,
-} from "@/lib/home-top-spacing"
-import {
-  defaultSearchShortcuts,
-  validSearchShortcuts,
-} from "@/lib/search-shortcuts"
-import { defaultQuickBar, validQuickBarConfig } from "@/lib/quick-bar"
+import { isTraditionalTopSpacing } from "@/lib/home-top-spacing"
+import { validSearchShortcuts } from "@/lib/search-shortcuts"
+import { validQuickBarConfig } from "@/lib/quick-bar"
 import { i18n } from "@/i18n"
 
 export function snapshot() {
@@ -46,7 +31,7 @@ export function snapshot() {
   const search = useSearchEngineStore.getState()
   const grid = useTabGridStore.getState()
   return {
-    version: 1,
+    version: CONFIG_VERSION,
     onboarding: { seen: useOnboardingStore.getState().seen },
     garden: useGardenStore.getState(),
     home: {
@@ -88,79 +73,56 @@ export function snapshot() {
 }
 export type Config = ReturnType<typeof snapshot>
 
-export async function parseConfig(text: string): Promise<Config> {
-  return validateConfig(await decodeConfig(text))
-}
-
 export function validateConfig(value: unknown): Config {
   if (!value || typeof value !== "object")
     throw new Error(i18n.t("settings.errors.invalidContent"))
-  const config = value as Config
+  const config = migrateConfig(value) as Config
   const { home, theme, search, grid } = config
-  const retained = Array.isArray(grid?.items)
-    ? dropRemovedGridItems(grid.items)
-    : null
   const hex = (v: unknown) => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v)
   if (
-    config.version !== 1 ||
-    (config.onboarding !== undefined &&
-      (!config.onboarding || typeof config.onboarding.seen !== "boolean")) ||
-    (config.garden !== undefined && !validSharedGarden(config.garden)) ||
+    config.version !== CONFIG_VERSION ||
+    !config.onboarding ||
+    typeof config.onboarding.seen !== "boolean" ||
+    !validSharedGarden(config.garden) ||
     !home ||
     !theme ||
     !search ||
     !grid ||
-    (home.layoutMode !== undefined &&
-      !["traditional", "free"].includes(home.layoutMode)) ||
-    (home.quickBar !== undefined && !validQuickBarConfig(home.quickBar)) ||
-    (home.backgroundType !== undefined &&
-      !["solid", "image", "explore"].includes(home.backgroundType)) ||
-    (home.wideGridColumns !== undefined &&
-      !isGridComponentColumnCount(home.wideGridColumns)) ||
-    (home.narrowGridColumns !== undefined &&
-      !isGridComponentColumnCount(home.narrowGridColumns)) ||
+    !["traditional", "free"].includes(home.layoutMode) ||
+    !validQuickBarConfig(home.quickBar) ||
+    !["solid", "image"].includes(home.backgroundType) ||
+    !isGridComponentColumnCount(home.wideGridColumns) ||
+    !isGridComponentColumnCount(home.narrowGridColumns) ||
     (isGridComponentColumnCount(home.wideGridColumns) &&
       isGridComponentColumnCount(home.narrowGridColumns) &&
       home.narrowGridColumns > home.wideGridColumns) ||
-    (home.gridScale !== undefined && clampGridScale(home.gridScale) === null) ||
-    (home.backgroundImage !== undefined &&
-      home.backgroundImage !== null &&
+    clampGridScale(home.gridScale) === null ||
+    (home.backgroundImage !== null &&
       (typeof home.backgroundImage !== "string" ||
         home.backgroundImage.length > 2_000_000 ||
         !/^data:image\/(?:png|jpeg|webp);base64,/i.test(
           home.backgroundImage
         ))) ||
-    (home.backgroundPalette !== undefined &&
-      !isBackgroundPaletteId(home.backgroundPalette)) ||
-    (home.searchBoxStyle !== undefined &&
-      !["full", "minimal"].includes(home.searchBoxStyle)) ||
-    (home.searchShortcuts !== undefined &&
-      !validSearchShortcuts(home.searchShortcuts)) ||
-    (home.traditionalTopSpacing !== undefined &&
-      !isTraditionalTopSpacing(home.traditionalTopSpacing)) ||
-    (home.folderStyle !== undefined &&
-      !["classic", "noise", "none"].includes(home.folderStyle)) ||
-    (home.tabTexture !== undefined &&
-      !["none", "burning", "particles"].includes(home.tabTexture)) ||
-    (home.tabEffectCoverage !== undefined &&
-      (!Number.isFinite(home.tabEffectCoverage) ||
-        home.tabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
-        home.tabEffectCoverage > MAX_TAB_EFFECT_COVERAGE)) ||
-    (home.newTabsDynamicEffect !== undefined &&
-      typeof home.newTabsDynamicEffect !== "boolean") ||
+    !isBackgroundPaletteId(home.backgroundPalette) ||
+    !["full", "minimal"].includes(home.searchBoxStyle) ||
+    !validSearchShortcuts(home.searchShortcuts) ||
+    !isTraditionalTopSpacing(home.traditionalTopSpacing) ||
+    !["classic", "noise", "none"].includes(home.folderStyle) ||
+    !["none", "burning", "particles"].includes(home.tabTexture) ||
+    !Number.isFinite(home.tabEffectCoverage) ||
+    home.tabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
+    home.tabEffectCoverage > MAX_TAB_EFFECT_COVERAGE ||
+    typeof home.newTabsDynamicEffect !== "boolean" ||
     !["none", "dot-matrix"].includes(home.topComponent) ||
     !["time", "text", "pet", "breathing"].includes(home.content) ||
     typeof home.text !== "string" ||
     home.text.length > 80 ||
     !hex(home.color) ||
-    (home.tabTexture !== undefined &&
-      !["none", "burning", "particles"].includes(home.tabTexture)) ||
-    (home.burningAmplitude !== undefined &&
-      (!Number.isFinite(home.burningAmplitude) ||
-        home.burningAmplitude < 0 ||
-        home.burningAmplitude > 2)) ||
-    (home.transitionsEnabled !== undefined &&
-      typeof home.transitionsEnabled !== "boolean") ||
+    !["none", "burning", "particles"].includes(home.tabTexture) ||
+    !Number.isFinite(home.burningAmplitude) ||
+    home.burningAmplitude < 0 ||
+    home.burningAmplitude > 2 ||
+    typeof home.transitionsEnabled !== "boolean" ||
     !isMatrixPet(home.pet) ||
     !["light", "dark", "system"].includes(theme.theme) ||
     !Array.isArray(search.engines) ||
@@ -176,17 +138,16 @@ export function validateConfig(value: unknown): Config {
           defaultSearchEngines.some((p) => p.icon === e.icon))
     ) ||
     !search.engines.some((e) => e.id === search.selectedId) ||
-    (search.openInNewTab !== undefined &&
-      typeof search.openInNewTab !== "boolean") ||
+    typeof search.openInNewTab !== "boolean" ||
     new Set(search.engines.map((e) => e.id)).size !== search.engines.length ||
-    !retained ||
-    !retained.items.every(validGridItem) ||
+    !Array.isArray(grid.items) ||
+    !grid.items.every(validGridItem) ||
     !grid.layouts ||
     typeof grid.layouts !== "object" ||
     Array.isArray(grid.layouts)
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
-  const ids = retained.items.flatMap((item) =>
+  const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]
       : [item.id]
@@ -200,61 +161,25 @@ export function validateConfig(value: unknown): Config {
       typeof positions !== "object" ||
       !Object.entries(positions).every(
         ([id, p]) =>
-          retained.removedIds.has(id) ||
-          (p &&
-            Number.isInteger(p.x) &&
-            Number.isInteger(p.y) &&
-            p.x >= 0 &&
-            p.x <=
-              Number(columns) -
-                (retained.items.find((item) => item.id === id)
-                  ? itemWidth(
-                      retained.items.find((item) => item.id === id)!,
-                      Number(columns)
-                    )
-                  : 4) &&
-            p.y >= 0 &&
-            p.y <= 500)
+          p &&
+          Number.isInteger(p.x) &&
+          Number.isInteger(p.y) &&
+          p.x >= 0 &&
+          p.x <=
+            Number(columns) -
+              (grid.items.find((item) => item.id === id)
+                ? itemWidth(
+                    grid.items.find((item) => item.id === id)!,
+                    Number(columns)
+                  )
+                : 4) &&
+          p.y >= 0 &&
+          p.y <= 500
       )
     )
       throw new Error(i18n.t("settings.errors.invalidGrid"))
   }
-  grid.items = retained.items
-  for (const positions of Object.values(grid.layouts))
-    for (const id of retained.removedIds) delete positions[id]
-  // Older exports carried the material as `effectStyle`; fold it into
-  // tabTexture when the new key is absent.
-  const legacyTexture = (home as { effectStyle?: string }).effectStyle
-  home.tabTexture ??=
-    legacyTexture === "none" || legacyTexture === "particles"
-      ? legacyTexture
-      : "burning"
-  home.backgroundType ??= "solid"
-  home.layoutMode ??= "traditional"
-  home.quickBar ??= defaultQuickBar()
-  home.wideGridColumns ??= DEFAULT_WIDE_GRID_COLUMNS
-  home.gridScale ??= DEFAULT_GRID_SCALE
-  home.narrowGridColumns = Math.min(
-    home.narrowGridColumns ?? DEFAULT_NARROW_GRID_COLUMNS,
-    home.wideGridColumns
-  ) as typeof home.narrowGridColumns
-  delete (home as typeof home & { gridMode?: unknown }).gridMode
-  if ((home as { backgroundType?: string }).backgroundType === "explore")
-    home.backgroundType = "solid"
-  home.backgroundImage ??= null
-  home.backgroundPalette ??= "gray"
-  home.searchBoxStyle ??= "full"
-  home.searchShortcuts ??= defaultSearchShortcuts()
-  home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
-  home.folderStyle ??= "noise"
-  home.tabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
-  home.newTabsDynamicEffect ??= false
-  home.burningAmplitude ??= 1
-  home.transitionsEnabled ??=
-    (home as { burningEntrance?: unknown }).burningEntrance === true
-  search.openInNewTab ??= true
   home.text = home.text.replace(/[^\x20-\x7e]/g, "")
-  grid.mockDataVersion = MOCK_DATA_VERSION
   return config
 }
 
@@ -265,20 +190,17 @@ export async function importConfig(
   const entries = [
     ["omt.home-settings", config.home],
     ["omt.theme-mode", config.theme],
-    ["omt.onboarding", config.onboarding ?? { seen: true }],
+    ["omt.onboarding", config.onboarding],
     ["omt.search-engines", config.search],
     ["omt.tab-grid", config.grid],
-    [
-      "omt.garden",
-      config.garden ?? migrateGarden(config.grid.items, Date.now()),
-    ],
+    ["omt.garden", config.garden],
   ] as const
   await flushStorage()
   await replaceData(
     Object.fromEntries(
       entries.map(([key, state]) => [
         key,
-        JSON.stringify({ state, version: 0 }),
+        JSON.stringify({ state, version: STORAGE_VERSION }),
       ])
     ),
     revision

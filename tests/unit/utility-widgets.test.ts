@@ -37,6 +37,9 @@ const timer = (): PomodoroItem => ({
   ...shared,
   kind: "pomodoro",
   minutes: 25,
+  breakMinutes: 0,
+  loop: false,
+  phase: "focus",
   remainingMs: 1_500_000,
   endsAt: null,
   completedOn: "",
@@ -273,16 +276,16 @@ describe("utility widgets", () => {
     ).toMatchObject({ phase: "focus", remainingMs: 600_000, endsAt: null })
   })
 
-  test("legacy and current timer state survive ZIP backup", async () => {
-    const legacy = timer()
+  test("current timer phases survive ZIP backup", async () => {
+    const focus = timer()
     const rest = completePomodoro(
       togglePomodoro({ ...timer(), breakMinutes: 5, loop: true }, 0),
       1_500_000
     )
-    const config = { items: [legacy, rest] }
+    const config = { items: [focus, rest] }
     const restored = await decodeBackup(await encodeBackup(config))
     expect(restored.config).toEqual(config)
-    expect(validGridItem(legacy)).toBe(true)
+    expect(validGridItem(focus)).toBe(true)
     expect(validGridItem(rest)).toBe(true)
     for (const fields of [
       { breakMinutes: -1 },
@@ -292,7 +295,7 @@ describe("utility widgets", () => {
       { phase: "invalid" },
       { phase: "break", breakMinutes: 0 },
     ]) {
-      expect(validGridItem({ ...legacy, ...fields })).toBe(false)
+      expect(validGridItem({ ...focus, ...fields })).toBe(false)
     }
   })
 

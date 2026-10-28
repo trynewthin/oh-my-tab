@@ -1,28 +1,18 @@
 import { storageOptions } from "@/lib/storage"
-import { isMatrixPet, type MatrixPet } from "@/lib/matrix-pets"
+import { type MatrixPet } from "@/lib/matrix-pets"
 export type { MatrixPet } from "@/lib/matrix-pets"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import {
-  isBackgroundPaletteId,
-  type BackgroundPaletteId,
-} from "@/lib/background-palettes"
+import { type BackgroundPaletteId } from "@/lib/background-palettes"
 import {
   clampGridScale,
-  DEFAULT_GRID_SCALE,
-  DEFAULT_NARROW_GRID_COLUMNS,
-  DEFAULT_WIDE_GRID_COLUMNS,
-  isGridComponentColumnCount,
   type GridComponentColumnCount,
 } from "@/lib/grid/grid-layout"
 import {
-  defaultQuickBar,
   MAX_QUICK_CONTROLS_PER_SIDE,
   normalizeQuickSite,
   placeQuickControl,
-  sanitizeQuickBarConfig,
   type QuickBarCenter,
-  type QuickBarConfig,
   type QuickBarControl,
   type QuickBarSide,
 } from "@/lib/quick-bar"
@@ -30,57 +20,42 @@ import {
   isSystemActionOnSurface,
   type SystemActionId,
 } from "@/lib/system-actions"
-import {
-  defaultTraditionalTopSpacing,
-  isTraditionalTopSpacing,
-  type TraditionalTopSpacing,
-} from "@/lib/home-top-spacing"
+import { type TraditionalTopSpacing } from "@/lib/home-top-spacing"
 import {
   appendSearchShortcut,
-  defaultSearchShortcuts,
   moveSearchShortcut,
   removeSearchShortcut,
-  sanitizeSearchShortcuts,
   setSearchShortcutBoundary,
-  type SearchShortcutConfig,
 } from "@/lib/search-shortcuts"
 
-export type TopComponent = "none" | "dot-matrix"
-export type MatrixContent = "time" | "text" | "pet" | "breathing"
-export type EffectStyle = "none" | "burning" | "particles"
-export type FolderStyle = "classic" | "noise" | "none"
-export type TabTexture = EffectStyle
-export type BackgroundType = "solid" | "image"
-export type SearchBoxStyle = "full" | "minimal"
-export type HomeLayoutMode = "traditional" | "free"
-export const MIN_TAB_EFFECT_COVERAGE = 20
-export const MAX_TAB_EFFECT_COVERAGE = 100
-export const DEFAULT_TAB_EFFECT_COVERAGE = 65
-
-type HomeSettings = {
-  layoutMode: HomeLayoutMode
-  quickBar: QuickBarConfig
-  wideGridColumns: GridComponentColumnCount
-  narrowGridColumns: GridComponentColumnCount
-  gridScale: number
-  backgroundType: BackgroundType
-  backgroundImage: string | null
-  backgroundPalette: BackgroundPaletteId
-  searchBoxStyle: SearchBoxStyle
-  searchShortcuts: SearchShortcutConfig
-  folderStyle: FolderStyle
-  tabTexture: TabTexture
-  tabEffectCoverage: number
-  newTabsDynamicEffect: boolean
-  topComponent: TopComponent
-  traditionalTopSpacing: TraditionalTopSpacing
-  content: MatrixContent
-  text: string
-  pet: MatrixPet
-  color: string
-  burningAmplitude: number
-  transitionsEnabled: boolean
-}
+export type {
+  TopComponent,
+  MatrixContent,
+  EffectStyle,
+  FolderStyle,
+  TabTexture,
+  BackgroundType,
+  SearchBoxStyle,
+  HomeLayoutMode,
+} from "@/lib/home-settings"
+export {
+  MIN_TAB_EFFECT_COVERAGE,
+  MAX_TAB_EFFECT_COVERAGE,
+  DEFAULT_TAB_EFFECT_COVERAGE,
+} from "@/lib/home-settings"
+import {
+  sanitizeHomeSettings,
+  type HomeSettings,
+  type TopComponent,
+  type MatrixContent,
+  type FolderStyle,
+  type TabTexture,
+  type BackgroundType,
+  type SearchBoxStyle,
+  type HomeLayoutMode,
+  MIN_TAB_EFFECT_COVERAGE,
+  MAX_TAB_EFFECT_COVERAGE,
+} from "@/lib/home-settings"
 type HomeSettingsStore = HomeSettings & {
   addQuickSystemControl: (side: QuickBarSide, action: SystemActionId) => void
   addQuickSiteControl: (
@@ -121,28 +96,7 @@ type HomeSettingsStore = HomeSettings & {
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
     (set) => ({
-      layoutMode: "traditional",
-      quickBar: defaultQuickBar(),
-      wideGridColumns: DEFAULT_WIDE_GRID_COLUMNS,
-      narrowGridColumns: DEFAULT_NARROW_GRID_COLUMNS,
-      gridScale: DEFAULT_GRID_SCALE,
-      backgroundType: "solid",
-      backgroundImage: null,
-      backgroundPalette: "gray",
-      searchBoxStyle: "full",
-      searchShortcuts: defaultSearchShortcuts(),
-      folderStyle: "noise",
-      tabTexture: "burning",
-      tabEffectCoverage: DEFAULT_TAB_EFFECT_COVERAGE,
-      newTabsDynamicEffect: false,
-      topComponent: "dot-matrix",
-      traditionalTopSpacing: defaultTraditionalTopSpacing,
-      content: "time",
-      text: "HELLO WORLD",
-      pet: "cat",
-      color: "#3478f6",
-      burningAmplitude: 1,
-      transitionsEnabled: false,
+      ...sanitizeHomeSettings(null),
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
       addQuickSystemControl: (side, action) => {
@@ -342,106 +296,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         transitionsEnabled,
       }),
-      merge: (persisted, current) => {
-        const saved = persisted as Partial<HomeSettings> | null
-        const wideGridColumns = isGridComponentColumnCount(
-          saved?.wideGridColumns
-        )
-          ? saved.wideGridColumns
-          : DEFAULT_WIDE_GRID_COLUMNS
-        const narrowGridColumns = isGridComponentColumnCount(
-          saved?.narrowGridColumns
-        )
-          ? (Math.min(
-              saved.narrowGridColumns,
-              wideGridColumns
-            ) as GridComponentColumnCount)
-          : (Math.min(
-              DEFAULT_NARROW_GRID_COLUMNS,
-              wideGridColumns
-            ) as GridComponentColumnCount)
-        return {
-          ...current,
-          layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
-          quickBar:
-            saved?.quickBar === undefined
-              ? defaultQuickBar()
-              : sanitizeQuickBarConfig(saved.quickBar),
-          wideGridColumns,
-          narrowGridColumns,
-          gridScale: clampGridScale(saved?.gridScale) ?? DEFAULT_GRID_SCALE,
-          backgroundType: saved?.backgroundType === "image" ? "image" : "solid",
-          backgroundImage:
-            typeof saved?.backgroundImage === "string"
-              ? saved.backgroundImage
-              : null,
-          backgroundPalette: isBackgroundPaletteId(saved?.backgroundPalette)
-            ? saved.backgroundPalette
-            : "gray",
-          searchBoxStyle:
-            saved?.searchBoxStyle === "minimal" ? "minimal" : "full",
-          searchShortcuts:
-            saved?.searchShortcuts === undefined
-              ? defaultSearchShortcuts()
-              : sanitizeSearchShortcuts(saved.searchShortcuts),
-          folderStyle:
-            saved?.folderStyle === "classic" || saved?.folderStyle === "none"
-              ? saved.folderStyle
-              : "noise",
-          // Legacy `effectStyle` (the old global material) seeds tabTexture
-          // for users upgrading from before the two were merged.
-          tabTexture: (() => {
-            const legacy =
-              saved?.tabTexture ??
-              (saved as { effectStyle?: string } | null)?.effectStyle
-            return legacy === "none" || legacy === "particles"
-              ? legacy
-              : "burning"
-          })(),
-          tabEffectCoverage:
-            typeof saved?.tabEffectCoverage === "number" &&
-            Number.isFinite(saved.tabEffectCoverage)
-              ? Math.round(
-                  Math.min(
-                    MAX_TAB_EFFECT_COVERAGE,
-                    Math.max(MIN_TAB_EFFECT_COVERAGE, saved.tabEffectCoverage)
-                  )
-                )
-              : DEFAULT_TAB_EFFECT_COVERAGE,
-          newTabsDynamicEffect: saved?.newTabsDynamicEffect === true,
-          burningAmplitude:
-            typeof saved?.burningAmplitude === "number" &&
-            Number.isFinite(saved.burningAmplitude)
-              ? Math.min(2, Math.max(0, saved.burningAmplitude))
-              : 1,
-          transitionsEnabled:
-            (saved?.transitionsEnabled ??
-              (saved as { burningEntrance?: boolean } | null)
-                ?.burningEntrance) === true,
-          topComponent: saved?.topComponent === "none" ? "none" : "dot-matrix",
-          traditionalTopSpacing: isTraditionalTopSpacing(
-            saved?.traditionalTopSpacing
-          )
-            ? saved.traditionalTopSpacing
-            : defaultTraditionalTopSpacing,
-          content:
-            saved?.content === "text" ||
-            saved?.content === "pet" ||
-            saved?.content === "breathing"
-              ? saved.content
-              : "time",
-          text:
-            typeof saved?.text === "string"
-              ? saved.text.replace(/[^\x20-\x7e]/g, "").slice(0, 80)
-              : current.text,
-          color:
-            typeof saved?.color === "string" &&
-            /^#[0-9a-f]{6}$/i.test(saved.color)
-              ? saved.color
-              : current.color,
-          pet: isMatrixPet(saved?.pet) ? saved.pet : "cat",
-        }
-      },
+      merge: (persisted, current) => ({
+        ...current,
+        ...sanitizeHomeSettings(persisted),
+      }),
     }
   )
 )

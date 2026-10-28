@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { encodeConfig, decodeConfig } from "@/lib/config-codec"
+import { encodeConfig, decodeConfig } from "@/lib/migrations/legacy-config"
 
 describe("config-codec", () => {
   it("preserves Unicode and layout data", async () => {

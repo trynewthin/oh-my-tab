@@ -82,7 +82,8 @@ export function validGridItem(value: unknown): value is GridItem {
   if (typed.kind === "dot-canvas")
     return (
       Array.isArray(typed.pixels) &&
-      [384, 576, 1024, 1152, 2304].includes(typed.pixels.length) &&
+      [24, 48].includes(typed.pixelColumns) &&
+      [24, 48].includes(typed.pixels.length / typed.pixelColumns) &&
       typed.pixels.every(
         (pixel) =>
           typeof pixel === "string" &&

@@ -51,7 +51,7 @@ export function validTimeZone(value: unknown): value is string {
 }
 
 export function pomodoroPhaseMinutes(item: PomodoroItem) {
-  return item.phase === "break" ? (item.breakMinutes ?? 0) : item.minutes
+  return item.phase === "break" ? item.breakMinutes : item.minutes
 }
 
 export function remainingTime(item: PomodoroItem, now = Date.now()) {
@@ -70,7 +70,7 @@ export function completePomodoro(
 ): PomodoroItem {
   if (item.endsAt === null || now < item.endsAt) return item
   const focusMs = item.minutes * 60_000
-  const breakMs = (item.breakMinutes ?? 0) * 60_000
+  const breakMs = item.breakMinutes * 60_000
   const period = focusMs + breakMs
   const firstFocusEnd =
     item.phase === "break" ? item.endsAt + focusMs : item.endsAt
@@ -237,13 +237,10 @@ export function validUtilityWidget(item: UtilityWidgetItem): boolean {
     case "pomodoro":
       return (
         integer(item.minutes, 1, 180) &&
-        (item.breakMinutes === undefined ||
-          integer(item.breakMinutes, 0, 180)) &&
-        (item.loop === undefined || typeof item.loop === "boolean") &&
-        (item.phase === undefined ||
-          item.phase === "focus" ||
-          item.phase === "break") &&
-        (item.phase !== "break" || (item.breakMinutes ?? 0) > 0) &&
+        integer(item.breakMinutes, 0, 180) &&
+        typeof item.loop === "boolean" &&
+        (item.phase === "focus" || item.phase === "break") &&
+        (item.phase !== "break" || item.breakMinutes > 0) &&
         integer(item.remainingMs, 0, pomodoroPhaseMinutes(item) * 60_000) &&
         (item.endsAt === null ||
           integer(item.endsAt, 0, 8_640_000_000_000_000)) &&
@@ -363,7 +360,7 @@ export function applyUtilityConfiguration(
   if (current.kind === "pomodoro" && draft.kind === "pomodoro") {
     const live =
       current.minutes === draft.minutes &&
-      (current.breakMinutes ?? 0) === (draft.breakMinutes ?? 0)
+      current.breakMinutes === draft.breakMinutes
         ? current
         : resetPomodoro({
             ...current,

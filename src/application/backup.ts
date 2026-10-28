@@ -1,9 +1,9 @@
+import { readBackupSource, extractBackupImage } from "@/lib/migrations/backup"
 import { rehydrateData } from "@/application/hydrate"
 import { i18n } from "@/i18n"
 import {
   snapshot,
   validateConfig,
-  parseConfig,
   importConfig,
   type Config,
 } from "@/application/config-transfer"
@@ -11,28 +11,20 @@ import {
   getAsset,
   putAsset,
   flushStorage,
-  dataUrlToBlob,
   storageRevision,
 } from "@/lib/storage"
-import {
-  encodeBackup,
-  decodeBackup,
-  MAX_BACKUP_BYTES,
-} from "@/lib/backup-codec"
+import { encodeBackup } from "@/lib/backup-codec"
 export { MAX_BACKUP_BYTES } from "@/lib/backup-codec"
 export type Backup = { config: Config; image?: Blob }
 export type BackupContents = { backup: Backup; sourceConfig: unknown }
 export async function createBackup(): Promise<Blob> {
   await flushStorage()
-  const revision = await storageRevision()
   await rehydrateData()
+  const revision = await storageRevision()
   const config = JSON.parse(JSON.stringify(snapshot())) as Config
   let image: Blob | undefined
   if (config.home.backgroundImage) {
-    const value = config.home.backgroundImage
-    image = value.startsWith("asset:")
-      ? await getAsset(value)
-      : dataUrlToBlob(value)
+    image = await getAsset(config.home.backgroundImage)
     config.home.backgroundImage = null
   }
   const result = await encodeBackup(config, image)
@@ -41,29 +33,17 @@ export async function createBackup(): Promise<Blob> {
   return result
 }
 export async function readBackupContents(file: Blob): Promise<BackupContents> {
-  if (!file.size || file.size > MAX_BACKUP_BYTES)
-    throw new Error(i18n.t("settings.errors.backupFileSizeLimit"))
-  const signature = new Uint8Array(await file.slice(0, 2).arrayBuffer())
-  if (signature[0] !== 0x50 || signature[1] !== 0x4b) {
-    if (file.size > 16 * 1024 * 1024)
-      throw new Error(i18n.t("settings.errors.legacyBackupTooLarge"))
-    const config = await parseConfig(await file.text())
-    return { backup: { config }, sourceConfig: config }
-  }
-  const decoded = await decodeBackup(file)
-  // Validation also fills defaults introduced by newer releases. Keep the
-  // original config for WebDAV integrity checks so a valid older snapshot is
-  // not mistaken for a damaged file after a schema migration.
+  const decoded = await readBackupSource(file)
+  // Verify remote checksums against the unmodified source, before migration.
   const sourceConfig = decoded.config
-  const config = validateConfig(structuredClone(sourceConfig))
-  if (config.home.backgroundImage !== null)
-    throw new Error(i18n.t("settings.errors.zipImageReference"))
-  if (decoded.image) {
-    const bitmap = await createImageBitmap(decoded.image)
+  const config = validateConfig(sourceConfig)
+  const image = extractBackupImage(config, decoded)
+  if (image) {
+    const bitmap = await createImageBitmap(image)
     bitmap.close()
   }
   return {
-    backup: { config, image: decoded.image },
+    backup: { config, image },
     sourceConfig,
   }
 }
@@ -76,10 +56,6 @@ export async function restoreBackup(
 ) {
   const config = structuredClone(backup.config)
   if (backup.image) config.home.backgroundImage = await putAsset(backup.image)
-  else if (config.home.backgroundImage?.startsWith("data:image/"))
-    config.home.backgroundImage = await putAsset(
-      dataUrlToBlob(config.home.backgroundImage)
-    )
   await importConfig(config, revision)
 }
 export function downloadBackup(blob: Blob) {

@@ -1,10 +1,6 @@
 import Todo from "./todo"
 import Calendar from "./calendar"
-import {
-  canvasDimensions,
-  resizeDots,
-  displayDots,
-} from "@/lib/grid/dot-canvas-data"
+import { canvasDimensions, resizeDots } from "@/lib/grid/dot-canvas-data"
 import Ecosystem from "./ecosystem"
 import DotArt from "./dot-art"
 import TabBackground from "./tab-background"
@@ -62,8 +58,8 @@ function DotCanvasTile({
       <div className="min-h-0 w-full flex-1">
         <DotArt
           pixels={resizeDots(
-            displayDots(item.pixels),
-            item.pixelColumns ?? 24,
+            item.pixels,
+            item.pixelColumns,
             canvasDimensions(item.size).columns,
             canvasDimensions(item.size).rows
           )}

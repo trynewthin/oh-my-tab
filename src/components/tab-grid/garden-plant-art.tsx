@@ -10,8 +10,8 @@ import {
 } from "@/lib/garden"
 import { useTranslation } from "react-i18next"
 
-// Stable structural ids keep `data-family` hooks (and any CSS keyed off them)
-// language-independent; the display name comes from the locale resources.
+// Stable structural ids: `data-family` hooks and CSS stay language-independent,
+// while the display name comes from the locale resources.
 const FAMILY_IDS = [
   "daisy",
   "sunflower",
@@ -123,7 +123,6 @@ export default function GardenPlantArt({
   plant: GardenPlant
   now: number
 }) {
-  // Subscribes to language changes so the generated title re-renders in place.
   const { t } = useTranslation()
   const seed = plantSeed(plant)
   const gene = (index: number) => randomGene(seed, index)

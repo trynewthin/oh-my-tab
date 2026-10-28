@@ -2,12 +2,6 @@ import { expect, test, type Page } from "@playwright/test"
 
 import { readStoredState, waitForStorageWrites } from "../helpers/storage"
 
-// The suite runs with a pinned zh-CN browser locale, so `system` resolves to
-// Simplified Chinese everywhere else. These tests opt into English explicitly
-// (`locale: "en-US"` or a seeded `omt.locale` preference) and cover the
-// language contract: switching, persistence across reload, popup sharing,
-// `<html lang>`/title updates, name stability, and localized default names.
-
 const EN = {
   prompt: "Conversation input",
   openSettings: "Open settings",
@@ -97,8 +91,6 @@ test.describe("language preference", () => {
     await dialog.getByRole("combobox", { name: EN.language }).click()
     await page.getByRole("option", { name: EN.chinese, exact: true }).click()
 
-    // Switching is synchronous against bundled resources: the document and the
-    // settings dialog both flip without a reload.
     await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN")
     await expect(
       page.getByRole("dialog", { name: ZH.settings, exact: true })
@@ -217,8 +209,6 @@ test.describe("names across a language change", () => {
     await seed(page, { locale: "en" })
     await page.goto("/")
 
-    // The catalog path resolves the default name at creation time, in the
-    // language active then.
     await page
       .getByRole("button", { name: EN.moreActions, exact: true })
       .click()
@@ -235,11 +225,8 @@ test.describe("names across a language change", () => {
     await catalog
       .getByRole("button", { name: "Select To-do", exact: true })
       .click()
-    // Selecting opens a second dialog with the direct-add confirmation.
     await page.getByRole("button", { name: "Add", exact: true }).click()
 
-    // The write is asynchronous, so poll until the item lands rather than
-    // reading once and racing it.
     await expect
       .poll(async () => {
         const state = await readStoredState<{ items: { name: string }[] }>(

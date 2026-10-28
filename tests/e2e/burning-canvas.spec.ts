@@ -3,9 +3,7 @@ import sharp from "sharp"
 
 const SURFACE = '[data-grid-item-id="flame"] [data-effect-style]'
 
-// These cases exercise the shared GPU renderer with repeated screenshots.
-// Running the density variants together can starve animation frames and turn
-// the motion assertion into a load-dependent failure.
+// Parallel GPU captures can starve animation frames and make motion checks flaky.
 test.describe.configure({ mode: "serial" })
 
 type Layer = {
@@ -28,7 +26,6 @@ async function decode(buffer: Buffer): Promise<Layer> {
   }
 }
 
-// A pixel is "inked" when any channel is measurably darker than the card.
 function inkCoverage(layer: Layer) {
   let count = 0
   for (let i = 0; i < layer.data.length; i += layer.channels) {
@@ -43,12 +40,7 @@ function inkCoverage(layer: Layer) {
   return count / (layer.width * layer.height)
 }
 
-// Per-cell centre comparison: the canvas layer and the DOM reference layer must
-// agree at the centre of every rendered texture cell. Cell centres are sampled
-// rather than whole pixels because the canvas and the CSS grid rasterize
-// fractional cell edges through different paths; a one-device-pixel edge
-// rounding shifts a few boundary columns by up to 68/255 while the cell bodies
-// agree within 2/255.
+// Sample cell centres: Canvas and CSS round fractional edges differently.
 function maxCentreDelta(
   canvas: Layer,
   reference: Layer,
@@ -156,11 +148,7 @@ for (const width of [390, 1440]) {
               "hidden"
           })
 
-        // The canvas layer reports the raster box it paints into, and the
-        // measured region geometry must drive it exactly: the surface owns the
-        // device-pixel backing store, so a stale or fractional box would blur
-        // every texture cell. Resizing recreates the canvas, so the box is
-        // transiently absent; callers poll until it settles.
+        // Resizing replaces the canvas, so poll until its backing store settles.
         const rasterBox = () =>
           surface.evaluate((element) => {
             const layer = element.querySelector("canvas")
@@ -177,8 +165,6 @@ for (const width of [390, 1440]) {
           })
 
         await expect(canvas).toBeVisible()
-        // The visible layer is the canvas; the DOM cell grid underneath keeps
-        // its layout (visibility, not display) so its geometry stays measurable.
         await expect(reference).toBeAttached()
         let centres = await cellCentres(surface)
         expect(centres.length).toBeGreaterThan(0)
@@ -189,15 +175,10 @@ for (const width of [390, 1440]) {
         expect(rendered.width).toBe(dom.width)
         expect(rendered.height).toBe(dom.height)
 
-        // 1. Both layers must paint the same amount of texture. A blank canvas
-        //    collapses to ~0.02 coverage against the reference's ~0.37.
         const canvasInk = inkCoverage(rendered)
         const domInk = inkCoverage(dom)
         expect(Math.abs(canvasInk - domInk)).toBeLessThan(0.05)
 
-        // 2. Cell bodies must match the DOM texture. Measured rest state is
-        //    within 2/255; a blank layer, a wrong colour, a shifted grid or a
-        //    different per-cell fill all exceed 15/255.
         await expect.poll(rasterBox).not.toBeNull()
         const box = (await rasterBox())!
         expect(
@@ -207,9 +188,7 @@ for (const width of [390, 1440]) {
         await showCanvas()
         await expect(canvas).toBeVisible()
 
-        // 3. Under reduced motion the texture is a still frame: two captures
-        //    that are far enough apart to contain several animation frames must
-        //    be byte-identical. Measured animated deltas are 63..68.
+        // Leave enough time for animation frames to expose a reduced-motion failure.
         const still = await decode(await surface.screenshot())
         await page.waitForTimeout(400)
         const later = await decode(await surface.screenshot())
@@ -220,8 +199,6 @@ for (const width of [390, 1440]) {
         }
         expect(frozenDelta).toBe(0)
 
-        // 4. The reduced-motion preference must gate a live pipeline rather
-        //    than a dead one: the same surface animates once motion is allowed.
         await page.emulateMedia({ reducedMotion: "no-preference" })
         await page.mouse.move(10, 10)
         await expect
@@ -250,9 +227,6 @@ for (const width of [390, 1440]) {
           })
           .toBe(true)
 
-        // 5. After a viewport resize, the backing store still matches the
-        //    measured region at the active density. Fixed-size grid units may
-        //    keep the same raster width across viewport changes.
         await page.setViewportSize({
           width: width === 1440 ? 1280 : width - 16,
           height: 1000,

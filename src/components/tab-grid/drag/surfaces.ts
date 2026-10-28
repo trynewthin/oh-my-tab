@@ -7,12 +7,9 @@ import {
   type Point,
 } from "./model"
 
-// Browser-surface adapter for the drag lifecycle: resolves live geometry and
-// insertion indices straight from the DOM. This module intentionally touches
-// document/querySelector — it is the only place the drag machine reads the
-// rendered grid, folder and todo surfaces, so the hook stays free of DOM
-// queries. No React, stores, dnd-kit or mutation belongs here.
-
+// The only module that reads the rendered grid, folder and todo surfaces from
+// the DOM, keeping the drag hook free of queries. No React, stores, dnd-kit or
+// mutation belongs here.
 export function findGridItemBounds(
   grid: HTMLDivElement | null,
   id: string

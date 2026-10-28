@@ -35,11 +35,10 @@ export function createPixiEffect(
     null,
   ]
   let bounds = region.getBoundingClientRect()
-  // Cell pitch tracks the surface: step = cell edge + 1px gap, sized so the
-  // texture fills the surface exactly (see stepsOf in effect-surface).
+  // step = cell edge + 1px gap, sized so the texture fills the surface exactly.
   let { stepX, stepY } = steps
-  // Row phase follows the live cell pitch. A resize (4-wide → 8-wide) changes
-  // stepY, and a shift frozen at creation slides every row off the canvas.
+  // Row phase follows the live pitch: a resize changes stepY, and a shift
+  // frozen at creation would slide every row off the canvas.
   let firstRow = Math.floor(offsetY / stepY)
   let shift = offsetY % stepY
   let left = size.width - (columns * stepX - 1)
@@ -60,8 +59,8 @@ export function createPixiEffect(
     try {
       disposeScene?.()
     } catch {
-      // The shared renderer can leave a scene partially built after a WebGL
-      // failure. The DOM texture below remains the authoritative fallback.
+      // A WebGL failure can leave the scene partially built; the DOM texture
+      // below stays the authoritative fallback.
     }
     disposeScene = undefined
     release()

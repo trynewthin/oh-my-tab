@@ -52,8 +52,8 @@ a {
   align-items: center;
   min-height: 84px;
   justify-content: space-between;
-  /* The language switcher joins the existing actions, so the bar wraps onto a
-     second row on narrow viewports rather than squeezing its labels. */
+  /* The language switcher joins the actions, so narrow widths wrap to a second
+     row instead of squeezing labels. */
   flex-wrap: wrap;
   column-gap: 20px;
   row-gap: 6px;

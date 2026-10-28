@@ -5,9 +5,8 @@ import {
 } from "react"
 import { cn } from "@/lib/utils"
 
-// 46px border-box = 44px content = five whole texture cells (9px pitch)
-// plus the 1px top/bottom border. The +8px gap makes the row pitch 54px —
-// a multiple of 9, so per-row texture offsets stay on cell boundaries.
+// Row pitch 54px is a multiple of the 9px texture pitch, so per-row texture
+// offsets stay on cell boundaries. 46px border-box = 44px content = five cells.
 export const COLLECTION_ROW_HEIGHT = 46
 export const COLLECTION_ROW_GAP = 8
 export const COLLECTION_ROW_STEP = COLLECTION_ROW_HEIGHT + COLLECTION_ROW_GAP

@@ -58,11 +58,9 @@ export default function TodoTaskRow({
       }}
       onKeyDown={(event) => {
         if (!sortable || event.target !== event.currentTarget) return
-        // Only the drag-activation keys may be captured: forwarding Space/Enter
-        // keeps them from also starting a drag on the surrounding tile. Every
-        // other key — Escape in particular — must keep bubbling so that the
-        // document-level listeners (context menu dismissal, focus management)
-        // still receive it.
+        // Capture only the drag-activation keys, and stop them from also
+        // starting a drag on the surrounding tile. Everything else — Escape in
+        // particular — must bubble to document-level listeners.
         if (event.key !== " " && event.key !== "Enter") return
         event.stopPropagation()
         listeners?.onKeyDown?.(event)

@@ -1,5 +1,5 @@
-/* Widget chrome inherits the same surface, color and radius as the existing
-   folder/calendar cards. No second card, shadow or border inside the tile. */
+/* Widget chrome borrows folder/calendar surface, color and radius; no extra
+   card, shadow or border inside the tile. */
 .utility-surface {
   --utility-ink: color-mix(
     in oklab,

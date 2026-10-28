@@ -62,10 +62,9 @@ export function useVisualTransition(
       },
     })
     return () => {
-      // A killed tween freezes the property mid-flight (gsap.kill does not
-      // reset it): listeners keep repainting that frozen reveal forever —
-      // the "half-painted" folder row bug. Drive the tween to its end so the
-      // last painted frame matches the phase the hook reports.
+      // gsap.kill does not reset the tweened value: a mid-flight kill leaves
+      // listeners repainting a frozen reveal. Drive to the end first so the
+      // last frame matches the reported phase.
       tween.progress(1)
       tween.kill()
     }

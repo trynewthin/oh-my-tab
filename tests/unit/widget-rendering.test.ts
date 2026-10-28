@@ -30,7 +30,6 @@ vi.mock("@/stores/matrix-renderer-store", () => ({
 
 afterEach(() => vi.unstubAllGlobals())
 
-// Server rendering only: does not launch a browser or claim layout/visual QA.
 describe("widget render contracts", () => {
   test("folder backgrounds stay static when their tabs are animated", () => {
     const html = renderToStaticMarkup(

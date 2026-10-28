@@ -8,9 +8,7 @@ async function read(path: string) {
   return readFile(new URL(path, root), "utf8")
 }
 
-// Persisted stores that hydrate.ts is not allowed to rehydrate by design.
-// Everything else using persist() must appear in the `stores` array, or its
-// data silently never reloads after startup.
+// Stores intentionally excluded from cross-page rehydration.
 const exempt: string[] = []
 
 describe("persist registration", () => {

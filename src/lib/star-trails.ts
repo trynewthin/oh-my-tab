@@ -109,8 +109,7 @@ export function createStarTrailClock() {
         const cutoff = elapsed - STAR_TRAIL_EXPOSURE_SECONDS
         while (history.length > 1 && history[1].time <= cutoff) history.shift()
         const span = angle - angleAt(cutoff)
-        // Grow around the rotating orbit rather than anchoring its tail.
-        // Keep the head's formation offset when stopped so stars stay put.
+        // Grow around the orbit; keep the head's formation offset when stopped.
         if (movement > 0)
           formationRotation += Math.max(0, span - previousSpan) / 2
         previousSpan = span

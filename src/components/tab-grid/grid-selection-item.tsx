@@ -4,8 +4,8 @@ import { getComponentDefinition } from "@/lib/grid/registry"
 import GridTileContent from "./grid-tile-content"
 import { ItemGlow } from "./grid-dnd-overlay"
 
-// Selection mode renders every tile inert and overlays a checkbox button, so
-// the whole tile surface toggles selection instead of opening the item.
+// Tiles render inert; an overlaid checkbox makes the whole surface toggle
+// selection instead of opening the item.
 export default function GridSelectionItem({
   item,
   placement,

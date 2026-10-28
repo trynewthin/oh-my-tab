@@ -45,8 +45,7 @@ function previewTab(
   }
 }
 
-// One 4x2 tab on the left, two 4x1 tabs stacked on the right — centered
-// as a group under the select row.
+// 4x2 tab on the left, two 4x1 tabs stacked right, centered under the select row.
 function buildPreview(t: (key: string) => string, dynamicEffect: boolean) {
   const [medium, smallA, smallB] = [
     previewTab("Oh My Tab", "medium", dynamicEffect),

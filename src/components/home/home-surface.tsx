@@ -5,9 +5,8 @@ import {
 } from "@/lib/background-palettes"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
-// Paints the home page's solid background, so a preview shown away from the
-// page matches the configured palette. An image background is too noisy behind
-// a component, so that case falls back to the default theme palette.
+// Solid palette background for previews of the home page. Image backgrounds
+// fall back to the gray palette so the previewed component stays legible.
 export default function HomeSurface({
   className = "",
   children,

@@ -39,10 +39,8 @@ let rehydrateTail: Promise<void> = Promise.resolve()
 // undefined: nothing queued · "all": every store · Set: queued storage keys
 let rehydratePending: Set<string> | "all" | undefined
 
-// Rehydration must run strictly serially: when two rehydrate() calls overlap
-// on the same store, zustand resolves the superseded one early and leaves
-// hasHydrated false until the newer pass finishes, so the check above is only
-// reliable while this queue guarantees no overlap.
+// Serialize rehydration: zustand resolves superseded calls before hasHydrated
+// becomes true, so overlapping passes would fail the check above.
 export function rehydrateData(keys?: string[]): Promise<void> {
   rehydratePending =
     rehydratePending === "all" || keys === undefined

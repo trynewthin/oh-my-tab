@@ -40,10 +40,8 @@ import {
 const FOLDER_DROP_INSET = 0.08
 const FOLDER_DROP_EXIT_INSET = 0.04
 
-// Encapsulates the whole drag lifecycle: session capture, the per-frame intent
-// state machine (grid / folder-charge / folder-reorder), and the two rAF timers
-// that drive charge and release animation. The component supplies the live
-// layout inputs each frame so the hook never reads stale geometry.
+// Owns the drag lifecycle: session capture, the per-frame intent state machine
+// (grid / folder-charge / folder-reorder), and the rAF charge/release timers.
 export function useGridDrag({
   items,
   widthColumns,
@@ -58,9 +56,7 @@ export function useGridDrag({
   resolveDrop,
 }: {
   items: GridItem[]
-  /** Column count derived from container width (ignores any drag freeze). */
   widthColumns: number
-  /** Container width in px; steps are derived from it and the active columns. */
   width: number
   gridGap: number
   coordinateScale?: number
@@ -71,10 +67,7 @@ export function useGridDrag({
   resolvePlacements: (columns: number) => Record<string, GridPlacement>
   /** Where a grid drop lands. Defaults to the store; previews pass local state. */
   commitLayout?: (columns: number, positions: GridPositions) => void
-  /**
-   * Overrides how a grid drop resolves placements. Returning null rejects the
-   * drop (tiles revert). Defaults to placeItems against the session snapshot.
-   */
+  /** Returning null rejects the drop (tiles revert); defaults to placeItems. */
   resolveDrop?: (
     positions: GridPositions,
     target: { id: string; position: GridPosition }
@@ -100,7 +93,6 @@ export function useGridDrag({
     from: number
   } | null>(null)
 
-  // Frozen while a drag session is live; otherwise the width-derived count.
   const columns = dragging?.columns ?? widthColumns
   const columnStep = ((width + gridGap) / columns) * coordinateScale
   const rowStep = columnStep
@@ -136,9 +128,7 @@ export function useGridDrag({
 
   function startDrag(event: DragStartEvent) {
     clearHover()
-    // startDrag only fires while idle, so the base placements (from the stored
-    // layout, no preview target) are the session's source of truth for origin
-    // and the positions snapshot.
+    // startDrag only fires while idle, so the stored layout is the snapshot.
     const placements = resolvePlacements(columns)
     const data = event.active.data.current as GridDragData | undefined
     let item: GridItem | undefined
@@ -244,8 +234,7 @@ export function useGridDrag({
         : 1
   }
 
-  // releaseProgress only ever rises: an overlay extracted from a folder grows
-  // into its grid tile on the way out and never shrinks again mid-drag.
+  // releaseProgress only ever rises, so a grown overlay never shrinks mid-drag.
   function animateRelease(delta: Point) {
     const current = currentRelease()
     if (!release.current) {
@@ -401,9 +390,8 @@ export function useGridDrag({
         cancelAnimationFrame(candidate.frame)
         if (!ready)
           candidate.frame = requestAnimationFrame(() => updateIntent(delta))
-        // Approaching a folder never resizes the overlay — the folder glows
-        // and previews the gap instead. releaseProgress freezes wherever it
-        // is, so a grown overlay never shrinks back mid-drag.
+        // Approaching a folder never resizes the overlay: the folder glows and
+        // previews the gap instead.
         clearRelease()
         publish({
           kind: "folder",

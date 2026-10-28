@@ -7,8 +7,7 @@ type SystemActionDefinition = {
   surfaces: readonly SystemActionSurface[]
 }
 
-// These IDs are stored in grid buttons and quick-bar controls. Keep existing
-// IDs stable so saved layouts and backups remain readable.
+// IDs persist in saved layouts and backups; never rename existing ones.
 export const systemActionRegistry = {
   "toggle-theme": {
     labelKey: "shell.systemActions.toggleTheme",

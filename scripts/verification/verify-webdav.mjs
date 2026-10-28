@@ -150,8 +150,7 @@ try {
   const contexts = await Promise.all(
     [0, 1].map(async () => {
       const context = await browser.newContext({
-        // The UI follows the browser language, so this script's zh-CN label
-        // selectors need a deterministic locale instead of the runner's.
+        // Label selectors use Chinese.
         locale: "zh-CN",
         ignoreHTTPSErrors: true,
         viewport: { width: 1438, height: 961 },

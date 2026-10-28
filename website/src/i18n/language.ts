@@ -8,10 +8,7 @@ export type PageId = "home" | "privacy"
 
 const englishPrefix = "/en"
 
-/**
- * Website language is addressable: `/` and `/privacy` are zh-CN, `/en` and
- * `/en/privacy` are en. Anything else falls back to zh-CN.
- */
+/** `/` and `/privacy` are zh-CN; `/en` and `/en/privacy` are en; else zh-CN. */
 export function languageFromPath(pathname: string): AppLanguage {
   const normalized = normalizePath(pathname)
   return normalized === englishPrefix ||

@@ -55,9 +55,8 @@ export default function SettingsApplication() {
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
   const View = settingsViews[section] ?? settingsViews[defaultSettingsSection]
   const material = section === "personalization-material"
-  // Base UI keeps the portal mounted while the dialog exit animation runs.
-  // Keep the material presentation intact for that interval so the dialog
-  // does not flash back to the regular settings surface before disappearing.
+  // Base UI keeps the portal mounted during the exit animation; hold the
+  // material surface so the dialog does not flash back while it closes.
   const materialVisible = material
   const [materialPreview, setMaterialPreview] =
     useState<MaterialPreviewStyle>(tabTexture)

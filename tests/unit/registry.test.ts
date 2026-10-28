@@ -44,8 +44,6 @@ describe("component occupancy registration", () => {
             height: size.height,
           }
         )
-        // Display text is resolved from `roleKey`, never stored: the label is
-        // the translated role word plus the numeric mark.
         const expected = occupancyMark(size.width, size.height)
         expect(sizeLabel(size, (key) => key)).toBe(
           size.roleKey ? `${size.roleKey} · ${expected}` : expected

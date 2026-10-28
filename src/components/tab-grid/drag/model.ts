@@ -95,8 +95,6 @@ export function previewTodoTasks(
   return next
 }
 
-// Removes the task by id, clamps the insert index to the shrunken list, and
-// reinserts it without mutating the input array.
 export function reorderTodoTasks(
   tasks: TodoTask[],
   task: TodoTask,

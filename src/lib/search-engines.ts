@@ -77,9 +77,8 @@ export function isPresetEngine(id: string) {
   return defaultSearchEngines.some((engine) => engine.id === id)
 }
 
-// Preset names are proper nouns and stay in the persisted data as-is; only
-// the localized variant of a preset needs a translation key. Persisted engines
-// are never rewritten, so a customized name keeps rendering unchanged.
+// Preset names are proper nouns and persist as-is; only the localized preset
+// variant has a translation key. Persisted engines are never rewritten.
 const presetEngineNameKeys: Record<string, string> = {
   bingcn: "settings.searchEngines.engineBingCn",
 }

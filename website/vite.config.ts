@@ -4,11 +4,9 @@ import { defineConfig, type Plugin } from "vite"
 
 const root = import.meta.dirname
 
-// Vercel's `cleanUrls` maps extensionless paths onto `<name>.html` files in
-// production. Vite's dev and preview servers need the same mapping so the
-// language switcher and the `#features` anchors behave identically locally.
-// Flat `.html` files are used for every route because Vercel's clean-URL
-// handling only rewrites `name.html`, not nested `dir/index.html`.
+// Vercel's `cleanUrls` maps extensionless paths onto `<name>.html`; dev and
+// preview need the same mapping. Routes stay flat because that rewrite does not
+// cover nested `dir/index.html`.
 const cleanUrlTargets: Record<string, string> = {
   "/": "/index.html",
   "/privacy": "/privacy.html",

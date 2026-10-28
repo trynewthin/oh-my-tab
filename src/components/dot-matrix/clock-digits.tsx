@@ -3,7 +3,7 @@ import { CELL_GAP, CELL_SIZE, framedClockBitmap } from "./responsive-layout"
 import PixiMatrix from "./pixi-matrix"
 import { useMatrixRendererStore } from "@/stores/matrix-renderer-store"
 
-/** Reuse the matrix glyphs and renderer with the same lit and unlit cells as the home header. */
+/** Same glyphs and lit/unlit cells as the home header clock. */
 export default function ClockDigits({
   text,
   color,

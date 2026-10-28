@@ -126,8 +126,8 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  /* Solid equivalent of white/10% over the dark card color: translucent
-     borders smear over textured tiles, so tiles take an opaque color. */
+  /* Solid stand-in for white/10% over the dark card: translucent borders
+     smear over textured tiles. */
   --tile-border: oklch(0.269 0.006 285.885);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);

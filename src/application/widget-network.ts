@@ -6,7 +6,7 @@ import {
 } from "@/lib/widgets/network"
 import { requestWidgetOrigin } from "@/stores/privacy-store"
 
-/** Invoke directly from a click so the permission request keeps user activation. */
+/** Call from a click: the permission request needs user activation. */
 export async function loadRemoteWidget(
   item: RemoteWidgetItem,
   signal: AbortSignal

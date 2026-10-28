@@ -29,7 +29,8 @@ export function acquirePixiRenderer() {
       released = true
       clients--
       const token = ++generation
-      // A component changing size can acquire the existing renderer immediately.
+      // A resizing component can release and re-acquire in one tick; defer
+      // destruction so that handoff reuses this renderer.
       queueMicrotask(() => {
         if (clients || generation !== token || shared !== ready) return
         shared = undefined
@@ -52,11 +53,8 @@ export function presentPixi(
   const resolution = window.devicePixelRatio || 1
   const w = Math.max(1, Math.ceil(width * resolution))
   const h = Math.max(1, Math.ceil(height * resolution))
-  // Assigning canvas.width resets the bitmap and drops the previous 2d
-  // context state. A context captured before that assignment clears the old
-  // box only, so a wider surface (a 4-wide folder becoming 8-wide) keeps the
-  // previous frame in the new strip on the right. The context is therefore
-  // read after the resize, and cleared against the bitmap that exists now.
+  // Assigning canvas.width resets the bitmap and invalidates any earlier 2d
+  // context; read the context after resizing so the clear covers the new bitmap.
   if (canvas.width !== w || canvas.height !== h) {
     canvas.width = w
     canvas.height = h

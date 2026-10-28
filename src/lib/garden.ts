@@ -86,11 +86,7 @@ function localeNamePool(key: string) {
   return Array.isArray(value) ? (value as string[]) : []
 }
 
-/**
- * Generated display name for a plant, deterministic per seed within the
- * current language. An explicit user name always wins and never changes with
- * the language.
- */
+/** Deterministic per seed and language; an explicit user name always wins. */
 export function plantName(plant: GardenPlant) {
   if (plant.name?.trim()) return plant.name
   const first = localeNamePool("grid.garden.nameFirst")
@@ -103,7 +99,6 @@ export function plantName(plant: GardenPlant) {
   })
 }
 
-/** Plant family and growth stage, localized for the current language. */
 export function plantFamilyName(seed: number) {
   const pool = localeNamePool("grid.garden.family")
   return pool[plantFamily(seed)] ?? ""

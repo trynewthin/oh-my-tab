@@ -100,7 +100,6 @@ describe("groupComponents", () => {
     expect(next).not.toBeNull()
     const created = next!.items.find((i) => i.kind === "folder")
     expect(created?.name).toBe("工作")
-    // Sorted by layout order: b (0,0) precedes a (8,3)
     expect(next!.layouts[24][created!.id]).toEqual({ x: 0, y: 0 })
     expect((created as FolderItem).tabs.map((t) => t.id)).toEqual([b.id, a.id])
   })
@@ -118,7 +117,6 @@ describe("groupComponents", () => {
     const merged = next[0] as FolderItem
     expect(merged.id).toBe(f.id)
     expect(merged.tabs.map((t) => t.id)).toEqual([b.id])
-    // Unknown ids are a no-op
     expect(removeFolderTab([f], "missing", b.id)).toEqual([f])
     expect(removeFolderTab([f], f.id, "missing")).toEqual([f])
   })

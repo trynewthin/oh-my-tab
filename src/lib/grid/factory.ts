@@ -189,7 +189,7 @@ export function createCatalogComponent(
     definition.defaultSize
   const shared = {
     id: crypto.randomUUID(),
-    // Resolved at creation: a later language change never renames this item.
+    // Resolved now: a later language switch never renames this item.
     name: componentDefaultName(kind, (key) => i18n.t(key)),
     color: definition.defaultColor,
   }

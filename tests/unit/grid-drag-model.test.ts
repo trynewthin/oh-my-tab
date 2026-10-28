@@ -148,7 +148,6 @@ describe("containsPoint", () => {
 
   test("applies insets proportionally to the rect size", () => {
     const inset = { x: 0.1, y: 0.2 }
-    // x window: [10 + 10, 10 + 90] = [20, 100]; y window: [20 + 10, 20 + 40] = [30, 60]
     expect(containsPoint({ x: 15, y: 45 }, rect, inset.x, inset.y)).toBe(false)
     expect(containsPoint({ x: 20, y: 30 }, rect, inset.x, inset.y)).toBe(true)
     expect(containsPoint({ x: 100, y: 60 }, rect, inset.x, inset.y)).toBe(true)

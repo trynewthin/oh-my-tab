@@ -1,9 +1,9 @@
 import type { GridPosition } from "@/lib/grid/grid-layout"
 import type { Bounds, Point } from "./model"
 
-// Inclusive containment: both edges count as inside, and each axis can be
-// pulled inward by a fraction of its size (dropping toward a folder uses an
-// exit inset so a retained target only releases once the pointer leaves).
+// Inclusive on both edges. Each axis can be inset by a fraction of its size:
+// folder targeting uses an exit inset, so a retained target releases only
+// once the pointer leaves.
 export function containsPoint(
   point: Point,
   rect: Bounds,
@@ -18,9 +18,8 @@ export function containsPoint(
   )
 }
 
-// Rounds the pointer's offset from the grid origin to the nearest cell and
-// clamps into the board: x keeps the item fully inside the column count, y
-// stays within the fixed 500-row ceiling.
+// Snaps the pointer's grid-relative offset to the nearest cell and clamps it
+// into the board (x fully inside the columns, y within the 500-row ceiling).
 export function gridPositionFromPoint({
   point,
   grabOffset,

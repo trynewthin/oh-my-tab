@@ -80,11 +80,7 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   const tile = page.getByRole("button", { name: "编辑点阵画布 点阵画布" })
   const track = page.locator("[data-tab-grid-track]")
   await expect(tile).toBeVisible()
-  // A 4x4 dot canvas must render as a square occupying four grid tracks in
-  // both axes. Derive that footprint from the live grid geometry instead of
-  // pinning a parent's inline style, and re-sync on the rendered tile after
-  // each viewport change because the grid renders nothing until it has both a
-  // measured width and a layout for the new column count.
+  // Resizing briefly unmounts the grid until its new layout is measured.
   for (const width of [1440, 1030, 390]) {
     await page.setViewportSize({ width, height: 969 })
     await expect(tile).toBeVisible()
@@ -100,7 +96,6 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
           const scale = Number((node as HTMLElement).dataset.gridScale) || 1
           const gap = (Number.parseFloat(style.columnGap) || 0) * scale
           const step = (node.getBoundingClientRect().width + gap) / columns
-          // gridMetrics uses the same step, so a 4-track span is 4*step - gap.
           return 4 * step - gap
         })
         return Math.max(

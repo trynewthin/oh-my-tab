@@ -54,7 +54,7 @@ export function NoteTile(props: KindProps<"note">) {
   )
 }
 
-/** Locally drawn catalog artwork, not a remotely loaded or user-owned photo. */
+/** Local catalog artwork, not a remotely loaded or user-owned photo. */
 function PhotoIllustration() {
   const { t } = useTranslation()
   return (

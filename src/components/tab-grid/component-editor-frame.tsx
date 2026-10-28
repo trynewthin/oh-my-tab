@@ -35,8 +35,8 @@ const PREVIEW_TOP_INSET = 56
 const PREVIEW_BOTTOM_INSET = 24
 const MAX_PANEL_OVERLAP = 80
 
-// The preview uses the home grid's tile size. Large tiles can extend behind
-// the floating form, while smaller tiles stay centered above it.
+// The preview uses the home grid's tile size; large tiles may extend behind
+// the floating form while smaller ones stay centered above it.
 export default function ComponentEditorFrame({
   open = true,
   contentClassName = "",

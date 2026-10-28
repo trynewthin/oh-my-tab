@@ -14,9 +14,6 @@ import {
   resolveAppLanguage,
 } from "@/i18n/language"
 
-// Each module is mounted under its own top-level key, so a key added to only
-// one language renders the fallback (or a raw key) in the other. These assert
-// the shape, not the wording.
 const modules = {
   core: [zhCore, enCore],
   settings: [zhSettings, enSettings],
@@ -47,8 +44,6 @@ describe("language resolution", () => {
   test("system follows the browser and falls back to zh-CN", () => {
     expect(resolveAppLanguage("system", ["en-US", "zh"])).toBe("en")
     expect(resolveAppLanguage("system", ["zh-CN"])).toBe("zh-CN")
-    // Traditional Chinese and unknown languages are unsupported: both settle
-    // on the default rather than resolving to a half-translated UI.
     expect(resolveAppLanguage("system", ["zh-TW"])).toBe("zh-CN")
     expect(resolveAppLanguage("system", ["fr-FR"])).toBe("zh-CN")
     expect(resolveAppLanguage("system", [])).toBe("zh-CN")

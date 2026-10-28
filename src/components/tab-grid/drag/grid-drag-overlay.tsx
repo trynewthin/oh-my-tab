@@ -13,18 +13,15 @@ import GridTileContent from "../grid-tile-content"
 import { mixHexColor } from "../folder-drop"
 import type { DragSession, Intent } from "./model"
 
-// Fractional overlay transforms make the 8px texture cells and the icon
-// rasterize at half-pixel offsets (the slight slide visible on grab and
-// drop). Preview drags snap the translate to whole pixels.
+// Fractional translates rasterize the 8px texture cells and the icon at
+// half-pixel offsets, which reads as a slide on grab and drop.
 const snapToWholePixels: Modifier = ({ transform }) => ({
   ...transform,
   x: Math.round(transform.x),
   y: Math.round(transform.y),
 })
 
-// The floating drag preview: derives the overlay tile from the frozen drag
-// session (source-row growth, folder color mixing) and renders it through a
-// portal into document.body so it escapes every clipping ancestor.
+// Floating drag preview, portalled into document.body to escape clipping.
 export default function GridDragOverlay({
   dragging,
   intent,
@@ -77,9 +74,8 @@ export default function GridDragOverlay({
             ),
           }
         : dragging.item
-  // A tab dragged out of a folder starts as its source row and only ever
-  // grows into the full tile (releaseProgress). Grid items keep their grab
-  // size for the whole drag — approaching a folder never resizes the overlay.
+  // A folder tab starts as its source row and only grows (releaseProgress);
+  // grid items keep their grab size for the whole drag.
   const compactSize = dragging?.sourceFolderId
     ? { width: dragging.width, height: dragging.height }
     : undefined
@@ -135,11 +131,8 @@ export default function GridDragOverlay({
               height: contentHeight,
               transform: `scale(${contentScale})`,
               transformOrigin: "top left",
-              // Previews keep the resting look: no lift shadow, and the
-              // overlay carries the same border as the settled tile so the
-              // padding box (and every inset-0/right-anchored child) stays
-              // pixel-identical while dragging — a missing 1px border reads
-              // as the icon and texture sliding on grab and drop.
+              // No lift shadow while previewing. The settled tile's 1px border
+              // must stay, or the padding box shifts and children slide.
               boxShadow:
                 !preview &&
                 releaseProgress > 0 &&

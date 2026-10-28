@@ -11,9 +11,9 @@ export type ClockReading = {
   date: string
 }
 
-// Bounded cache: the shared wall clock should not construct several Intl
-// formatters for every second and every city. Invalid editor input uses UTC
-// for its illustrative preview; persisted values still use model validation.
+// Bounded cache: the wall clock would otherwise build Intl formatters for
+// every second and city. Invalid input previews as UTC; persisted values are
+// validated.
 const formatters = new Map<string, Intl.DateTimeFormat>()
 function formatter(locale: string, options: Intl.DateTimeFormatOptions) {
   const key = JSON.stringify([locale, options])

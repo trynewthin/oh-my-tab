@@ -1,8 +1,7 @@
 import type { GridItem } from "@/lib/grid/types"
 
-// Sample grid content seeded in development. Names are product-owned defaults,
-// so they resolve through the active language when the grid is first seeded,
-// not when this module loads.
+// Sample grid content seeded in development; names resolve in the active
+// language when the grid is first seeded, not when this module loads.
 function buildMockGridItems(t: (key: string) => string): GridItem[] {
   return baseMockGridItems(t).concat(additionalMockGridItems(t))
 }

@@ -124,12 +124,12 @@ async function migrate(io: MigrationIO): Promise<RemoteFile | null> {
   parseRemoteIndex(JSON.stringify(next))
   await io.putIndex(next, existing?.etag ?? null, !!existing)
   if (legacy) {
-    // The new index is authoritative even if server permissions prevent
-    // deleting the obsolete source; it is never read again.
+    // The new index is authoritative even if permissions block deletion; the
+    // legacy source is never read again.
     try {
       await io.removeSource("oh-my-tab.zip", legacy.etag)
     } catch {
-      /* Committed index remains authoritative. */
+      // The index is already committed.
     }
   }
   await io.cleanup(next)

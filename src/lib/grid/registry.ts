@@ -4,13 +4,9 @@ import type { UtilityWidgetKind } from "./utility-types"
 export type GridItemKind = GridItem["kind"]
 export type GridItemSize = GridItem["size"]
 
-/** One grid cell. Width 1 and height 1 always form a square. */
 export const GRID_UNIT = 1
 
-/**
- * Allowed occupancies. Components pick from this scale; they do not invent
- * widths or heights. Persisted size tokens (small, large, …) stay per-kind.
- */
+/** Components choose from this scale; persisted size tokens stay per-kind. */
 export const GRID_OCCUPANCY = {
   "1x1": { width: 1, height: 1 },
   "2x1": { width: 2, height: 1 },
@@ -46,8 +42,7 @@ export type ComponentAction =
 
 export type ComponentMenuOperation = "edit" | "randomColor" | "dynamicEffect"
 
-// Occupancy role vocabulary. The role is the word shown before the size mark
-// ("Small · 4×1"); the mark itself is numeric and locale-independent.
+// Role word before the locale-independent numeric mark ("Small · 4×1").
 export type SizeRole =
   | "small"
   | "medium"
@@ -87,8 +82,8 @@ export function gridSize(
 /** Minimal shape of `i18n.t`/`useTranslation().t` this module needs. */
 export type Translator = (key: string) => string
 
-// Registry entries carry translation keys, never display text: the same
-// definition must render in every language without being rebuilt.
+// Registry entries carry translation keys, never display text, so one
+// definition renders in every language.
 function utilityDefinition(
   kind: UtilityWidgetKind,
   defaultSize: GridItemSize,
@@ -502,8 +497,8 @@ export const componentRegistry = {
   ),
 } as const satisfies Record<GridItemKind, ComponentDefinition>
 
-// Only widgets listed here can be added; other registered utilities remain
-// available to saved layouts.
+// Only these can be added; other registered utilities remain available to
+// saved layouts.
 export const catalogComponentKinds = [
   "clock",
   "button",
@@ -533,11 +528,6 @@ export function getComponentDefinition(
   return componentRegistry[kind]
 }
 
-/**
- * Resolves registry display metadata through the active language. Every
- * consumer renders these at call time so a language switch re-renders chrome
- * without rebuilding the registry.
- */
 export function componentLabel(kind: GridItemKind, t: Translator): string {
   return t(getComponentDefinition(kind).labelKey)
 }
@@ -549,7 +539,6 @@ export function componentDescription(
   return t(getComponentDefinition(kind).descriptionKey)
 }
 
-/** Product-owned default name, in the language active at creation time. */
 export function componentDefaultName(
   kind: GridItemKind,
   t: Translator
@@ -557,7 +546,6 @@ export function componentDefaultName(
   return t(getComponentDefinition(kind).defaultNameKey)
 }
 
-/** "Small · 4×1" — role word first when the size has one, else the mark. */
 export function sizeLabel(
   size: Pick<ComponentSizeDefinition, "roleKey" | "width" | "height">,
   t: Translator

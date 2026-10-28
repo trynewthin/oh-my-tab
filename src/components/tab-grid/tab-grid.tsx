@@ -108,8 +108,7 @@ export default function TabGrid({
     | undefined
   >(undefined)
 
-  // Preview grids keep their placements in local state; the live grid reads
-  // them from the store layouts. Both feed the same drag hook below.
+  // Previews keep placements in local state; the live grid reads the store.
   const [previewPlaced, setPreviewPlaced] = useState<GridPositions>(
     () => previewPositions ?? emptyPositions
   )
@@ -119,10 +118,8 @@ export default function TabGrid({
     setPreviewPlaced(previewPositions ?? emptyPositions)
   }
 
-  // The hook owns the drag session and freezes the column count into it at
-  // startDrag time. startDrag only ever runs while not dragging, so it reads
-  // the base placements derived from the stored layout — never the live,
-  // intent-driven preview. resolvePlacements closes that over lazily.
+  // The session freezes its columns at startDrag and reads stored placements,
+  // never the live preview; resolvePlacements closes over that lazily.
   const drag = useGridDrag({
     items,
     widthColumns,
@@ -157,8 +154,7 @@ export default function TabGrid({
     resetDrag,
   } = drag
 
-  // The drag session freezes its own column count and positions snapshot, so
-  // geometry must be recomputed against the session's columns while dragging.
+  // Session columns can differ from the live width during a drag.
   const columns = dragging?.columns ?? widthColumns
   const columnStep = metrics.columnStep * coordinateScale
   const rowStep = metrics.rowStep * coordinateScale
@@ -200,8 +196,7 @@ export default function TabGrid({
       : undefined
   const placements = (() => {
     if (preview && liveTarget) {
-      // The same two-pass resolution used for the drop commit drives the
-      // in-flight preview, so what animates during a drag is what lands.
+      // Preview runs the drop-commit resolution, so animation matches the landing.
       const resolved = resolvePreviewDrop(
         items,
         columns,
@@ -226,7 +221,6 @@ export default function TabGrid({
     ensureLayout(columns)
   }, [preview, columns, width, items, layouts, dragging, ensureLayout])
 
-  // The expanded surface only exists while a folder with this id is present.
   const expandedFolder =
     folderId === null
       ? undefined
@@ -278,9 +272,7 @@ export default function TabGrid({
     return () => observer.disconnect()
   }, [preview, columns, items])
 
-  // The preview grid runs the same drag pipeline as the live grid — dnd-kit
-  // sensors, the floating overlay, FLIP reflows — but tiles render without
-  // context menus and drops commit to local state instead of the store.
+  // Preview reuses the full drag pipeline but commits to local state.
   if (preview) {
     return (
       <DndContext

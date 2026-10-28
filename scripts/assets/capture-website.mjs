@@ -129,9 +129,7 @@ const widgetItems = [
   },
 ]
 
-// Folders and tabs are separated by an empty grid column so neighbouring
-// tiles never touch in the screenshot — previously adjacent tile borders
-// rendered as stray frames inside other components.
+// Leave a gutter to keep adjacent borders out of detail captures.
 const organizeLayout = Object.fromEntries([
   ["work", { x: 0, y: 0 }],
   ["ideas", { x: 4, y: 0 }],
@@ -142,7 +140,6 @@ const organizeLayout = Object.fromEntries([
       { x: 9 + Math.floor(index / 4) * 4, y: index % 4 },
     ]),
 ])
-// One empty column between each 4-wide widget.
 const widgetLayout = Object.fromEntries(
   widgetItems.map((item, index) => [item.id, { x: index * 5, y: 0 }])
 )
@@ -255,8 +252,6 @@ async function capture(
   await page.getByRole("combobox").waitFor()
   await page.evaluate(() => document.fonts.ready)
   await page.waitForTimeout(1800)
-  // Detail shots clip to the union of the target tiles' boxes so no
-  // neighbouring chrome (search box, empty track) leaks into the frame.
   let clipRegion = clip
   if (clip === "grid") {
     const box = await page.evaluate(
@@ -346,9 +341,7 @@ await capture(
   homeLayout
 )
 
-// Detail cards get their own tightly-framed captures so the landing page
-// never crops a wide shot — cropping bled neighbouring tiles' borders into
-// the frame. Each scene uses an 8-column grid at a ~628px viewport.
+// Capture detail scenes separately; cropping wide shots includes adjacent tiles.
 const detailScenes = [
   {
     name: "detail-colors",

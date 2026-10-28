@@ -11,10 +11,7 @@ const resources = {
 
 const i18n = createInstance()
 
-/**
- * The URL owns language on the website, so the entry point resolves it first
- * and passes it in. React components read it with `useTranslation`.
- */
+/** The URL owns the language; the entry point resolves it and passes it in. */
 export function initI18n(language: AppLanguage = defaultLanguage) {
   i18n.use(initReactI18next).init({
     resources,

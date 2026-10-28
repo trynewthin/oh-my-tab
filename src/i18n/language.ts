@@ -11,8 +11,8 @@ export function isLanguagePreference(
   return (LANGUAGE_PREFERENCES as readonly unknown[]).includes(value)
 }
 
-// `navigator.languages` is ordered by user preference; `navigator.language` is
-// the fallback for browsers that omit the list.
+// `navigator.languages` is ordered by preference; `navigator.language`
+// is the fallback.
 export function browserLanguages(): readonly string[] {
   if (typeof navigator === "undefined") return []
   const languages = navigator.languages
@@ -20,9 +20,8 @@ export function browserLanguages(): readonly string[] {
   return navigator.language ? [navigator.language] : []
 }
 
-// Only simplified Chinese and English are supported. Traditional Chinese
-// variants (zh-TW, zh-HK, zh-Hant) and every unknown language fall back to the
-// default, zh-CN, which keeps resolution deterministic.
+// Only simplified Chinese and English; traditional variants (zh-TW, zh-HK,
+// zh-Hant) and unknown languages fall back to zh-CN.
 export function resolveAppLanguage(
   preference: LanguagePreference,
   languages: readonly string[] = browserLanguages()

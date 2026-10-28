@@ -125,8 +125,8 @@ export async function migrateStoredData() {
       }
       for (const [key, state] of states)
         updates[key] = JSON.stringify({ state, version: STORAGE_VERSION })
-      // Old assets had no metadata wrapper. Rewrite them before getAsset stops
-      // accepting the old shape; no bytes are re-encoded on IndexedDB.
+      // Old assets lack the metadata wrapper; wrap them before getAsset drops
+      // support for the old shape. Bytes are not re-encoded.
       stage = "assets"
       if (!completed) {
         const entries = await allEntries()
@@ -139,8 +139,8 @@ export async function migrateStoredData() {
       stage = "commit"
       if (Object.keys(updates).length)
         await writeEntries(updates, true, current)
-      // Cleanup follows a successful commit. If interrupted, retrying uses the
-      // committed modern entries and only repeats cleanup.
+      // Cleanup follows a successful commit; an interrupted retry reuses the
+      // committed entries.
       stage = "localStorage cleanup"
       for (const key of legacyKeys) localStorage.removeItem(key)
       if (!completed)

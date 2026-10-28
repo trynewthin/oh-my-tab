@@ -8,18 +8,11 @@ A customizable new tab page for your favorite sites, folders, and widgets.
 
 [Download the latest release](https://github.com/trynewthin/oh-my-tab/releases/latest) · [Website](https://ohmytab.vercel.app/) · [Privacy policy](https://ohmytab.vercel.app/privacy)
 
-## Make your new tab your own
-
-Oh My Tab replaces the new tab page in Chrome or Edge. Arrange cards on a free grid, organize related sites into folders, and search bookmarks across your page and folders.
-
-- **Organize your favorite sites:** add bookmarks and folders, drag to rearrange them, and choose card sizes. Multi-select items to organize them together.
-- **Choose the grid columns:** set separate wide- and narrow-screen counts. The grid switches after the wide layout shrinks below 80%, then scales only if the narrow layout still does not fit. Defaults are four and two columns.
-- **Search within reach:** find saved bookmarks or search the web with your chosen search engine. Add a movable search widget in 4×1, 8×1, or 12×1 sizes.
-- **One-click shortcuts:** add 1×1 buttons to switch themes, tidy the grid, enter selection mode, or open settings and the component catalog.
-- **Useful and playful widgets:** add a clock, calendar, to-do list, countdown, Pomodoro timer, clock-out countdown, dot canvas, and pixel planter. Preview widgets and select their size before adding them.
-- **Personalize the look:** choose light, dark, or system mode, set colors and backgrounds, and preview card styles and visual effects. The interface supports English and Simplified Chinese.
-- **Bring your bookmarks:** optionally import Chrome or Edge bookmarks, with duplicate URLs and matching folder names handled for you.
-- **Keep a backup:** export and restore complete ZIP backups, or manually transfer snapshots through your own HTTPS WebDAV server.
+- Drag sites and folders to organize them; adjust grid columns and card sizes.
+- Find saved bookmarks or search the web with your chosen search engine.
+- Add clocks, calendars, to-do lists, countdowns, Pomodoro timers, clock-out countdowns, dot canvases, and pixel planters.
+- Customize themes, backgrounds, and effects; switch between English and Simplified Chinese.
+- Import browser bookmarks and move data with ZIP backups or manual WebDAV sync.
 
 ## Install
 
@@ -53,22 +46,6 @@ Requires Node.js 22.12 or later.
 ```bash
 npm ci
 npm run dev
-```
-
-Before submitting changes:
-
-```bash
-npm run check
-npm run build
-npm test
-npm run test:extension
-```
-
-The product website is a separate workspace:
-
-```bash
-npm run website:dev
-npm run website:build
 ```
 
 See the [project documentation](docs/README.md) for development, testing, and release details (primarily in Chinese).

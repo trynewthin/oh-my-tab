@@ -56,8 +56,8 @@ export type ChangeSummary = {
   ratio: number
   large: boolean
 }
-// Arrays with IDs represent collections: compare individual items rather than
-// treating an entire bookmark collection as one setting.
+// ID arrays are collections: compare individual items, not the whole
+// collection.
 function entries(
   value: unknown,
   path = "",

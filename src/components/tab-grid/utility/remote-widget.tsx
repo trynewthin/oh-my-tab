@@ -116,7 +116,7 @@ export default function RemoteTile(props: WidgetProps<RemoteWidgetItem>) {
   try {
     source = new URL(widgetRequestUrl(item))
   } catch {
-    /* Newly added cards need a source. */
+    /* A newly added card has no URL yet, so source stays null. */
   }
   const display: RemoteWidgetData | null = sample
     ? item.kind === "weather"

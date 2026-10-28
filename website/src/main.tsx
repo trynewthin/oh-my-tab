@@ -5,8 +5,7 @@ import { initI18n } from "./i18n"
 import { languageFromPath, pageFromPath } from "./i18n/language"
 import "./styles.css"
 
-// The URL owns language and page on the web, so a reload always matches the
-// metadata baked into the static HTML entry point.
+// The URL owns language and page, so a reload matches the static HTML metadata.
 const language = languageFromPath(window.location.pathname)
 const page = pageFromPath(window.location.pathname)
 

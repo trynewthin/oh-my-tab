@@ -3,10 +3,6 @@ import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-// The UI language is a runtime preference, so this script never drives the
-// extension through localized labels: it exercises every language mode and
-// locates elements through language-independent hooks (`data-tour` markers,
-// ARIA roles, the pixi canvas marker).
 const extension = path.resolve("dist")
 const messageLocales = ["zh_CN", "en"]
 const languageModes = [
@@ -56,8 +52,6 @@ console.log(
   "PASS: manifest uses default_locale zh_CN and every placeholder resolves in zh_CN and en."
 )
 
-// The runtime applies the persisted preference after hydration, so the wait is
-// bounded but the failure message reports what the shell actually rendered.
 async function expectLanguage(page, language, errors) {
   try {
     await page.waitForFunction(
@@ -90,9 +84,7 @@ for (const mode of languageModes) {
       ],
       viewport: { width: 1440, height: 1000 },
     })
-    // A fresh profile per language: `omt.locale` is device-local and already
-    // committed on the first run, so the legacy localStorage copy is only
-    // migrated once. `initializeStorage` migrates it before hydration.
+    // Use a fresh profile so each language exercises the one-time legacy import.
     await context.addInitScript((preference) => {
       if (location.protocol !== "chrome-extension:") return
       localStorage.setItem(
@@ -115,8 +107,6 @@ for (const mode of languageModes) {
     await input.waitFor()
     await page.locator('[data-tour="engine"]').waitFor()
     await page.locator("[data-pixi-matrix] canvas").waitFor()
-    // The runtime owns <html lang> and the title; it applies the persisted
-    // preference after hydration. The static shell must not pin either one.
     await expectLanguage(page, mode.lang, errors)
     if (
       !(await page.evaluate(

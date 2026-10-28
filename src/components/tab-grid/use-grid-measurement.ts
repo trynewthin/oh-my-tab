@@ -2,9 +2,8 @@ import { useLayoutEffect, useRef, useState, type MutableRefObject } from "react"
 
 import type { Point } from "./drag/model"
 
-// Pointer tracking feeds drag intent resolution, and -- only when the grid
-// measures itself (no provided trackWidth) -- a ResizeObserver on the track
-// keeps the measured width current.
+// Pointer tracking for drag intent, plus a ResizeObserver that only runs when
+// the grid measures itself (no provided trackWidth).
 export default function useGridMeasurement({
   gridRef,
   containerRef,

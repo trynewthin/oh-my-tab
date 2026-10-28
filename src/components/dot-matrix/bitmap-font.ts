@@ -60,7 +60,6 @@ export function textBitmap(value: string): Bitmap {
     return rows.map((row) => row.slice(0, -1))
   }
 
-  // Rasterize remaining ASCII symbols and quantize each cell to on or off.
   const canvas = document.createElement("canvas")
   const context = canvas.getContext("2d")
   if (!context) return textBitmap("?")

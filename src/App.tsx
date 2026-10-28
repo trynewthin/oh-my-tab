@@ -26,9 +26,8 @@ const SystemCreateDialog = lazy(
   () => import("@/components/application/system-create-dialog")
 )
 
-// The settings tree is heavy (fflate zip, WebDAV, every section panel) and
-// only needed once the user opens it. Defer the chunk until the first open
-// and keep it mounted afterwards so open/close animations keep working.
+// The settings tree is heavy and only needed after the first open; it stays
+// mounted afterwards so open/close animations keep working.
 function DeferredSettingsApplication() {
   const [everOpened, setEverOpened] = useState(
     () => useSystemOverlayStore.getState().active === "settings"

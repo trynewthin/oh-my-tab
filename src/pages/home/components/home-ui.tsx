@@ -16,8 +16,7 @@ import { gridTrackWidth, resolveGridGeometry } from "@/lib/grid/grid-layout"
 import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import QuickBar from "@/components/home/quick-bar"
 
-// Only first-run users (or an explicit replay) need the tour; keep its bundle
-// off the initial page for everyone else.
+// The tour only matters for first-run users (or an explicit replay).
 const OnboardingTour = lazy(
   () => import("@/components/onboarding/onboarding-tour")
 )

@@ -11,7 +11,7 @@ export function validWorkdaySchedule(value: WorkdaySchedule) {
   )
 }
 
-/** Daily local wall times; date arithmetic also handles overnight shifts and DST. */
+/** Local wall times; date arithmetic handles overnight shifts and DST. */
 export function workdayReading(schedule: WorkdaySchedule, now: number) {
   const at = (time: string, offset = 0) => {
     const date = new Date(now)

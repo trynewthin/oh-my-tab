@@ -1,8 +1,6 @@
 import { indexedDB } from "fake-indexeddb"
 
-// Browser globals that src/lib/storage.ts touches at module scope or during
-// use. These are direct assignments (not vi.stubGlobal) so tests that call
-// vi.unstubAllGlobals() cannot remove them.
+// Direct assignments survive vi.unstubAllGlobals() between tests.
 const locks = new Map<string, Promise<void>>()
 Object.defineProperty(globalThis, "navigator", {
   configurable: true,

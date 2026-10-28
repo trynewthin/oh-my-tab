@@ -3,10 +3,6 @@ import { readFile } from "node:fs/promises"
 
 const root = new URL("../../", import.meta.url)
 
-// The browser resolves `__MSG_*__` in the manifest through `_locales`; a
-// missing key or a renamed placeholder silently ships an extension whose name
-// and description render as the raw token. These assertions mirror what the
-// browser does at load time, without needing a built package.
 describe("chrome manifest localization", () => {
   it("resolves every manifest placeholder in each locale", async () => {
     const manifest = JSON.parse(
@@ -75,10 +71,6 @@ describe("chrome manifest localization", () => {
   })
 })
 
-// The runtime applies the persisted language preference to `<html lang>` and
-// the title after hydration. A static `lang` (or a language-specific title)
-// would assert one UI language before the runtime overrides it, which is
-// exactly what the shells used to do.
 describe("extension page shells", () => {
   it("leaves language and title to the runtime", async () => {
     for (const file of ["index.html", "popup.html"]) {

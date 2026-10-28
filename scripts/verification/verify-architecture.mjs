@@ -1,31 +1,8 @@
 import { readdir, readFile } from "node:fs/promises"
 import path from "node:path"
 
-// Static architecture guard for the import-direction contract:
-//   model/infrastructure (`src/lib`) -> never `application`, `components`,
-//                                       `pages`, `stores`
-//   application orchestration         -> never `components`, `pages`
-//   state (`src/stores`)              -> never `application`, `components`,
-//                                       `pages`
-//   reusable components               -> never `pages`
-// It also rejects internal static import cycles anywhere under `src`; entry
-// composition (`main.tsx`, `App.tsx`, `router/`, `layouts/`) stays free to
-// depend downward.
-//
-// Algorithm: every `.ts`/`.tsx` file under `src` is tokenized by a small state
-// machine that drops comments, regex literals and template literals while
-// keeping string literals. Import/export statements are read off that token
-// stream, so `import type`, side-effect imports, `export ... from` and
-// multiline clauses are all covered. Specifiers resolve through the
-// `@/* -> src/*` alias and relative paths against `.ts`, `.tsx` and
-// `index.ts(x)`. Resolved edges feed two graphs: boundary checks (static and
-// statically-literal dynamic imports) and cycle detection (static imports
-// only, because a deferred `import()` never participates in module
-// evaluation).
-//
-// Limitations: no type checking; external, type-only-to-`.d.ts` and
-// unresolvable specifiers are ignored; the tokenizer does not model a regex
-// literal nested inside a template interpolation.
+// Only static imports participate in cycle detection; dynamic imports still
+// obey boundary rules. The tokenizer cannot parse regexes inside templates.
 
 const root = path.resolve(import.meta.dirname, "../..")
 const sourceDir = path.join(root, "src")
@@ -313,7 +290,6 @@ for (const file of files) {
   }
 }
 
-// `src/lib/foo.ts` -> `lib`; entry files (`src/App.tsx`) have no rule.
 const area = (file) => relative(file).split("/")[1]
 
 const violations = []

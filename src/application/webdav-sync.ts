@@ -243,7 +243,8 @@ async function cleanHistory(
       failed.push(file)
     }
   }
-  // Clearing the cleanup list is conditional: never overwrite another upload.
+  // Clear garbage only if the index is unchanged; never overwrite another
+  // upload.
   try {
     const current = await fetchRemoteBackup(
       connection,
@@ -362,8 +363,8 @@ export async function renameWebdavSnapshot(
     if (name === webdavSnapshotName(target))
       return { history: current, changed: false, cleanupComplete: true }
     if (!current.index) throw new Error(i18n.t("settings.webdav.conflict"))
-    // Use the deduplicated view so naming one content version cannot create
-    // several protected copies of the same content.
+    // Use the deduplicated view so one content version cannot gain several
+    // protected copies.
     const snapshots = current.snapshots.map((snapshot) =>
       snapshot.id === snapshotId
         ? { ...snapshot, name, protected: true }
@@ -549,14 +550,14 @@ export async function executeWebdavSync(
         all,
         plan.saved.snapshotLimit
       )
-      // The index is the commit point. A failed conditional PUT cannot publish
-      // a partial version or remove any previously committed snapshot.
+      // The index is the commit point: a failed conditional PUT publishes
+      // nothing and keeps committed snapshots.
       try {
         await assertCurrent(plan)
         await putIndex(plan.saved, index, current.indexEtag, !!current.index)
       } catch (error) {
-        // The request may have committed before a network failure. Check the
-        // index before deleting this attempt's immutable snapshot.
+        // The PUT may have committed before failing; check the index before
+        // deleting this attempt's snapshot.
         try {
           const observed = await remoteState(plan.saved)
           if (

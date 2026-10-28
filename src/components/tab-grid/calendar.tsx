@@ -5,8 +5,8 @@ import type { CalendarItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 import { weekdayOrder } from "./calendar-utils"
 
-// Monday-first week. The index is the column position, so index 0 is always
-// Monday regardless of the resolved language's weekend convention.
+// Weeks start on Monday: the index is the column, independent of the locale's
+// own weekend convention.
 const WEEK_START = 1
 
 function monthTitle(date: Date, locale: string) {
@@ -45,7 +45,6 @@ function CalendarContent({
     }
   }, [])
   const month = new Date(today.getFullYear(), today.getMonth() + offset, 1)
-  // Shift so the week starts on Monday: getDay() is 0 for Sunday.
   const start = (month.getDay() - WEEK_START + 7) % 7
   const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
   const weekdays = weekdayOrder(locale)

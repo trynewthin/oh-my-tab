@@ -9,10 +9,9 @@ import {
 } from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 
-// Preview drops resolve by re-homing overlapped tiles into freed cells, and
-// when that cannot fit the fixed area, by reflowing every tile in reading
-// order. A drop that still overflows is rejected — the caller keeps the
-// settled layout so tiles spring back instead of clipping out of view.
+// Re-homes overlapped tiles into freed cells, else reflows every tile in
+// reading order. Returning null rejects the drop so tiles spring back rather
+// than clip outside the fixed area.
 export function resolvePreviewDrop(
   items: GridItem[],
   columns: number,

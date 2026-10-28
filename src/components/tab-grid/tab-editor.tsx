@@ -21,8 +21,6 @@ import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
 import TabIconControls from "./tab-icon-controls"
 
-// The tab is the first component on the shared editor. It supplies its own
-// fields and live preview; the frame owns the dialog chrome.
 export default function TabEditor({
   item,
   onClose,

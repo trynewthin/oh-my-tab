@@ -34,7 +34,7 @@ export async function createBackup(): Promise<Blob> {
 }
 export async function readBackupContents(file: Blob): Promise<BackupContents> {
   const decoded = await readBackupSource(file)
-  // Verify remote checksums against the unmodified source, before migration.
+  // Checksums are verified against the unmodified source, before migration.
   const sourceConfig = decoded.config
   const config = validateConfig(sourceConfig)
   const image = extractBackupImage(config, decoded)

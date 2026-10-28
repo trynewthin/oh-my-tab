@@ -22,8 +22,7 @@ import {
   resolveAppLanguage,
 } from "./language"
 
-// Every module is mounted under its own top-level key inside the single
-// `translation` namespace, so the owning module supplies the key prefix:
+// Each module mounts under a top-level key inside the `translation` namespace:
 // `core.ts` -> `core.*`, `grid.ts` -> `grid.*`, and so on.
 export const resources = {
   "zh-CN": {
@@ -52,9 +51,8 @@ export const resources = {
   },
 }
 
-// Resources are bundled, so initialization completes synchronously and the
-// pre-hydration language comes from the browser. The persisted preference is
-// applied later by startLanguageSync, after hydration.
+// Bundled resources initialize synchronously; the persisted preference is
+// applied after hydration by startLanguageSync.
 void i18next.use(initReactI18next).init({
   resources,
   lng: resolveAppLanguage("system", browserLanguages()),

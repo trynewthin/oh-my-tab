@@ -27,9 +27,8 @@ import {
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { mockGridItems } from "@/lib/grid/mock-data"
 
-// Kept as a function so production builds can tree-shake the mock item list
-// entirely: a top-level `import.meta.env.DEV ? mockGridItems : []` constant is
-// captured by `merge` below and survives dead-code elimination.
+// Function form keeps the mock list tree-shakeable; a DEV-gated top-level
+// constant would survive dead-code elimination through `merge` below.
 const devInitialItems = (): GridItem[] =>
   import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : []
 

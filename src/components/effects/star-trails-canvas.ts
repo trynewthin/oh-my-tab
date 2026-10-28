@@ -105,8 +105,7 @@ export function createStarTrailsCanvas(
     )
     textureContext.clearRect(0, 0, diameter, diameter)
     textureContext.lineCap = "round"
-    // Cache geometry relative to the stars' current angle. Steady rotation
-    // reuses this bitmap; changing exposure is rebuilt at most 20 times/s.
+    // Geometry is cached per star angle; exposure changes rebuild at most 20×/s.
     for (const segment of state.segments) {
       const relativeFrom = segment.from - state.angle
       const relativeTo = segment.to - state.angle
@@ -144,8 +143,8 @@ export function createStarTrailsCanvas(
     for (const group of groups) {
       const alpha = Math.min(0.95, 0.4 + group.brightness * 0.7) * intensity
       const opacity = state.segments[0]?.opacity ?? 0
-      // The round line cap already depicts the star at full exposure.
-      // During fade, compensate its opacity instead of doubling the head.
+      // The round cap already draws the head at full exposure; during fade,
+      // compensate its opacity rather than doubling the head.
       const pointAlpha = (alpha * (1 - opacity)) / (1 - alpha * opacity)
       if (pointAlpha <= 0) continue
       textureContext.beginPath()

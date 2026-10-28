@@ -42,8 +42,7 @@ for (const [size, expectedRows] of [
     await page.goto("/")
     const region = page.getByRole("region", { name: "资料内的标签" })
     await expect(region).toBeVisible()
-    // The row pitch is measured from the live stack because the gap may shrink
-    // slightly while each texture row stays aligned to whole 9px cells.
+    // Measure live row pitch: gaps can shrink while cells remain pixel-aligned.
     const geometry = await region.evaluate((element) => {
       const available =
         element.clientHeight - parseFloat(getComputedStyle(element).paddingTop)
@@ -80,8 +79,6 @@ for (const [size, expectedRows] of [
         elements.map((element) => element.getBoundingClientRect())
       )
     expect(boxes).toHaveLength(geometry.fitted)
-    // Every shown row must be complete: fully inside the region, never clipped
-    // by its top or bottom edge.
     for (const box of boxes) {
       expect(box.top).toBeGreaterThanOrEqual(bounds.y - 0.5)
       expect(box.bottom).toBeLessThanOrEqual(bounds.y + bounds.height + 0.5)
@@ -98,8 +95,6 @@ for (const [size, expectedRows] of [
       bounds.y + bounds.height - lowest,
       0
     )
-    // Large and tall previews are multi-row, and their twenty bookmarks exceed
-    // what fits, so the scroll path below is genuinely exercised.
     expect(geometry.fitted).toBeGreaterThan(1)
     expect(geometry.fitted).toBeLessThan(geometry.total)
     await page.getByRole("button", { name: "资料", exact: true }).click()
@@ -108,7 +103,6 @@ for (const [size, expectedRows] of [
     await expect(
       expandedGrid.locator("[data-stack-row]").first()
     ).not.toHaveCSS("position", "fixed")
-    // Expanded folders use the same grid geometry as expanded todos.
     const columnCount = () =>
       expandedGrid.evaluate(
         (element) =>

@@ -2,8 +2,6 @@ import { i18n } from "@/i18n"
 import { resolveAppLanguage } from "@/i18n/language"
 import { useLocaleStore } from "@/stores/locale-store"
 
-// Applies the persisted preference to i18next and the document, and keeps them
-// in sync. Both entries call this after hydration and before render.
 export function startLanguageSync(page: "newTab" | "popup") {
   const titleKey =
     page === "newTab" ? "core.app.newTabTitle" : "core.app.popupTitle"
@@ -16,8 +14,8 @@ export function startLanguageSync(page: "newTab" | "popup") {
   const apply = () => {
     const language = resolveAppLanguage(useLocaleStore.getState().preference)
     if (i18n.language === language) applyDocument()
-    // changeLanguage emits "languageChanged" synchronously for bundled
-    // resources, which applies the document state in one place.
+    // Bundled resources emit "languageChanged" synchronously, applying the
+    // document state.
     else void i18n.changeLanguage(language)
   }
 

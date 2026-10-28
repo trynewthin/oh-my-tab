@@ -14,7 +14,6 @@ import type { EffectStyle } from "@/stores/home-settings-store"
 const CELL_SIZE = 8
 const GAP = 1
 
-// Pixel pitch of one cell+gap along each axis for a measured surface.
 function stepsOf(grid: {
   width: number
   height: number
@@ -69,9 +68,8 @@ export default function EffectSurface({
   const hidden = phase === "hidden" && !transitioning
   const hasGrid = !!grid.columns
   const seed = textureSeed(textureId)
-  // Per-axis cell geometry derived from the measured surface: step = cell +
-  // gap. Fractional steps are fine — DOM spans and pixi sprites both take
-  // sub-pixel sizes without visible seams at 1px gaps.
+  // step = cell + gap; fractional steps are fine, both DOM spans and pixi
+  // sprites take sub-pixel sizes without seams at 1px gaps.
   const stepX = hasGrid ? (grid.width + GAP) / grid.columns : CELL_SIZE + GAP
   const stepY = hasGrid ? (grid.height + GAP) / grid.rows : CELL_SIZE + GAP
   const cellW = stepX - GAP
@@ -89,14 +87,12 @@ export default function EffectSurface({
       width: number
       height: number
     }) => {
-      // display:none (drag hide, portal teardown) reports 0x0. Ignoring it
-      // keeps the last real grid — otherwise the texture collapses into a
-      // one-column sliver and a dropped RO notification never corrects it.
+      // display:none (drag hide, portal teardown) reports 0x0; ignoring it
+      // keeps the last real grid instead of collapsing to a sliver.
       if (!width || !height) return
-      // Cells are sized to fill the surface exactly: the row/column count
-      // is rounded (not ceiled) to the nearest 9px step, then the cell
-      // edge shrinks or grows a fraction of a pixel so the last cell ends
-      // flush with the edge — no clipped partial row anywhere.
+      // Cells fill the surface exactly: count is rounded (not ceiled) to the
+      // nearest step and the cell edge absorbs the remainder, so the last cell
+      // ends flush with the edge.
       const columns = Math.max(1, Math.round(width / (CELL_SIZE + GAP)))
       const rows = Math.max(1, Math.round(height / (CELL_SIZE + GAP)))
       setGrid((current) =>
@@ -234,7 +230,6 @@ export default function EffectSurface({
       unsubscribe?.()
       unsubscribe = undefined
     }
-    // Resume near the viewport boundary using the shared animation time.
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) resume()

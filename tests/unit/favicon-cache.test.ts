@@ -46,8 +46,6 @@ class FakeDOMParser {
   }
 }
 
-// Decoding is a browser responsibility; this test exercises storage and
-// requests, so image parsing is stubbed while fetch behavior stays real.
 function stubBrowserApis() {
   vi.stubGlobal("Image", FakeImage)
   vi.stubGlobal("DOMParser", FakeDOMParser)

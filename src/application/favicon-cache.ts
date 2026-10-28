@@ -185,7 +185,7 @@ async function loadIcon(url: string, fresh = false): Promise<string | null> {
       await writeIcon({ url, blob, version: SOURCES_VERSION })
       return src
     } catch {
-      // Try the next source after a failed download or image decode.
+      // Try the next source.
     }
   }
   await writeIcon({

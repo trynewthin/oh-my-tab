@@ -43,7 +43,7 @@ export function createBurningCanvas(
         canvas.width = pixelWidth
         canvas.height = pixelHeight
       }
-      // Use whole CSS pixels so the browser does not rescale a fractional paint box.
+      // Whole CSS pixels, so the browser does not rescale a fractional box.
       canvas.style.width = `${pixelWidth / scale}px`
       canvas.style.height = `${pixelHeight / scale}px`
       const originX = Math.round(bounds.left) * scale

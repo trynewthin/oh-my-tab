@@ -8,8 +8,7 @@ export type TabEntry = {
   size?: "small" | "medium"
   color?: string
   dynamicEffect?: boolean
-  // Pins a fixed icon (e.g. preview samples); without it the favicon of
-  // `url` is resolved through the favicon cache.
+  // Pinned icon (e.g. preview samples); otherwise the favicon of `url` is used.
   icon?: string
 }
 

@@ -20,8 +20,6 @@ import ComponentBackground from "./shared/component-background"
 import ComponentEditorFrame from "./component-editor-frame"
 import FolderUI from "./folder-ui"
 
-// Folder on the shared editor. The live preview is the folder tile itself,
-// including the tabs it already holds; the frame owns the dialog chrome.
 export default function FolderEditor({
   item,
   onClose,

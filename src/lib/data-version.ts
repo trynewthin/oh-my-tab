@@ -1,4 +1,4 @@
-// Version 3 was written by the tab-appearance development build.
-// Keep versions monotonic even when a feature is reverted.
+// Version 3 shipped in a development build, so keep versions monotonic:
+// a reverted feature must not reuse it.
 export const STORAGE_VERSION = 4
 export const CONFIG_VERSION = 4

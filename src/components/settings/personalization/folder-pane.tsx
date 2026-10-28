@@ -25,9 +25,7 @@ function previewTab(name: string): TabEntry {
   }
 }
 
-// Two 4x4 folders side by side in the 8x4 area. The left one carries enough
-// tabs to overflow its four visible rows (it scrolls natively); the right
-// one holds a single tab so the contrast reads at a glance.
+// Two 4x4 folders in the 8x4 area: one overflowing (scrolls), one single tab.
 function buildPreview(t: (key: string) => string) {
   const many: FolderItem = {
     ...createFolderItem({

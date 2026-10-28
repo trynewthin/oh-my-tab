@@ -24,8 +24,8 @@ import { traditionalTopInsets } from "@/lib/home-top-spacing"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 
-// Compose at the home track's 768px maximum and scale the entire composition.
-// Scaling individual cells or controls would distort their relative sizes.
+// Lay out at the track's 768px maximum, then scale the whole composition;
+// scaling cells individually would distort their relative sizes.
 const TRACK_WIDTH = 768
 const FRAME_WIDTH = TRACK_WIDTH + 48
 const COLUMNS = matrixColumns(TRACK_WIDTH)

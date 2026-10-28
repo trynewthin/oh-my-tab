@@ -332,9 +332,8 @@ export type LayoutState = {
   lastLayoutColumns?: number
 }
 
-// Ensures every item has a slot for the requested column count. Derives a new
-// layout from the nearest known breakpoint, and returns null when nothing
-// changed so callers can skip a state update.
+// Gives every item a slot for the requested columns, deriving from the nearest
+// breakpoint; null when nothing changed so callers can skip a state update.
 export function ensureLayoutColumns(
   state: LayoutState,
   columns: number

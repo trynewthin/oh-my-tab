@@ -110,8 +110,8 @@ export function migrateGardenData(
   return garden
 }
 
-// Each imported file is a new migration source. The source stays untouched;
-// only the converted configuration is allowed into active storage.
+// Each imported file is a fresh source: it stays untouched, and only the
+// converted configuration enters active storage.
 export function migrateConfig(value: unknown, now = Date.now()): unknown {
   const source = record(value)
   if (source.version === CONFIG_VERSION) return structuredClone(value)

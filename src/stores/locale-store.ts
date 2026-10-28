@@ -9,9 +9,8 @@ type LocaleState = {
   setPreference: (preference: LanguagePreference) => void
 }
 
-// `omt.locale` is device-local: it lives in DEVICE_KEYS, never in DATA_KEYS or
-// the exported config, because the language a user picks is per-device and
-// must not travel with a backup.
+// Device-local: listed in DEVICE_KEYS, never in DATA_KEYS or exports, so a
+// chosen language does not travel with a backup.
 export const useLocaleStore = create<LocaleState>()(
   persist(
     (set) => ({

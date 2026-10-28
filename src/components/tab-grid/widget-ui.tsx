@@ -29,13 +29,6 @@ import {
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 
-/**
- * Single dispatch surface for every widget kind. Each rendering mode owns one
- * exhaustive switch over the kind union, so adding or removing a registry kind
- * without a case is a compile error and no dispatch path falls through
- * silently.
- */
-
 function assertNever(value: never): never {
   throw new Error(`Unhandled kind: ${String(value)}`)
 }
@@ -70,7 +63,6 @@ function DotCanvasTile({
   )
 }
 
-/** Same fields GridTileContent accepted; one case per grid kind. */
 export function WidgetTile({
   item,
   onOpen,
@@ -149,7 +141,6 @@ export function WidgetTile({
   return assertNever(item)
 }
 
-/** Existing-item editor routing for every editable grid kind. */
 export function WidgetEditor({
   item,
   onClose,
@@ -204,7 +195,6 @@ export function WidgetEditor({
   return assertNever(item)
 }
 
-/** Catalog previews use the same content and size variants as home tiles. */
 export function WidgetCatalogPreview({
   kind,
   size,

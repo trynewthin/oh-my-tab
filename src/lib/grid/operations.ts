@@ -152,8 +152,7 @@ export function removeItems(
   }
 }
 
-// Captures where each removed item lived so restoreItems can splice it back
-// into its original index and grid slot.
+// `previous` records each removed item's original index and grid slot.
 export function restoreItems(
   state: GridData,
   removed: GridItem[],

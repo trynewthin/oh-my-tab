@@ -18,10 +18,8 @@ export default function FolderTabRow({
   folderId: string
   textureId?: string
   index?: number
-  // Pixel pitch between rows, snapped by the caller to a multiple of the
-  // 9px cell step — the burning texture then advances whole cells per row,
-  // so the pattern flows down the stack without ever clipping mid-cell.
-  // Defaults to 54 (the dialog surface's 46px row + 8px gap pitch).
+  // Caller-snapped to a multiple of the 9px cell step, so the texture advances
+  // whole cells per row. Defaults to 54 (46px row + 8px gap).
   rowPitch?: number
   animated?: boolean
   entrance?: boolean

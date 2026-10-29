@@ -51,6 +51,7 @@ export default function EffectSurface({
   const region = useRef<HTMLDivElement>(null)
   const pixi = useRef<PixiEffect | null>(null)
   const [grid, setGrid] = useState(() => textureGrid(0, 0))
+  const fill = Math.min(1, Math.max(0, (coverage - 65) / 35))
   const effectState = useRef({ color, grid })
   const hidden = phase === "hidden" && !transitioning
   const hasGrid = grid.columns > 0 && grid.rows > 0
@@ -100,14 +101,15 @@ export default function EffectSurface({
       seed,
       initial.grid,
       textureRow,
-      effectStyle
+      effectStyle,
+      fill
     )
     pixi.current = effect
     return () => {
       if (pixi.current === effect) pixi.current = null
       effect.dispose()
     }
-  }, [effectStyle, textureRow, hidden, hasGrid, seed])
+  }, [effectStyle, textureRow, hidden, hasGrid, seed, fill])
 
   useEffect(() => {
     const effect = pixi.current
@@ -134,14 +136,14 @@ export default function EffectSurface({
           y,
           particle:
             effectStyle === "particles"
-              ? createParticleCell(color, seed, x, y, grid.columns)
+              ? createParticleCell(color, seed, x, y, grid.columns, fill)
               : null,
           backgroundColor: "",
           transform: "",
         }
       }
     )
-    const burning = createBurningTexture(color, seed, grid.columns)
+    const burning = createBurningTexture(color, seed, grid.columns, fill)
     const pointer = null
     const paint = (time?: number) => {
       const effect = pixi.current
@@ -214,6 +216,7 @@ export default function EffectSurface({
     color,
     seed,
     reveal,
+    fill,
   ])
 
   return (
@@ -257,7 +260,8 @@ export default function EffectSurface({
                           undefined,
                           initialVisibility,
                           amplitude,
-                          null
+                          null,
+                          fill
                         )
                       : {
                           backgroundColor: burningCell(
@@ -267,7 +271,9 @@ export default function EffectSurface({
                             y,
                             grid.columns,
                             undefined,
-                            initialVisibility
+                            initialVisibility,
+                            amplitude,
+                            fill
                           ),
                           transform: "none",
                         }),

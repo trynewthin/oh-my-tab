@@ -1,4 +1,4 @@
-import { List, X } from "@phosphor-icons/react"
+import { CaretRight, List, X } from "@phosphor-icons/react"
 import {
   createContext,
   useContext,
@@ -30,6 +30,7 @@ export type ApplicationNavigationItem<RouteId extends string> = {
   id: RouteId
   label: string
   icon?: ReactNode
+  children?: ApplicationNavigationItem<RouteId>[]
 }
 
 export type ApplicationNavigationGroup<RouteId extends string> = {
@@ -83,6 +84,86 @@ function useScrollProgress(node: HTMLElement | null) {
   return progress
 }
 
+function navigationLeaves<RouteId extends string>(
+  items: ApplicationNavigationItem<RouteId>[]
+): ApplicationNavigationItem<RouteId>[] {
+  return items.flatMap((item) =>
+    item.children?.length ? navigationLeaves(item.children) : [item]
+  )
+}
+
+function NavigationEntry<RouteId extends string>({
+  item,
+  activeRoute,
+  onRouteChange,
+  surface,
+  nested = false,
+}: {
+  item: ApplicationNavigationItem<RouteId>
+  activeRoute: RouteId
+  onRouteChange: (route: RouteId) => void
+  surface: "sidebar" | "menu"
+  nested?: boolean
+}) {
+  const children = item.children
+  const activeChild = children?.length
+    ? navigationLeaves(children).some((child) => child.id === activeRoute)
+    : false
+  const [disclosure, setDisclosure] = useState({
+    route: activeRoute,
+    expanded: activeChild,
+  })
+  const expanded =
+    activeChild && disclosure.route !== activeRoute ? true : disclosure.expanded
+  const selected = !children?.length && activeRoute === item.id
+  return (
+    <div>
+      <Button
+        variant="ghost"
+        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full"}`}
+        style={
+          selected
+            ? {
+                backgroundColor:
+                  "color-mix(in srgb, var(--application-accent) 22%, var(--popover))",
+                color: "var(--application-accent)",
+              }
+            : undefined
+        }
+        aria-current={selected ? "page" : undefined}
+        aria-expanded={children?.length ? expanded : undefined}
+        onClick={() =>
+          children?.length
+            ? setDisclosure({ route: activeRoute, expanded: !expanded })
+            : onRouteChange(item.id)
+        }
+      >
+        {item.icon}
+        {item.label}
+        {!!children?.length && (
+          <CaretRight
+            className={`ml-auto size-3 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
+          />
+        )}
+      </Button>
+      {!!children?.length && expanded && (
+        <div className="mt-1 space-y-1">
+          {children.map((child) => (
+            <NavigationEntry
+              key={child.id}
+              item={child}
+              activeRoute={activeRoute}
+              onRouteChange={onRouteChange}
+              surface={surface}
+              nested
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ApplicationNavigation<RouteId extends string>({
   groups,
   activeRoute,
@@ -111,30 +192,15 @@ function ApplicationNavigation<RouteId extends string>({
               {group.label}
             </div>
           )}
-          {group.items.map((item) => {
-            const selected = activeRoute === item.id
-            return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                className={`relative w-full justify-start px-4 text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full"}`}
-                style={
-                  selected
-                    ? {
-                        backgroundColor:
-                          "color-mix(in srgb, var(--application-accent) 22%, var(--popover))",
-                        color: "var(--application-accent)",
-                      }
-                    : undefined
-                }
-                aria-current={selected ? "page" : undefined}
-                onClick={() => onRouteChange(item.id)}
-              >
-                {item.icon}
-                {item.label}
-              </Button>
-            )
-          })}
+          {group.items.map((item) => (
+            <NavigationEntry
+              key={item.id}
+              item={item}
+              activeRoute={activeRoute}
+              onRouteChange={onRouteChange}
+              surface={surface}
+            />
+          ))}
         </div>
       ))}
     </nav>
@@ -264,7 +330,7 @@ export default function ApplicationDialog<RouteId extends string>({
     useState<HTMLDivElement | null>(null)
   const navProgress = useScrollProgress(navNode)
   const activeItem = navigation
-    .flatMap((group) => group.items)
+    .flatMap((group) => navigationLeaves(group.items))
     .find((item) => item.id === activeRoute)
 
   useEffect(() => {

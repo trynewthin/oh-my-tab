@@ -6,6 +6,7 @@ export const settingsSections = [
   "personalization-appearance",
   "personalization-material",
   "personalization-tabs",
+  "personalization-tabs-square",
   "personalization-folders",
   "about-project",
   "about-privacy",

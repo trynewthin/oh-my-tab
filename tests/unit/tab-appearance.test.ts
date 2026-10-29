@@ -8,6 +8,7 @@ import {
 import { rehydrateData } from "@/application/hydrate"
 import {
   DEFAULT_TAB_APPEARANCE,
+  DEFAULT_SQUARE_TAB_APPEARANCE,
   sanitizeTabAppearance,
 } from "@/lib/tab-appearance"
 import { sanitizeHomeSettings } from "@/lib/home-settings"
@@ -18,6 +19,9 @@ beforeEach(async () => {
   await storage.clearAllData()
   useHomeSettingsStore.setState({
     tabAppearance: DEFAULT_TAB_APPEARANCE,
+    squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
+    squareTabTexture: "burning",
+    squareTabEffectCoverage: 65,
     gridScale: 1,
     wideGridColumns: 8,
     narrowGridColumns: 4,
@@ -25,7 +29,12 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  useHomeSettingsStore.setState({ tabAppearance: DEFAULT_TAB_APPEARANCE })
+  useHomeSettingsStore.setState({
+    tabAppearance: DEFAULT_TAB_APPEARANCE,
+    squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
+    squareTabTexture: "burning",
+    squareTabEffectCoverage: 65,
+  })
 })
 
 describe("tab appearance model", () => {
@@ -37,6 +46,9 @@ describe("tab appearance model", () => {
     expect(sanitizeHomeSettings({}).tabAppearance).toMatchObject({
       backgroundMode: "transparent",
       backgroundBlur: 0,
+      backgroundRotation: 0,
+      backgroundFlipX: false,
+      backgroundFlipY: false,
     })
     for (const backgroundMode of ["default", "solid", "gradient"] as const) {
       const mask = { backgroundMode, backgroundOpacity: 75, backgroundBlur: 4 }
@@ -237,6 +249,10 @@ describe("tab appearance persistence and backups", () => {
       { iconScale: Number.NaN },
       { iconScale: Number.POSITIVE_INFINITY },
       { lineHeight: 3 },
+      { backgroundRotation: 45 },
+      { backgroundRotation: "90" },
+      { backgroundFlipX: "true" },
+      { backgroundFlipY: 1 },
       "corrupt",
       [],
     ]) {
@@ -257,6 +273,9 @@ describe("tab appearance persistence and backups", () => {
       backgroundEndColor: "#abcdef",
       maxLines: 3,
       iconFit: "cover",
+      backgroundRotation: 90,
+      backgroundFlipX: true,
+      backgroundFlipY: true,
     })
     useHomeSettingsStore.setState({ gridScale: 1.6, wideGridColumns: 8 })
     const config = snapshot()
@@ -268,6 +287,9 @@ describe("tab appearance persistence and backups", () => {
       paddingX: 4,
       radius: 20,
       maxLines: 3,
+      backgroundRotation: 90,
+      backgroundFlipX: true,
+      backgroundFlipY: true,
     })
 
     useHomeSettingsStore.getState().setTabAppearance(DEFAULT_TAB_APPEARANCE)
@@ -303,4 +325,74 @@ test("sanitizeHomeSettings always exposes a complete appearance", () => {
   expect(
     sanitizeHomeSettings({ tabAppearance: { display: "text" } }).tabAppearance
   ).toEqual(sanitizeTabAppearance({ display: "text" }))
+})
+
+test("square styles persist independently through storage and backup restore", async () => {
+  const state = useHomeSettingsStore.getState()
+  state.setTabAppearance({ radius: 31, backgroundRotation: 180 })
+  const strip = snapshot().home
+  state.setSquareTabAppearance({
+    radius: 4,
+    backgroundRotation: 90,
+    backgroundFlipX: true,
+  })
+  state.setSquareTabTexture("particles")
+  state.setSquareTabEffectCoverage(84)
+  await storage.flushStorage()
+  const saved = snapshot()
+  useHomeSettingsStore.setState({
+    squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
+    squareTabTexture: "none",
+    squareTabEffectCoverage: 20,
+  })
+  await importConfig(
+    validateConfig(JSON.parse(JSON.stringify(saved))),
+    await storage.storageRevision()
+  )
+  await rehydrateData()
+  expect(snapshot().home).toMatchObject({
+    tabAppearance: strip.tabAppearance,
+    tabTexture: strip.tabTexture,
+    tabEffectCoverage: strip.tabEffectCoverage,
+    squareTabAppearance: {
+      direction: "top",
+      radius: 4,
+      backgroundRotation: 90,
+      backgroundFlipX: true,
+    },
+    squareTabTexture: "particles",
+    squareTabEffectCoverage: 84,
+  })
+  useHomeSettingsStore
+    .getState()
+    .setSquareTabAppearance(DEFAULT_SQUARE_TAB_APPEARANCE)
+  expect(snapshot().home.tabAppearance).toEqual(strip.tabAppearance)
+  expect(snapshot().home.squareTabAppearance).toEqual(
+    DEFAULT_SQUARE_TAB_APPEARANCE
+  )
+  expect(snapshot().grid).toEqual(saved.grid)
+})
+
+test("older backups default square styles without copying strip styles and reject invalid square settings", () => {
+  const old = JSON.parse(JSON.stringify(snapshot()))
+  old.home.tabAppearance.radius = 37
+  delete old.home.squareTabAppearance
+  delete old.home.squareTabTexture
+  delete old.home.squareTabEffectCoverage
+  expect(validateConfig(old).home).toMatchObject({
+    squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
+    squareTabTexture: "burning",
+    squareTabEffectCoverage: 65,
+  })
+  for (const patch of [
+    { squareTabAppearance: null },
+    { squareTabAppearance: { backgroundRotation: 45 } },
+    { squareTabTexture: "invalid" },
+    { squareTabEffectCoverage: 0 },
+    { squareTabEffectCoverage: "65" },
+  ]) {
+    const config = JSON.parse(JSON.stringify(snapshot()))
+    Object.assign(config.home, patch)
+    expect(() => validateConfig(config)).toThrow()
+  }
 })

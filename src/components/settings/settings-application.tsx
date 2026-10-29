@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import ApplicationDialog, {
   type ApplicationNavigationGroup,
+  type ApplicationNavigationItem,
 } from "@/components/application/application-dialog"
 import MaterialSurface from "@/components/effects/material-surface"
 import {
@@ -22,25 +23,33 @@ import {
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
-import { settingsIcon, settingsNav } from "./settings-routes"
+import {
+  settingsIcon,
+  settingsNav,
+  type SettingsNavNode,
+} from "./settings-routes"
 import { settingsViews } from "./settings-views"
 
 function settingsNavigation(
   t: (key: string) => string
 ): ApplicationNavigationGroup<SettingsSection>[] {
+  const navigationItem = (
+    route: SettingsNavNode
+  ): ApplicationNavigationItem<SettingsSection> => {
+    const Icon = settingsIcon(route.icon)
+    return {
+      id: route.id as SettingsSection,
+      label: t(route.labelKey),
+      icon: Icon ? createElement(Icon) : undefined,
+      children: route.children?.map(navigationItem),
+    }
+  }
   return settingsNav.map((node) => {
     const routes = node.children?.length ? node.children : [node]
     return {
       id: node.id,
       label: node.children?.length ? t(node.labelKey) : undefined,
-      items: routes.map((route) => {
-        const Icon = settingsIcon(route.icon)
-        return {
-          id: route.id as SettingsSection,
-          label: t(route.labelKey),
-          icon: Icon ? createElement(Icon) : undefined,
-        }
-      }),
+      items: routes.map(navigationItem),
     }
   })
 }

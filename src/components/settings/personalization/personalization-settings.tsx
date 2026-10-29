@@ -2,11 +2,13 @@ import AppearancePane from "./appearance-pane"
 import FolderPane from "./folder-pane"
 import MaterialPane from "./material-pane"
 import TabsPane from "./tabs-pane"
+import SquareTabsPane from "./square-tabs-pane"
 
 const panes = {
   appearance: AppearancePane,
   material: MaterialPane,
   tabs: TabsPane,
+  "tabs-square": SquareTabsPane,
   folders: FolderPane,
 } as const
 
@@ -19,7 +21,7 @@ export default function PersonalizationSettings({
   return (
     <section
       className={
-        pane === "tabs"
+        pane === "tabs" || pane === "tabs-square"
           ? "relative isolate h-full min-h-0"
           : "relative isolate min-h-full space-y-4"
       }

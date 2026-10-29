@@ -1,30 +1,11 @@
 import { useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { createTabItem } from "@/lib/grid/factory"
-import EffectStylePicker from "./effect-style-picker"
 import ScaledGridPreview from "./scaled-grid-preview"
 import TabAppearanceControls from "./tab-appearance-controls"
-import { Switch } from "@/components/ui/switch"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import TabBackgroundControls from "./tab-background-controls"
 import type { GridItem, TabItem } from "@/lib/grid/types"
-import {
-  MAX_TAB_EFFECT_COVERAGE,
-  MIN_TAB_EFFECT_COVERAGE,
-  useHomeSettingsStore,
-} from "@/stores/home-settings-store"
-import { useTabGridStore } from "@/stores/tab-grid-store"
-import SettingItem from "../shared/setting-item"
-import { settingsControlSurface } from "../shared/control-styles"
-import SettingRange from "../shared/setting-range"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
 
@@ -79,17 +60,11 @@ export default function TabsPane() {
   const setTabEffectCoverage = useHomeSettingsStore(
     (state) => state.setTabEffectCoverage
   )
-  const color = useHomeSettingsStore((state) => state.color)
   const newTabsDynamicEffect = useHomeSettingsStore(
     (state) => state.newTabsDynamicEffect
   )
-  const setNewTabsDynamicEffect = useHomeSettingsStore(
-    (state) => state.setNewTabsDynamicEffect
-  )
-  const setAllTabDynamicEffects = useTabGridStore(
-    (state) => state.setAllTabDynamicEffects
-  )
-  const [applyExisting, setApplyExisting] = useState<boolean | null>(null)
+  const appearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const setAppearance = useHomeSettingsStore((state) => state.setTabAppearance)
   const [trackWidth, setTrackWidth] = useState(homeGridTrackWidth)
   const preview = useMemo(
     () => buildPreview(t, newTabsDynamicEffect),
@@ -106,117 +81,39 @@ export default function TabsPane() {
   return (
     <>
       <TabAppearanceControls
+        value={appearance}
+        onChange={setAppearance}
         preview={
-          trackWidth > 0 ? (
-            <ScaledGridPreview
-              items={preview.items}
-              trackWidth={trackWidth}
-              area={preview.area}
-              positions={preview.positions}
-            />
-          ) : null
+          <div className="space-y-2">
+            <header className="space-y-1">
+              <h2 className="text-base font-medium">
+                {t("settings.nav.tabsStrip")}
+              </h2>
+            </header>
+            {trackWidth > 0 && (
+              <ScaledGridPreview
+                items={preview.items}
+                trackWidth={trackWidth}
+                area={preview.area}
+                positions={preview.positions}
+              />
+            )}
+          </div>
         }
         onResetBackground={() => {
           const defaults = useHomeSettingsStore.getInitialState()
           setTabTexture(defaults.tabTexture)
           setTabEffectCoverage(defaults.tabEffectCoverage)
-          setNewTabsDynamicEffect(defaults.newTabsDynamicEffect)
         }}
         backgroundControls={
-          <>
-            <SettingItem
-              label={t("settings.tabs.newDynamicEffect")}
-              description={t("settings.tabs.newDynamicEffectHint")}
-            >
-              <Switch
-                aria-label={t("settings.tabs.newDynamicEffect")}
-                checked={newTabsDynamicEffect}
-                className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
-                style={{
-                  backgroundColor: newTabsDynamicEffect ? color : undefined,
-                }}
-                onCheckedChange={(enabled) => {
-                  setNewTabsDynamicEffect(enabled)
-                  setApplyExisting(enabled)
-                }}
-              />
-            </SettingItem>
-            <SettingItem label={t("settings.tabs.texture")}>
-              <EffectStylePicker
-                value={tabTexture}
-                color={color}
-                onChange={setTabTexture}
-                labelKey="settings.tabs.texture"
-              />
-            </SettingItem>
-            {(tabTexture === "burning" || tabTexture === "particles") && (
-              <SettingItem
-                label={t("settings.tabs.effectCoverage")}
-                htmlFor="tab-effect-coverage"
-              >
-                <SettingRange
-                  id="tab-effect-coverage"
-                  label={t("settings.tabs.effectCoverage")}
-                  min={MIN_TAB_EFFECT_COVERAGE}
-                  max={MAX_TAB_EFFECT_COVERAGE}
-                  value={tabEffectCoverage}
-                  onChange={setTabEffectCoverage}
-                  accentColor={color}
-                  editable={false}
-                  formatValue={(value) => `${value}%`}
-                />
-              </SettingItem>
-            )}
-          </>
+          <TabBackgroundControls
+            texture={tabTexture}
+            coverage={tabEffectCoverage}
+            onTextureChange={setTabTexture}
+            onCoverageChange={setTabEffectCoverage}
+          />
         }
       />
-      <AlertDialog
-        open={applyExisting !== null}
-        onOpenChange={(open) => {
-          if (!open) setApplyExisting(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t(
-                applyExisting
-                  ? "settings.tabs.applyExistingEnableTitle"
-                  : "settings.tabs.applyExistingDisableTitle"
-              )}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t(
-                applyExisting
-                  ? "settings.tabs.applyExistingEnableDescription"
-                  : "settings.tabs.applyExistingDisableDescription"
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t(
-                applyExisting
-                  ? "settings.tabs.onlyNewTabsEnable"
-                  : "settings.tabs.onlyNewTabsDisable"
-              )}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (applyExisting !== null)
-                  setAllTabDynamicEffects(applyExisting)
-                setApplyExisting(null)
-              }}
-            >
-              {t(
-                applyExisting
-                  ? "settings.tabs.applyAllTabsEnable"
-                  : "settings.tabs.applyAllTabsDisable"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }

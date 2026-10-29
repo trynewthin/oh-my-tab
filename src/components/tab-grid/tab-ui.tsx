@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react"
 import type { TabItem } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import type { TabAppearance } from "@/lib/tab-appearance"
 import TabIcon from "./tab-icon"
 
 const fontFamilies = {
@@ -15,19 +16,22 @@ export default function TabUI({
   item,
   preview = false,
   compact = false,
+  appearance: appearanceOverride,
+  iconBaseSize = compact ? 20 : item.size === "small" ? 28 : 48,
 }: {
   item: TabItem
   preview?: boolean
   compact?: boolean
+  appearance?: TabAppearance
+  iconBaseSize?: number
 }) {
-  const appearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const savedAppearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const appearance = appearanceOverride ?? savedAppearance
   const vertical =
     appearance.direction === "top" || appearance.direction === "bottom"
   const iconFirst =
     appearance.direction === "left" || appearance.direction === "top"
-  const iconSize =
-    ((compact ? 20 : item.size === "small" ? 28 : 48) * appearance.iconScale) /
-    100
+  const iconSize = (iconBaseSize * appearance.iconScale) / 100
   const icon = appearance.display !== "text" && (
     <div
       key="icon"

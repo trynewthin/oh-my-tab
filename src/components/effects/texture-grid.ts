@@ -13,7 +13,8 @@ export type TextureGrid = {
 
 /** Fixed square cells start at the top; the surface clips the final row. */
 export function textureGrid(width: number, height: number): TextureGrid {
-  const columns = Math.max(0, Math.floor((width + TEXTURE_GAP) / TEXTURE_STEP))
+  const columns =
+    width > 0 ? Math.ceil((width + TEXTURE_GAP) / TEXTURE_STEP) : 0
   const rows = Math.max(0, Math.ceil(height / TEXTURE_STEP))
   const gridWidth = Math.max(0, columns * TEXTURE_STEP - TEXTURE_GAP)
   return {

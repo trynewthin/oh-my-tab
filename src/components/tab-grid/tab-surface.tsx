@@ -1,8 +1,16 @@
 import type { ReactNode } from "react"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import type { TabAppearance } from "@/lib/tab-appearance"
 
-export default function TabSurface({ children }: { children: ReactNode }) {
-  const appearance = useHomeSettingsStore((state) => state.tabAppearance)
+export default function TabSurface({
+  children,
+  appearance: appearanceOverride,
+}: {
+  children: ReactNode
+  appearance?: TabAppearance
+}) {
+  const savedAppearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const appearance = appearanceOverride ?? savedAppearance
   return (
     <div
       data-tab-surface

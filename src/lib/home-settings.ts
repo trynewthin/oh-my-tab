@@ -26,7 +26,11 @@ import {
   isTraditionalTopSpacing,
   type TraditionalTopSpacing,
 } from "@/lib/home-top-spacing"
-import { sanitizeTabAppearance, type TabAppearance } from "@/lib/tab-appearance"
+import {
+  sanitizeTabAppearance,
+  sanitizeSquareTabAppearance,
+  type TabAppearance,
+} from "@/lib/tab-appearance"
 import { sanitizeFolderBorder, type FolderBorder } from "@/lib/folder-border"
 
 export type TopComponent = "none" | "dot-matrix"
@@ -75,6 +79,9 @@ export type HomeSettings = {
   burningAmplitude: number
   transitionsEnabled: boolean
   tabAppearance: TabAppearance
+  squareTabAppearance: TabAppearance
+  squareTabTexture: TabTexture
+  squareTabEffectCoverage: number
 }
 
 export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
@@ -93,6 +100,24 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
       ) as GridComponentColumnCount)
   return {
     tabAppearance: sanitizeTabAppearance(saved?.tabAppearance),
+    squareTabAppearance: sanitizeSquareTabAppearance(
+      saved?.squareTabAppearance
+    ),
+    squareTabTexture:
+      saved?.squareTabTexture === "none" ||
+      saved?.squareTabTexture === "particles"
+        ? saved.squareTabTexture
+        : "burning",
+    squareTabEffectCoverage:
+      typeof saved?.squareTabEffectCoverage === "number" &&
+      Number.isFinite(saved.squareTabEffectCoverage)
+        ? Math.round(
+            Math.min(
+              MAX_TAB_EFFECT_COVERAGE,
+              Math.max(MIN_TAB_EFFECT_COVERAGE, saved.squareTabEffectCoverage)
+            )
+          )
+        : DEFAULT_TAB_EFFECT_COVERAGE,
     layoutMode: saved?.layoutMode === "free" ? "free" : "traditional",
     quickBar:
       saved?.quickBar === undefined

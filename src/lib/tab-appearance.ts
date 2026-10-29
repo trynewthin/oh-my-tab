@@ -17,6 +17,9 @@ export type TabAppearance = {
   backgroundOpacity: number
   gradientAngle: number
   backgroundBlur: number
+  backgroundRotation: 0 | 90 | 180 | 270
+  backgroundFlipX: boolean
+  backgroundFlipY: boolean
   fontFamily: "system" | "sans" | "serif" | "mono"
   fontSize: number
   fontWeight: 400 | 500 | 600 | 700
@@ -53,7 +56,8 @@ type ColorRule = {
   fallback: string
 }
 
-type Rule = NumberRule | EnumRule | ColorRule
+type Rule =
+  NumberRule | EnumRule | ColorRule | { kind: "boolean"; fallback: boolean }
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
 // Legacy version 3 stored an absolute icon size. The shared contract maps it
@@ -99,6 +103,9 @@ const RULES = {
   backgroundOpacity: { kind: "number", min: 0, max: 100, fallback: 100 },
   gradientAngle: { kind: "number", min: 0, max: 360, fallback: 135 },
   backgroundBlur: { kind: "number", min: 0, max: 24, fallback: 0 },
+  backgroundRotation: { kind: "enum", values: [0, 90, 180, 270], fallback: 0 },
+  backgroundFlipX: { kind: "boolean", fallback: false },
+  backgroundFlipY: { kind: "boolean", fallback: false },
   fontFamily: {
     kind: "enum",
     values: ["system", "sans", "serif", "mono"],
@@ -139,6 +146,26 @@ export const DEFAULT_TAB_APPEARANCE: Readonly<TabAppearance> = Object.freeze(
   ) as unknown as TabAppearance
 )
 
+export const DEFAULT_SQUARE_TAB_APPEARANCE: Readonly<TabAppearance> =
+  Object.freeze({
+    ...DEFAULT_TAB_APPEARANCE,
+    direction: "top",
+    justify: "center",
+    textAlign: "center",
+    paddingX: 8,
+    paddingY: 8,
+    gap: 6,
+  })
+
+export function sanitizeSquareTabAppearance(value: unknown): TabAppearance {
+  return sanitizeTabAppearance({
+    ...DEFAULT_SQUARE_TAB_APPEARANCE,
+    ...(value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : {}),
+  })
+}
+
 /**
  * Normalizes persisted, imported and clamped UI values into a complete
  * appearance. Version 3 records are converted instead of being carried along
@@ -157,11 +184,16 @@ export function sanitizeTabAppearance(value: unknown): TabAppearance {
     if (typeof iconSize === "number" && Number.isFinite(iconSize))
       source.iconScale = Math.round((iconSize / LEGACY_ICON_REFERENCE) * 100)
   }
-  const appearance = {} as Record<keyof TabAppearance, string | number>
+  const appearance = {} as Record<
+    keyof TabAppearance,
+    string | number | boolean
+  >
   for (const field of Object.keys(RULES) as (keyof TabAppearance)[]) {
     const rule: Rule = RULES[field]
     const raw = source[field]
-    if (rule.kind === "number") {
+    if (rule.kind === "boolean") {
+      appearance[field] = typeof raw === "boolean" ? raw : rule.fallback
+    } else if (rule.kind === "number") {
       if (typeof raw === "number" && Number.isFinite(raw)) {
         const bounded = Math.min(rule.max, Math.max(rule.min, raw))
         appearance[field] = rule.integer ? Math.round(bounded) : bounded

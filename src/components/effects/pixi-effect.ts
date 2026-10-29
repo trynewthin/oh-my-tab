@@ -24,7 +24,8 @@ export function createPixiEffect(
   seed: number,
   geometry: TextureGrid,
   textureRow: number,
-  mode: "burning" | "particles"
+  mode: "burning" | "particles",
+  fill = 0
 ): PixiEffect {
   const canvas = document.createElement("canvas")
   canvas.style.cssText = "position:absolute;top:0;left:0"
@@ -46,7 +47,7 @@ export function createPixiEffect(
     null,
   ]
   let { columns, rows } = geometry
-  let burning = createBurningTexture(color, seed, columns)
+  let burning = createBurningTexture(color, seed, columns, fill)
   let updateScene:
     | ((previous: { color: string; columns: number; rows: number }) => void)
     | undefined
@@ -85,12 +86,19 @@ export function createPixiEffect(
             x,
             y,
             sprite,
-            sample: createParticleCell(color, seed, x, textureRow + y, columns),
+            sample: createParticleCell(
+              color,
+              seed,
+              x,
+              textureRow + y,
+              columns,
+              fill
+            ),
           }
         })
       const cells = createCells()
       updateScene = (previous) => {
-        burning = createBurningTexture(color, seed, columns)
+        burning = createBurningTexture(color, seed, columns, fill)
         if (previous.columns !== columns || previous.rows !== rows) {
           stage.removeChildren().forEach((child) => child.destroy())
           cells.splice(0, cells.length, ...createCells())
@@ -104,7 +112,8 @@ export function createPixiEffect(
               seed,
               entry.x,
               textureRow + entry.y,
-              columns
+              columns,
+              fill
             )
           })
       }

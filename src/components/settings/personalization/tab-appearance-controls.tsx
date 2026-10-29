@@ -3,6 +3,7 @@ import { Tabs } from "@base-ui/react/tabs"
 import { useTranslation } from "react-i18next"
 import { ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import ColorPicker from "@/components/ui/color-picker"
 import AppearanceResetButton from "./appearance-reset-button"
 import {
@@ -136,6 +137,9 @@ const backgroundKeys = [
   "backgroundOpacity",
   "gradientAngle",
   "backgroundBlur",
+  "backgroundRotation",
+  "backgroundFlipX",
+  "backgroundFlipY",
 ] as const
 
 const textKeys = [
@@ -154,10 +158,11 @@ const textKeys = [
 const iconKeys = ["iconScale", "iconOpacity", "iconRadius", "iconFit"] as const
 
 function defaultsOf<K extends keyof TabAppearance>(
-  keys: readonly K[]
+  keys: readonly K[],
+  defaults: TabAppearance
 ): Pick<TabAppearance, K> {
   const patch = {} as Pick<TabAppearance, K>
-  for (const key of keys) patch[key] = DEFAULT_TAB_APPEARANCE[key]
+  for (const key of keys) patch[key] = defaults[key]
   return patch
 }
 
@@ -285,21 +290,23 @@ export default function TabAppearanceControls({
   preview,
   backgroundControls,
   onResetBackground,
+  value: tabAppearance,
+  onChange: setTabAppearance,
+  defaults = DEFAULT_TAB_APPEARANCE,
 }: {
   preview: ReactNode
   backgroundControls: ReactNode
   onResetBackground: () => void
+  value: TabAppearance
+  onChange: (patch: Partial<TabAppearance>) => void
+  defaults?: TabAppearance
 }) {
   const { t } = useTranslation()
-  const tabAppearance = useHomeSettingsStore((state) => state.tabAppearance)
-  const setTabAppearance = useHomeSettingsStore(
-    (state) => state.setTabAppearance
-  )
   const color = useHomeSettingsStore((state) => state.color)
   const [resetOpen, setResetOpen] = useState(false)
 
   const resetGroup = (keys: readonly (keyof TabAppearance)[]) => {
-    setTabAppearance(defaultsOf(keys))
+    setTabAppearance(defaultsOf(keys, defaults))
   }
 
   return (
@@ -356,7 +363,7 @@ export default function TabAppearanceControls({
                 <Button
                   type="button"
                   onClick={() => {
-                    setTabAppearance(DEFAULT_TAB_APPEARANCE)
+                    setTabAppearance(defaults)
                     onResetBackground()
                     setResetOpen(false)
                   }}
@@ -562,6 +569,55 @@ export default function TabAppearanceControls({
         }}
       >
         {backgroundControls}
+        <SettingItem
+          label={t("settings.tabs.appearance.backgroundRotation")}
+          htmlFor="tab-background-rotation"
+        >
+          <Select
+            value={String(tabAppearance.backgroundRotation)}
+            onValueChange={(value) => {
+              const rotation = Number(value)
+              if (
+                rotation === 0 ||
+                rotation === 90 ||
+                rotation === 180 ||
+                rotation === 270
+              )
+                setTabAppearance({ backgroundRotation: rotation })
+            }}
+          >
+            <SelectTrigger
+              id="tab-background-rotation"
+              className={`w-full ${settingsControlClassName}`}
+            >
+              <SelectValue>{tabAppearance.backgroundRotation}°</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {[0, 90, 180, 270].map((angle) => (
+                <SelectItem key={angle} value={String(angle)}>
+                  {angle}°
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingItem>
+        {(["backgroundFlipX", "backgroundFlipY"] as const).map((field) => (
+          <SettingItem
+            key={field}
+            label={t(`settings.tabs.appearance.${field}`)}
+            htmlFor={`tab-${field}`}
+          >
+            <Switch
+              id={`tab-${field}`}
+              aria-label={t(`settings.tabs.appearance.${field}`)}
+              checked={tabAppearance[field]}
+              onCheckedChange={(checked) =>
+                setTabAppearance({ [field]: checked })
+              }
+              className="justify-self-end"
+            />
+          </SettingItem>
+        ))}
         <SettingItem
           label={t("settings.tabs.appearance.backgroundMode")}
           htmlFor="tab-appearance-background-mode"

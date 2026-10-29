@@ -31,7 +31,9 @@ import {
   clampFolderRadius,
   DEFAULT_FOLDER_RADIUS,
   MAX_FOLDER_RADIUS,
+  DEFAULT_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
+import { sanitizeSquareTabAppearance } from "@/lib/tab-appearance"
 
 export function snapshot() {
   const home = useHomeSettingsStore.getState()
@@ -67,6 +69,9 @@ export function snapshot() {
       burningAmplitude: home.burningAmplitude,
       transitionsEnabled: home.transitionsEnabled,
       tabAppearance: home.tabAppearance,
+      squareTabAppearance: home.squareTabAppearance,
+      squareTabTexture: home.squareTabTexture,
+      squareTabEffectCoverage: home.squareTabEffectCoverage,
     },
     theme: { theme: useThemeStore.getState().theme },
     search: {
@@ -142,6 +147,14 @@ export function validateConfig(value: unknown): Config {
     typeof home.transitionsEnabled !== "boolean" ||
     (home.tabAppearance !== undefined &&
       !validTabAppearance(home.tabAppearance)) ||
+    (home.squareTabAppearance !== undefined &&
+      !validTabAppearance(home.squareTabAppearance)) ||
+    (home.squareTabTexture !== undefined &&
+      !["none", "burning", "particles"].includes(home.squareTabTexture)) ||
+    (home.squareTabEffectCoverage !== undefined &&
+      (!Number.isFinite(home.squareTabEffectCoverage) ||
+        home.squareTabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
+        home.squareTabEffectCoverage > MAX_TAB_EFFECT_COVERAGE)) ||
     !isMatrixPet(home.pet) ||
     !["light", "dark", "system"].includes(theme.theme) ||
     !Array.isArray(search.engines) ||
@@ -167,6 +180,11 @@ export function validateConfig(value: unknown): Config {
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
   home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
+  home.squareTabAppearance = sanitizeSquareTabAppearance(
+    home.squareTabAppearance
+  )
+  home.squareTabTexture ??= "burning"
+  home.squareTabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
   home.folderBorder = sanitizeFolderBorder(home.folderBorder)
   home.folderRadius =
     home.folderRadius === undefined

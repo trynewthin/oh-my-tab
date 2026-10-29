@@ -16,6 +16,9 @@ export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   ),
   "personalization-material": () => <PersonalizationSettings pane="material" />,
   "personalization-tabs": () => <PersonalizationSettings pane="tabs" />,
+  "personalization-tabs-square": () => (
+    <PersonalizationSettings pane="tabs-square" />
+  ),
   "personalization-folders": () => <PersonalizationSettings pane="folders" />,
   "about-project": () => <AboutSettings pane="project" />,
   "about-privacy": () => <AboutSettings pane="privacy" />,

@@ -27,7 +27,11 @@ import {
   removeSearchShortcut,
   setSearchShortcutBoundary,
 } from "@/lib/search-shortcuts"
-import { sanitizeTabAppearance, type TabAppearance } from "@/lib/tab-appearance"
+import {
+  sanitizeTabAppearance,
+  sanitizeSquareTabAppearance,
+  type TabAppearance,
+} from "@/lib/tab-appearance"
 
 export type { TabAppearance } from "@/lib/tab-appearance"
 
@@ -105,6 +109,9 @@ type HomeSettingsStore = HomeSettings & {
   setBurningAmplitude: (value: number) => void
   setTransitionsEnabled: (value: boolean) => void
   setTabAppearance: (patch: Partial<TabAppearance>) => void
+  setSquareTabAppearance: (patch: Partial<TabAppearance>) => void
+  setSquareTabTexture: (value: TabTexture) => void
+  setSquareTabEffectCoverage: (value: number) => void
 }
 
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
@@ -273,6 +280,25 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             ...patch,
           }),
         })),
+      setSquareTabAppearance: (patch) =>
+        set((state) => ({
+          squareTabAppearance: sanitizeSquareTabAppearance({
+            ...state.squareTabAppearance,
+            ...patch,
+          }),
+        })),
+      setSquareTabTexture: (squareTabTexture) => set({ squareTabTexture }),
+      setSquareTabEffectCoverage: (value) => {
+        if (Number.isFinite(value))
+          set({
+            squareTabEffectCoverage: Math.round(
+              Math.min(
+                MAX_TAB_EFFECT_COVERAGE,
+                Math.max(MIN_TAB_EFFECT_COVERAGE, value)
+              )
+            ),
+          })
+      },
       setTopComponent: (topComponent) => set({ topComponent }),
       setTraditionalTopSpacing: (traditionalTopSpacing) =>
         set({ traditionalTopSpacing }),
@@ -313,6 +339,9 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         transitionsEnabled,
         tabAppearance,
+        squareTabAppearance,
+        squareTabTexture,
+        squareTabEffectCoverage,
       }) => ({
         layoutMode,
         quickBar,
@@ -339,6 +368,9 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         transitionsEnabled,
         tabAppearance,
+        squareTabAppearance,
+        squareTabTexture,
+        squareTabEffectCoverage,
       }),
       merge: (persisted, current) => ({
         ...current,

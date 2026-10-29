@@ -9,7 +9,8 @@ export function createParticleCell(
   seed: number,
   x: number,
   y: number,
-  columns: number
+  columns: number,
+  fill = 0
 ) {
   const scatter = random(seed, x, y)
   const band = Math.floor(y / 5)
@@ -17,10 +18,10 @@ export function createParticleCell(
   const blend = fraction * fraction * (3 - 2 * fraction)
   const edgeNoise =
     random(seed, 401, band) * (1 - blend) + random(seed, 401, band + 1) * blend
-  const edge = columns * (0.04 + edgeNoise * 0.24)
+  const edge = columns * (0.04 + edgeNoise * 0.24) * (1 - fill)
   const edgeDensity = Math.min(1, Math.max(0.08, (x - edge + 2) / 4))
   const hidden = { backgroundColor: "transparent", transform: "scale(0)" }
-  if (scatter > 0.78 * edgeDensity) return () => hidden
+  if (scatter > 0.78 * edgeDensity * (1 - fill) + fill) return () => hidden
   const period = 3.8 + random(seed, x + 47, y + 73) * 4.4
   const breathPhase = random(seed, x + 131, y + 211) * Math.PI * 2
   const breathDepth = 0.65 + random(seed, x + 307, y + 419) * 0.35
@@ -62,13 +63,15 @@ export function particleCell(
   time: number | undefined,
   visibility: number,
   amplitude: number,
-  pointer: Point | null
+  pointer: Point | null,
+  fill = 0
 ) {
   return createParticleCell(
     color,
     seed,
     x,
     y,
-    columns
+    columns,
+    fill
   )(time, visibility, amplitude, pointer)
 }

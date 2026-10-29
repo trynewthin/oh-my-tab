@@ -24,8 +24,18 @@
         },
         { "id": "home-top", "labelKey": "settings.nav.home" },
         {
-          "id": "personalization-tabs",
-          "labelKey": "settings.nav.personalizationTabs"
+          "id": "tabs",
+          "labelKey": "settings.nav.personalizationTabs",
+          "children": [
+            {
+              "id": "personalization-tabs",
+              "labelKey": "settings.nav.tabsStrip"
+            },
+            {
+              "id": "personalization-tabs-square",
+              "labelKey": "settings.nav.tabsSquare"
+            }
+          ]
         },
         {
           "id": "personalization-folders",

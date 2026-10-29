@@ -27,7 +27,8 @@ function burningRow(
   columns: number,
   time?: number,
   visibility = 1,
-  amplitude = 1
+  amplitude = 1,
+  fill = 0
 ) {
   if (visibility <= 0) return () => "transparent"
   const moving = time !== undefined && amplitude > 0
@@ -38,10 +39,11 @@ function burningRow(
   const baseEdge = moving
     ? columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude)
     : Math.floor(columns * (0.385 + (edgeNoise - 0.5) * 0.33 * amplitude))
+  const settledEdge = (baseEdge + 4) * (1 - fill) - 4
   const recession = 1 - visibility
   const edge =
-    baseEdge +
-    recession * (columns + 5 - baseEdge) +
+    settledEdge +
+    recession * (columns + 5 - settledEdge) +
     recession * Math.sin(y * 0.7 + phase) * 2
   return (x: number) => {
     const distance = x - edge
@@ -75,15 +77,26 @@ export function burningCell(
   columns: number,
   time?: number,
   visibility = 1,
-  amplitude = 1
+  amplitude = 1,
+  fill = 0
 ) {
-  return burningRow(color, seed, y, columns, time, visibility, amplitude)(x)
+  return burningRow(
+    color,
+    seed,
+    y,
+    columns,
+    time,
+    visibility,
+    amplitude,
+    fill
+  )(x)
 }
 
 export function createBurningTexture(
   color: string,
   seed: number,
-  columns: number
+  columns: number,
+  fill = 0
 ) {
   const rows = new Map<number, (x: number) => string>()
   let previousTime: number | undefined
@@ -108,7 +121,16 @@ export function createBurningTexture(
     }
     let row = rows.get(y)
     if (!row) {
-      row = burningRow(color, seed, y, columns, time, visibility, amplitude)
+      row = burningRow(
+        color,
+        seed,
+        y,
+        columns,
+        time,
+        visibility,
+        amplitude,
+        fill
+      )
       rows.set(y, row)
     }
     return row(x)

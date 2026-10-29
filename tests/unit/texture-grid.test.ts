@@ -33,7 +33,8 @@ describe("texture grid geometry", () => {
         // Only the normal inter-cell gap may reach the bottom edge.
         expect(bottom).toBeGreaterThanOrEqual(innerHeight - TEXTURE_GAP)
         expect(bottom - innerHeight).toBeLessThan(TEXTURE_CELL_SIZE)
-        expect(grid.left).toBeGreaterThanOrEqual(0)
+        expect(grid.left).toBeLessThanOrEqual(0)
+        expect(grid.left).toBeGreaterThan(-TEXTURE_STEP)
         expect(
           grid.left + grid.columns * TEXTURE_STEP - TEXTURE_GAP
         ).toBeCloseTo(grid.width)
@@ -41,8 +42,8 @@ describe("texture grid geometry", () => {
     }
   })
 
-  test("narrow regions omit partial columns while short regions clip their first row", () => {
-    expect(textureGrid(7.99, 20).columns).toBe(0)
+  test("narrow regions clip partial columns and short regions clip their first row", () => {
+    expect(textureGrid(7.99, 20).columns).toBe(1)
     expect(textureGrid(20, 7.99).rows).toBe(1)
     expect(textureGrid(8, 8)).toMatchObject({
       columns: 1,
@@ -50,7 +51,7 @@ describe("texture grid geometry", () => {
       top: 0,
       left: 0,
     })
-    expect(textureGrid(16.9, 16.9)).toMatchObject({ columns: 1, rows: 2 })
+    expect(textureGrid(16.9, 16.9)).toMatchObject({ columns: 2, rows: 2 })
     expect(textureGrid(17, 17)).toMatchObject({ columns: 2, rows: 2 })
   })
 })

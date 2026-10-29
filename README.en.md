@@ -32,9 +32,9 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 3. Right-click a card to see its available editing, size, and deletion options.
 4. Open **Settings** to change the theme, language, search engine, background, and effects.
 
-Use the category tabs in **Settings → Personalization → Tabs** to adjust layout, borders, backgrounds, text, icons, and effects. The preview stays visible while only the active settings panel scrolls. These settings apply globally without changing tile sizes or grid occupancy.
+Use the category tabs in **Settings → Personalization → Tabs** to adjust layout, borders, backgrounds, text, and icons. The Background page combines the background and its overlay mask in one form without separate sections. The preview stays visible while only the active settings panel scrolls. These settings apply globally without changing tile sizes or grid occupancy.
 
-**Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults. Tab content, sizes, and effect settings are unchanged. Existing category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed. They also require confirmation; the Effects reset restores only the effect spread.
+**Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults. The Background reset restores the background, mask, and default playback for new tabs without changing existing tabs' playback state, content, or sizes. Category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed.
 
 ## Data and privacy
 

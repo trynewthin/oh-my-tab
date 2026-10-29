@@ -283,10 +283,12 @@ function AppearanceGroup({
 
 export default function TabAppearanceControls({
   preview,
-  effects,
+  backgroundControls,
+  onResetBackground,
 }: {
   preview: ReactNode
-  effects: ReactNode
+  backgroundControls: ReactNode
+  onResetBackground: () => void
 }) {
   const { t } = useTranslation()
   const tabAppearance = useHomeSettingsStore((state) => state.tabAppearance)
@@ -310,7 +312,7 @@ export default function TabAppearanceControls({
         <div className="flex items-stretch gap-2">
           <Tabs.List
             aria-label={t("settings.tabs.appearance.title")}
-            className="-ml-3 grid min-w-0 grid-cols-3 gap-x-1 text-sm sm:grid-cols-6"
+            className="-ml-3 grid min-w-0 grid-cols-3 gap-x-1 text-sm sm:grid-cols-5"
           >
             {appearanceGroups.map((group) => (
               <Tabs.Tab
@@ -321,12 +323,6 @@ export default function TabAppearanceControls({
                 {t(`settings.tabs.appearance.groups.${group}`)}
               </Tabs.Tab>
             ))}
-            <Tabs.Tab
-              value="effects"
-              className="relative min-w-0 rounded-sm px-3 py-2 text-center text-muted-foreground transition-colors outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:text-foreground data-active:after:bg-current"
-            >
-              {t("settings.tabs.appearance.groups.effects")}
-            </Tabs.Tab>
           </Tabs.List>
           <Popover open={resetOpen} onOpenChange={setResetOpen}>
             <PopoverTrigger
@@ -361,6 +357,7 @@ export default function TabAppearanceControls({
                   type="button"
                   onClick={() => {
                     setTabAppearance(DEFAULT_TAB_APPEARANCE)
+                    onResetBackground()
                     setResetOpen(false)
                   }}
                 >
@@ -559,12 +556,15 @@ export default function TabAppearanceControls({
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.background"),
         })}
-        onReset={() => resetGroup(backgroundKeys)}
+        onReset={() => {
+          resetGroup(backgroundKeys)
+          onResetBackground()
+        }}
       >
+        {backgroundControls}
         <SettingItem
           label={t("settings.tabs.appearance.backgroundMode")}
           htmlFor="tab-appearance-background-mode"
-          description={t("settings.tabs.appearance.backgroundModeHint")}
         >
           <SelectField
             id="tab-appearance-background-mode"
@@ -872,14 +872,6 @@ export default function TabAppearanceControls({
           />
         </SettingItem>
       </AppearanceGroup>
-      <Tabs.Panel
-        value="effects"
-        className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 outline-none sm:-mr-6 sm:pr-6"
-      >
-        <div className="flex min-h-full flex-col gap-3 pt-2 pb-5 sm:pb-6 [&>*]:shrink-0">
-          {effects}
-        </div>
-      </Tabs.Panel>
     </Tabs.Root>
   )
 }

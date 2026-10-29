@@ -37,14 +37,11 @@ export default function TabBackground({
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
       style={{
-        opacity: appearance.backgroundOpacity / 100,
-        backdropFilter: appearance.backgroundBlur
-          ? `blur(${appearance.backgroundBlur}px)`
-          : undefined,
+        backgroundColor: "var(--card)",
       }}
     >
-      <div className="absolute inset-0" style={{ background }} />
       <div
+        data-tab-background-layer="background"
         className="absolute overflow-hidden"
         style={{
           inset: appearance.borderStyle === "none" ? 0 : appearance.borderWidth,
@@ -63,6 +60,17 @@ export default function TabBackground({
           transparent
         />
       </div>
+      <div
+        data-tab-background-layer="mask"
+        className="absolute inset-0 rounded-[inherit]"
+        style={{
+          background,
+          opacity: appearance.backgroundOpacity / 100,
+          backdropFilter: appearance.backgroundBlur
+            ? `blur(${appearance.backgroundBlur}px)`
+            : undefined,
+        }}
+      />
     </div>
   )
 }

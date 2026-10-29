@@ -33,6 +33,18 @@ describe("tab appearance model", () => {
     for (const value of [undefined, null, "corrupt", [], 42])
       expect(sanitizeTabAppearance(value)).toEqual(DEFAULT_TAB_APPEARANCE)
   })
+  test("missing masks reveal the background while saved mask choices survive hydration", () => {
+    expect(sanitizeHomeSettings({}).tabAppearance).toMatchObject({
+      backgroundMode: "transparent",
+      backgroundBlur: 0,
+    })
+    for (const backgroundMode of ["default", "solid", "gradient"] as const) {
+      const mask = { backgroundMode, backgroundOpacity: 75, backgroundBlur: 4 }
+      expect(
+        sanitizeHomeSettings({ tabAppearance: mask }).tabAppearance
+      ).toMatchObject(mask)
+    }
+  })
 
   test("clamps numbers and replaces values outside their domain", () => {
     expect(
@@ -83,7 +95,6 @@ describe("tab appearance model", () => {
       borderColor: "theme",
       borderOpacity: 0,
       radius: 48,
-      backgroundMode: "default",
       backgroundColor: "#ABCDEF",
       backgroundEndColor: "#8b5cf6",
       backgroundOpacity: 100,

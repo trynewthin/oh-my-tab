@@ -92,7 +92,7 @@ const RULES = {
   backgroundMode: {
     kind: "enum",
     values: ["default", "transparent", "solid", "gradient"],
-    fallback: "default",
+    fallback: "transparent",
   },
   backgroundColor: { kind: "color", fixed: ["item"], fallback: "item" },
   backgroundEndColor: { kind: "color", fixed: [], fallback: "#8b5cf6" },

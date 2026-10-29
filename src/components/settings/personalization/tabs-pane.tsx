@@ -4,7 +4,6 @@ import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
 import ScaledGridPreview from "./scaled-grid-preview"
 import TabAppearanceControls from "./tab-appearance-controls"
-import AppearanceResetButton from "./appearance-reset-button"
 import { Switch } from "@/components/ui/switch"
 import {
   AlertDialog,
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { GridItem, TabItem } from "@/lib/grid/types"
 import {
-  DEFAULT_TAB_EFFECT_COVERAGE,
   MAX_TAB_EFFECT_COVERAGE,
   MIN_TAB_EFFECT_COVERAGE,
   useHomeSettingsStore,
@@ -118,7 +116,13 @@ export default function TabsPane() {
             />
           ) : null
         }
-        effects={
+        onResetBackground={() => {
+          const defaults = useHomeSettingsStore.getInitialState()
+          setTabTexture(defaults.tabTexture)
+          setTabEffectCoverage(defaults.tabEffectCoverage)
+          setNewTabsDynamicEffect(defaults.newTabsDynamicEffect)
+        }}
+        backgroundControls={
           <>
             <SettingItem
               label={t("settings.tabs.newDynamicEffect")}
@@ -162,14 +166,6 @@ export default function TabsPane() {
                   formatValue={(value) => `${value}%`}
                 />
               </SettingItem>
-            )}
-            {(tabTexture === "burning" || tabTexture === "particles") && (
-              <AppearanceResetButton
-                label={t("settings.tabs.resetEffectCoverage")}
-                onReset={() =>
-                  setTabEffectCoverage(DEFAULT_TAB_EFFECT_COVERAGE)
-                }
-              />
             )}
           </>
         }

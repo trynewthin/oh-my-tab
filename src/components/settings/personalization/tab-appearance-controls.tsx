@@ -1,9 +1,16 @@
 import { useState, type ReactNode } from "react"
+import { Tabs } from "@base-ui/react/tabs"
 import { useTranslation } from "react-i18next"
-import { ArrowCounterClockwise, CaretRight } from "@phosphor-icons/react"
+import { ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import ColorPicker from "@/components/ui/color-picker"
+import AppearanceResetButton from "./appearance-reset-button"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverTitle,
+} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -17,15 +24,20 @@ import {
 } from "@/lib/tab-appearance"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import SettingItem from "../shared/setting-item"
-import {
-  settingsControlClassName,
-  settingsControlSurface,
-} from "../shared/control-styles"
+import RangeField from "../shared/setting-range"
+import { settingsControlClassName } from "../shared/control-styles"
 
 type Option<T extends string = string> = { value: T; labelKey: string }
 type FontWeightValue = "400" | "500" | "600" | "700"
 
 const appearance = "settings.tabs.appearance"
+const appearanceGroups = [
+  "layout",
+  "border",
+  "background",
+  "text",
+  "icon",
+] as const
 
 const displayOptions: readonly Option<TabAppearance["display"]>[] = [
   { value: "both", labelKey: `${appearance}.displayBoth` },
@@ -188,116 +200,6 @@ function SelectField<T extends string>({
   )
 }
 
-function NumberField({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string
-  value: number
-  min: number
-  max: number
-  step: number
-  onChange: (value: number) => void
-}) {
-  const [draft, setDraft] = useState<string | null>(null)
-
-  const commit = (raw: string) => {
-    const parsed = Number(raw)
-    if (raw.trim() === "" || !Number.isFinite(parsed)) return
-    const normalized = Number.isInteger(step) ? Math.round(parsed) : parsed
-    onChange(Math.min(max, Math.max(min, normalized)))
-  }
-
-  return (
-    <Input
-      type="number"
-      inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
-      aria-label={label}
-      min={min}
-      max={max}
-      step={step}
-      value={draft ?? String(value)}
-      onFocus={() => setDraft(String(value))}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={(event) => {
-        commit(event.target.value)
-        setDraft(null)
-      }}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") event.currentTarget.blur()
-      }}
-      className="h-8 w-16 shrink-0 px-2 text-center text-xs tabular-nums"
-    />
-  )
-}
-
-function RangeField({
-  id,
-  label,
-  value,
-  min,
-  max,
-  step = 1,
-  unit,
-  accentColor,
-  onChange,
-}: {
-  id: string
-  label: string
-  value: number
-  min: number
-  max: number
-  step?: number
-  unit?: string
-  accentColor: string
-  onChange: (value: number) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <div
-        className={`flex h-8 min-w-0 flex-1 items-center rounded-2xl px-3 ${settingsControlSurface}`}
-      >
-        <input
-          id={id}
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(event) => {
-            const next = Number(event.target.value)
-            if (Number.isFinite(next)) onChange(next)
-          }}
-          className="min-w-0 flex-1"
-          style={{ accentColor }}
-        />
-      </div>
-      <NumberField
-        label={t("settings.tabs.appearance.valueLabel", { label })}
-        value={value}
-        min={min}
-        max={max}
-        step={step}
-        onChange={onChange}
-      />
-      {unit !== undefined && (
-        <span
-          aria-hidden="true"
-          className="w-4 shrink-0 text-[10px] text-muted-foreground"
-        >
-          {unit}
-        </span>
-      )}
-    </div>
-  )
-}
-
 function ColorModeField({
   id,
   label,
@@ -355,113 +257,129 @@ function ColorModeField({
   )
 }
 
-function GroupReset({
-  label,
-  onReset,
-}: {
-  label: string
-  onReset: () => void
-}) {
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size="icon"
-      className="size-8 shrink-0 rounded-2xl border border-border"
-      aria-label={label}
-      title={label}
-      onClick={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onReset()
-      }}
-    >
-      <ArrowCounterClockwise className="size-4" />
-    </Button>
-  )
-}
-
 function AppearanceGroup({
-  title,
+  value,
   resetLabel,
   onReset,
-  open = true,
   children,
 }: {
-  title: string
+  value: string
   resetLabel: string
   onReset: () => void
-  open?: boolean
   children: ReactNode
 }) {
-  const [expanded, setExpanded] = useState(open)
-
   return (
-    <details
-      open={expanded}
-      onToggle={(event) => setExpanded(event.currentTarget.open)}
-      className="group rounded-2xl border border-border/70 bg-muted/30"
+    <Tabs.Panel
+      value={value}
+      className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 outline-none sm:-mr-6 sm:pr-6"
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-2xl px-3 py-2 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/30 [&::-webkit-details-marker]:hidden">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <CaretRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-          <span className="truncate">{title}</span>
-        </span>
-        <GroupReset label={resetLabel} onReset={onReset} />
-      </summary>
-      <div className="space-y-3 px-3 pt-1 pb-3">{children}</div>
-    </details>
+      <div className="flex min-h-full flex-col gap-3 pt-2 pb-5 sm:pb-6">
+        <div className="space-y-3">{children}</div>
+        <AppearanceResetButton label={resetLabel} onReset={onReset} />
+      </div>
+    </Tabs.Panel>
   )
 }
 
-export default function TabAppearanceControls() {
+export default function TabAppearanceControls({
+  preview,
+  effects,
+}: {
+  preview: ReactNode
+  effects: ReactNode
+}) {
   const { t } = useTranslation()
   const tabAppearance = useHomeSettingsStore((state) => state.tabAppearance)
   const setTabAppearance = useHomeSettingsStore(
     (state) => state.setTabAppearance
   )
   const color = useHomeSettingsStore((state) => state.color)
+  const [resetOpen, setResetOpen] = useState(false)
 
   const resetGroup = (keys: readonly (keyof TabAppearance)[]) => {
     setTabAppearance(defaultsOf(keys))
   }
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
-          <h3 className="text-sm font-medium">
-            {t("settings.tabs.appearance.title")}
-          </h3>
-          <p className="text-xs leading-5 text-muted-foreground">
-            {t("settings.tabs.appearance.hint")}
-          </p>
+    <Tabs.Root
+      defaultValue="layout"
+      className="-mb-5 flex h-[calc(100%+1.25rem)] min-h-0 flex-col gap-3 sm:-mb-6 sm:h-[calc(100%+1.5rem)]"
+    >
+      <div className="shrink-0 space-y-3">
+        {preview}
+        <div className="flex items-stretch gap-2">
+          <Tabs.List
+            aria-label={t("settings.tabs.appearance.title")}
+            className="-ml-3 grid min-w-0 grid-cols-3 gap-x-1 text-sm sm:grid-cols-6"
+          >
+            {appearanceGroups.map((group) => (
+              <Tabs.Tab
+                key={group}
+                value={group}
+                className="relative min-w-0 rounded-sm px-3 py-2 text-center text-muted-foreground transition-colors outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:text-foreground data-active:after:bg-current"
+              >
+                {t(`settings.tabs.appearance.groups.${group}`)}
+              </Tabs.Tab>
+            ))}
+            <Tabs.Tab
+              value="effects"
+              className="relative min-w-0 rounded-sm px-3 py-2 text-center text-muted-foreground transition-colors outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:text-foreground data-active:after:bg-current"
+            >
+              {t("settings.tabs.appearance.groups.effects")}
+            </Tabs.Tab>
+          </Tabs.List>
+          <Popover open={resetOpen} onOpenChange={setResetOpen}>
+            <PopoverTrigger
+              aria-label={t("settings.tabs.appearance.resetAll")}
+              title={t("settings.tabs.appearance.resetAll")}
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="ml-auto h-auto shrink-0 gap-1.5 self-stretch rounded-lg border-0 px-2.5 text-xs font-normal text-muted-foreground"
+                />
+              }
+            >
+              <ArrowCounterClockwise className="size-3.5" />
+              <span className="hidden sm:inline">
+                {t("settings.tabs.appearance.resetAll")}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="max-w-[calc(100vw-2rem)]">
+              <PopoverTitle>
+                {t("settings.tabs.appearance.resetConfirmTitle")}
+              </PopoverTitle>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setResetOpen(false)}
+                >
+                  {t("settings.common.cancel")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setTabAppearance(DEFAULT_TAB_APPEARANCE)
+                    setResetOpen(false)
+                  }}
+                >
+                  {t("settings.tabs.appearance.resetConfirm")}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="h-8 shrink-0 gap-1.5 rounded-2xl border border-border px-2.5 text-xs"
-          aria-label={t("settings.tabs.appearance.resetAll")}
-          title={t("settings.tabs.appearance.resetAll")}
-          onClick={() => setTabAppearance(DEFAULT_TAB_APPEARANCE)}
-        >
-          <ArrowCounterClockwise className="size-4" />
-          <span className="hidden sm:inline">
-            {t("settings.tabs.appearance.resetAll")}
-          </span>
-        </Button>
       </div>
 
       <AppearanceGroup
-        title={t("settings.tabs.appearance.groups.layout")}
+        value="layout"
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.layout"),
         })}
         onReset={() => resetGroup(layoutKeys)}
-        open
       >
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.display")}
           htmlFor="tab-appearance-display"
         >
@@ -473,7 +391,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.direction")}
           htmlFor="tab-appearance-direction"
         >
@@ -485,7 +402,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.justify")}
           htmlFor="tab-appearance-justify"
         >
@@ -497,7 +413,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.align")}
           htmlFor="tab-appearance-align"
         >
@@ -509,7 +424,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.paddingX")}
           htmlFor="tab-appearance-padding-x"
         >
@@ -525,7 +439,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.paddingY")}
           htmlFor="tab-appearance-padding-y"
         >
@@ -541,7 +454,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.gap")}
           htmlFor="tab-appearance-gap"
         >
@@ -559,14 +471,13 @@ export default function TabAppearanceControls() {
       </AppearanceGroup>
 
       <AppearanceGroup
-        title={t("settings.tabs.appearance.groups.border")}
+        value="border"
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.border"),
         })}
         onReset={() => resetGroup(borderKeys)}
       >
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.borderStyle")}
           htmlFor="tab-appearance-border-style"
         >
@@ -580,7 +491,6 @@ export default function TabAppearanceControls() {
         {tabAppearance.borderStyle !== "none" && (
           <>
             <SettingItem
-              wide
               label={t("settings.tabs.appearance.borderWidth")}
               htmlFor="tab-appearance-border-width"
             >
@@ -596,7 +506,6 @@ export default function TabAppearanceControls() {
               />
             </SettingItem>
             <SettingItem
-              wide
               label={t("settings.tabs.appearance.borderColor")}
               htmlFor="tab-appearance-border-color"
             >
@@ -610,7 +519,6 @@ export default function TabAppearanceControls() {
               />
             </SettingItem>
             <SettingItem
-              wide
               label={t("settings.tabs.appearance.borderOpacity")}
               htmlFor="tab-appearance-border-opacity"
             >
@@ -630,7 +538,6 @@ export default function TabAppearanceControls() {
           </>
         )}
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.radius")}
           htmlFor="tab-appearance-radius"
         >
@@ -648,14 +555,13 @@ export default function TabAppearanceControls() {
       </AppearanceGroup>
 
       <AppearanceGroup
-        title={t("settings.tabs.appearance.groups.background")}
+        value="background"
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.background"),
         })}
         onReset={() => resetGroup(backgroundKeys)}
       >
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.backgroundMode")}
           htmlFor="tab-appearance-background-mode"
           description={t("settings.tabs.appearance.backgroundModeHint")}
@@ -670,7 +576,6 @@ export default function TabAppearanceControls() {
         {(tabAppearance.backgroundMode === "solid" ||
           tabAppearance.backgroundMode === "gradient") && (
           <SettingItem
-            wide
             label={t("settings.tabs.appearance.backgroundColor")}
             htmlFor="tab-appearance-background-color"
           >
@@ -687,7 +592,6 @@ export default function TabAppearanceControls() {
           </SettingItem>
         )}
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.backgroundOpacity")}
           htmlFor="tab-appearance-background-opacity"
         >
@@ -707,7 +611,6 @@ export default function TabAppearanceControls() {
         {tabAppearance.backgroundMode === "gradient" && (
           <>
             <SettingItem
-              wide
               label={t("settings.tabs.appearance.backgroundEndColor")}
             >
               <ColorPicker
@@ -720,7 +623,6 @@ export default function TabAppearanceControls() {
               />
             </SettingItem>
             <SettingItem
-              wide
               label={t("settings.tabs.appearance.gradientAngle")}
               htmlFor="tab-appearance-gradient-angle"
             >
@@ -740,7 +642,6 @@ export default function TabAppearanceControls() {
           </>
         )}
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.backgroundBlur")}
           htmlFor="tab-appearance-background-blur"
         >
@@ -758,14 +659,13 @@ export default function TabAppearanceControls() {
       </AppearanceGroup>
 
       <AppearanceGroup
-        title={t("settings.tabs.appearance.groups.text")}
+        value="text"
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.text"),
         })}
         onReset={() => resetGroup(textKeys)}
       >
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.fontFamily")}
           htmlFor="tab-appearance-font-family"
         >
@@ -777,7 +677,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.fontSize")}
           htmlFor="tab-appearance-font-size"
         >
@@ -793,7 +692,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.fontWeight")}
           htmlFor="tab-appearance-font-weight"
         >
@@ -809,7 +707,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.textColor")}
           htmlFor="tab-appearance-text-color"
         >
@@ -823,7 +720,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.textOpacity")}
           htmlFor="tab-appearance-text-opacity"
         >
@@ -839,7 +735,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.textAlign")}
           htmlFor="tab-appearance-text-align"
         >
@@ -851,7 +746,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.lineHeight")}
           htmlFor="tab-appearance-line-height"
         >
@@ -867,7 +761,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.letterSpacing")}
           htmlFor="tab-appearance-letter-spacing"
         >
@@ -884,7 +777,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.maxLines")}
           htmlFor="tab-appearance-max-lines"
         >
@@ -903,7 +795,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.textOverflow")}
           htmlFor="tab-appearance-text-overflow"
         >
@@ -917,14 +808,13 @@ export default function TabAppearanceControls() {
       </AppearanceGroup>
 
       <AppearanceGroup
-        title={t("settings.tabs.appearance.groups.icon")}
+        value="icon"
         resetLabel={t("settings.tabs.appearance.resetGroup", {
           group: t("settings.tabs.appearance.groups.icon"),
         })}
         onReset={() => resetGroup(iconKeys)}
       >
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.iconScale")}
           htmlFor="tab-appearance-icon-scale"
           description={t("settings.tabs.appearance.iconScaleHint")}
@@ -941,7 +831,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.iconOpacity")}
           htmlFor="tab-appearance-icon-opacity"
         >
@@ -957,7 +846,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.iconRadius")}
           htmlFor="tab-appearance-icon-radius"
         >
@@ -973,7 +861,6 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
         <SettingItem
-          wide
           label={t("settings.tabs.appearance.iconFit")}
           htmlFor="tab-appearance-icon-fit"
         >
@@ -985,6 +872,14 @@ export default function TabAppearanceControls() {
           />
         </SettingItem>
       </AppearanceGroup>
-    </section>
+      <Tabs.Panel
+        value="effects"
+        className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 outline-none sm:-mr-6 sm:pr-6"
+      >
+        <div className="flex min-h-full flex-col gap-3 pt-2 pb-5 sm:pb-6 [&>*]:shrink-0">
+          {effects}
+        </div>
+      </Tabs.Panel>
+    </Tabs.Root>
   )
 }

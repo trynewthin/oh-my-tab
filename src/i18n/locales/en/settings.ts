@@ -6,6 +6,7 @@ export default {
     close: "Close",
     processing: "Working…",
     info: "About {{label}}",
+    valueLabel: "{{label}} value",
   },
   nav: {
     general: "General",
@@ -349,16 +350,18 @@ export default {
     applyAllTabsDisable: "Disable all",
     appearance: {
       title: "Tab appearance",
-      hint: "Applies to every tab on the home page, including tabs inside folders and search results. Tile size and grid layout stay unchanged.",
       resetAll: "Reset all",
+      resetConfirmTitle: "Reset all tab appearance settings?",
+      resetConfirm: "Confirm reset",
+      resetActionTitle: "{{action}}?",
       resetGroup: "Reset {{group}}",
-      valueLabel: "{{label}} value",
       groups: {
         layout: "Layout",
         border: "Border",
         background: "Background",
         text: "Text",
         icon: "Icon",
+        effects: "Effects",
       },
       display: "Content",
       displayBoth: "Icon and text",

@@ -15,10 +15,8 @@ import {
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useTranslation } from "react-i18next"
 import SettingItem from "../shared/setting-item"
-import {
-  settingsControlClassName,
-  settingsControlSurface,
-} from "../shared/control-styles"
+import { settingsControlClassName } from "../shared/control-styles"
+import SettingRange from "../shared/setting-range"
 
 export default function GridPane() {
   const { t } = useTranslation()
@@ -63,26 +61,17 @@ export default function GridPane() {
         htmlFor="home-grid-scale"
         description={t("settings.home.gridScaleHint")}
       >
-        <div
-          className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
-        >
-          <input
-            id="home-grid-scale"
-            type="range"
-            min={MIN_GRID_SCALE}
-            max={MAX_GRID_SCALE}
-            step={GRID_SCALE_STEP}
-            value={gridScale}
-            onChange={(event) => setGridScale(Number(event.target.value))}
-            className="min-w-0 flex-1"
-          />
-          <output
-            htmlFor="home-grid-scale"
-            className="w-10 text-right text-xs tabular-nums"
-          >
-            {Math.round(gridScale * 100)}%
-          </output>
-        </div>
+        <SettingRange
+          id="home-grid-scale"
+          label={t("settings.home.gridScale")}
+          min={MIN_GRID_SCALE}
+          max={MAX_GRID_SCALE}
+          step={GRID_SCALE_STEP}
+          value={gridScale}
+          onChange={setGridScale}
+          editable={false}
+          formatValue={(value) => `${Math.round(value * 100)}%`}
+        />
       </SettingItem>
       {settings.map((setting) => (
         <SettingItem

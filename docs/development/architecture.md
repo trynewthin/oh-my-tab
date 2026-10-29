@@ -12,6 +12,8 @@
 
 持久化操作经 store 或 application 完成；视图不另建数据转换流程。文件夹与待办复用 `tab-grid/collection/`，其他共用表面放 `shared/`。导入方向和静态循环由 `npm run verify:architecture` 检查，规则以该脚本为准。
 
+设置表单复用 `settings/shared/` 的设置行、控件表面样式与数值滑块；需要数值输入时由同一个滑块组件提供，不在页面内另建组合控件。分类底部重置保留独立的确认交互。
+
 ## 网格
 
 组件元数据与尺寸以 `src/lib/grid/registry.ts` 为准，新增组件见[组件开发](widgets.md)。

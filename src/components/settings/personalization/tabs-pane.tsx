@@ -4,8 +4,7 @@ import { createTabItem } from "@/lib/grid/factory"
 import EffectStylePicker from "./effect-style-picker"
 import ScaledGridPreview from "./scaled-grid-preview"
 import TabAppearanceControls from "./tab-appearance-controls"
-import { ArrowCounterClockwise } from "@phosphor-icons/react"
-import { Button } from "@/components/ui/button"
+import AppearanceResetButton from "./appearance-reset-button"
 import { Switch } from "@/components/ui/switch"
 import {
   AlertDialog,
@@ -27,6 +26,7 @@ import {
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
+import SettingRange from "../shared/setting-range"
 
 const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
 
@@ -107,85 +107,73 @@ export default function TabsPane() {
 
   return (
     <>
-      {trackWidth > 0 && (
-        <div className="sticky top-0 z-10 bg-popover pb-1">
-          <ScaledGridPreview
-            items={preview.items}
-            trackWidth={trackWidth}
-            area={preview.area}
-            positions={preview.positions}
-          />
-        </div>
-      )}
-      <TabAppearanceControls />
-      <SettingItem
-        label={t("settings.tabs.newDynamicEffect")}
-        description={t("settings.tabs.newDynamicEffectHint")}
-      >
-        <Switch
-          aria-label={t("settings.tabs.newDynamicEffect")}
-          checked={newTabsDynamicEffect}
-          className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
-          style={{
-            backgroundColor: newTabsDynamicEffect ? color : undefined,
-          }}
-          onCheckedChange={(enabled) => {
-            setNewTabsDynamicEffect(enabled)
-            setApplyExisting(enabled)
-          }}
-        />
-      </SettingItem>
-      <SettingItem label={t("settings.tabs.texture")}>
-        <EffectStylePicker
-          value={tabTexture}
-          color={color}
-          onChange={setTabTexture}
-          labelKey="settings.tabs.texture"
-        />
-      </SettingItem>
-      {(tabTexture === "burning" || tabTexture === "particles") && (
-        <SettingItem
-          label={t("settings.tabs.effectCoverage")}
-          htmlFor="tab-effect-coverage"
-        >
-          <div className="flex w-full min-w-0 items-center gap-2">
-            <div
-              className={`flex h-8 min-w-0 flex-1 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
+      <TabAppearanceControls
+        preview={
+          trackWidth > 0 ? (
+            <ScaledGridPreview
+              items={preview.items}
+              trackWidth={trackWidth}
+              area={preview.area}
+              positions={preview.positions}
+            />
+          ) : null
+        }
+        effects={
+          <>
+            <SettingItem
+              label={t("settings.tabs.newDynamicEffect")}
+              description={t("settings.tabs.newDynamicEffectHint")}
             >
-              <input
-                id="tab-effect-coverage"
-                type="range"
-                min={MIN_TAB_EFFECT_COVERAGE}
-                max={MAX_TAB_EFFECT_COVERAGE}
-                step="1"
-                value={tabEffectCoverage}
-                onChange={(event) =>
-                  setTabEffectCoverage(Number(event.target.value))
-                }
-                className="min-w-0 flex-1"
-                style={{ accentColor: color }}
+              <Switch
+                aria-label={t("settings.tabs.newDynamicEffect")}
+                checked={newTabsDynamicEffect}
+                className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
+                style={{
+                  backgroundColor: newTabsDynamicEffect ? color : undefined,
+                }}
+                onCheckedChange={(enabled) => {
+                  setNewTabsDynamicEffect(enabled)
+                  setApplyExisting(enabled)
+                }}
               />
-              <output
+            </SettingItem>
+            <SettingItem label={t("settings.tabs.texture")}>
+              <EffectStylePicker
+                value={tabTexture}
+                color={color}
+                onChange={setTabTexture}
+                labelKey="settings.tabs.texture"
+              />
+            </SettingItem>
+            {(tabTexture === "burning" || tabTexture === "particles") && (
+              <SettingItem
+                label={t("settings.tabs.effectCoverage")}
                 htmlFor="tab-effect-coverage"
-                className="w-10 text-right text-xs tabular-nums"
               >
-                {tabEffectCoverage}%
-              </output>
-            </div>
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon"
-              className="size-8 shrink-0 rounded-2xl border border-border"
-              aria-label={t("settings.tabs.resetEffectCoverage")}
-              title={t("settings.tabs.resetEffectCoverage")}
-              onClick={() => setTabEffectCoverage(DEFAULT_TAB_EFFECT_COVERAGE)}
-            >
-              <ArrowCounterClockwise />
-            </Button>
-          </div>
-        </SettingItem>
-      )}
+                <SettingRange
+                  id="tab-effect-coverage"
+                  label={t("settings.tabs.effectCoverage")}
+                  min={MIN_TAB_EFFECT_COVERAGE}
+                  max={MAX_TAB_EFFECT_COVERAGE}
+                  value={tabEffectCoverage}
+                  onChange={setTabEffectCoverage}
+                  accentColor={color}
+                  editable={false}
+                  formatValue={(value) => `${value}%`}
+                />
+              </SettingItem>
+            )}
+            {(tabTexture === "burning" || tabTexture === "particles") && (
+              <AppearanceResetButton
+                label={t("settings.tabs.resetEffectCoverage")}
+                onReset={() =>
+                  setTabEffectCoverage(DEFAULT_TAB_EFFECT_COVERAGE)
+                }
+              />
+            )}
+          </>
+        }
+      />
       <AlertDialog
         open={applyExisting !== null}
         onOpenChange={(open) => {

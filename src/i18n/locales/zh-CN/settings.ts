@@ -6,6 +6,7 @@ export default {
     close: "关闭",
     processing: "处理中…",
     info: "{{label}}说明",
+    valueLabel: "{{label}}数值",
   },
   nav: {
     general: "常规",
@@ -333,16 +334,18 @@ export default {
     applyAllTabsDisable: "全部关闭",
     appearance: {
       title: "标签外观",
-      hint: "作用于首页所有标签，包括文件夹内标签和搜索结果；不会改变标签外框尺寸与网格布局。",
       resetAll: "全部重置",
+      resetConfirmTitle: "重置全部标签外观？",
+      resetConfirm: "确认重置",
+      resetActionTitle: "{{action}}？",
       resetGroup: "重置{{group}}",
-      valueLabel: "{{label}}数值",
       groups: {
         layout: "布局",
         border: "边框",
         background: "背景",
         text: "文字",
         icon: "图标",
+        effects: "动效",
       },
       display: "内容",
       displayBoth: "图标和文字",

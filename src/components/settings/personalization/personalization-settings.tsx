@@ -17,7 +17,13 @@ export default function PersonalizationSettings({
 }) {
   const Pane = panes[pane]
   return (
-    <section className="relative isolate min-h-full space-y-4">
+    <section
+      className={
+        pane === "tabs"
+          ? "relative isolate h-full min-h-0"
+          : "relative isolate min-h-full space-y-4"
+      }
+    >
       <Pane />
     </section>
   )

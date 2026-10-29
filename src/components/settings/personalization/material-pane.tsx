@@ -6,6 +6,7 @@ import EffectStylePicker from "./effect-style-picker"
 import { useMaterialPreview } from "./material-preview-context"
 import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
+import SettingRange from "../shared/setting-range"
 import { MAX_STAR_TRAIL_SPEED, MIN_STAR_TRAIL_SPEED } from "@/lib/star-trails"
 
 export default function MaterialPane() {
@@ -74,31 +75,27 @@ export default function MaterialPane() {
             }
             htmlFor={controlId}
           >
-            <div
-              className={`flex h-8 min-w-0 items-center gap-2 rounded-2xl px-3 ${settingsControlSurface}`}
-            >
-              <input
-                id={controlId}
-                type="range"
-                min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
-                max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
-                step="0.1"
-                value={controlValue}
-                onChange={(event) => {
-                  const value = Number(event.target.value)
-                  if (starTrails) materialPreview.setStarTrailSpeed(value)
-                  else setAmplitude(value)
-                }}
-                className="min-w-0 flex-1"
-                style={{ accentColor: color }}
-              />
-              <output
-                htmlFor={controlId}
-                className="w-10 text-right text-xs tabular-nums"
-              >
-                {Math.round(controlValue * 100)}%
-              </output>
-            </div>
+            <SettingRange
+              id={controlId}
+              label={t(
+                starTrails
+                  ? "settings.material.runningSpeed"
+                  : materialPreview.value === "burning"
+                    ? "settings.material.burningAmplitude"
+                    : "settings.material.breathingAmplitude"
+              )}
+              min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
+              max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
+              step={0.1}
+              value={controlValue}
+              onChange={(value) => {
+                if (starTrails) materialPreview.setStarTrailSpeed(value)
+                else setAmplitude(value)
+              }}
+              accentColor={color}
+              editable={false}
+              formatValue={(value) => `${Math.round(value * 100)}%`}
+            />
           </SettingItem>
           <SettingItem label={t("settings.material.transition")}>
             <Switch

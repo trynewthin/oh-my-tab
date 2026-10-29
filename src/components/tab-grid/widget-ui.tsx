@@ -8,6 +8,7 @@ import TabUI from "./tab-ui"
 import TabSurface from "./tab-surface"
 import ComponentBackground from "./shared/component-background"
 import FolderUI from "./folder-ui"
+import FolderBorder from "./folder-border"
 import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
 import SearchTile from "./search-tile"
@@ -136,6 +137,7 @@ export function WidgetTile({
             preview={preview}
             tabs={folderTabs}
           />
+          <FolderBorder />
         </>
       )
   }

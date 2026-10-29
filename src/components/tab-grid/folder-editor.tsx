@@ -19,6 +19,8 @@ import { useTranslation } from "react-i18next"
 import ComponentBackground from "./shared/component-background"
 import ComponentEditorFrame from "./component-editor-frame"
 import FolderUI from "./folder-ui"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import FolderBorder from "./folder-border"
 
 export default function FolderEditor({
   item,
@@ -30,6 +32,7 @@ export default function FolderEditor({
   onSaved: () => void
 }) {
   const { t } = useTranslation()
+  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
   const [id] = useState(() => item?.id ?? crypto.randomUUID())
   const definition = getComponentDefinition("folder")
   const [name, setName] = useState(item?.name ?? "")
@@ -84,10 +87,13 @@ export default function FolderEditor({
       description={t("grid.editor.descriptionWithName")}
       width={current.width}
       height={current.height}
+      previewRadius={folderRadius}
+      previewBorderTransparent
       preview={
         <>
           <ComponentBackground color={preview.color} />
           <FolderUI item={preview} preview onOpen={() => {}} />
+          <FolderBorder />
         </>
       }
       sizeOptions={sizeOptions}

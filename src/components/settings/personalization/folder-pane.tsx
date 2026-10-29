@@ -13,6 +13,11 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import ScaledGridPreview from "./scaled-grid-preview"
+import SettingRange from "../shared/setting-range"
+import AppearanceResetButton from "./appearance-reset-button"
+import { MAX_FOLDER_RADIUS } from "@/lib/home-settings"
+import ColorPicker from "@/components/ui/color-picker"
+import type { FolderBorder } from "@/lib/folder-border"
 
 const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
 
@@ -75,6 +80,11 @@ export default function FolderPane() {
   const { t } = useTranslation()
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
   const setFolderStyle = useHomeSettingsStore((state) => state.setFolderStyle)
+  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
+  const setFolderRadius = useHomeSettingsStore((state) => state.setFolderRadius)
+  const border = useHomeSettingsStore((state) => state.folderBorder)
+  const setBorder = useHomeSettingsStore((state) => state.setFolderBorder)
+  const resetStyle = useHomeSettingsStore((state) => state.resetFolderStyle)
   const [trackWidth, setTrackWidth] = useState(homeGridTrackWidth)
   const preview = useMemo(() => buildPreview(t), [t])
 
@@ -118,6 +128,137 @@ export default function FolderPane() {
           </SelectContent>
         </Select>
       </SettingItem>
+      <SettingItem
+        label={t("settings.tabs.appearance.borderStyle")}
+        htmlFor="folder-border-style"
+      >
+        <Select
+          value={border.style}
+          onValueChange={(value) => {
+            if (
+              value === "none" ||
+              value === "solid" ||
+              value === "dashed" ||
+              value === "dotted"
+            )
+              setBorder({ style: value })
+          }}
+        >
+          <SelectTrigger
+            id="folder-border-style"
+            className={`w-full ${settingsControlClassName}`}
+          >
+            <SelectValue>
+              {t(`settings.folders.borderStyles.${border.style}`)}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {(
+              [
+                "none",
+                "solid",
+                "dashed",
+                "dotted",
+              ] satisfies FolderBorder["style"][]
+            ).map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`settings.folders.borderStyles.${value}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingItem>
+      {border.style !== "none" && (
+        <>
+          <SettingItem
+            label={t("settings.tabs.appearance.borderWidth")}
+            htmlFor="folder-border-width"
+          >
+            <SettingRange
+              id="folder-border-width"
+              label={t("settings.tabs.appearance.borderWidth")}
+              value={border.width}
+              min={0}
+              max={8}
+              unit="px"
+              onChange={(width) => setBorder({ width })}
+            />
+          </SettingItem>
+          <SettingItem
+            label={t("settings.tabs.appearance.borderColor")}
+            htmlFor="folder-border-color"
+          >
+            <div className="space-y-2">
+              <Select
+                value={border.color === "theme" ? "theme" : "custom"}
+                onValueChange={(value) => {
+                  if (value === "theme") setBorder({ color: "theme" })
+                  else if (value === "custom" && border.color === "theme")
+                    setBorder({ color: "#808080" })
+                }}
+              >
+                <SelectTrigger
+                  id="folder-border-color"
+                  className={`w-full ${settingsControlClassName}`}
+                >
+                  <SelectValue>
+                    {t(
+                      border.color === "theme"
+                        ? "settings.tabs.appearance.colorTheme"
+                        : "settings.tabs.appearance.colorCustom"
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="theme">
+                    {t("settings.tabs.appearance.colorTheme")}
+                  </SelectItem>
+                  <SelectItem value="custom">
+                    {t("settings.tabs.appearance.colorCustom")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {border.color !== "theme" && (
+                <ColorPicker
+                  label={t("settings.tabs.appearance.borderColor")}
+                  value={border.color}
+                  className={settingsControlClassName}
+                  onChange={(color) => setBorder({ color })}
+                />
+              )}
+            </div>
+          </SettingItem>
+          <SettingItem
+            label={t("settings.tabs.appearance.borderOpacity")}
+            htmlFor="folder-border-opacity"
+          >
+            <SettingRange
+              id="folder-border-opacity"
+              label={t("settings.tabs.appearance.borderOpacity")}
+              value={border.opacity}
+              min={0}
+              max={100}
+              unit="%"
+              onChange={(opacity) => setBorder({ opacity })}
+            />
+          </SettingItem>
+        </>
+      )}
+      <SettingItem label={t("settings.folders.radius")} htmlFor="folder-radius">
+        <SettingRange
+          id="folder-radius"
+          label={t("settings.folders.radius")}
+          value={folderRadius}
+          min={0}
+          max={MAX_FOLDER_RADIUS}
+          unit="px"
+          onChange={setFolderRadius}
+        />
+      </SettingItem>
+      <AppearanceResetButton
+        label={t("settings.folders.resetStyle")}
+        onReset={resetStyle}
+      />
     </>
   )
 }

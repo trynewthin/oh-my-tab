@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import ComponentBackground from "../shared/component-background"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import FolderBorder from "../folder-border"
 
 const EXPAND_DURATION = 0.42
 const HEADER_EXIT_DURATION = 0.12
@@ -171,6 +172,8 @@ export default function CollectionExpansion({
   suspended = false,
   backgroundAnimated = true,
   headerActions,
+  radius,
+  folderBorder = false,
   children,
 }: {
   collection: ExpandedCollection
@@ -179,6 +182,8 @@ export default function CollectionExpansion({
   suspended?: boolean
   backgroundAnimated?: boolean
   headerActions?: ReactNode
+  radius?: number
+  folderBorder?: boolean
   children: ReactNode
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
@@ -561,8 +566,10 @@ export default function CollectionExpansion({
       aria-labelledby={titleId}
       tabIndex={-1}
       data-expanded-collection={collection.id}
-      className={`collection-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border shadow-xl outline-none ${backgroundType === "solid" ? "bg-card" : "bg-transparent"}`}
+      className={`collection-expansion fixed isolate z-[60] overflow-hidden rounded-2xl border shadow-xl outline-none ${folderBorder ? "border-transparent" : ""} ${backgroundType === "solid" ? "bg-card" : "bg-transparent"}`}
+      style={{ borderRadius: radius }}
     >
+      {folderBorder && <FolderBorder />}
       <ComponentBackground
         color={collection.color}
         animated={backgroundAnimated && !!collection.dynamicEffect}

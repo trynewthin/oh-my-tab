@@ -47,7 +47,14 @@ export {
   DEFAULT_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
 import {
+  DEFAULT_FOLDER_BORDER,
+  sanitizeFolderBorder,
+  type FolderBorder,
+} from "@/lib/folder-border"
+import {
   sanitizeHomeSettings,
+  clampFolderRadius,
+  DEFAULT_FOLDER_RADIUS,
   type HomeSettings,
   type TopComponent,
   type MatrixContent,
@@ -83,6 +90,9 @@ type HomeSettingsStore = HomeSettings & {
   moveSearchShortcut: (id: string, index: number) => void
   setSearchShortcutBoundary: (index: number) => void
   setFolderStyle: (value: FolderStyle) => void
+  setFolderRadius: (value: number) => void
+  setFolderBorder: (patch: Partial<FolderBorder>) => void
+  resetFolderStyle: () => void
   setTabTexture: (value: TabTexture) => void
   setTabEffectCoverage: (value: number) => void
   setNewTabsDynamicEffect: (value: boolean) => void
@@ -219,6 +229,23 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             : { searchShortcuts: next }
         }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
+      setFolderRadius: (value) => {
+        if (Number.isFinite(value))
+          set({ folderRadius: clampFolderRadius(value) })
+      },
+      setFolderBorder: (patch) =>
+        set((state) => ({
+          folderBorder: sanitizeFolderBorder({
+            ...state.folderBorder,
+            ...patch,
+          }),
+        })),
+      resetFolderStyle: () =>
+        set({
+          folderStyle: "noise",
+          folderRadius: DEFAULT_FOLDER_RADIUS,
+          folderBorder: DEFAULT_FOLDER_BORDER,
+        }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
       setTabEffectCoverage: (value) => {
         if (Number.isFinite(value))
@@ -272,6 +299,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchBoxStyle,
         searchShortcuts,
         folderStyle,
+        folderRadius,
+        folderBorder,
         tabTexture,
         tabEffectCoverage,
         newTabsDynamicEffect,
@@ -296,6 +325,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         searchBoxStyle,
         searchShortcuts,
         folderStyle,
+        folderRadius,
+        folderBorder,
         tabTexture,
         tabEffectCoverage,
         newTabsDynamicEffect,

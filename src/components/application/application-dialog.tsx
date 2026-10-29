@@ -235,6 +235,7 @@ export default function ApplicationDialog<RouteId extends string>({
   background,
   backgroundEffect,
   dialogRef,
+  size = "default",
   children,
 }: {
   applicationId: string
@@ -253,6 +254,7 @@ export default function ApplicationDialog<RouteId extends string>({
   background?: ReactNode
   backgroundEffect?: ReactNode
   dialogRef?: Ref<HTMLDivElement>
+  size?: "default" | "large"
   children: ReactNode
 }) {
   const applicationNode = useRef<HTMLDivElement>(null)
@@ -296,7 +298,7 @@ export default function ApplicationDialog<RouteId extends string>({
         ref={dialogRef}
         showCloseButton={false}
         overlayClassName="bg-black/10 backdrop-blur-xl"
-        className="h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:max-w-3xl sm:rounded-[min(var(--radius-4xl),24px)]"
+        className={`h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:rounded-[min(var(--radius-4xl),24px)] ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
@@ -316,7 +318,7 @@ export default function ApplicationDialog<RouteId extends string>({
             role="application"
             aria-label={title}
             data-application={applicationId}
-            className="relative flex h-full min-h-0 min-w-0 flex-col sm:h-[min(560px,80svh)] sm:flex-row"
+            className={`relative flex h-full min-h-0 min-w-0 flex-col sm:flex-row ${size === "large" ? "sm:h-[min(720px,85svh)]" : "sm:h-[min(560px,80svh)]"}`}
           >
             <header className="relative z-30 flex shrink-0 items-center gap-3 px-4 pt-4 pb-2 sm:hidden">
               <ApplicationNavigationMenu

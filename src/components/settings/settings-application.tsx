@@ -66,6 +66,7 @@ export default function SettingsApplication() {
   return (
     <ApplicationDialog
       applicationId="settings"
+      size="large"
       open={open}
       onOpenChange={(next) => {
         if (!next) {

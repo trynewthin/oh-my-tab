@@ -4,11 +4,15 @@ import {
   DEFAULT_NARROW_GRID_COLUMNS,
   DEFAULT_WIDE_GRID_COLUMNS,
 } from "@/lib/grid/grid-layout"
-import { DEFAULT_TAB_EFFECT_COVERAGE } from "@/lib/home-settings"
+import {
+  DEFAULT_TAB_EFFECT_COVERAGE,
+  DEFAULT_FOLDER_RADIUS,
+} from "@/lib/home-settings"
 import { defaultQuickBar } from "@/lib/quick-bar"
 import { defaultSearchShortcuts } from "@/lib/search-shortcuts"
 import { defaultTraditionalTopSpacing } from "@/lib/home-top-spacing"
 import { sanitizeTabAppearance } from "@/lib/tab-appearance"
+import { DEFAULT_FOLDER_BORDER } from "@/lib/folder-border"
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { validGridItem } from "@/lib/grid/validation"
 import { migrateDotCanvas } from "./dot-canvas"
@@ -44,6 +48,8 @@ export function migrateHome(value: unknown) {
   home.searchShortcuts ??= defaultSearchShortcuts()
   home.traditionalTopSpacing ??= defaultTraditionalTopSpacing
   home.folderStyle ??= "noise"
+  home.folderRadius ??= DEFAULT_FOLDER_RADIUS
+  home.folderBorder ??= { ...DEFAULT_FOLDER_BORDER }
   home.tabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
   home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
   home.newTabsDynamicEffect ??= false

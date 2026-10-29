@@ -422,6 +422,9 @@ export default {
   },
   folders: {
     texture: "文件夹纹理",
+    radius: "圆角（px）",
+    resetStyle: "重置样式",
+    borderStyles: { none: "无", solid: "实线", dashed: "虚线", dotted: "点线" },
     classic: "经典光晕",
     noise: "噪点渐变",
     none: "无效果",

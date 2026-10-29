@@ -6,6 +6,7 @@ import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import { getComponentDefinition } from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 import GridItemContextMenu from "./grid-item-context-menu"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function DraggableGridItem({
   item,
@@ -28,6 +29,9 @@ export default function DraggableGridItem({
   interactive?: boolean
 }) {
   const { t } = useTranslation()
+  const folderRadius = useHomeSettingsStore((state) =>
+    item.kind === "folder" ? state.folderRadius : undefined
+  )
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: item.id,
   })
@@ -43,8 +47,9 @@ export default function DraggableGridItem({
       {...attributes}
       role="group"
       aria-label={t("grid.chrome.dragItem", { name: item.name })}
-      className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? "border border-tile-border" : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
+      className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? (item.kind === "folder" ? "border border-transparent" : "border border-tile-border") : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
       style={{
+        borderRadius: folderRadius,
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
         gridRow: `${placement.y + 1} / span ${placement.height}`,
       }}

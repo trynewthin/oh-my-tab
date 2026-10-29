@@ -439,6 +439,14 @@ export default {
   },
   folders: {
     texture: "Folder texture",
+    radius: "Corner radius (px)",
+    resetStyle: "Reset style",
+    borderStyles: {
+      none: "None",
+      solid: "Solid",
+      dashed: "Dashed",
+      dotted: "Dotted",
+    },
     classic: "Classic glow",
     noise: "Noise gradient",
     none: "No effect",

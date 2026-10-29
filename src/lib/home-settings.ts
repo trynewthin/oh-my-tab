@@ -27,6 +27,7 @@ import {
   type TraditionalTopSpacing,
 } from "@/lib/home-top-spacing"
 import { sanitizeTabAppearance, type TabAppearance } from "@/lib/tab-appearance"
+import { sanitizeFolderBorder, type FolderBorder } from "@/lib/folder-border"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -39,6 +40,14 @@ export type HomeLayoutMode = "traditional" | "free"
 export const MIN_TAB_EFFECT_COVERAGE = 20
 export const MAX_TAB_EFFECT_COVERAGE = 100
 export const DEFAULT_TAB_EFFECT_COVERAGE = 65
+export const DEFAULT_FOLDER_RADIUS = 16
+export const MAX_FOLDER_RADIUS = 48
+
+export function clampFolderRadius(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(MAX_FOLDER_RADIUS, Math.max(0, value))
+    : DEFAULT_FOLDER_RADIUS
+}
 
 export type HomeSettings = {
   layoutMode: HomeLayoutMode
@@ -52,6 +61,8 @@ export type HomeSettings = {
   searchBoxStyle: SearchBoxStyle
   searchShortcuts: SearchShortcutConfig
   folderStyle: FolderStyle
+  folderRadius: number
+  folderBorder: FolderBorder
   tabTexture: TabTexture
   tabEffectCoverage: number
   newTabsDynamicEffect: boolean
@@ -105,6 +116,8 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
       saved?.folderStyle === "classic" || saved?.folderStyle === "none"
         ? saved.folderStyle
         : "noise",
+    folderRadius: clampFolderRadius(saved?.folderRadius),
+    folderBorder: sanitizeFolderBorder(saved?.folderBorder),
     tabTexture:
       saved?.tabTexture === "none" || saved?.tabTexture === "particles"
         ? saved.tabTexture

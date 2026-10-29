@@ -67,6 +67,7 @@ export default function TabGrid({
     (state) => state.narrowGridColumns
   )
   const gridScale = useHomeSettingsStore((state) => state.gridScale)
+  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
   const gridRef = useRef<HTMLDivElement>(null)
   const measurementRef = useRef<HTMLDivElement>(null)
   const { pointer, measuredWidth } = useGridMeasurement({
@@ -458,6 +459,8 @@ export default function TabGrid({
             <CollectionExpansion
               collection={expandedFolder}
               backgroundAnimated={false}
+              radius={folderRadius}
+              folderBorder
               closeLabel={t("grid.chrome.closeComponent", {
                 label: componentLabel("folder", t),
               })}

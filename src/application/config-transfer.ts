@@ -26,6 +26,12 @@ import { validSearchShortcuts } from "@/lib/search-shortcuts"
 import { validQuickBarConfig } from "@/lib/quick-bar"
 import { sanitizeTabAppearance, validTabAppearance } from "@/lib/tab-appearance"
 import { i18n } from "@/i18n"
+import { sanitizeFolderBorder, validFolderBorder } from "@/lib/folder-border"
+import {
+  clampFolderRadius,
+  DEFAULT_FOLDER_RADIUS,
+  MAX_FOLDER_RADIUS,
+} from "@/lib/home-settings"
 
 export function snapshot() {
   const home = useHomeSettingsStore.getState()
@@ -47,6 +53,8 @@ export function snapshot() {
       searchBoxStyle: home.searchBoxStyle,
       searchShortcuts: home.searchShortcuts,
       folderStyle: home.folderStyle,
+      folderRadius: home.folderRadius,
+      folderBorder: home.folderBorder,
       tabTexture: home.tabTexture,
       tabEffectCoverage: home.tabEffectCoverage,
       newTabsDynamicEffect: home.newTabsDynamicEffect,
@@ -110,6 +118,13 @@ export function validateConfig(value: unknown): Config {
     !validSearchShortcuts(home.searchShortcuts) ||
     !isTraditionalTopSpacing(home.traditionalTopSpacing) ||
     !["classic", "noise", "none"].includes(home.folderStyle) ||
+    (home.folderRadius !== undefined &&
+      (typeof home.folderRadius !== "number" ||
+        !Number.isFinite(home.folderRadius) ||
+        home.folderRadius < 0 ||
+        home.folderRadius > MAX_FOLDER_RADIUS)) ||
+    (home.folderBorder !== undefined &&
+      !validFolderBorder(home.folderBorder)) ||
     !["none", "burning", "particles"].includes(home.tabTexture) ||
     !Number.isFinite(home.tabEffectCoverage) ||
     home.tabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
@@ -152,6 +167,11 @@ export function validateConfig(value: unknown): Config {
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
   home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
+  home.folderBorder = sanitizeFolderBorder(home.folderBorder)
+  home.folderRadius =
+    home.folderRadius === undefined
+      ? DEFAULT_FOLDER_RADIUS
+      : clampFolderRadius(home.folderRadius)
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]

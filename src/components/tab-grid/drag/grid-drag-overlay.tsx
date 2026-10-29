@@ -12,6 +12,7 @@ import EffectSurface from "@/components/effects/effect-surface"
 import GridTileContent from "../grid-tile-content"
 import { mixHexColor } from "../folder-drop"
 import type { DragSession, Intent } from "./model"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 // Fractional translates rasterize the 8px texture cells and the icon at
 // half-pixel offsets, which reads as a slide on grab and drop.
@@ -41,6 +42,9 @@ export default function GridDragOverlay({
   gridGap: number
   contentScale?: number
 }) {
+  const folderRadius = useHomeSettingsStore((state) =>
+    dragging?.item.kind === "folder" ? state.folderRadius : undefined
+  )
   const releaseProgress =
     dragging &&
     (intent.kind === "grid" ||
@@ -127,6 +131,7 @@ export default function GridDragOverlay({
           <div
             className={`absolute top-0 left-0 isolate ${dragging.item.kind === "tab" ? "" : searchWidget ? "overflow-hidden rounded-full [&_[data-search-input-shell]]:border-transparent [&_[data-search-input-shell]]:ring-0" : "overflow-hidden rounded-2xl"}`}
             style={{
+              borderRadius: folderRadius,
               width: contentWidth,
               height: contentHeight,
               transform: `scale(${contentScale})`,
@@ -151,9 +156,12 @@ export default function GridDragOverlay({
                       ? 1
                       : 0,
               borderStyle: "solid",
-              borderColor: preview
-                ? "var(--tile-border)"
-                : `color-mix(in srgb, var(--tile-border) ${releaseProgress * 100}%, transparent)`,
+              borderColor:
+                dragging.item.kind === "folder"
+                  ? "transparent"
+                  : preview
+                    ? "var(--tile-border)"
+                    : `color-mix(in srgb, var(--tile-border) ${releaseProgress * 100}%, transparent)`,
             }}
           >
             {dragging.todoTask ? (

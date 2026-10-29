@@ -36,6 +36,8 @@ Use the category tabs in **Settings → Personalization → Tabs** to adjust lay
 
 **Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults. The Background reset restores the background, mask, and default playback for new tabs without changing existing tabs' playback state, content, or sizes. Category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed.
 
+Use **Settings → Personalization → Folders** to adjust corner radius and border style, width, color, and opacity without changing folder sizes or the appearance of tabs inside them. **Reset style** restores folder texture, corners, and borders after confirmation.
+
 ## Data and privacy
 
 Bookmarks, layouts, preferences, and background images are stored on your device by default. Oh My Tab contains no advertising or behavioral analytics.

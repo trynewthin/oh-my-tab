@@ -1,3 +1,4 @@
+import { openStripTabSettings } from "../helpers/settings"
 import { expect, test } from "@playwright/test"
 import { readStoredState } from "../helpers/storage"
 
@@ -75,7 +76,10 @@ test("personalization persists theme color and home settings filter unsupported 
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await dialog.getByRole("button", { name: "主页", exact: true }).click()
-  await dialog.getByRole("button", { name: "外观", exact: true }).click()
+  await dialog
+    .getByRole("group", { name: "个性化", exact: true })
+    .getByRole("button", { name: "基础", exact: true })
+    .click()
   await dialog.getByRole("button", { name: "选择主题色", exact: true }).click()
   await page.getByLabel("主题色", { exact: true }).fill("#a855f7")
   await page.keyboard.press("Escape")
@@ -159,10 +163,11 @@ test("switching from a dragged folder preview keeps settings open", async ({
   )
   await page.mouse.up()
 
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await openStripTabSettings(dialog)
+  await dialog.getByRole("tab", { name: "背景", exact: true }).click()
   await expect(dialog).toBeVisible()
   await expect(
-    dialog.getByRole("button", { name: "选择标签材质", exact: true })
+    dialog.getByRole("button", { name: "选择背景样式", exact: true })
   ).toBeVisible()
 })
 

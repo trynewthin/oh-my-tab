@@ -7,6 +7,7 @@ const EN = {
   openSettings: "Open settings",
   settings: "Settings",
   basic: "Basic",
+  general: "General",
   moreActions: "More actions",
   language: "Language",
   followSystem: "Follow system",
@@ -19,6 +20,7 @@ const ZH = {
   openSettings: "打开设置",
   settings: "设置",
   basic: "基础",
+  general: "常规",
 } as const
 
 async function seed(page: Page, preferences?: { locale?: string }) {
@@ -38,7 +40,10 @@ async function seed(page: Page, preferences?: { locale?: string }) {
 async function openSettingsBasic(page: Page, t: typeof EN | typeof ZH) {
   await page.getByRole("button", { name: t.openSettings, exact: true }).click()
   const dialog = page.getByRole("dialog", { name: t.settings, exact: true })
-  await dialog.getByRole("button", { name: t.basic, exact: true }).click()
+  await dialog
+    .getByRole("group", { name: t.general, exact: true })
+    .getByRole("button", { name: t.basic, exact: true })
+    .click()
   return dialog
 }
 

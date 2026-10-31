@@ -76,7 +76,7 @@ test("draw, undo, import and persist a 4 by 4 canvas", async ({ page }) => {
   ).toHaveAttribute("aria-pressed", "true")
   await expect(art.locator('rect[fill="#ff0000"]')).toHaveCount(576)
 
-  await dialog.getByRole("button", { name: "保存" }).click()
+  await dialog.getByRole("button", { name: "关闭", exact: true }).click()
   const tile = page.getByRole("button", { name: "编辑点阵画布 点阵画布" })
   const track = page.locator("[data-tab-grid-track]")
   await expect(tile).toBeVisible()

@@ -57,7 +57,7 @@ test("restoring components preserves folder size, artwork and right-edge calenda
   await page.locator('[data-grid-item-id="folder"]').click({ button: "right" })
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click()
   const editor = page.getByRole("dialog", { name: "编辑文件夹", exact: true })
-  await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await editor.getByRole("button", { name: "关闭", exact: true }).click()
   await expect
     .poll(() =>
       page.evaluate(
@@ -91,7 +91,7 @@ test("restoring components preserves folder size, artwork and right-edge calenda
           })
       )
     )
-    .toEqual({ size: "small", count: 576, columns: null, total: 3 })
+    .toEqual({ size: "small", count: 576, columns: 24, total: 3 })
 })
 
 test("invalid saved component stops loading without rewriting the stored list", async ({
@@ -114,24 +114,11 @@ test("invalid saved component stops loading without rewriting the stored list", 
     )
   })
   await page.goto("/")
-  await expect(page.locator("#root")).toContainText("数据读取失败")
+  await expect(page.locator("#root")).toContainText("已停止加载以保留原始数据")
   const items = await page.evaluate(
-    () =>
-      new Promise<unknown>((resolve) => {
-        const request = indexedDB.open("oh-my-tab-data", 1)
-        request.onsuccess = () => {
-          const db = request.result
-          const read = db
-            .transaction("entries")
-            .objectStore("entries")
-            .get("omt.tab-grid")
-          read.onsuccess = () => {
-            resolve(JSON.parse(read.result).state.items)
-            db.close()
-          }
-        }
-      })
+    () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.items
   )
+
   expect(items).toEqual([
     { id: "invalid", kind: "unknown", name: "保留原始数据" },
   ])

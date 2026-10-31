@@ -1,3 +1,4 @@
+import { openStripTabSettings } from "../helpers/settings"
 import { expect, test } from "@playwright/test"
 import { readStoredState } from "../helpers/storage"
 
@@ -45,17 +46,17 @@ test("settings flame mounts with its pane and stops when hidden", async ({
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await openStripTabSettings(dialog)
   const flame = dialog
-    .locator('[aria-label="标签预览"] [data-effect-phase]')
+    .locator("[data-scaled-grid-preview] [data-effect-phase]")
     .first()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
   await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await expect(
-    dialog.locator('[aria-label="标签预览"] [data-effect-phase]')
+    dialog.locator("[data-scaled-grid-preview] [data-effect-phase]")
   ).toHaveCount(0)
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await openStripTabSettings(dialog)
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
 })
@@ -79,9 +80,10 @@ test("particle style switches across surfaces and persists", async ({
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
-  const preview = dialog.locator('[aria-label="标签预览"]')
-  await dialog.getByRole("button", { name: "选择标签材质" }).click()
+  await openStripTabSettings(dialog)
+  const preview = dialog.locator("[data-scaled-grid-preview]")
+  await dialog.getByRole("tab", { name: "背景", exact: true }).click()
+  await dialog.getByRole("button", { name: "选择背景样式" }).click()
   await page.getByRole("radio", { name: "浮游点阵", exact: true }).click()
   await page.keyboard.press("Escape")
   const surfaces = preview.locator('[data-effect-style="particles"]')
@@ -106,16 +108,18 @@ test("particle style switches across surfaces and persists", async ({
     .toEqual(["particles", 0])
   await page.reload()
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
+  await openStripTabSettings(dialog)
+  await dialog.getByRole("tab", { name: "背景", exact: true }).click()
   await expect(
-    dialog.getByRole("button", { name: "选择标签材质" })
+    dialog.getByRole("button", { name: "选择背景样式" })
   ).toContainText("浮游点阵")
   await dialog.getByRole("button", { name: "材质", exact: true }).click()
   await expect(dialog.getByRole("slider", { name: "呼吸幅度" })).toHaveValue(
     "0"
   )
-  await dialog.getByRole("button", { name: "标签", exact: true }).click()
-  await dialog.getByRole("button", { name: "选择标签材质" }).click()
+  await openStripTabSettings(dialog)
+  await dialog.getByRole("tab", { name: "背景", exact: true }).click()
+  await dialog.getByRole("button", { name: "选择背景样式" }).click()
   await page.getByRole("radio", { name: "像素火焰", exact: true }).click()
   await page.keyboard.press("Escape")
   await expect(

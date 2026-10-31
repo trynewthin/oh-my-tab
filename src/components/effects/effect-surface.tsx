@@ -190,6 +190,9 @@ export default function EffectSurface({
       unsubscribe?.()
       unsubscribe = undefined
     }
+    // React may reuse cells across a resize; replace styles painted by the old
+    // effect cleanup before letting the canvas take over again.
+    paintCells()
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) resume()

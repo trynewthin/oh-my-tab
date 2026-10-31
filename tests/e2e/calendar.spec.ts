@@ -30,7 +30,7 @@ test("calendar can be added, navigated, edited and restored", async ({
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click()
   const editor = page.getByRole("dialog", { name: "编辑日历", exact: true })
   await expect(editor.getByLabel("名称", { exact: true })).toHaveCount(0)
-  await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await editor.getByRole("button", { name: "关闭", exact: true }).click()
   await expect
     .poll(() =>
       page.evaluate(

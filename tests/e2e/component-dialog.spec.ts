@@ -44,7 +44,7 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await expect(catalog).toBeVisible()
   await expect
     .poll(async () => Math.round((await catalog.boundingBox())!.width))
-    .toBe(768)
+    .toBe(960)
   await expect(catalog.getByLabel("名称", { exact: true })).toHaveCount(0)
   await expect(
     catalog.getByRole("button", { name: "添加标签", exact: true })
@@ -52,7 +52,7 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   await expect(
     catalog.getByRole("button", { name: "添加文件夹", exact: true })
   ).toHaveCount(0)
-  await expectCatalogPreviews(catalog, 3)
+  await expectCatalogPreviews(catalog, 4)
   await catalog.getByRole("button", { name: "效率", exact: true }).click()
   await expectCatalogPreviews(catalog, 5)
   await expect(
@@ -134,7 +134,7 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   })
   await expect(replaceIcon).toBeVisible()
   await replaceIcon.getByRole("button", { name: "取消", exact: true }).click()
-  await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await editor.getByRole("button", { name: "关闭", exact: true }).click()
   await expect
     .poll(async () => {
       const state = await readStoredState<{
@@ -150,14 +150,18 @@ test("component picker lists widgets and more menu creates editable bookmarks", 
   ).toHaveAttribute("href", "https://example.com/docs")
 })
 
-test("more menu creates folders on mobile", async ({ page }) => {
+test("home context menu creates folders on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
-  await page.getByRole("button", { name: "更多操作", exact: true }).click()
-  await page.getByRole("button", { name: "添加文件夹", exact: true }).click()
+  await page
+    .locator("[data-grid-scroll]")
+    .click({ button: "right", position: { x: 4, y: 4 } })
+  await page.getByRole("menuitem", { name: "添加文件夹", exact: true }).click()
   const creation = page.getByRole("dialog", { name: "配置文件夹", exact: true })
   await creation.getByRole("button", { name: "取消", exact: true }).click()
-  await page.getByRole("button", { name: "更多操作", exact: true }).click()
-  await page.getByRole("button", { name: "添加文件夹", exact: true }).click()
+  await page
+    .locator("[data-grid-scroll]")
+    .click({ button: "right", position: { x: 4, y: 4 } })
+  await page.getByRole("menuitem", { name: "添加文件夹", exact: true }).click()
   await creation.getByLabel("名称", { exact: true }).fill("文件夹")
   await creation.getByRole("button", { name: "确认添加", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)

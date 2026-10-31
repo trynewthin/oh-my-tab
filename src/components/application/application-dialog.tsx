@@ -186,7 +186,12 @@ function ApplicationNavigation<RouteId extends string>({
       style={{ "--application-accent": accentColor } as CSSProperties}
     >
       {groups.map((group) => (
-        <div key={group.id} className="space-y-1">
+        <div
+          key={group.id}
+          role="group"
+          aria-label={group.label}
+          className="space-y-1"
+        >
           {group.label && (
             <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
               {group.label}

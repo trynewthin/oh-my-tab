@@ -60,7 +60,7 @@ test("dragged folder hides its source box", async ({ page }) => {
   })
 
   await expect(folder).toHaveCSS("visibility", "hidden")
-  await expect(folder).toHaveCSS("isolation", "auto")
+  await expect(folder).toHaveCSS("isolation", "isolate")
   await expect(folder).toHaveCSS("border-top-width", "0px")
   await expect(folder.locator("[data-grid-item-content]")).toHaveCSS(
     "display",

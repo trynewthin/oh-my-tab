@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "../helpers/storage"
 
 for (const [size, expectedRows] of [
   ["large", 4],
@@ -180,14 +181,12 @@ test("legacy compact folders retain bookmarks and their stored size", async ({
     page.getByRole("link", { name: "保留的网站", exact: true })
   ).toBeVisible()
   await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          JSON.parse(localStorage.getItem("omt.tab-grid")!).state.items.find(
-            (item: { id: string }) => item.id === "legacy"
-          ).size
-      )
-    )
+    .poll(async () => {
+      const state = await readStoredState<{
+        items: { id: string; size: string }[]
+      }>(page, "omt.tab-grid")
+      return state.items.find((item) => item.id === "legacy")?.size
+    })
     .toBe("small")
 })
 

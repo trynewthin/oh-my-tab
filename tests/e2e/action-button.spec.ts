@@ -33,7 +33,7 @@ test("a 1×1 button can run and rebind system actions", async ({ page }) => {
   const editor = page.getByRole("dialog", { name: "编辑按钮", exact: true })
   await editor.getByLabel("绑定行为", { exact: true }).click()
   await page.getByRole("option", { name: "打开设置", exact: true }).click()
-  await editor.getByRole("button", { name: "保存", exact: true }).click()
+  await editor.getByRole("button", { name: "关闭", exact: true }).click()
 
   await tile.getByRole("button", { name: "打开设置", exact: true }).click()
   await expect(

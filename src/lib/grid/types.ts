@@ -1,11 +1,22 @@
 import type { SystemActionId } from "@/lib/system-actions"
 import type { UtilityWidgetItem } from "./utility-types"
 
+export type SquareTabSize = "square-small" | "square-medium" | "square-large"
+export type TabSize = "small" | "medium" | SquareTabSize
+
+export function isSquareTabSize(size: unknown): size is SquareTabSize {
+  return (
+    size === "square-small" ||
+    size === "square-medium" ||
+    size === "square-large"
+  )
+}
+
 export type TabEntry = {
   id: string
   name: string
   url: string
-  size?: "small" | "medium"
+  size?: TabSize
   color?: string
   dynamicEffect?: boolean
   // Pinned icon (e.g. preview samples); otherwise the favicon of `url` is used.
@@ -14,7 +25,7 @@ export type TabEntry = {
 
 export type TabItem = TabEntry & {
   kind: "tab"
-  size: "small" | "medium"
+  size: TabSize
   color: string
 }
 

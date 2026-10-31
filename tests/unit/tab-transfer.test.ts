@@ -30,6 +30,24 @@ const state = (
 })
 
 describe("transferTab", () => {
+  it.each(["square-small", "square-medium", "square-large"] as const)(
+    "preserves %s size when moving into a folder and back",
+    (size) => {
+      const t = tab({ size })
+      const f = folder()
+      const grouped = transferTab(state([t, f]), {
+        tabId: t.id,
+        toFolderId: f.id,
+        columns: 8,
+      })
+      const extracted = transferTab(grouped, {
+        tabId: t.id,
+        fromFolderId: f.id,
+        columns: 8,
+      })
+      expect(extracted.items.find((item) => item.id === t.id)).toEqual(t)
+    }
+  )
   it("moves a grid tab into a folder and drops its layout slot", () => {
     const f = folder()
     const t = tab({ icon: "data:image/webp;base64,custom" })

@@ -13,6 +13,7 @@ import {
 } from "@/lib/tab-appearance"
 import { sanitizeHomeSettings } from "@/lib/home-settings"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { createTabItem } from "@/lib/grid/factory"
 
 beforeEach(async () => {
   await storage.flushStorage().catch(() => {})
@@ -36,6 +37,23 @@ afterEach(() => {
     squareTabEffectCoverage: 65,
   })
 })
+
+test.each(["square-small", "square-medium", "square-large"] as const)(
+  "preserves %s tabs through configuration import and hydration",
+  async (size) => {
+    const tab = {
+      ...createTabItem({ name: "Square tab", url: "https://example.com" }),
+      size,
+    }
+    const source = JSON.parse(JSON.stringify(snapshot()))
+    source.home.backgroundImage = null
+    source.grid = { ...source.grid, items: [tab], layouts: {} }
+    const config = validateConfig(source)
+    await importConfig(config, await storage.storageRevision())
+    await rehydrateData()
+    expect(snapshot().grid.items).toEqual([tab])
+  }
+)
 
 describe("tab appearance model", () => {
   test("defaults every field and ignores unusable records", () => {

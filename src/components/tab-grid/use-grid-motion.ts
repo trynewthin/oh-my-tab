@@ -40,20 +40,20 @@ export function useGridMotion(
       gsap.fromTo(
         element,
         { x: startX, y: startY },
-        { x: 0, y: 0, duration: 0.3, ease: "power2.inOut", overwrite: true }
+        { x: 0, y: 0, duration: 0.26, ease: "power3.out", overwrite: true }
       )
     } else if (dragging || last?.dragging || reducedMotion) {
       gsap.killTweensOf(element)
       gsap.set(element, { x: 0, y: 0 })
     }
     previous.current = { x, y, dragging }
-  }, [placement.x, placement.y, placement.height, dragging])
+  }, [placement.x, placement.y, placement.width, placement.height, dragging])
 
-  useLayoutEffect(
-    () => () => {
-      if (node.current) gsap.killTweensOf(node.current)
-    },
-    []
-  )
+  useLayoutEffect(() => {
+    const element = node.current
+    return () => {
+      if (element) gsap.killTweensOf(element)
+    }
+  }, [])
   return ref
 }

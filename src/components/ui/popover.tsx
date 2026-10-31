@@ -16,20 +16,90 @@ function PopoverContent({
   alignOffset = 0,
   side = "bottom",
   sideOffset = 4,
+  anchor,
+  positionerClassName,
+  animateFromAnchor = false,
   ...props
-}: PopoverPrimitive.Popup.Props &
-  Pick<
+}: PopoverPrimitive.Popup.Props & {
+  positionerClassName?: string
+  animateFromAnchor?: boolean
+} & Pick<
     PopoverPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
+    "align" | "alignOffset" | "side" | "sideOffset" | "anchor"
   >) {
+  const positionerRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      if (!element || !animateFromAnchor) return
+      let frame: number | undefined
+      let entrance: Animation | undefined
+      const positioned = () => {
+        // Floating UI hides the positioner until its first valid coordinates exist.
+        if (element.style.opacity === "0" || !element.style.transform) return
+        observer.disconnect()
+        const popup = element.querySelector<HTMLElement>(
+          '[data-slot="popover-content"]'
+        )
+        if (
+          popup &&
+          !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ) {
+          const side = element.dataset.side
+          const x =
+            side === "right" || side === "inline-end"
+              ? -8
+              : side === "left" || side === "inline-start"
+                ? 8
+                : 0
+          const y = side === "bottom" ? -8 : side === "top" ? 8 : 0
+          entrance = popup.animate(
+            [
+              {
+                opacity: 0,
+                transform: `translate(${x}px, ${y}px) scale(0.98)`,
+              },
+              { opacity: 1, transform: "none" },
+            ],
+            { duration: 180, easing: "cubic-bezier(0.22,1,0.36,1)" }
+          )
+        }
+        // Paint the initial position before enabling transitions for later movement.
+        frame = requestAnimationFrame(() => {
+          frame = requestAnimationFrame(() => {
+            element.dataset.followReady = ""
+          })
+        })
+      }
+      const observer = new MutationObserver(positioned)
+      observer.observe(element, {
+        attributes: true,
+        attributeFilter: ["style"],
+      })
+      positioned()
+      return () => {
+        observer.disconnect()
+        if (frame !== undefined) cancelAnimationFrame(frame)
+        entrance?.cancel()
+        delete element.dataset.followReady
+      }
+    },
+    [animateFromAnchor]
+  )
+
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
+        ref={positionerRef}
+        anchor={anchor}
         align={align}
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
-        className="isolate z-50"
+        className={cn(
+          "isolate z-50",
+          animateFromAnchor &&
+            "transition-none motion-safe:duration-[260ms] motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)] motion-safe:data-follow-ready:transition-transform",
+          positionerClassName
+        )}
       >
         <PopoverPrimitive.Popup
           data-slot="popover-content"

@@ -1,15 +1,18 @@
 import type { ReactNode } from "react"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import type { TabSize } from "@/lib/grid/types"
 import type { TabAppearance } from "@/lib/tab-appearance"
+import { useTabStyle } from "./use-tab-style"
 
 export default function TabSurface({
   children,
   appearance: appearanceOverride,
+  size = "small",
 }: {
   children: ReactNode
   appearance?: TabAppearance
+  size?: TabSize
 }) {
-  const savedAppearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const { appearance: savedAppearance } = useTabStyle(size)
   const appearance = appearanceOverride ?? savedAppearance
   return (
     <div

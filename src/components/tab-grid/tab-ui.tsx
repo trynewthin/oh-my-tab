@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react"
 import type { TabItem } from "@/lib/grid/types"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useTabStyle } from "./use-tab-style"
 import type { TabAppearance } from "@/lib/tab-appearance"
 import TabIcon from "./tab-icon"
 
@@ -17,7 +17,13 @@ export default function TabUI({
   preview = false,
   compact = false,
   appearance: appearanceOverride,
-  iconBaseSize = compact ? 20 : item.size === "small" ? 28 : 48,
+  iconBaseSize = compact
+    ? 20
+    : item.size === "small" || item.size === "square-small"
+      ? 28
+      : item.size === "square-large"
+        ? 64
+        : 48,
 }: {
   item: TabItem
   preview?: boolean
@@ -25,8 +31,12 @@ export default function TabUI({
   appearance?: TabAppearance
   iconBaseSize?: number
 }) {
-  const savedAppearance = useHomeSettingsStore((state) => state.tabAppearance)
-  const appearance = appearanceOverride ?? savedAppearance
+  const { appearance: savedAppearance } = useTabStyle(item.size)
+  const configuredAppearance = appearanceOverride ?? savedAppearance
+  const appearance =
+    item.size === "square-small"
+      ? { ...configuredAppearance, display: "icon" as const }
+      : configuredAppearance
   const vertical =
     appearance.direction === "top" || appearance.direction === "bottom"
   const iconFirst =

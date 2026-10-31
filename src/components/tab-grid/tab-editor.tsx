@@ -94,7 +94,7 @@ export default function TabEditor({
       previewBorder={false}
       previewClip={false}
       preview={
-        <TabSurface>
+        <TabSurface size={preview.size}>
           <TabBackground item={preview} />
           <TabUI item={preview} preview />
         </TabSurface>

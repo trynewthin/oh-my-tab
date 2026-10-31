@@ -4,6 +4,7 @@ import TabUI from "@/components/tab-grid/tab-ui"
 import TabSurface from "@/components/tab-grid/tab-surface"
 import TabBackground from "@/components/tab-grid/tab-background"
 import { createTabItem } from "@/lib/grid/factory"
+import type { TabItem, SquareTabSize } from "@/lib/grid/types"
 import { DEFAULT_SQUARE_TAB_APPEARANCE } from "@/lib/tab-appearance"
 import {
   GRID_CELL_SIZE,
@@ -24,13 +25,17 @@ const previewTiles = [
 const previewWidth = gridTrackWidth(6)
 const previewHeight = gridTrackWidth(4)
 const previewReferenceWidth = gridTrackWidth(8)
+const squareSizes: Record<1 | 2 | 4, SquareTabSize> = {
+  1: "square-small",
+  2: "square-medium",
+  4: "square-large",
+}
 
 export default function SquareTabsPane() {
   const { t } = useTranslation()
   const color = useHomeSettingsStore((state) => state.color)
   const animated = useHomeSettingsStore((state) => state.newTabsDynamicEffect)
   const appearance = useHomeSettingsStore((state) => state.squareTabAppearance)
-  const iconAppearance = { ...appearance, display: "icon" as const }
   const setAppearance = useHomeSettingsStore(
     (state) => state.setSquareTabAppearance
   )
@@ -106,35 +111,40 @@ export default function SquareTabsPane() {
                   transformOrigin: "top left",
                 }}
               >
-                {previewTiles.map(({ size, column, row }) => (
-                  <div
-                    key={`${column}-${row}`}
-                    data-square-tab-preview={size}
-                    aria-label={`${size}×${size}`}
-                    className="relative shrink-0"
-                    style={{
-                      gridColumn: `${column} / span ${size}`,
-                      gridRow: `${row} / span ${size}`,
-                    }}
-                  >
-                    <TabSurface appearance={appearance}>
-                      <TabBackground
-                        item={item}
-                        textureId={`${item.id}-${column}-${row}`}
-                        appearance={appearance}
-                        effectStyle={texture}
-                        coverage={coverage}
-                        animated={animated}
-                      />
-                      <TabUI
-                        item={item}
-                        appearance={size === 1 ? iconAppearance : appearance}
-                        iconBaseSize={size === 4 ? 64 : undefined}
-                        preview
-                      />
-                    </TabSurface>
-                  </div>
-                ))}
+                {previewTiles.map(({ size, column, row }) => {
+                  const previewItem: TabItem = {
+                    ...item,
+                    size: squareSizes[size],
+                  }
+                  return (
+                    <div
+                      key={`${column}-${row}`}
+                      data-square-tab-preview={size}
+                      aria-label={`${size}×${size}`}
+                      className="relative shrink-0"
+                      style={{
+                        gridColumn: `${column} / span ${size}`,
+                        gridRow: `${row} / span ${size}`,
+                      }}
+                    >
+                      <TabSurface appearance={appearance}>
+                        <TabBackground
+                          item={previewItem}
+                          textureId={`${item.id}-${column}-${row}`}
+                          appearance={appearance}
+                          effectStyle={texture}
+                          coverage={coverage}
+                          animated={animated}
+                        />
+                        <TabUI
+                          item={previewItem}
+                          appearance={appearance}
+                          preview
+                        />
+                      </TabSurface>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>

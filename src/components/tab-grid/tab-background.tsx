@@ -3,12 +3,14 @@ import type { TabItem } from "@/lib/grid/types"
 import type { ComponentProps } from "react"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import type { TabAppearance } from "@/lib/tab-appearance"
+import { useTabStyle } from "./use-tab-style"
 
 export default function TabBackground({
   item,
   textureId = item.id,
   coverage,
   appearance: appearanceOverride,
+  effectStyle: effectStyleOverride,
   ...effects
 }: Omit<ComponentProps<typeof EffectSurface>, "color" | "textureId"> & {
   item: TabItem
@@ -16,10 +18,18 @@ export default function TabBackground({
   appearance?: TabAppearance
 }) {
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
-  const tabEffectCoverage = useHomeSettingsStore(
-    (state) => state.tabEffectCoverage
-  )
-  const savedAppearance = useHomeSettingsStore((state) => state.tabAppearance)
+  const {
+    appearance: savedAppearance,
+    texture,
+    coverage: tabEffectCoverage,
+  } = useTabStyle(item.size)
+  const requestedCoverage = coverage ?? tabEffectCoverage
+  const resolvedCoverage =
+    item.size === "square-small"
+      ? requestedCoverage > 0
+        ? 100
+        : 0
+      : requestedCoverage
   const appearance = appearanceOverride ?? savedAppearance
   const quarterTurn =
     appearance.backgroundRotation === 90 ||
@@ -71,13 +81,16 @@ export default function TabBackground({
             transform: `translate(-50%, -50%) scale(${appearance.backgroundFlipX ? -1 : 1}, ${appearance.backgroundFlipY ? -1 : 1}) rotate(${appearance.backgroundRotation}deg)`,
           }}
         >
-          <EffectSurface
-            color={item.color}
-            textureId={textureId}
-            coverage={coverage ?? tabEffectCoverage}
-            {...effects}
-            transparent
-          />
+          {resolvedCoverage > 0 && (
+            <EffectSurface
+              color={item.color}
+              textureId={textureId}
+              coverage={resolvedCoverage}
+              {...effects}
+              effectStyle={effectStyleOverride ?? texture}
+              transparent
+            />
+          )}
         </div>
       </div>
       <div

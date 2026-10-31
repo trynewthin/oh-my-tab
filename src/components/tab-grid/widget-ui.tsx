@@ -118,7 +118,7 @@ export function WidgetTile({
           preview
         />
       ) : (
-        <TabSurface>
+        <TabSurface size={item.size}>
           <TabBackground
             item={item}
             animated={!!item.dynamicEffect}

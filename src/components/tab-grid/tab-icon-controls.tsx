@@ -26,12 +26,16 @@ export default function TabIconControls({
   onIconChange,
   alertClassName,
   alertOverlayClassName,
+  onDialogOpenChange,
+  controlClassName = "",
 }: {
   url: string
   icon?: string
   onIconChange: (icon: string | undefined) => void
   alertClassName?: string
   alertOverlayClassName?: string
+  onDialogOpenChange?: (open: boolean) => void
+  controlClassName?: string
 }) {
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
@@ -39,6 +43,9 @@ export default function TabIconControls({
   const [cropImage, setCropImage] = useState<ImageBitmap | null>(null)
 
   useEffect(() => () => cropImage?.close(), [cropImage])
+  useEffect(() => {
+    onDialogOpenChange?.(refreshOpen || cropImage !== null)
+  }, [refreshOpen, cropImage, onDialogOpenChange])
 
   async function refresh() {
     const normalized = normalizeTabUrl(url)
@@ -94,7 +101,7 @@ export default function TabIconControls({
           <Button
             type="button"
             variant="outline"
-            className={`min-w-0 px-2 ${settingsControlClassName}`}
+            className={`min-w-0 px-2 ${settingsControlClassName} ${controlClassName}`}
             disabled={busy}
             onClick={() => {
               if (icon) setRefreshOpen(true)
@@ -107,7 +114,7 @@ export default function TabIconControls({
           <Button
             variant="outline"
             render={<label />}
-            className={`relative min-w-0 cursor-pointer px-2 ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName}`}
+            className={`relative min-w-0 cursor-pointer px-2 ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName} ${controlClassName}`}
             aria-disabled={busy}
           >
             <UploadSimple aria-hidden="true" />

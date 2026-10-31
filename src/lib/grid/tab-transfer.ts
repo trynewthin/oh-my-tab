@@ -85,7 +85,7 @@ export function transferTab(state: GridData, move: TabTransfer): GridData {
       kind: "tab",
       name: tab.name,
       url: tab.url,
-      size: tab.size === "medium" ? "medium" : "small",
+      size: tab.size ?? "small",
       color:
         tab.color ??
         source?.color ??

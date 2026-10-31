@@ -26,18 +26,16 @@ async function decode(buffer: Buffer): Promise<Layer> {
   }
 }
 
+// Weight edge pixels by their colour contribution instead of counting every
+// antialiased edge as a solid pixel on fractionally scaled grids.
 function inkCoverage(layer: Layer) {
-  let count = 0
+  let coverage = 0
   for (let i = 0; i < layer.data.length; i += layer.channels) {
-    if (
-      layer.data[i] < 250 ||
-      layer.data[i + 1] < 250 ||
-      layer.data[i + 2] < 250
-    ) {
-      count++
-    }
+    coverage +=
+      (255 - Math.min(layer.data[i], layer.data[i + 1], layer.data[i + 2])) /
+      255
   }
-  return count / (layer.width * layer.height)
+  return coverage / (layer.width * layer.height)
 }
 
 // Sample cell centres: Canvas and CSS round fractional edges differently.

@@ -6,7 +6,6 @@ import {
   componentRegistry,
   getComponentSize,
   getComponentSizeOptions,
-  getComponentMenuOperations,
   getItemGridDimensions,
   occupancyMark,
   sizeLabel,
@@ -19,12 +18,8 @@ test("component registry is the shared source for sizes and capabilities", () =>
     const values = definition.sizes.map((size) => size.value)
     expect(new Set(values).size).toBe(values.length)
     expect(values).toContain(definition.defaultSize)
-    for (const value of [
-      ...definition.menu.sizes,
-      ...definition.editorSizes,
-      ...definition.catalogSizes,
-    ])
-      expect(values).toContain(value)
+    for (const value of definition.catalogSizes) expect(values).toContain(value)
+    expect(definition.actions.resize).toBe(definition.sizes.length > 1)
     const occupancies = definition.sizes.map((size) => size.occupancy)
     expect(new Set(occupancies).size).toBe(occupancies.length)
     for (const size of definition.sizes) {
@@ -36,13 +31,6 @@ test("component registry is the shared source for sizes and capabilities", () =>
       expect(sizeLabel(size, (key) => key)).toBe(
         size.roleKey ? `${size.roleKey} · ${mark}` : mark
       )
-    }
-    expect(new Set(definition.menu.operations).size).toBe(
-      definition.menu.operations.length
-    )
-    for (const operation of definition.menu.operations) {
-      if (operation === "randomColor" || operation === "dynamicEffect")
-        expect(definition.actions[operation]).toBe(true)
     }
   }
 
@@ -59,22 +47,18 @@ test("component registry is the shared source for sizes and capabilities", () =>
     height: 1,
   })
   expect(supportsComponentAction("template", "groupable")).toBe(false)
-  expect(getComponentSizeOptions("todo", "menu")).toEqual([])
   expect(
-    getComponentSizeOptions("folder", "editor", "small").map(
-      (size) => size.value
-    )
-  ).toEqual(["small", "large", "tall", "wide", "wide-tall"])
+    getComponentSizeOptions("todo", "resize").map((size) => size.value)
+  ).toEqual(["large"])
   expect(
-    getComponentSizeOptions("folder", "menu").map((size) => size.value)
-  ).toEqual(["wide-tall", "wide", "tall", "large"])
+    getComponentSizeOptions("folder", "editor").map((size) => size.value)
+  ).toEqual(["large", "tall", "wide", "wide-tall"])
+  expect(getComponentSize("folder", "small")).toMatchObject({
+    width: 4,
+    height: 2,
+  })
   expect(supportsComponentAction("calendar", "groupable")).toBe(false)
   expect(supportsComponentAction("folder", "groupable")).toBe(true)
-  expect(getComponentMenuOperations("tab")).toEqual([
-    "edit",
-    "randomColor",
-    "dynamicEffect",
-  ])
 })
 
 test("every catalog size creates a valid component with matching dimensions", () => {

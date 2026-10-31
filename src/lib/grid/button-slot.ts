@@ -115,13 +115,12 @@ export function transferIntoButtonSlot(
     ? folder?.kind === "folder"
       ? folder.tabs.find((tab) => tab.id === move.itemId)
       : undefined
-    : state.items.find((item) => item.id === move.itemId)
-  if (
-    slot?.kind !== "button-slot" ||
-    !source ||
-    ("kind" in source && source.kind !== "tab" && source.kind !== "button")
-  )
-    return null
+    : state.items.find(
+        (item) =>
+          item.id === move.itemId &&
+          (item.kind === "tab" || item.kind === "button")
+      )
+  if (slot?.kind !== "button-slot" || !source) return null
   const control = controlFromItem(
     source as TabEntry | ButtonItem,
     folder?.color

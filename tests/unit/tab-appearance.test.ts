@@ -392,14 +392,15 @@ test("square styles share the common radius while preserving other settings thro
   expect(snapshot().grid).toEqual(saved.grid)
 })
 
-test("older backups default square styles without copying strip styles and reject invalid square settings", () => {
+test("older backups inherit shared corners but default other square styles and reject invalid square settings", () => {
   const old = JSON.parse(JSON.stringify(snapshot()))
   old.home.tabAppearance.radius = 37
+  old.home.tabAppearance.fontSize = 27
   delete old.home.squareTabAppearance
   delete old.home.squareTabTexture
   delete old.home.squareTabEffectCoverage
   expect(validateConfig(old).home).toMatchObject({
-    squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
+    squareTabAppearance: { ...DEFAULT_SQUARE_TAB_APPEARANCE, radius: 37 },
     squareTabTexture: "burning",
     squareTabEffectCoverage: 65,
   })

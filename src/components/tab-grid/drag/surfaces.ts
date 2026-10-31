@@ -10,7 +10,7 @@ import {
 // The only module that reads the rendered grid, folder and todo surfaces from
 // the DOM, keeping the drag hook free of queries. No React, stores, dnd-kit or
 // mutation belongs here.
-export function readFolderBounds(
+export function readGridItemBounds(
   grid: HTMLDivElement | null,
   ids: ReadonlySet<string>
 ): Map<string, Bounds> {

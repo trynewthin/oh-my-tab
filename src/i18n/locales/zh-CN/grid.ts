@@ -11,6 +11,11 @@ const grid = {
     month: "月",
   },
   component: {
+    buttonSlot: {
+      label: "快捷坞",
+      description: "收纳操作和网页，也可拖入标签或按钮。",
+      defaultName: "快捷坞",
+    },
     button: {
       label: "按钮",
       description: "绑定系统功能或打开应用的 1×1 快捷按钮。",
@@ -75,6 +80,16 @@ const grid = {
     delete: "删除",
     confirmDelete: "确认删除",
     deleteFolderHint: "包括文件夹内的标签",
+  },
+  buttonSlot: {
+    add: "添加操作或网页",
+    chooseType: "选择要加入快捷坞的类型。",
+    backToTypes: "重新选择类型",
+    full: "快捷坞已满，无法添加。",
+    remove: "移除入口",
+    removeChoice: "要删除此入口，还是将其释放为主页组件？",
+    release: "释放",
+    removeFailed: "暂时无法移除此入口，请重试。",
   },
   dialog: {
     catalogTitle: "组件",

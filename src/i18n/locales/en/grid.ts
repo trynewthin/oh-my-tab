@@ -11,6 +11,12 @@ const grid = {
     month: "Month",
   },
   component: {
+    buttonSlot: {
+      label: "Shortcut dock",
+      description:
+        "Keep actions and sites together, or drop tabs and buttons here.",
+      defaultName: "Shortcut dock",
+    },
     button: {
       label: "Button",
       description:
@@ -78,6 +84,16 @@ const grid = {
     delete: "Delete",
     confirmDelete: "Confirm delete",
     deleteFolderHint: "Includes the tabs in this folder",
+  },
+  buttonSlot: {
+    add: "Add an action or site",
+    chooseType: "Choose what to add to the shortcut dock.",
+    backToTypes: "Choose another type",
+    full: "The shortcut dock is full.",
+    remove: "Remove shortcut",
+    removeChoice: "Delete this shortcut or release it as a home component?",
+    release: "Release",
+    removeFailed: "Unable to remove this shortcut. Please try again.",
   },
   dialog: {
     catalogTitle: "Components",

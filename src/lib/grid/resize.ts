@@ -1,4 +1,4 @@
-import { getComponentSizeOptions, type GridItemSize } from "./registry"
+import { getItemResizeOptions, type GridItemSize } from "./registry"
 import type { GridItem } from "./types"
 
 export function resolveResizeSize(
@@ -14,7 +14,7 @@ export function resolveResizeSize(
     hysteresis?: number
   } = {}
 ): GridItemSize {
-  const options = getComponentSizeOptions(item.kind, "resize")
+  const options = getItemResizeOptions(item)
   let result = currentSize
   let distance = Infinity
   for (const option of options) {

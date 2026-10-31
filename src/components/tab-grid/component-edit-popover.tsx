@@ -14,7 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { componentLabel, getComponentDefinition } from "@/lib/grid/registry"
+import {
+  componentLabel,
+  getComponentDefinition,
+  getItemResizeOptions,
+} from "@/lib/grid/registry"
 import { normalizeTabUrl, type GridItem, type TabItem } from "@/lib/grid/types"
 import { isUtilityWidget } from "@/lib/grid/utility-types"
 import {
@@ -88,11 +92,13 @@ export default function ComponentEditPopover({
   anchor,
   onClose,
   columns,
+  childDialogOpen = false,
 }: {
   item: GridItem
   anchor: HTMLElement
   onClose: () => void
   columns: number
+  childDialogOpen?: boolean
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -101,7 +107,8 @@ export default function ComponentEditPopover({
   const [dialogOpen, setDialogOpen] = useState(false)
   const definition = getComponentDefinition(item.kind)
   const canResize =
-    definition.sizes.filter((size) => size.width <= columns).length > 1
+    getItemResizeOptions(item).filter((size) => size.width <= columns).length >
+    1
   const nameValid = name.trim().length > 0
   const colorLabel = t(
     item.kind === "folder"
@@ -117,7 +124,7 @@ export default function ComponentEditPopover({
       })}
       anchor={anchor}
       onClose={onClose}
-      dialogOpen={dialogOpen}
+      dialogOpen={dialogOpen || childDialogOpen}
       initialFocus={definition.showNameInEditor ? nameRef : undefined}
     >
       {definition.showNameInEditor && (

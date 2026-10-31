@@ -9,6 +9,9 @@ export default memo(function GridTileContent({
   compactTab = false,
   folderTabs,
   todoTasks,
+  editing,
+  onAddControl,
+  onRemoveControl,
 }: {
   item: GridItem
   onOpen: () => void
@@ -16,6 +19,9 @@ export default memo(function GridTileContent({
   compactTab?: boolean
   folderTabs?: TabEntry[]
   todoTasks?: TodoTask[]
+  editing?: boolean
+  onAddControl?: () => void
+  onRemoveControl?: (controlId: string, anchor: HTMLElement) => void
 }) {
   return (
     <WidgetTile
@@ -25,6 +31,9 @@ export default memo(function GridTileContent({
       compactTab={compactTab}
       folderTabs={folderTabs}
       todoTasks={todoTasks}
+      editing={editing}
+      onAddControl={onAddControl}
+      onRemoveControl={onRemoveControl}
     />
   )
 })

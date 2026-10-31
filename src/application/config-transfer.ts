@@ -192,7 +192,9 @@ export function validateConfig(value: unknown): Config {
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]
-      : [item.id]
+      : item.kind === "button-slot"
+        ? [item.id, ...item.controls.map((control) => control.id)]
+        : [item.id]
   )
   if (new Set(ids).size !== ids.length)
     throw new Error(i18n.t("settings.errors.duplicateIds"))

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import type { TabSize } from "@/lib/grid/types"
 import type { TabAppearance } from "@/lib/tab-appearance"
-import { useTabStyle } from "./use-tab-style"
+import { useTabAppearance } from "./use-tab-style"
 
 export default function TabSurface({
   children,
@@ -12,7 +12,7 @@ export default function TabSurface({
   appearance?: TabAppearance
   size?: TabSize
 }) {
-  const { appearance: savedAppearance } = useTabStyle(size)
+  const savedAppearance = useTabAppearance(size)
   const appearance = appearanceOverride ?? savedAppearance
   return (
     <div

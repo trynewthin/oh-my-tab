@@ -17,6 +17,7 @@ import {
   type QuickBarSide,
 } from "@/lib/quick-bar"
 import {
+  isActiveSystemAction,
   isSystemActionOnSurface,
   type SystemActionId,
 } from "@/lib/system-actions"
@@ -120,7 +121,11 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
       addQuickSystemControl: (side, action) => {
-        if (!isSystemActionOnSurface(action, "quick-bar")) return
+        if (
+          !isActiveSystemAction(action) ||
+          !isSystemActionOnSurface(action, "quick-bar")
+        )
+          return
         set((state) => ({
           quickBar: {
             ...state.quickBar,

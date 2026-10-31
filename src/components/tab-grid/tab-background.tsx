@@ -13,7 +13,7 @@ export default function TabBackground({
   effectStyle: effectStyleOverride,
   ...effects
 }: Omit<ComponentProps<typeof EffectSurface>, "color" | "textureId"> & {
-  item: TabItem
+  item: Pick<TabItem, "id" | "color" | "size">
   textureId?: string
   appearance?: TabAppearance
 }) {

@@ -15,7 +15,6 @@ export const MAX_SEARCH_SHORTCUTS = 16
 const defaultActions: readonly SystemActionId[] = [
   "toggle-theme",
   "add-tab",
-  "add-folder",
   "open-components",
   "tidy-grid",
   "toggle-selection",

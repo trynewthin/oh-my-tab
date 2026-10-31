@@ -61,6 +61,7 @@ export function runSystemAction(request: SystemActionRequest) {
       useGridSelectionStore.getState().toggleMode()
       return
     case "toggle-edit":
+    case "add-folder":
       // Retained only so historical controls remain readable.
       return
     case "open-settings":
@@ -71,9 +72,6 @@ export function runSystemAction(request: SystemActionRequest) {
       return
     case "add-tab":
       useSystemOverlayStore.getState().open("add-tab")
-      return
-    case "add-folder":
-      useSystemOverlayStore.getState().open("add-folder")
       return
   }
   return assertNever(request)

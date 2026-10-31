@@ -22,6 +22,8 @@ export default function DraggableGridItem({
   interactive = true,
   resize,
   onAnchorChange,
+  onAddControl,
+  onRemoveControl,
 }: {
   dropProgress?: number
   folderTabs?: TabEntry[]
@@ -34,6 +36,8 @@ export default function DraggableGridItem({
   interactive?: boolean
   resize?: GridResizeControls
   onAnchorChange?: (element: HTMLElement | null) => void
+  onAddControl?: () => void
+  onRemoveControl?: (controlId: string, anchor: HTMLElement) => void
 }) {
   const { t } = useTranslation()
   const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
@@ -97,7 +101,7 @@ export default function DraggableGridItem({
       >
         <div
           data-grid-item-content
-          inert={resize ? true : undefined}
+          inert={resize && item.kind !== "button-slot" ? true : undefined}
           className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
           style={{
             transform:
@@ -110,6 +114,9 @@ export default function DraggableGridItem({
             item={item}
             onOpen={open}
             preview={!interactive}
+            editing={!!resize}
+            onAddControl={onAddControl}
+            onRemoveControl={onRemoveControl}
             folderTabs={folderTabs}
             todoTasks={todoTasks}
           />

@@ -30,6 +30,7 @@ export type ConfigurableItem = Exclude<
   | { kind: "dot-canvas" | "ecosystem" }
   | { kind: "search-minimal" }
   | UtilityWidgetItem
+  | { kind: "button-slot" }
 >
 
 function assertNever(value: never): never {
@@ -208,6 +209,13 @@ export function createCatalogComponent(
     }
   if (kind === "button")
     return { ...shared, kind, size: "small", action: "toggle-theme" }
+  if (kind === "button-slot")
+    return {
+      ...shared,
+      kind,
+      size: size as Extract<GridItem, { kind: "button-slot" }>["size"],
+      controls: [],
+    }
 
   if (kind === "todo") return { ...shared, kind, size: "large", tasks: [] }
   if (kind === "calendar")

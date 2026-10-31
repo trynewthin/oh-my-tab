@@ -5,7 +5,10 @@ import { systemActionRegistry } from "@/lib/system-actions"
 import type { ButtonItem } from "@/lib/grid/types"
 import { systemActionIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
-import ComponentBackground from "./shared/component-background"
+import TabSurface from "./tab-surface"
+import TabBackground from "./tab-background"
+import TabContent from "./tab-content"
+import { useTabAppearance } from "./use-tab-style"
 
 export default function ActionButton({
   item,
@@ -18,11 +21,21 @@ export default function ActionButton({
   const Icon = systemActionIcons[item.action]
   const action = t(systemActionRegistry[item.action].labelKey)
   const { disabled, pressed } = useSystemActionState(item.action)
+  const appearance = useTabAppearance("square-small")
   const content = (
-    <>
-      <ComponentBackground color={item.color} animated={false} />
-      <Icon className="relative z-10 size-6 text-foreground" />
-    </>
+    <TabSurface size="square-small">
+      <TabBackground
+        item={{ id: item.id, color: item.color, size: "square-small" }}
+        animated={!!item.dynamicEffect}
+        entrance={!preview}
+      />
+      <TabContent
+        name={action}
+        size="square-small"
+        appearance={appearance}
+        icon={<Icon className="h-full w-full text-foreground" />}
+      />
+    </TabSurface>
   )
 
   if (preview)

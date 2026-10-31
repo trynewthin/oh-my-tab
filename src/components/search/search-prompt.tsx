@@ -94,7 +94,23 @@ export default function SearchPrompt({
                 size: tab.size ?? "small",
                 color: tab.color ?? item.color,
               }))
-            : []
+            : item.kind === "button-slot"
+              ? item.controls.flatMap((control) =>
+                  control.kind === "site"
+                    ? [
+                        {
+                          id: control.id,
+                          kind: "tab" as const,
+                          name: control.name,
+                          url: control.url,
+                          icon: control.icon,
+                          size: "small" as const,
+                          color: item.color,
+                        },
+                      ]
+                    : []
+                )
+              : []
       )
       .filter((tab) => {
         const match = `${tab.name} ${tab.url}`

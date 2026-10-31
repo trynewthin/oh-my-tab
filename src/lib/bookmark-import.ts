@@ -18,7 +18,11 @@ export function mergeBookmarks(
           ? [item.url]
           : item.kind === "folder"
             ? item.tabs.map((tab) => tab.url)
-            : []
+            : item.kind === "button-slot"
+              ? item.controls.flatMap((control) =>
+                  control.kind === "site" ? [control.url] : []
+                )
+              : []
       )
       .map((url) => new URL(url).href)
   )

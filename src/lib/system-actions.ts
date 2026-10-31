@@ -20,6 +20,7 @@ export const systemActionRegistry = {
     surfaces: ["grid-button", "quick-bar", "more-actions"],
   },
   "add-folder": {
+    deprecated: true,
     labelKey: "shell.systemActions.addFolder",
     menuLabelKey: "shell.moreActions.addFolder",
     surfaces: ["grid-button", "quick-bar", "more-actions"],

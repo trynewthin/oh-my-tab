@@ -63,8 +63,8 @@ describe("system button actions", () => {
     runSystemAction("add-tab")
     expect(useSystemOverlayStore.getState().active).toBe("add-tab")
     runSystemAction("add-folder")
-    expect(useSystemOverlayStore.getState().active).toBe("add-folder")
-    useSystemOverlayStore.getState().close("add-folder")
+    expect(useSystemOverlayStore.getState().active).toBe("add-tab")
+    useSystemOverlayStore.getState().close("add-tab")
     expect(useSystemOverlayStore.getState().active).toBeNull()
     runSystemAction("open-settings")
     expect(useSystemOverlayStore.getState().settingsSection).toBe(
@@ -75,13 +75,17 @@ describe("system button actions", () => {
   test("shares action availability across menus and saved controls", () => {
     expect(systemActionIdsFor("more-actions")).toEqual([
       "add-tab",
-      "add-folder",
       "open-components",
       "tidy-grid",
       "toggle-selection",
     ])
     expect(isSystemActionOnSurface("add-tab", "quick-bar")).toBe(true)
     expect(isSystemActionOnSurface("add-folder", "grid-button")).toBe(true)
+    for (const surface of ["grid-button", "quick-bar", "more-actions"] as const)
+      expect(systemActionIdsFor(surface)).not.toContain("add-folder")
+    expect(
+      systemActionStatus("add-folder", { canTidy: true, selecting: false })
+    ).toEqual({ disabled: true })
     expect(isSystemActionOnSurface("toggle-edit", "quick-bar")).toBe(true)
     expect(systemActionIdsFor("quick-bar")).not.toContain("toggle-edit")
     expect(systemActionIdsFor("grid-button")).not.toContain("toggle-edit")

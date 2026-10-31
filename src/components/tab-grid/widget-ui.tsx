@@ -13,6 +13,7 @@ import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
 import SearchTile from "./search-tile"
 import ActionButton from "./action-button"
+import ButtonSlot from "./button-slot"
 import UtilityWidgetTile from "./utility-widget-tile"
 import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { createCatalogComponent } from "@/lib/grid/factory"
@@ -66,6 +67,9 @@ export function WidgetTile({
   compactTab = false,
   folderTabs,
   todoTasks,
+  editing = false,
+  onAddControl,
+  onRemoveControl,
 }: {
   item: GridItem
   onOpen: () => void
@@ -74,6 +78,9 @@ export function WidgetTile({
   compactTab?: boolean
   folderTabs?: TabEntry[]
   todoTasks?: TodoTask[]
+  editing?: boolean
+  onAddControl?: () => void
+  onRemoveControl?: (controlId: string, anchor: HTMLElement) => void
 }) {
   if (isUtilityWidget(item))
     return (
@@ -86,6 +93,16 @@ export function WidgetTile({
     )
 
   switch (item.kind) {
+    case "button-slot":
+      return (
+        <ButtonSlot
+          item={item}
+          preview={preview}
+          editing={editing}
+          onAddControl={onAddControl}
+          onRemoveControl={onRemoveControl}
+        />
+      )
     case "button":
       return <ActionButton item={item} preview={preview} />
     case "search-minimal":
@@ -146,6 +163,15 @@ export function WidgetCatalogPreview({
 }): ReactNode {
   const { t } = useTranslation()
   const item = createCatalogComponent(kind, size)
+  if (item.kind === "button-slot")
+    item.controls = [
+      {
+        id: "slot-preview-components",
+        kind: "system",
+        action: "open-components",
+      },
+      { id: "slot-preview-settings", kind: "system", action: "open-settings" },
+    ]
   if (item.kind === "todo") {
     item.tasks = [
       { id: "1", text: t("grid.dialog.previewTaskPlan"), done: true },

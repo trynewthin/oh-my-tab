@@ -122,6 +122,33 @@ export type ButtonItem = {
   dynamicEffect?: boolean
 }
 
+type ButtonSlotOrigin = { color: string; dynamicEffect?: boolean }
+export type ButtonSlotControl =
+  | {
+      id: string
+      kind: "system"
+      action: SystemActionId
+      origin?: ButtonSlotOrigin & { name: string }
+    }
+  | {
+      id: string
+      kind: "site"
+      name: string
+      url: string
+      icon?: string
+      origin?: ButtonSlotOrigin & { size: TabSize }
+    }
+
+export type ButtonSlotItem = {
+  id: string
+  kind: "button-slot"
+  name: string
+  size: "wide" | "small" | "medium"
+  color: string
+  controls: ButtonSlotControl[]
+  dynamicEffect?: boolean
+}
+
 export type GridItem =
   | TabItem
   | FolderItem
@@ -132,6 +159,7 @@ export type GridItem =
   | MinimalSearchItem
   | TemplateItem
   | ButtonItem
+  | ButtonSlotItem
   | UtilityWidgetItem
 
 export function normalizeTabUrl(value: string): string | null {

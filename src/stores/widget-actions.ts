@@ -4,7 +4,20 @@ import {
 } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
 import { useTabGridStore } from "./tab-grid-store"
-import type { GridItem } from "@/lib/grid/types"
+import type { ButtonSlotControl, GridItem } from "@/lib/grid/types"
+import { appendButtonSlotControl } from "@/lib/grid/button-slot"
+
+export function addButtonSlotControl(id: string, control: ButtonSlotControl) {
+  let added = false
+  updateGridItem(id, (current) => {
+    if (current.kind !== "button-slot") return current
+    const next = appendButtonSlotControl(current, control)
+    if (!next) return current
+    added = true
+    return next
+  })
+  return added
+}
 
 export function updateGridItem(
   id: string,

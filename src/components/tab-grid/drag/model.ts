@@ -35,6 +35,7 @@ export type DragSession = {
 
 export type Intent =
   | { kind: "none" }
+  | { kind: "slot"; slotId: string; releaseProgress: number }
   | {
       kind: "grid"
       position: GridPosition
@@ -65,6 +66,12 @@ export type Intent =
 
 export function sameDragIntent(a: Intent, b: Intent): boolean {
   switch (a.kind) {
+    case "slot":
+      return (
+        b.kind === "slot" &&
+        a.slotId === b.slotId &&
+        a.releaseProgress === b.releaseProgress
+      )
     case "none":
       return b.kind === "none"
     case "grid":

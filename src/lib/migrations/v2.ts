@@ -150,7 +150,7 @@ export function migrateGardenData(
 export function migrateConfig(value: unknown, now = Date.now()): unknown {
   const source = record(value)
   if (source.version === CONFIG_VERSION) return structuredClone(value)
-  if (![1, 2, 3].includes(source.version as number))
+  if (![1, 2, 3, 4].includes(source.version as number))
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
   const config = structuredClone(source)
   config.home = migrateHome(config.home)

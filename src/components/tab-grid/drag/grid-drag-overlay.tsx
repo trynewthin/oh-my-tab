@@ -48,6 +48,7 @@ export default function GridDragOverlay({
   const releaseProgress =
     dragging &&
     (intent.kind === "grid" ||
+      intent.kind === "slot" ||
       intent.kind === "folder" ||
       intent.kind === "reorder" ||
       intent.kind === "todo-reorder")

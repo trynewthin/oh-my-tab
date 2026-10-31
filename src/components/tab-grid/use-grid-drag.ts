@@ -9,6 +9,7 @@ import {
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 
 import { itemWidth, placeItems } from "@/lib/grid/grid-layout"
+import { acceptsButtonSlot } from "@/lib/grid/button-slot"
 import type {
   GridPlacement,
   GridPosition,
@@ -34,7 +35,7 @@ import {
   type Point,
 } from "./drag/model"
 import {
-  readFolderBounds,
+  readGridItemBounds,
   folderInsertionIndex,
   todoInsertionIndex,
 } from "./drag/surfaces"
@@ -76,6 +77,7 @@ export function useGridDrag({
 }) {
   const setLayout = useTabGridStore((state) => state.setLayout)
   const transferTab = useTabGridStore((state) => state.transferTab)
+  const transferIntoSlot = useTabGridStore((state) => state.transferIntoSlot)
   const updateTodoTasks = useTabGridStore((state) => state.updateTodoTasks)
   const [dragging, setDragging] = useState<DragSession | null>(null)
   const sessionRef = useRef<DragSession | null>(null)
@@ -93,10 +95,14 @@ export function useGridDrag({
   } | null>(null)
   const intentFrame = useRef<number | null>(null)
   const pendingDelta = useRef<Point>({ x: 0, y: 0 })
-  const folderIds = useMemo(
+  const dropTargetIds = useMemo(
     () =>
       new Set(
-        items.filter((item) => item.kind === "folder").map((item) => item.id)
+        items
+          .filter(
+            (item) => item.kind === "folder" || item.kind === "button-slot"
+          )
+          .map((item) => item.id)
       ),
     [items]
   )
@@ -242,6 +248,7 @@ export function useGridDrag({
   function currentRelease() {
     const currentIntent = intentRef.current
     return currentIntent.kind === "grid" ||
+      currentIntent.kind === "slot" ||
       currentIntent.kind === "folder" ||
       currentIntent.kind === "reorder" ||
       currentIntent.kind === "todo-reorder"
@@ -329,12 +336,31 @@ export function useGridDrag({
       session.dialogExited = true
       setDialogSuspended(true)
     }
-    const folderBounds =
-      session.item.kind === "tab"
-        ? readFolderBounds(gridRef.current, folderIds)
+    const dropTargetBounds =
+      session.item.kind === "tab" || session.item.kind === "button"
+        ? readGridItemBounds(gridRef.current, dropTargetIds)
         : undefined
+    if (session.item.kind === "tab" || session.item.kind === "button") {
+      for (const target of items) {
+        if (target.kind !== "button-slot") continue
+        const bounds = dropTargetBounds?.get(target.id)
+        if (!bounds || !containsPoint(point, bounds, 0.08, 0.08)) continue
+        clearHover()
+        clearRelease()
+        publish(
+          acceptsButtonSlot(target, session.item)
+            ? {
+                kind: "slot",
+                slotId: target.id,
+                releaseProgress: currentRelease(),
+              }
+            : { kind: "none" }
+        )
+        return
+      }
+    }
     if (session.sourceFolderId) {
-      const sourceBounds = folderBounds?.get(session.sourceFolderId)
+      const sourceBounds = dropTargetBounds?.get(session.sourceFolderId)
       if (sourceBounds && containsPoint(point, sourceBounds)) {
         clearHover()
         clearRelease()
@@ -361,7 +387,7 @@ export function useGridDrag({
       for (const folder of items) {
         if (folder.kind !== "folder" || folder.id === session.sourceFolderId)
           continue
-        const rect = folderBounds?.get(folder.id)
+        const rect = dropTargetBounds?.get(folder.id)
         if (!rect) continue
         const ratio = overlapRatio(overlay, rect)
         const retained = hover.current?.folderId === folder.id
@@ -460,7 +486,13 @@ export function useGridDrag({
     if (action.kind === "grid" && session.sourceFolderId && !action.ready)
       action = { kind: "none" }
     let committed = false
-    if (
+    if (action.kind === "slot") {
+      committed = transferIntoSlot({
+        itemId: session.item.id,
+        slotId: action.slotId,
+        fromFolderId: session.sourceFolderId,
+      })
+    } else if (
       action.kind === "folder" &&
       action.ready &&
       session.item.kind === "tab"

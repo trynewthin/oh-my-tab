@@ -35,6 +35,12 @@ const devInitialItems = (): GridItem[] =>
 import type { GridPositions } from "@/lib/grid/grid-layout"
 
 import { transferTab, type TabTransfer } from "@/lib/grid/tab-transfer"
+import {
+  transferIntoButtonSlot,
+  removeButtonSlotControl,
+  type SlotRemoval,
+  type SlotTransfer,
+} from "@/lib/grid/button-slot"
 
 import { randomComponentColor } from "@/lib/component-colors"
 import { i18n } from "@/i18n"
@@ -51,6 +57,8 @@ type TabGridState = {
   layouts: Record<number, GridPositions>
   setLayout: (columns: number, positions: GridPositions) => void
   transferTab: (move: TabTransfer) => void
+  transferIntoSlot: (move: SlotTransfer) => boolean
+  removeSlotControl: (removal: SlotRemoval) => boolean
   items: GridItem[]
 
   setItemDynamicEffect: (id: string, enabled: boolean) => void
@@ -91,6 +99,18 @@ export const useTabGridStore = create<TabGridState>()(
       updateTodoTasks: (id, change) =>
         set((state) => ({ items: updateTodoTasks(state.items, id, change) })),
       transferTab: (move) => set((state) => transferTab(state, move)),
+      transferIntoSlot: (move) => {
+        const next = transferIntoButtonSlot(get(), move)
+        if (!next) return false
+        set(next)
+        return true
+      },
+      removeSlotControl: (removal) => {
+        const next = removeButtonSlotControl(get(), removal)
+        if (!next) return false
+        set(next)
+        return true
+      },
       setItemDynamicEffect: (id, enabled) =>
         set((state) => ({
           items: setItemDynamicEffect(state.items, id, enabled),

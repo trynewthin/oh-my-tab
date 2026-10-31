@@ -98,6 +98,7 @@ export default function GridItemDialog({
   return (
     <ApplicationDialog
       applicationId="components"
+      size="large"
       open={open}
       onOpenChange={(open: boolean) => {
         if (!open) closeCatalog()

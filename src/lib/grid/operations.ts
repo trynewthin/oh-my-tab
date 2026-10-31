@@ -3,7 +3,7 @@ import type { GridItem, TabEntry, TodoTask } from "./types"
 import type { GridPositions } from "./grid-layout"
 import {
   componentLabel,
-  getComponentSizeOptions,
+  getItemResizeOptions,
   supportsComponentAction,
 } from "./registry"
 import { createTabItem } from "@/lib/grid/factory"
@@ -49,7 +49,12 @@ export function setAllTabDynamicEffects(
   enabled: boolean
 ): GridItem[] {
   return items.map((item) => {
-    if (item.kind === "tab") return { ...item, dynamicEffect: enabled }
+    if (
+      item.kind === "tab" ||
+      item.kind === "button" ||
+      item.kind === "button-slot"
+    )
+      return { ...item, dynamicEffect: enabled }
     if (item.kind === "folder" && item.tabs.length)
       return { ...item, dynamicEffect: enabled }
     return item
@@ -76,9 +81,7 @@ export function resizeItem(
   return mapItem(items, id, (item) => {
     if (
       !supportsComponentAction(item.kind, "resize") ||
-      !getComponentSizeOptions(item.kind, "resize").some(
-        (option) => option.value === size
-      )
+      !getItemResizeOptions(item).some((option) => option.value === size)
     )
       return item
     if (item.kind === "dot-canvas") {
@@ -223,6 +226,22 @@ export function upsertBookmark(
   const address = normalizeTabUrl(url)
   if (!name.trim() || !address) return { items, result: { kind: "invalid" } }
   const match = findBookmarkByUrl(items, address)
+  if (match?.slotId)
+    return {
+      items: items.map((item) =>
+        item.id === match.slotId && item.kind === "button-slot"
+          ? {
+              ...item,
+              controls: item.controls.map((control) =>
+                control.id === match.entry.id && control.kind === "site"
+                  ? { ...control, name: name.trim(), url: address }
+                  : control
+              ),
+            }
+          : item
+      ),
+      result: { kind: "updated" },
+    }
   if (match?.folderId)
     return {
       items: updateFolderTab(items, match.folderId, match.entry.id, {

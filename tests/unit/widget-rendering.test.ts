@@ -31,6 +31,84 @@ vi.mock("@/stores/matrix-renderer-store", () => ({
 afterEach(() => vi.unstubAllGlobals())
 
 describe("widget render contracts", () => {
+  test.each(["wide", "small", "medium"] as const)(
+    "button slot %s renders its actions on a tab surface",
+    (size) => {
+      const item = createCatalogComponent("button-slot", size)
+      if (item.kind !== "button-slot") throw new Error("Expected slot")
+      item.name = "Work dock"
+      item.controls = [
+        { id: "settings", kind: "system", action: "open-settings" },
+        { id: "components", kind: "system", action: "open-components" },
+      ]
+      const html = renderToStaticMarkup(
+        createElement(WidgetTile, { item, onOpen: () => {} })
+      )
+      expect(html).toContain('role="toolbar"')
+      expect(html).toContain("data-tab-surface")
+      expect(html.match(/type="button"/g)).toHaveLength(2)
+      expect(html).not.toContain("data-test-background")
+      expect(html.includes("data-dock-title")).toBe(size === "wide")
+      if (size === "wide") expect(html).toContain(">Work dock</span>")
+      if (size === "medium") {
+        expect(html).toContain(
+          "grid-template-columns:repeat(2, minmax(0, 1fr))"
+        )
+        expect(html).toContain("grid-template-rows:repeat(2, minmax(0, 1fr))")
+      }
+    }
+  )
+
+  test.each(["wide", "small", "medium"] as const)(
+    "dock %s shows remove buttons on occupied slots and plain plus icons on empty slots",
+    (size) => {
+      const item = createCatalogComponent("button-slot", size)
+      if (item.kind !== "button-slot") throw new Error("Expected dock")
+      item.controls = [
+        { id: "settings", kind: "system", action: "open-settings" },
+      ]
+      const html = renderToStaticMarkup(
+        createElement(WidgetTile, {
+          item,
+          onOpen: () => {},
+          editing: true,
+          onAddControl: () => {},
+        })
+      )
+      expect(html.match(/type="button"/g)).toHaveLength(
+        size === "small" ? 2 : 4
+      )
+      expect(html).toContain("bg-red-500")
+      expect(html).toContain("border-foreground/20")
+      expect(html).not.toContain("bg-foreground/5")
+      const normal = renderToStaticMarkup(
+        createElement(WidgetTile, { item, onOpen: () => {} })
+      )
+      expect(normal.match(/type="button"/g)).toHaveLength(1)
+      item.controls = []
+      const empty = renderToStaticMarkup(
+        createElement(WidgetTile, { item, onOpen: () => {} })
+      )
+      expect(empty).not.toContain('type="button"')
+    }
+  )
+
+  test("system buttons use the square tab surface with an action icon and no link", () => {
+    const item = createCatalogComponent("button")
+    const html = renderToStaticMarkup(
+      createElement(WidgetTile, {
+        item,
+        onOpen: () => {},
+      })
+    )
+    expect(html).toContain("data-tab-surface")
+    expect(html).toContain('data-tab-background-layer="background"')
+    expect(html).toContain("data-tab-icon")
+    expect(html).toContain('type="button"')
+    expect(html).not.toContain("href=")
+    expect(html).not.toContain("data-test-background")
+  })
+
   test("folder backgrounds stay static when their tabs are animated", () => {
     const html = renderToStaticMarkup(
       createElement(WidgetTile, {

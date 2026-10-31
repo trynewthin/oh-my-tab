@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import type { GridItem } from "@/lib/grid/types"
 import type { GridPlacement } from "@/lib/grid/grid-layout"
 import { GRID_CELL_SIZE, GRID_GAP } from "@/lib/grid/grid-layout"
-import { getComponentSizeOptions } from "@/lib/grid/registry"
+import { getItemResizeOptions } from "@/lib/grid/registry"
 import { resolveResizeSize } from "@/lib/grid/resize"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
@@ -47,9 +47,8 @@ export default function GridResizeHandle({
     []
   )
   const resizable =
-    getComponentSizeOptions(item.kind, "resize").filter(
-      (size) => size.width <= columns
-    ).length > 1
+    getItemResizeOptions(item).filter((size) => size.width <= columns).length >
+    1
   const update = (point: { x: number; y: number }) => {
     const active = session.current
     if (!active) return

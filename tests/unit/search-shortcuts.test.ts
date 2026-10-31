@@ -18,34 +18,36 @@ describe("search quick buttons", () => {
     expect(config.controls.map((control) => control.action)).toEqual([
       "toggle-theme",
       "add-tab",
-      "add-folder",
       "open-components",
       "tidy-grid",
       "toggle-selection",
       "open-settings",
     ])
-    expect(config.collapseBefore).toBe(6)
-    expect(searchShortcutGroups(config).hidden).toHaveLength(6)
+    expect(config.collapseBefore).toBe(5)
+    expect(searchShortcutGroups(config).hidden).toHaveLength(5)
     expect(
       searchShortcutGroups(config).visible.map((control) => control.action)
     ).toEqual(["open-settings"])
     expect(validSearchShortcuts(config)).toBe(true)
   })
 
-  test("removes retired edit shortcuts without shifting visible actions into the menu", () => {
-    const legacy = {
-      controls: [
-        { id: "edit", action: "toggle-edit" },
-        { id: "settings", action: "open-settings" },
-      ],
-      collapseBefore: 1,
+  test.each(["toggle-edit", "add-folder"] as const)(
+    "removes unavailable %s shortcuts without shifting visible actions into the menu",
+    (action) => {
+      const legacy = {
+        controls: [
+          { id: "edit", action },
+          { id: "settings", action: "open-settings" },
+        ],
+        collapseBefore: 1,
+      }
+      expect(validSearchShortcuts(legacy)).toBe(true)
+      expect(sanitizeSearchShortcuts(legacy)).toEqual({
+        controls: [legacy.controls[1]],
+        collapseBefore: 0,
+      })
     }
-    expect(validSearchShortcuts(legacy)).toBe(true)
-    expect(sanitizeSearchShortcuts(legacy)).toEqual({
-      controls: [legacy.controls[1]],
-      collapseBefore: 0,
-    })
-  })
+  )
 
   test("adds visible copies, reorders buttons and preserves the boundary on removal", () => {
     const initial = defaultSearchShortcuts()
@@ -53,15 +55,15 @@ describe("search quick buttons", () => {
       id: "extra-settings",
       action: "open-settings",
     })
-    expect(added.controls).toHaveLength(8)
-    expect(added.collapseBefore).toBe(6)
+    expect(added.controls).toHaveLength(7)
+    expect(added.collapseBefore).toBe(5)
     const moved = moveSearchShortcut(added, "extra-settings", 0)
     expect(moved.controls[0].id).toBe("extra-settings")
     const uncovered = setSearchShortcutBoundary(moved, 2)
     expect(uncovered.collapseBefore).toBe(2)
     const removed = removeSearchShortcut(uncovered, "extra-settings")
     expect(removed.collapseBefore).toBe(1)
-    expect(removed.controls).toHaveLength(7)
+    expect(removed.controls).toHaveLength(6)
   })
 
   test("rejects bad saved actions and keeps valid buttons during recovery", () => {

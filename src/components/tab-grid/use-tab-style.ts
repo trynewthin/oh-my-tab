@@ -1,11 +1,16 @@
 import { isSquareTabSize, type TabSize } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
-export function useTabStyle(size: TabSize = "small") {
+export function useTabAppearance(size: TabSize = "small") {
   const square = isSquareTabSize(size)
-  const appearance = useHomeSettingsStore((state) =>
+  return useHomeSettingsStore((state) =>
     square ? state.squareTabAppearance : state.tabAppearance
   )
+}
+
+export function useTabStyle(size: TabSize = "small") {
+  const square = isSquareTabSize(size)
+  const appearance = useTabAppearance(size)
   const texture = useHomeSettingsStore((state) =>
     square ? state.squareTabTexture : state.tabTexture
   )

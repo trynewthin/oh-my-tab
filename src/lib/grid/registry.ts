@@ -1,4 +1,4 @@
-import type { GridItem } from "./types"
+import type { ButtonSlotItem, GridItem } from "./types"
 import type { UtilityWidgetKind } from "./utility-types"
 
 export type GridItemKind = GridItem["kind"]
@@ -151,6 +151,31 @@ function defineComponents(
 }
 
 export const componentRegistry = defineComponents({
+  "button-slot": {
+    labelKey: "grid.component.buttonSlot.label",
+    descriptionKey: "grid.component.buttonSlot.description",
+    defaultNameKey: "grid.component.buttonSlot.defaultName",
+    defaultColor: "#6c8bd4",
+    defaultSize: "wide",
+    sizes: [
+      gridSize("wide", "4x1"),
+      gridSize("small", "2x1"),
+      gridSize("medium", "2x2"),
+    ],
+    catalogSizes: ["wide", "small", "medium"],
+    catalogDirectAdd: true,
+    catalogSection: "common",
+    detailPreviewWidth: "compact",
+    showNameInEditor: true,
+    tileBorder: false,
+    openAction: "edit",
+    actions: {
+      randomColor: true,
+      dynamicEffect: true,
+      groupable: false,
+      expandable: false,
+    },
+  },
   tab: {
     labelKey: "grid.component.tab.label",
     descriptionKey: "grid.component.tab.description",
@@ -215,11 +240,11 @@ export const componentRegistry = defineComponents({
     catalogSection: "common",
     detailPreviewWidth: "compact",
     showNameInEditor: false,
-    tileBorder: true,
+    tileBorder: false,
     openAction: "edit",
     actions: {
       randomColor: true,
-      dynamicEffect: false,
+      dynamicEffect: true,
       groupable: false,
       expandable: false,
     },
@@ -451,6 +476,7 @@ export const componentRegistry = defineComponents({
 // Only these can be added; other registered utilities remain available to
 // saved layouts.
 export const catalogComponentKinds = [
+  "button-slot",
   "clock",
   "button",
   "dot-canvas",
@@ -540,6 +566,24 @@ export function supportsComponentAction(
   action: ComponentAction
 ): boolean {
   return getComponentDefinition(kind).actions[action]
+}
+
+export function getItemResizeOptions(
+  item: GridItem
+): readonly ComponentSizeDefinition[] {
+  const options = getComponentSizeOptions(item.kind, "resize")
+  return item.kind === "button-slot"
+    ? options.filter(
+        (size) =>
+          buttonSlotCapacity(size.value as ButtonSlotItem["size"]) >=
+          item.controls.length
+      )
+    : options
+}
+
+export function buttonSlotCapacity(size: ButtonSlotItem["size"]) {
+  const dimensions = getComponentSize("button-slot", size)
+  return dimensions ? dimensions.width * dimensions.height : 0
 }
 
 export function getItemGridDimensions(

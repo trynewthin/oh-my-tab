@@ -69,6 +69,7 @@ describe("component occupancy registration", () => {
         ])
       )
     ).toEqual({
+      "button-slot": "common",
       button: "common",
       clock: "common",
       "dot-canvas": "dots",

@@ -1,6 +1,8 @@
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import ComponentEditPopover from "./component-edit-popover"
+import ButtonSlotAddDialog from "./button-slot-add-dialog"
+import ButtonSlotRemovePopover from "./button-slot-remove-popover"
 import BulkActions from "./bulk-actions"
 import {
   gridOccupancyBox,
@@ -65,6 +67,23 @@ export default function TabGrid({
     left: number
   } | null>(null)
   const editingItemId = editSession?.id
+  const [addingToDockId, setAddingToDockId] = useState<string | null>(null)
+  const [slotRemoval, setSlotRemoval] = useState<{
+    slotId: string
+    controlId: string
+    anchor: HTMLElement
+  } | null>(null)
+  const openSlotRemoval = useCallback(
+    (controlId: string, anchor: HTMLElement) => {
+      if (editingItemId)
+        setSlotRemoval({ slotId: editingItemId, controlId, anchor })
+    },
+    [editingItemId]
+  )
+  const openDockDialog = useCallback(() => {
+    setSlotRemoval(null)
+    if (editingItemId) setAddingToDockId(editingItemId)
+  }, [editingItemId])
   const [editorAnchor, setEditorAnchor] = useState<HTMLElement | null>(null)
   const resizeItem = useTabGridStore((state) => state.resizeItem)
   const [resizePreview, setResizePreview] = useState<{
@@ -79,6 +98,12 @@ export default function TabGrid({
   const editedItem =
     !preview && !selecting && !overlayActive
       ? savedItems.find((item) => item.id === editingItemId)
+      : undefined
+  const removingControl =
+    editedItem?.kind === "button-slot" && editedItem.id === slotRemoval?.slotId
+      ? editedItem.controls.find(
+          (control) => control.id === slotRemoval.controlId
+        )
       : undefined
   const items =
     editedItem && resizePreview
@@ -129,6 +154,8 @@ export default function TabGrid({
       top: viewport?.scrollTop ?? 0,
       left: viewport?.scrollLeft ?? 0,
     })
+    setAddingToDockId(null)
+    setSlotRemoval(null)
     setFolderId(null)
   }, [])
   const openItem = useCallback(
@@ -169,6 +196,8 @@ export default function TabGrid({
   useEffect(() => {
     const close = () => {
       setEditSession(null)
+      setAddingToDockId(null)
+      setSlotRemoval(null)
       setResizePreview(null)
     }
     const unsubscribeSelection = useGridSelectionStore.subscribe((state) => {
@@ -549,6 +578,12 @@ export default function TabGrid({
                   onAnchorChange={
                     editedItem?.id === item.id ? setEditorAnchor : undefined
                   }
+                  onAddControl={
+                    editedItem?.id === item.id ? openDockDialog : undefined
+                  }
+                  onRemoveControl={
+                    editedItem?.id === item.id ? openSlotRemoval : undefined
+                  }
                   resize={
                     editedItem?.id === item.id
                       ? {
@@ -590,9 +625,11 @@ export default function TabGrid({
                       : placements[item.id]
                   }
                   dropProgress={
-                    intent.kind === "folder" && intent.folderId === item.id
-                      ? intent.progress
-                      : undefined
+                    intent.kind === "slot" && intent.slotId === item.id
+                      ? 1
+                      : intent.kind === "folder" && intent.folderId === item.id
+                        ? intent.progress
+                        : undefined
                   }
                   folderTabs={folderPreviews.get(item.id)}
                   todoTasks={
@@ -614,10 +651,35 @@ export default function TabGrid({
             item={editedItem}
             anchor={editorAnchor}
             columns={columns}
+            childDialogOpen={
+              addingToDockId === editedItem.id || !!removingControl
+            }
             onClose={() => {
               setEditSession(null)
+              setAddingToDockId(null)
+              setSlotRemoval(null)
               setResizePreview(null)
             }}
+          />
+        )}
+        {editedItem?.kind === "button-slot" &&
+          addingToDockId === editedItem.id && (
+            <ButtonSlotAddDialog
+              key={editedItem.id}
+              item={editedItem}
+              onClose={() => setAddingToDockId(null)}
+              returnFocus={editorAnchor}
+            />
+          )}
+        {slotRemoval && removingControl && (
+          <ButtonSlotRemovePopover
+            key={`${slotRemoval.slotId}-${slotRemoval.controlId}`}
+            slotId={slotRemoval.slotId}
+            control={removingControl}
+            anchor={slotRemoval.anchor}
+            columns={columns}
+            returnFocus={editorAnchor}
+            onClose={() => setSlotRemoval(null)}
           />
         )}
         {expandedFolder && (

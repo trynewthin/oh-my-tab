@@ -14,7 +14,6 @@
 - `npm run build` produces the extension in `dist/`.
 - Tests: `tests/unit/*.test.ts` (Vitest), `tests/e2e/*.spec.ts` (Playwright), shared helpers in `tests/helpers/`. Import source modules directly; `tests/unit/setup.ts` provides browser storage stubs.
 - Cover user-visible behavior and data boundaries, especially persisted data, layout, permissions, and widget registration. Put generated results in `tests/results/`; use `testInfo.outputPath()` for screenshots.
-- **Before every E2E run, obtain separate explicit user confirmation**, including commands or scripts that indirectly run E2E tests. A task mentioning testing is not permission. Missing, ambiguous, or unanswered confirmation means do not run.
 - **Before every browser verification session, obtain separate explicit user confirmation**, including navigation, inspection, screenshots, and automation. Missing, ambiguous, or unanswered confirmation means do not operate the browser.
 - See [testing](docs/development/testing.md) for browser and WebDAV setup.
 

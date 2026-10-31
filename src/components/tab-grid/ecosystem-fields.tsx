@@ -13,60 +13,37 @@ import {
   settleGarden,
 } from "@/lib/garden"
 import { useEffect, useState } from "react"
+import { useWallClock } from "@/components/effects/use-wall-clock"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import SettingItem from "@/components/settings/shared/setting-item"
-import ComponentEditorFrame from "./component-editor-frame"
-import Ecosystem from "./ecosystem"
 import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { toast } from "@/stores/toast-store"
-import {
-  componentDefaultName,
-  componentDescription,
-  componentLabel,
-  getComponentDefinition,
-  getComponentSize,
-} from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 
-export default function EcosystemConfiguration({
+export default function EcosystemFields({
   item,
-  onClose,
+  onDialogOpenChange,
 }: {
-  item?: EcosystemItem
-  onClose: () => void
-  onSaved: () => void
+  item: EcosystemItem
+  onDialogOpenChange: (open: boolean) => void
 }) {
-  const [id] = useState(() => item?.id ?? crypto.randomUUID())
+  const id = item.id
   const stored = useTabGridStore((state) =>
     state.items.find((entry) => entry.id === id)
   )
-  const [now, setNow] = useState(() => Date.now())
+  const now = useWallClock()
   const shared = useGardenStore()
   const [albumOpen, setAlbumOpen] = useState(false)
   const { t } = useTranslation()
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
-  }, [])
-  const empty: EcosystemItem = {
-    id,
-    kind: "ecosystem",
-    size: "large",
-    name: componentDefaultName("ecosystem", t),
-    color: getComponentDefinition("ecosystem").defaultColor,
-    species: "flowers",
-    plants: [],
-    points: 6,
-
-    album: [],
-  }
+    onDialogOpenChange(albumOpen)
+  }, [albumOpen, onDialogOpenChange])
   const value = settleGarden(
-    { ...(stored?.kind === "ecosystem" ? stored : (item ?? empty)), ...shared },
+    { ...(stored?.kind === "ecosystem" ? stored : item), ...shared },
     now
   )
-  const dimensions = getComponentSize("ecosystem", value.size)!
   const plant = value.plants[0]
   const status = plant ? growth(plant, now) : null
   function current() {
@@ -75,13 +52,21 @@ export default function EcosystemConfiguration({
       .items.find((entry) => entry.id === id)
     return settleGarden(
       {
-        ...(latest?.kind === "ecosystem" ? latest : (item ?? empty)),
+        ...(latest?.kind === "ecosystem" ? latest : item),
         ...useGardenStore.getState(),
       },
       now
     )
   }
   function save(next: EcosystemItem) {
+    if (
+      !useTabGridStore
+        .getState()
+        .items.some(
+          (entry) => entry.id === next.id && entry.kind === "ecosystem"
+        )
+    )
+      return
     const { points, pointsUpdatedAt, album, lastCheckIn } = next
     useGardenStore.setState({
       points: points!,
@@ -135,15 +120,7 @@ export default function EcosystemConfiguration({
   }
   return (
     <>
-      <ComponentEditorFrame
-        title={componentLabel("ecosystem", t)}
-        description={componentDescription("ecosystem", t)}
-        width={dimensions.width}
-        height={dimensions.height}
-        preview={<Ecosystem item={value} preview />}
-        previewBorder={false}
-        onClose={onClose}
-      >
+      <div className="space-y-3">
         {plant && (
           <SettingItem
             label={t("grid.ecosystem.plantName")}
@@ -154,7 +131,7 @@ export default function EcosystemConfiguration({
               key={`${plantSeed(plant)}-${plant.plantedAt}`}
               defaultValue={plantName(plant)}
               maxLength={40}
-              onBlur={(event) => {
+              onChange={(event) => {
                 const next = current()
                 if (!next.plants[0]) return
                 const name =
@@ -293,7 +270,7 @@ export default function EcosystemConfiguration({
               : t("grid.ecosystem.checkIn")}
           </Button>
         </div>
-      </ComponentEditorFrame>
+      </div>
       {albumOpen && (
         <GardenAlbum
           value={value}

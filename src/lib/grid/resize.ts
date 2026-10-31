@@ -14,7 +14,7 @@ export function resolveResizeSize(
     hysteresis?: number
   } = {}
 ): GridItemSize {
-  const options = getComponentSizeOptions(item.kind, "editor", item.size)
+  const options = getComponentSizeOptions(item.kind, "resize")
   let result = currentSize
   let distance = Infinity
   for (const option of options) {

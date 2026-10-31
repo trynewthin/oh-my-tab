@@ -96,6 +96,7 @@ const grid = {
     previewTaskRead: "读几页喜欢的书",
   },
   editor: {
+    resizeHint: "拖动组件右下角调整大小",
     editTitle: "编辑{{label}}",
     configTitle: "配置{{label}}",
     name: "名称",

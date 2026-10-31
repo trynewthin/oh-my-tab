@@ -4,7 +4,9 @@
 
 ## 注册与尺寸
 
-`src/lib/grid/registry.ts` 是尺寸、菜单、目录分类、入口和创建默认值的唯一来源；模板组件在 `src/components/tab-grid/template/`。占位以 1×1 为正方形单位，1×1 只留给图标级操作按钮，真实像素尺寸由 `gridOccupancyBox` 推导，短卡片单独排版。信息组件复用 `ComponentBackground` 的材质、圆角、边框、Inter 字体、Phosphor 图标与明暗主题；设置项复用 `SettingItem`，编辑器使用现有 shadcn 控件，桌面双栏展示实际比例预览，预览不写入 store。
+`src/lib/grid/registry.ts` 是尺寸、能力、目录分类、入口和创建默认值的唯一来源。多尺寸组件自动具备缩放能力；拖拽从注册尺寸中选择当前网格能容纳的尺寸，不在界面层按组件类型放行。占位以 1×1 为正方形单位，真实像素尺寸由 `gridOccupancyBox` 推导。
+
+所有组件共用「编辑、删除」菜单和 `ComponentEditPopover` 就近编辑浮层。基础设置和专属表单即时写入有效配置，不显示尺寸按钮；专属表单分别处理计时状态、画布和花园等领域行为。更新经 store 校验，读取最新实例，不能复活已删除组件或用旧草稿覆盖运行状态。创建使用独立的创建窗口；预览不写入 store。信息组件复用 `ComponentBackground` 的材质、圆角、边框、Inter 字体、Phosphor 图标与明暗主题，设置项复用 `SettingItem` 和现有 UI 控件。画布扩大时扩充像素区域，缩小时保留隐藏区域的像素。
 
 目录只展示部分信息组件，已保存实例继续显示和编辑；已移除组件（书签列表、详细搜索框）的旧数据在加载或导入时丢弃，见 `src/lib/migrations/removed-items.ts`。组件记录是 `GridItem` 可辨识联合的成员，随网格 store、ZIP 和 WebDAV 备份保存，非法持久化记录由导入校验拒绝。
 

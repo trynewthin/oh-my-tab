@@ -9,6 +9,7 @@ import {
 import { createTabItem } from "@/lib/grid/factory"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
 import { normalizeTabUrl } from "./types"
+import { canvasDimensions, dotDimensions, resizeDots } from "./dot-canvas-data"
 
 export type GridData = {
   items: GridItem[]
@@ -72,12 +73,29 @@ export function resizeItem(
   id: string,
   size: GridItem["size"]
 ): GridItem[] {
-  return mapItem(items, id, (item) =>
-    supportsComponentAction(item.kind, "resize") &&
-    isComponentSize(item.kind, size)
-      ? ({ ...item, size } as GridItem)
-      : item
-  )
+  return mapItem(items, id, (item) => {
+    if (
+      !supportsComponentAction(item.kind, "resize") ||
+      !isComponentSize(item.kind, size)
+    )
+      return item
+    if (item.kind === "dot-canvas") {
+      const requested = canvasDimensions(size)
+      const previous = dotDimensions(item.pixels, item.pixelColumns)
+      const columns = Math.max(previous.columns, requested.columns)
+      const rows = Math.max(previous.rows, requested.rows)
+      return {
+        ...item,
+        size,
+        pixelColumns: columns,
+        pixels:
+          columns === previous.columns && rows === previous.rows
+            ? item.pixels
+            : resizeDots(item.pixels, item.pixelColumns, columns, rows),
+      } as GridItem
+    }
+    return { ...item, size } as GridItem
+  })
 }
 
 export function upsertItem(items: GridItem[], item: GridItem): GridItem[] {

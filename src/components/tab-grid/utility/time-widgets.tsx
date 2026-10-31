@@ -296,9 +296,9 @@ export function PomodoroTile(props: KindProps<"pomodoro">) {
 }
 
 export function WorldClockTile(props: KindProps<"world-clock">) {
-  const { item, preview } = props
+  const { item, sample = false } = props
   const { t, i18n } = useTranslation()
-  const now = useWallClock(preview)
+  const now = useWallClock(sample)
   const locale = i18n.resolvedLanguage ?? "en"
   return (
     <WidgetSurface {...props} className="utility-world">

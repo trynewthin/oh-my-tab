@@ -37,7 +37,7 @@ const MAX_PANEL_OVERLAP = 80
 
 // The preview uses the home grid's tile size; large tiles may extend behind
 // the floating form while smaller ones stay centered above it.
-export default function ComponentEditorFrame({
+export default function ComponentCreateFrame({
   open = true,
   contentClassName = "",
   overlayClassName,

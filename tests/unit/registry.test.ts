@@ -26,9 +26,6 @@ describe("component occupancy registration", () => {
     ])
     expect(componentRegistry.clock.tileBorder).toBe(false)
     expect(componentRegistry.clock.actions.dynamicEffect).toBe(false)
-    expect(componentRegistry.clock.menu.operations).not.toContain(
-      "dynamicEffect"
-    )
     expect(
       validGridItem({ ...createCatalogComponent("clock"), size: "large" })
     ).toBe(false)
@@ -114,15 +111,12 @@ describe("component occupancy registration", () => {
   )
 
   test("search widgets expose the shared editor without changing their saved sizes", () => {
-    expect(componentRegistry["search-minimal"].menu.operations).toContain(
-      "edit"
-    )
     expect(componentRegistry["search-minimal"].showNameInEditor).toBe(false)
-    expect(componentRegistry["search-minimal"].editorSizes).toEqual([
-      "compact",
-      "medium",
-      "small",
-    ])
+    expect(
+      getComponentSizeOptions("search-minimal", "resize").map(
+        (size) => size.value
+      )
+    ).toEqual(["compact", "medium", "small"])
   })
 
   test("1×1 is the square unit and template uses the scale", () => {

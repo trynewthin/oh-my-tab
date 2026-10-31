@@ -16,33 +16,29 @@ import {
 } from "@/lib/grid/registry"
 import { configureComponent } from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
-import ComponentEditorFrame from "./component-editor-frame"
+import ComponentCreateFrame from "./component-create-frame"
 import TabBackground from "./tab-background"
 import TabUI from "./tab-ui"
 import TabSurface from "./tab-surface"
 import TabIconControls from "./tab-icon-controls"
 
-export default function TabEditor({
-  item,
+export default function TabCreateDialog({
   onClose,
   onSaved,
 }: {
-  item?: TabItem
   onClose: () => void
   onSaved: () => void
 }) {
   const { t } = useTranslation()
-  const [id] = useState(() => item?.id ?? crypto.randomUUID())
+  const [id] = useState(() => crypto.randomUUID())
   const definition = getComponentDefinition("tab")
-  const [name, setName] = useState(item?.name ?? "")
-  const [url, setUrl] = useState(item?.url ?? "")
-  const [size, setSize] = useState<GridItemSize>(
-    item?.size ?? definition.defaultSize
-  )
-  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
-  const [icon, setIcon] = useState(item?.icon)
+  const [name, setName] = useState("")
+  const [url, setUrl] = useState("")
+  const [size, setSize] = useState<GridItemSize>(definition.defaultSize)
+  const [color, setColor] = useState(definition.defaultColor)
+  const [icon, setIcon] = useState<string | undefined>()
   const saveItem = useTabGridStore((state) => state.saveItem)
-  const sizeOptions = getComponentSizeOptions("tab", "editor", item?.size)
+  const sizeOptions = getComponentSizeOptions("tab", "editor")
   const current = getComponentSize("tab", size) ?? definition.sizes[0]
   const resolvedSize = (
     isComponentSize("tab", size) ? size : definition.defaultSize
@@ -56,7 +52,7 @@ export default function TabEditor({
     size: resolvedSize,
     color,
     icon,
-    dynamicEffect: item?.dynamicEffect,
+    dynamicEffect: false,
   }
 
   function save() {
@@ -68,7 +64,6 @@ export default function TabEditor({
     }
     saveItem(
       configureComponent({
-        existing: item,
         id,
         kind: "tab",
         name: resolvedName,
@@ -82,12 +77,8 @@ export default function TabEditor({
   }
 
   return (
-    <ComponentEditorFrame
-      title={
-        item
-          ? t("grid.editor.editTitle", { label: componentLabel("tab", t) })
-          : t("grid.editor.configTitle", { label: componentLabel("tab", t) })
-      }
+    <ComponentCreateFrame
+      title={t("grid.editor.configTitle", { label: componentLabel("tab", t) })}
       description={t("grid.editor.descriptionWithName")}
       width={current.width}
       height={current.height}
@@ -104,7 +95,7 @@ export default function TabEditor({
       onSizeChange={(value) => {
         if (isComponentSize("tab", value)) setSize(value)
       }}
-      submitLabel={item ? t("grid.editor.save") : t("grid.editor.confirmAdd")}
+      submitLabel={t("grid.editor.confirmAdd")}
       onSubmit={save}
       onClose={onClose}
     >
@@ -135,6 +126,6 @@ export default function TabEditor({
         />
       </SettingItem>
       <TabIconControls url={url} icon={icon} onIconChange={setIcon} />
-    </ComponentEditorFrame>
+    </ComponentCreateFrame>
   )
 }

@@ -1,5 +1,9 @@
 import { expect, test } from "vitest"
-import { createFolderItem, createTabItem } from "@/lib/grid/factory"
+import {
+  createCatalogComponent,
+  createFolderItem,
+  createTabItem,
+} from "@/lib/grid/factory"
 import { resolveResizeSize } from "@/lib/grid/resize"
 import { resizeItem } from "@/lib/grid/operations"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
@@ -31,7 +35,7 @@ test("folder resizing follows both axes and excludes sizes wider than the grid",
   expect(resolveResizeSize(folder, 8, 4, 8)).toBe("tall")
   expect(resolveResizeSize(folder, 8, 8, 8)).toBe("wide-tall")
   expect(resolveResizeSize(folder, 4, 8, 8)).toBe("tall")
-  expect(resolveResizeSize(folder, 8, -10, -10)).toBe("large")
+  expect(resolveResizeSize(folder, 8, -10, -10)).toBe("small")
 })
 
 test("drag resizing holds its current size near a boundary to avoid flickering", () => {
@@ -87,4 +91,30 @@ test("resizing pushes neighboring tiles without losing contents or overlapping p
   expect(items[0]).toEqual({ ...folder, size: "wide" })
   expect(items[1]).toEqual(tab)
   expect(placeItems(items, 8, positionsOnly(placements))).toEqual(placements)
+})
+
+test("resizing a todo preserves its tasks", () => {
+  const item = {
+    ...createCatalogComponent("todo"),
+    tasks: [{ id: "task", text: "KEEP", done: true }],
+  }
+  const [resized] = resizeItem([item], item.id, "small")
+  expect(resized).toEqual({ ...item, size: "small" })
+})
+
+test("canvas resizing preserves off-canvas artwork and expands its drawing area", () => {
+  const item = createCatalogComponent("dot-canvas", "wide")
+  if (item.kind !== "dot-canvas") throw new Error("Expected canvas")
+  item.pixels[47] = "#123456"
+  const [small] = resizeItem([item], item.id, "large")
+  expect(small).toMatchObject({
+    size: "large",
+    pixelColumns: 48,
+    pixels: item.pixels,
+  })
+  const [tall] = resizeItem([small], item.id, "tall")
+  if (tall.kind !== "dot-canvas") throw new Error("Expected canvas")
+  expect(tall.pixelColumns).toBe(48)
+  expect(tall.pixels).toHaveLength(48 * 48)
+  expect(tall.pixels[47]).toBe("#123456")
 })

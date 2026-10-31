@@ -4,16 +4,15 @@ import {
 } from "@/lib/grid/utility-types"
 import { validGridItem } from "@/lib/grid/validation"
 import { useTabGridStore } from "./tab-grid-store"
+import type { GridItem } from "@/lib/grid/types"
 
-/** Read current state at mutation time; never resurrect a removed widget. */
-export function updateUtilityWidget(
+export function updateGridItem(
   id: string,
-  change: (item: UtilityWidgetItem) => UtilityWidgetItem
+  change: (item: GridItem) => GridItem
 ) {
-  const current = useTabGridStore
-    .getState()
-    .items.find((item) => item.id === id)
-  if (!current || !isUtilityWidget(current)) return
+  const store = useTabGridStore.getState()
+  const current = store.items.find((item) => item.id === id)
+  if (!current) return
   const next = change(current)
   if (next === current) return
   if (
@@ -21,6 +20,16 @@ export function updateUtilityWidget(
     next.kind !== current.kind ||
     !validGridItem(next)
   )
-    throw new Error("Invalid widget update")
-  useTabGridStore.getState().saveItem(next)
+    throw new Error("Invalid component update")
+  store.saveItem(next)
+}
+
+/** Read current state at mutation time; never resurrect a removed widget. */
+export function updateUtilityWidget(
+  id: string,
+  change: (item: UtilityWidgetItem) => UtilityWidgetItem
+) {
+  updateGridItem(id, (current) =>
+    isUtilityWidget(current) ? change(current) : current
+  )
 }

@@ -1,51 +1,68 @@
 import DotImageCrop from "./dot-image-crop"
 import { useEffect, useRef, useState, type PointerEvent } from "react"
 import { Button } from "@/components/ui/button"
-import { useTabGridStore } from "@/stores/tab-grid-store"
+import { updateGridItem } from "@/stores/widget-actions"
 import { toast } from "@/stores/toast-store"
 import DotArt from "./dot-art"
-import ComponentEditorFrame from "./component-editor-frame"
 import {
   blankDots,
   dotDimensions,
   isDotVisible,
+  resizeDots,
 } from "@/lib/grid/dot-canvas-data"
 import type { DotCanvasItem } from "@/lib/grid/types"
-import {
-  componentDefaultName,
-  componentLabel,
-  getComponentDefinition,
-  getComponentSize,
-} from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 
-export default function DotCanvasConfiguration({
+export default function DotCanvasFields({
   item,
-  onClose,
-  onSaved,
+  onDialogOpenChange,
 }: {
-  item?: DotCanvasItem
-  onClose: () => void
-  onSaved: () => void
+  item: DotCanvasItem
+  onDialogOpenChange: (open: boolean) => void
 }) {
-  const [pixels, setPixels] = useState(() => (item ? item.pixels : blankDots()))
-  const pixelColumns = item?.pixelColumns ?? 24
+  const pixels = item.pixels
+  function setPixels(change: string[] | ((pixels: string[]) => string[])) {
+    updateGridItem(item.id, (current) =>
+      current.kind === "dot-canvas"
+        ? {
+            ...current,
+            pixels:
+              typeof change === "function"
+                ? change(current.pixels)
+                : resizeDots(
+                    change,
+                    pixelColumns,
+                    current.pixelColumns,
+                    current.pixels.length / current.pixelColumns
+                  ),
+          }
+        : current
+    )
+  }
+  const pixelColumns = item.pixelColumns
   const { columns, rows } = dotDimensions(pixels, pixelColumns)
   const { t } = useTranslation()
-  const size = item?.size ?? "large"
-  const dimensions = getComponentSize("dot-canvas", size)!
-  const [color, setColor] = useState(
-    item?.color ?? getComponentDefinition("dot-canvas").defaultColor
-  )
+  const [color, setColorState] = useState(item.color)
+  function setColor(color: string) {
+    setColorState(color)
+    updateGridItem(item.id, (current) =>
+      current.kind === "dot-canvas" ? { ...current, color } : current
+    )
+  }
   const [tool, setTool] = useState<"draw" | "erase" | "pick">("draw")
-  const [history, setHistory] = useState<string[][]>([])
+  const [history, setHistory] = useState<
+    { pixels: string[]; pixelColumns: number }[]
+  >([])
   const [importing, setImporting] = useState(false)
   const [cropImage, setCropImage] = useState<ImageBitmap | null>(null)
   useEffect(() => () => cropImage?.close(), [cropImage])
+  useEffect(() => {
+    onDialogOpenChange(cropImage !== null)
+  }, [cropImage, onDialogOpenChange])
   const fileRef = useRef<HTMLInputElement>(null)
   const stroke = useRef<{ x: number; y: number } | null>(null)
   function remember() {
-    setHistory((previous) => [...previous.slice(-29), pixels])
+    setHistory((previous) => [...previous.slice(-29), { pixels, pixelColumns }])
   }
   function paint(event: PointerEvent<SVGSVGElement>, start = false) {
     const bounds = event.currentTarget.getBoundingClientRect()
@@ -114,34 +131,13 @@ export default function DotCanvasConfiguration({
       setImporting(false)
     }
   }
-  function save() {
-    useTabGridStore.getState().saveItem({
-      id: item?.id ?? crypto.randomUUID(),
-      kind: "dot-canvas",
-      name: item?.name ?? componentDefaultName("dot-canvas", t),
-      size,
-      color,
-      pixels,
-      pixelColumns,
-    })
-    onSaved()
-  }
   return (
     <>
-      <ComponentEditorFrame
-        title={
-          item
-            ? t("grid.editor.editTitle", {
-                label: componentLabel("dot-canvas", t),
-              })
-            : t("grid.editor.configTitle", {
-                label: componentLabel("dot-canvas", t),
-              })
-        }
-        description={t("grid.dotCanvas.canvasLabel")}
-        width={dimensions.width}
-        height={dimensions.height}
-        preview={
+      <div className="space-y-3">
+        <div
+          className="w-full overflow-hidden rounded-xl border border-border bg-muted"
+          style={{ aspectRatio: `${columns} / ${rows}` }}
+        >
           <DotArt
             pixels={pixels}
             pixelColumns={pixelColumns}
@@ -153,17 +149,7 @@ export default function DotCanvasConfiguration({
               stroke.current = null
             }}
           />
-        }
-        previewBorder={false}
-        previewInteractive
-        previewOverlap={false}
-        submitLabel={
-          item ? t("grid.dotCanvas.save") : t("grid.dotCanvas.confirmAdd")
-        }
-        submitDisabled={importing}
-        onSubmit={save}
-        onClose={onClose}
-      >
+        </div>
         <div
           role="toolbar"
           aria-label={t("grid.dotCanvas.toolbar")}
@@ -208,7 +194,15 @@ export default function DotCanvasConfiguration({
             variant="outline"
             disabled={!history.length || importing}
             onClick={() => {
-              setPixels(history[history.length - 1])
+              const previous = history[history.length - 1]
+              setPixels(
+                resizeDots(
+                  previous.pixels,
+                  previous.pixelColumns,
+                  columns,
+                  rows
+                )
+              )
               setHistory(history.slice(0, -1))
             }}
           >
@@ -247,7 +241,7 @@ export default function DotCanvasConfiguration({
             }}
           />
         </div>
-      </ComponentEditorFrame>
+      </div>
       {cropImage && (
         <DotImageCrop
           image={cropImage}

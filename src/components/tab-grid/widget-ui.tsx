@@ -13,14 +13,7 @@ import FolderTabRow from "./folder-tab-row"
 import TemplateTile from "./template/tile"
 import SearchTile from "./search-tile"
 import ActionButton from "./action-button"
-import ComponentConfiguration from "./component-configuration"
-import FolderEditor from "./folder-editor"
-import TabEditor from "./tab-editor"
-import EcosystemConfiguration from "./ecosystem-configuration"
-import DotCanvasConfiguration from "./dot-canvas-configuration"
 import UtilityWidgetTile from "./utility-widget-tile"
-import UtilityWidgetEditor from "./utility-widget-editor"
-import SearchConfiguration from "./search-configuration"
 import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import type { ReactNode } from "react"
@@ -139,60 +132,6 @@ export function WidgetTile({
           />
           <FolderBorder />
         </>
-      )
-  }
-  return assertNever(item)
-}
-
-export function WidgetEditor({
-  item,
-  onClose,
-  onSaved,
-}: {
-  item: GridItem
-  onClose: () => void
-  onSaved: () => void
-}): ReactNode {
-  if (isUtilityWidget(item))
-    return (
-      <UtilityWidgetEditor item={item} onClose={onClose} onSaved={onSaved} />
-    )
-
-  switch (item.kind) {
-    case "search-minimal":
-      return (
-        <SearchConfiguration item={item} onClose={onClose} onSaved={onSaved} />
-      )
-    case "dot-canvas":
-      return (
-        <DotCanvasConfiguration
-          item={item}
-          onClose={onClose}
-          onSaved={onSaved}
-        />
-      )
-    case "ecosystem":
-      return (
-        <EcosystemConfiguration
-          item={item}
-          onClose={onClose}
-          onSaved={onSaved}
-        />
-      )
-    case "tab":
-      return <TabEditor item={item} onClose={onClose} onSaved={onSaved} />
-    case "folder":
-      return <FolderEditor item={item} onClose={onClose} onSaved={onSaved} />
-    case "todo":
-    case "calendar":
-    case "template":
-    case "button":
-      return (
-        <ComponentConfiguration
-          item={item}
-          onClose={onClose}
-          onSaved={onSaved}
-        />
       )
   }
   return assertNever(item)

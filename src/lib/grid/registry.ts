@@ -40,8 +40,6 @@ export function occupancyPreviewStyle(width: number, height: number) {
 export type ComponentAction =
   "resize" | "randomColor" | "dynamicEffect" | "groupable" | "expandable"
 
-export type ComponentMenuOperation = "edit" | "randomColor" | "dynamicEffect"
-
 // Role word before the locale-independent numeric mark ("Small · 4×1").
 export type SizeRole =
   | "small"
@@ -90,7 +88,7 @@ function utilityDefinition(
   sizes: readonly ComponentSizeDefinition[],
   catalogSection: CatalogSection = "productivity",
   defaultColor = "#6c8bd4"
-): ComponentDefinition {
+): ComponentConfig {
   const values = sizes.map((size) => size.value)
   const appearance = kind !== "photo"
   return {
@@ -100,15 +98,6 @@ function utilityDefinition(
     defaultColor,
     defaultSize,
     sizes,
-    menu: {
-      sizes: values.length > 1 ? values : [],
-      operations: appearance
-        ? kind === "clock"
-          ? ["edit", "randomColor"]
-          : ["edit", "randomColor", "dynamicEffect"]
-        : ["edit"],
-    },
-    editorSizes: values,
     catalogSizes: values,
     catalogDirectAdd: true,
     catalogSection,
@@ -117,7 +106,6 @@ function utilityDefinition(
     tileBorder: kind !== "clock",
     openAction: "edit",
     actions: {
-      resize: values.length > 1,
       randomColor: appearance,
       dynamicEffect: appearance && kind !== "clock",
       groupable: false,
@@ -133,11 +121,6 @@ export type ComponentDefinition = {
   defaultColor: string
   defaultSize: GridItemSize
   sizes: readonly ComponentSizeDefinition[]
-  menu: {
-    sizes: readonly GridItemSize[]
-    operations: readonly ComponentMenuOperation[]
-  }
-  editorSizes: readonly GridItemSize[]
   catalogSizes: readonly GridItemSize[]
   catalogDirectAdd: boolean
   catalogSection?: CatalogSection
@@ -148,7 +131,25 @@ export type ComponentDefinition = {
   actions: Readonly<Record<ComponentAction, boolean>>
 }
 
-export const componentRegistry = {
+type ComponentConfig = Omit<ComponentDefinition, "actions"> & {
+  actions: Readonly<Record<Exclude<ComponentAction, "resize">, boolean>>
+}
+
+function defineComponents(
+  definitions: Record<GridItemKind, ComponentConfig>
+): Record<GridItemKind, ComponentDefinition> {
+  return Object.fromEntries(
+    Object.entries(definitions).map(([kind, definition]) => [
+      kind,
+      {
+        ...definition,
+        actions: { ...definition.actions, resize: definition.sizes.length > 1 },
+      },
+    ])
+  ) as Record<GridItemKind, ComponentDefinition>
+}
+
+export const componentRegistry = defineComponents({
   tab: {
     labelKey: "grid.component.tab.label",
     descriptionKey: "grid.component.tab.description",
@@ -162,17 +163,6 @@ export const componentRegistry = {
       gridSize("square-medium", "2x2"),
       gridSize("square-large", "4x4"),
     ],
-    menu: {
-      sizes: [],
-      operations: ["edit"],
-    },
-    editorSizes: [
-      "small",
-      "medium",
-      "square-small",
-      "square-medium",
-      "square-large",
-    ],
     catalogSizes: [],
     catalogDirectAdd: false,
     detailPreviewWidth: "compact",
@@ -180,7 +170,6 @@ export const componentRegistry = {
     tileBorder: false,
     openAction: "none",
     actions: {
-      resize: true,
       randomColor: true,
       dynamicEffect: true,
       groupable: true,
@@ -200,11 +189,6 @@ export const componentRegistry = {
       gridSize("wide", "8x4", "wide"),
       gridSize("wide-tall", "8x8", "wideTall"),
     ],
-    menu: {
-      sizes: ["wide-tall", "wide", "tall", "large"],
-      operations: ["edit", "randomColor", "dynamicEffect"],
-    },
-    editorSizes: ["large", "tall", "wide", "wide-tall"],
     catalogSizes: [],
     catalogDirectAdd: false,
     detailPreviewWidth: "compact",
@@ -212,7 +196,6 @@ export const componentRegistry = {
     tileBorder: true,
     openAction: "expand",
     actions: {
-      resize: true,
       randomColor: true,
       dynamicEffect: true,
       groupable: true,
@@ -226,11 +209,6 @@ export const componentRegistry = {
     defaultColor: "#6c63ff",
     defaultSize: "small",
     sizes: [gridSize("small", "1x1")],
-    menu: {
-      sizes: [],
-      operations: ["edit", "randomColor"],
-    },
-    editorSizes: [],
     catalogSizes: ["small"],
     catalogDirectAdd: true,
     catalogSection: "common",
@@ -239,7 +217,6 @@ export const componentRegistry = {
     tileBorder: true,
     openAction: "edit",
     actions: {
-      resize: false,
       randomColor: true,
       dynamicEffect: false,
       groupable: false,
@@ -258,11 +235,6 @@ export const componentRegistry = {
       gridSize("wide", "8x4", "wide"),
       gridSize("wide-tall", "8x8", "wideTall"),
     ],
-    menu: {
-      sizes: [],
-      operations: ["edit"],
-    },
-    editorSizes: ["large", "tall", "wide", "wide-tall"],
     catalogSizes: ["large", "tall", "wide", "wide-tall"],
     catalogDirectAdd: false,
     catalogSection: "dots",
@@ -271,7 +243,6 @@ export const componentRegistry = {
     tileBorder: false,
     openAction: "edit",
     actions: {
-      resize: false,
       randomColor: false,
       dynamicEffect: false,
       groupable: false,
@@ -285,11 +256,6 @@ export const componentRegistry = {
     defaultColor: "#42b883",
     defaultSize: "large",
     sizes: [gridSize("large", "4x4", "large")],
-    menu: {
-      sizes: [],
-      operations: ["edit"],
-    },
-    editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: false,
     catalogSection: "fun",
@@ -298,7 +264,6 @@ export const componentRegistry = {
     tileBorder: false,
     openAction: "edit",
     actions: {
-      resize: false,
       randomColor: false,
       dynamicEffect: false,
       groupable: false,
@@ -316,11 +281,6 @@ export const componentRegistry = {
       gridSize("medium", "2x2", "day"),
       gridSize("large", "4x4", "month"),
     ],
-    menu: {
-      sizes: ["large", "medium", "small"],
-      operations: ["edit", "randomColor", "dynamicEffect"],
-    },
-    editorSizes: ["small", "medium", "large"],
     catalogSizes: ["large", "small", "medium"],
     catalogDirectAdd: false,
     catalogSection: "productivity",
@@ -329,7 +289,6 @@ export const componentRegistry = {
     tileBorder: true,
     openAction: "none",
     actions: {
-      resize: true,
       randomColor: true,
       dynamicEffect: true,
       groupable: false,
@@ -347,11 +306,6 @@ export const componentRegistry = {
       gridSize("medium", "8x1"),
       gridSize("small", "12x1"),
     ],
-    menu: {
-      sizes: ["compact", "medium", "small"],
-      operations: ["edit"],
-    },
-    editorSizes: ["compact", "medium", "small"],
     catalogSizes: ["compact", "medium", "small"],
     catalogDirectAdd: true,
     catalogSection: "common",
@@ -360,7 +314,6 @@ export const componentRegistry = {
     tileBorder: false,
     openAction: "none",
     actions: {
-      resize: true,
       randomColor: false,
       dynamicEffect: false,
       groupable: false,
@@ -379,11 +332,6 @@ export const componentRegistry = {
       gridSize("wide", "4x1"),
       gridSize("large", "4x4"),
     ],
-    menu: {
-      sizes: ["small", "medium", "wide", "large"],
-      operations: ["edit", "randomColor", "dynamicEffect"],
-    },
-    editorSizes: ["small", "medium", "wide", "large"],
     catalogSizes: ["small", "medium", "wide", "large"],
     catalogDirectAdd: false,
     detailPreviewWidth: "compact",
@@ -391,7 +339,6 @@ export const componentRegistry = {
     tileBorder: true,
     openAction: "edit",
     actions: {
-      resize: true,
       randomColor: true,
       dynamicEffect: true,
       groupable: false,
@@ -409,11 +356,6 @@ export const componentRegistry = {
       gridSize("medium", "4x2", "medium"),
       gridSize("large", "4x4", "large"),
     ],
-    menu: {
-      sizes: [],
-      operations: ["edit", "randomColor", "dynamicEffect"],
-    },
-    editorSizes: [],
     catalogSizes: ["large"],
     catalogDirectAdd: true,
     catalogSection: "productivity",
@@ -422,7 +364,6 @@ export const componentRegistry = {
     tileBorder: true,
     openAction: "none",
     actions: {
-      resize: false,
       randomColor: true,
       dynamicEffect: true,
       groupable: false,
@@ -504,7 +445,7 @@ export const componentRegistry = {
     "productivity",
     "#8b7bc8"
   ),
-} as const satisfies Record<GridItemKind, ComponentDefinition>
+})
 
 // Only these can be added; other registered utilities remain available to
 // saved layouts.
@@ -522,7 +463,7 @@ export const catalogComponentKinds = [
 ] as const satisfies readonly GridItemKind[]
 
 export type CatalogComponentKind = (typeof catalogComponentKinds)[number]
-export type SizeOptionContext = "menu" | "editor" | "catalog"
+export type SizeOptionContext = "resize" | "editor" | "catalog"
 
 export function isGridItemKind(value: unknown): value is GridItemKind {
   return (
@@ -581,26 +522,11 @@ export function isComponentSize(
 
 export function getComponentSizeOptions(
   kind: GridItemKind,
-  context: SizeOptionContext,
-  currentSize?: GridItemSize
-): ComponentSizeDefinition[] {
+  context: SizeOptionContext
+): readonly ComponentSizeDefinition[] {
   const definition = getComponentDefinition(kind)
-  const configured =
-    context === "menu"
-      ? definition.menu.sizes
-      : context === "catalog"
-        ? definition.catalogSizes
-        : definition.editorSizes
-  const values = [...configured] as GridItemSize[]
-  if (
-    context === "editor" &&
-    definition.actions.resize &&
-    currentSize !== undefined &&
-    isComponentSize(kind, currentSize) &&
-    !values.includes(currentSize)
-  )
-    values.unshift(currentSize)
-  return values.flatMap((value) => {
+  if (context !== "catalog") return definition.sizes
+  return definition.catalogSizes.flatMap((value) => {
     const size = getComponentSize(kind, value)
     return size ? [size] : []
   })
@@ -611,12 +537,6 @@ export function supportsComponentAction(
   action: ComponentAction
 ): boolean {
   return getComponentDefinition(kind).actions[action]
-}
-
-export function getComponentMenuOperations(
-  kind: GridItemKind
-): readonly ComponentMenuOperation[] {
-  return getComponentDefinition(kind).menu.operations
 }
 
 export function getItemGridDimensions(

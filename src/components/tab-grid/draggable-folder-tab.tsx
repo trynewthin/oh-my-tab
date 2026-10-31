@@ -7,7 +7,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
 } from "@/components/ui/context-menu"
-import FolderTabEditor from "./folder-tab-editor"
+import FolderTabEditPopover from "./folder-tab-edit-popover"
 import FolderTabRow from "./folder-tab-row"
 import { useTranslation } from "react-i18next"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -37,6 +37,7 @@ export default function DraggableFolderTab({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [anchor, setAnchor] = useState<HTMLDivElement | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const removeFolderTab = useTabGridStore((state) => state.removeFolderTab)
   const { t } = useTranslation()
@@ -54,6 +55,7 @@ export default function DraggableFolderTab({
   const ref = useCallback(
     (element: HTMLDivElement | null) => {
       node.current = element
+      setAnchor(element)
       setNodeRef(element)
     },
     [setNodeRef]
@@ -117,10 +119,11 @@ export default function DraggableFolderTab({
           {confirmDelete ? t("grid.menu.confirmDelete") : t("grid.menu.delete")}
         </ContextMenuItem>
       </ContextMenuContent>
-      {editing && (
-        <FolderTabEditor
+      {editing && anchor && (
+        <FolderTabEditPopover
           folderId={folderId}
           tab={tab}
+          anchor={anchor}
           onClose={() => setEditing(false)}
         />
       )}

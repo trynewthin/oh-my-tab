@@ -1,5 +1,5 @@
-import FolderEditor from "@/components/tab-grid/folder-editor"
-import TabEditor from "@/components/tab-grid/tab-editor"
+import FolderCreateDialog from "@/components/tab-grid/folder-create-dialog"
+import TabCreateDialog from "@/components/tab-grid/tab-create-dialog"
 
 export default function SystemCreateDialog({
   kind,
@@ -9,8 +9,8 @@ export default function SystemCreateDialog({
   onClose: () => void
 }) {
   return kind === "tab" ? (
-    <TabEditor onClose={onClose} onSaved={onClose} />
+    <TabCreateDialog onClose={onClose} onSaved={onClose} />
   ) : (
-    <FolderEditor onClose={onClose} onSaved={onClose} />
+    <FolderCreateDialog onClose={onClose} onSaved={onClose} />
   )
 }

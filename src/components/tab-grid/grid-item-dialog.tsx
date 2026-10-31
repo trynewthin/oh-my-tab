@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { WidgetEditor } from "./widget-ui"
 import CatalogComponentPreview from "./catalog-component-preview"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import {
@@ -19,7 +18,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import type { GridItem } from "@/lib/grid/types"
 import {
   catalogComponentKinds,
   componentDescription,
@@ -38,11 +36,9 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 type CatalogRoute = CatalogSection
 
 export default function GridItemDialog({
-  item,
   onClose,
   open = true,
 }: {
-  item?: GridItem
   onClose: () => void
   open?: boolean
 }) {
@@ -99,8 +95,6 @@ export default function GridItemDialog({
     saveItem(createCatalogComponent(kind, size))
     closeCatalog()
   }
-  if (item)
-    return <WidgetEditor item={item} onClose={onClose} onSaved={onClose} />
   return (
     <ApplicationDialog
       applicationId="components"

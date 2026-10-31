@@ -2,7 +2,7 @@ import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import GridResizeItem from "./grid-resize-item"
-import TabEditPopover from "./tab-edit-popover"
+import ComponentEditPopover from "./component-edit-popover"
 import { Button } from "@/components/ui/button"
 import { createPortal } from "react-dom"
 import BulkActions from "./bulk-actions"
@@ -34,11 +34,10 @@ import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { runSystemAction } from "@/application/system-actions"
 import DraggableGridItem from "./draggable-grid-item"
-import GridItemDialog from "./grid-item-dialog"
 import CollectionExpansion from "./collection/expansion"
 import FolderExpandedGrid from "./folder-expanded-grid"
 import { componentLabel, getComponentDefinition } from "@/lib/grid/registry"
-import type { GridItem, TabItem } from "@/lib/grid/types"
+import type { GridItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
 import { useGridDrag } from "./use-grid-drag"
 import GridDragOverlay from "./drag/grid-drag-overlay"
@@ -73,10 +72,8 @@ export default function TabGrid({
   const editing = useGridEditStore((state) => state.active) && !preview
   const finishEditing = useGridEditStore((state) => state.finish)
   const overlayActive = useSystemOverlayStore((state) => state.active)
-  const [editingTabId, setEditingTabId] = useState<string | null>(null)
-  const [tabEditorAnchor, setTabEditorAnchor] = useState<HTMLElement | null>(
-    null
-  )
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editorAnchor, setEditorAnchor] = useState<HTMLElement | null>(null)
   const resizeItem = useTabGridStore((state) => state.resizeItem)
   const [resizePreview, setResizePreview] = useState<{
     id: string
@@ -87,15 +84,12 @@ export default function TabGrid({
   const toggleSelection = useGridSelectionStore((state) => state.toggle)
   const storeItems = useTabGridStore((state) => state.items)
   const savedItems = itemsOverride ?? storeItems
-  const editedTab =
+  const editedItem =
     !preview && !selecting && !overlayActive
-      ? savedItems.find(
-          (item): item is TabItem =>
-            item.kind === "tab" && item.id === editingTabId
-        )
+      ? savedItems.find((item) => item.id === editingItemId)
       : undefined
   const items =
-    (editing || editedTab) && resizePreview
+    (editing || editedItem) && resizePreview
       ? savedItems.map((item) =>
           item.id === resizePreview.id
             ? ({ ...item, size: resizePreview.size } as GridItem)
@@ -131,23 +125,19 @@ export default function TabGrid({
     : null
   const width =
     box?.width ?? (sourceWidth > 0 ? geometry.trackWidth : measuredWidth)
-  const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
   const openItem = useCallback((item: GridItem) => {
     const action = getComponentDefinition(item.kind).openAction
-    if (action === "edit") setEditor({ item })
+    if (action === "edit") {
+      setFolderId(null)
+      setEditingItemId(item.id)
+    }
     if (action === "expand") setFolderId(item.id)
   }, [])
-  const editItem = useCallback(
-    (item: GridItem) => {
-      if (item.kind === "tab" && !preview) {
-        setEditor(null)
-        setFolderId(null)
-        setEditingTabId(item.id)
-      } else setEditor({ item })
-    },
-    [preview]
-  )
+  const editItem = useCallback((item: GridItem) => {
+    setFolderId(null)
+    setEditingItemId(item.id)
+  }, [])
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
@@ -177,17 +167,16 @@ export default function TabGrid({
     () =>
       useGridEditStore.subscribe((state) => {
         setResizePreview(null)
-        setEditingTabId(null)
+        setEditingItemId(null)
         if (state.active) {
           setFolderId(null)
-          setEditor(null)
         }
       }),
     []
   )
   useEffect(() => {
     const close = () => {
-      setEditingTabId(null)
+      setEditingItemId(null)
       setResizePreview(null)
     }
     const unsubscribeSelection = useGridSelectionStore.subscribe((state) => {
@@ -292,7 +281,7 @@ export default function TabGrid({
       ? settledTarget
       : undefined
   const resizeTarget =
-    (editing || editedTab) && resizePreview ? resizePreview : null
+    (editing || editedItem) && resizePreview ? resizePreview : null
   const sourceFolderId = dragging?.sourceFolderId
   const placements = useMemo(() => {
     if (preview && liveTarget) {
@@ -564,7 +553,7 @@ export default function TabGrid({
                       name: item.name,
                     })}
                   />
-                ) : editing || editedTab?.id === item.id ? (
+                ) : editing || editedItem?.id === item.id ? (
                   <GridResizeItem
                     key={item.id}
                     item={item}
@@ -573,9 +562,9 @@ export default function TabGrid({
                     columnStep={columnStep}
                     rowStep={rowStep}
                     onAnchorChange={
-                      editedTab?.id === item.id ? setTabEditorAnchor : undefined
+                      editedItem?.id === item.id ? setEditorAnchor : undefined
                     }
-                    showResizeHandle={editedTab?.id === item.id}
+                    showResizeHandle={editedItem?.id === item.id}
                     onPreview={(id, size) =>
                       setResizePreview(size === null ? null : { id, size })
                     }
@@ -630,21 +619,16 @@ export default function TabGrid({
             </div>
           </div>
           {overlay}
-          {editedTab && tabEditorAnchor && (
-            <TabEditPopover
-              key={editedTab.id}
-              item={editedTab}
-              anchor={tabEditorAnchor}
+          {editedItem && editorAnchor && (
+            <ComponentEditPopover
+              key={editedItem.id}
+              item={editedItem}
+              anchor={editorAnchor}
+              columns={columns}
               onClose={() => {
-                setEditingTabId(null)
+                setEditingItemId(null)
                 setResizePreview(null)
               }}
-            />
-          )}
-          {editor && (
-            <GridItemDialog
-              item={editor.item}
-              onClose={() => setEditor(null)}
             />
           )}
           {expandedFolder && (

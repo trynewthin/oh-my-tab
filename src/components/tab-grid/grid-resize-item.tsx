@@ -75,8 +75,7 @@ export default function GridResizeItem({
   )
   const definition = getComponentDefinition(item.kind)
   const resizable =
-    (item.kind === "tab" || item.kind === "folder") &&
-    getComponentSizeOptions(item.kind, "editor", item.size).filter(
+    getComponentSizeOptions(item.kind, "resize").filter(
       (size) => size.width <= columns
     ).length > 1
   const update = (point: { x: number; y: number }) => {

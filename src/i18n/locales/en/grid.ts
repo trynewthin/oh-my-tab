@@ -100,6 +100,7 @@ const grid = {
     previewTaskRead: "Read a few pages of a favorite book",
   },
   editor: {
+    resizeHint: "Drag the lower-right handle to resize",
     editTitle: "Edit {{label}}",
     configTitle: "Configure {{label}}",
     name: "Name",

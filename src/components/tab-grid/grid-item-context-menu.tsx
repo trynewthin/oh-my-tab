@@ -1,23 +1,14 @@
 import type { ReactElement } from "react"
 import { useState } from "react"
-import { Fire, PencilSimple, Shuffle, Trash } from "@phosphor-icons/react"
-import { Badge } from "@/components/ui/badge"
+import { PencilSimple, Trash } from "@phosphor-icons/react"
 import {
   ContextMenu,
-  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuGroup,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import type { GridItem } from "@/lib/grid/types"
-import {
-  componentLabel,
-  getComponentMenuOperations,
-  getComponentSizeOptions,
-  occupancyMark,
-  type ComponentMenuOperation,
-} from "@/lib/grid/registry"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useTranslation } from "react-i18next"
 
@@ -33,85 +24,15 @@ export default function GridItemContextMenu({
   const { t } = useTranslation()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const removeItem = useTabGridStore((state) => state.removeItem)
-  const resizeItem = useTabGridStore((state) => state.resizeItem)
-  const randomizeItemColor = useTabGridStore(
-    (state) => state.randomizeItemColor
-  )
-  const setItemDynamicEffect = useTabGridStore(
-    (state) => state.setItemDynamicEffect
-  )
-  const sizeOptions = getComponentSizeOptions(item.kind, "menu")
-  const operations = getComponentMenuOperations(item.kind)
-
-  function renderOperation(operation: ComponentMenuOperation) {
-    switch (operation) {
-      case "edit":
-        return (
-          <ContextMenuItem key={operation} onClick={onEdit}>
-            <PencilSimple />
-            {t("grid.menu.edit")}
-          </ContextMenuItem>
-        )
-      case "randomColor":
-        return (
-          <ContextMenuItem
-            key={operation}
-            onClick={() => randomizeItemColor(item.id)}
-          >
-            <Shuffle />
-            {t("grid.menu.randomColor")}
-          </ContextMenuItem>
-        )
-      case "dynamicEffect":
-        return (
-          <ContextMenuCheckboxItem
-            key={operation}
-            checked={!!item.dynamicEffect}
-            onCheckedChange={(checked) =>
-              setItemDynamicEffect(item.id, checked)
-            }
-          >
-            <Fire />
-            {t("grid.menu.dynamicEffect")}
-          </ContextMenuCheckboxItem>
-        )
-    }
-  }
-
   return (
     <ContextMenu onOpenChange={() => setConfirmDelete(false)}>
       <ContextMenuTrigger render={children} />
       <ContextMenuContent className="min-w-44">
-        {sizeOptions.length > 0 && (
-          <div
-            className="grid grid-cols-2 gap-1 p-1"
-            role="group"
-            aria-label={t("grid.chrome.sizeOptions", {
-              label: componentLabel(item.kind, t),
-            })}
-          >
-            {sizeOptions.map((option) => (
-              <ContextMenuItem
-                key={option.value}
-                role="menuitemradio"
-                aria-checked={item.size === option.value}
-                className="justify-center rounded-2xl p-0 focus:ring-2 focus:ring-ring"
-                onClick={() => resizeItem(item.id, option.value)}
-              >
-                <Badge
-                  variant={item.size === option.value ? "default" : "outline"}
-                  className="h-7 w-full justify-center px-3"
-                >
-                  {occupancyMark(option.width, option.height)}
-                </Badge>
-              </ContextMenuItem>
-            ))}
-          </div>
-        )}
-        <ContextMenuGroup
-          className={`grid gap-0.5 ${sizeOptions.length > 0 ? "mt-1" : ""}`}
-        >
-          {operations.map(renderOperation)}
+        <ContextMenuGroup className="grid gap-0.5">
+          <ContextMenuItem onClick={onEdit}>
+            <PencilSimple />
+            {t("grid.menu.edit")}
+          </ContextMenuItem>
           <ContextMenuItem
             variant="destructive"
             closeOnClick={confirmDelete}

@@ -3,12 +3,10 @@ import { useTranslation } from "react-i18next"
 import SettingItem from "@/components/settings/shared/setting-item"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import DatePicker from "@/components/ui/date-picker"
 import TimePicker from "@/components/ui/time-picker"
 import { Switch } from "@/components/ui/switch"
-import ColorPicker from "@/components/ui/color-picker"
-import ComponentEditorFrame from "./component-editor-frame"
-import UtilityWidgetTile from "./utility-widget-tile"
 import "./utility/editor.css"
 import {
   Select,
@@ -18,13 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  componentLabel,
-  getComponentDefinition,
-  getComponentSize,
-  getComponentSizeOptions,
-  isComponentSize,
-} from "@/lib/grid/registry"
-import {
   isUtilityWidget,
   type UtilityWidgetItem,
 } from "@/lib/grid/utility-types"
@@ -33,6 +24,7 @@ import {
   applyUtilityConfiguration,
   localDateKey,
   MAX_WORLD_CLOCKS,
+  NOTE_MAX_LENGTH,
 } from "@/lib/widgets/model"
 import { prepareWidgetPhoto } from "@/lib/widgets/photo"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -108,14 +100,10 @@ function ChoiceField({
   )
 }
 
-export default function UtilityWidgetEditor({
+export default function UtilityWidgetFields({
   item,
-  onClose,
-  onSaved,
 }: {
   item: UtilityWidgetItem
-  onClose: () => void
-  onSaved: () => void
 }) {
   const { t } = useTranslation()
   const eventFieldId = useId()
@@ -132,7 +120,7 @@ export default function UtilityWidgetEditor({
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const uploadSequence = useRef(0)
-  const sizes = getComponentSizeOptions(item.kind, "editor", draft.size)
+  const draftRef = useRef(draft)
 
   useEffect(
     () => () => {
@@ -141,8 +129,12 @@ export default function UtilityWidgetEditor({
     []
   )
 
-  const patch = (changes: object) =>
-    setDraft((current) => ({ ...current, ...changes }) as UtilityWidgetItem)
+  function patch(changes: object) {
+    const next = { ...draftRef.current, ...changes } as UtilityWidgetItem
+    draftRef.current = next
+    setDraft(next)
+    save(next)
+  }
 
   async function selectPhoto(file?: File) {
     if (!file) return
@@ -151,10 +143,7 @@ export default function UtilityWidgetEditor({
     setError(null)
     try {
       const image = await prepareWidgetPhoto(file)
-      if (uploadSequence.current === sequence)
-        setDraft((current) =>
-          current.kind === "photo" ? { ...current, image } : current
-        )
+      if (uploadSequence.current === sequence) patch({ image })
     } catch {
       if (uploadSequence.current === sequence) setError("photoInvalid")
     } finally {
@@ -162,17 +151,26 @@ export default function UtilityWidgetEditor({
     }
   }
 
-  function save() {
-    if (uploading) return
+  function save(nextDraft: UtilityWidgetItem) {
     const current = useTabGridStore
       .getState()
       .items.find((entry) => entry.id === item.id)
-    if (!current || !isUtilityWidget(current)) {
+    if (
+      !current ||
+      !isUtilityWidget(current) ||
+      current.kind !== nextDraft.kind
+    ) {
       setError("removed")
       return
     }
 
-    let clean = { ...draft, name: draft.name.trim() }
+    let clean = {
+      ...nextDraft,
+      name: current.name,
+      color: current.color,
+      size: current.size,
+      dynamicEffect: current.dynamicEffect,
+    }
     if (!clean.name || clean.name.length > 40) {
       setError("invalidConfiguration")
       return
@@ -202,16 +200,18 @@ export default function UtilityWidgetEditor({
       setError("sameWorkTimes")
       return
     }
-    const next = applyUtilityConfiguration(current, clean)
+    const apply = (live: UtilityWidgetItem) =>
+      live.kind === "note" && clean.kind === "note"
+        ? { ...live, text: clean.text }
+        : applyUtilityConfiguration(live, clean)
+    const next = apply(current)
     if (!validGridItem(next)) {
       setError("invalidConfiguration")
       return
     }
     try {
-      updateUtilityWidget(item.id, (live) =>
-        applyUtilityConfiguration(live, clean)
-      )
-      onSaved()
+      updateUtilityWidget(item.id, apply)
+      setError(null)
     } catch {
       setError("invalidConfiguration")
     }
@@ -309,7 +309,17 @@ export default function UtilityWidgetEditor({
           </>
         )
       case "note":
-        return <p className="utility-editor-help">{t("widgets.noteHelp")}</p>
+        return (
+          <Field label={t("grid.component.note.label")}>
+            <Textarea
+              aria-label={t("grid.component.note.label")}
+              value={draft.text}
+              maxLength={NOTE_MAX_LENGTH}
+              rows={6}
+              onChange={(event) => patch({ text: event.target.value })}
+            />
+          </Field>
+        )
       case "workday":
         return (
           <>
@@ -609,96 +619,17 @@ export default function UtilityWidgetEditor({
     }
   }
 
-  const previewItem = validGridItem(draft)
-    ? applyUtilityConfiguration(item, draft)
-    : item
-  const dimensions =
-    getComponentSize(item.kind, draft.size) ??
-    getComponentSize(item.kind, item.size)!
   return (
-    <ComponentEditorFrame
-      title={t("grid.editor.editTitle", {
-        label: componentLabel(item.kind, t),
-      })}
-      description={t("widgets.design.editorHint")}
-      width={dimensions.width}
-      height={dimensions.height}
-      preview={
-        <UtilityWidgetTile
-          item={previewItem}
-          preview
-          sample={false}
-          onOpen={() => {}}
-        />
-      }
-      previewBorder={getComponentDefinition(item.kind).tileBorder}
-      sizeOptions={sizes}
-      size={draft.size}
-      onSizeChange={(value) => {
-        if (isComponentSize(item.kind, value)) patch({ size: value })
-      }}
-      submitLabel={t("grid.editor.save")}
-      submitDisabled={uploading}
-      onSubmit={save}
-      onClose={onClose}
-    >
-      <div className="utility-editor-fields">
-        {draft.kind !== "pomodoro" &&
-          draft.kind !== "countdown" &&
-          draft.kind !== "workday" &&
-          draft.kind !== "clock" && (
-            <Field label={t("grid.editor.name")}>
-              <Input
-                required
-                maxLength={40}
-                value={draft.name}
-                onChange={(event) => patch({ name: event.target.value })}
-              />
-            </Field>
-          )}
-        {draft.kind === "pomodoro" ||
-        draft.kind === "countdown" ||
-        draft.kind === "workday" ||
-        draft.kind === "clock" ? (
-          <SettingItem
-            label={t(
-              draft.kind === "clock"
-                ? "widgets.clockColor"
-                : "grid.editor.backgroundColor"
-            )}
-          >
-            <ColorPicker
-              label={t(
-                draft.kind === "clock"
-                  ? "widgets.clockColor"
-                  : "grid.editor.backgroundColor"
-              )}
-              value={draft.color}
-              onChange={(color) => patch({ color })}
-            />
-          </SettingItem>
-        ) : (
-          getComponentDefinition(item.kind).actions.randomColor && (
-            <div className="utility-editor-field">
-              <span>{t("grid.editor.backgroundColor")}</span>
-              <ColorPicker
-                label={t("grid.editor.backgroundColor")}
-                value={draft.color}
-                onChange={(color) => patch({ color })}
-              />
-            </div>
-          )
-        )}
-        {fields()}
-        {(item.kind === "weather" || item.kind === "rss") && (
-          <p className="utility-editor-help">{t("widgets.previewOnly")}</p>
-        )}
-      </div>
+    <div className="utility-editor-fields">
+      {fields()}
+      {(item.kind === "weather" || item.kind === "rss") && (
+        <p className="utility-editor-help">{t("widgets.previewOnly")}</p>
+      )}
       {error && (
-        <p role="alert" className="utility-editor-error">
+        <p role="status" className="utility-editor-error">
           {t(`widgets.errors.${error}`)}
         </p>
       )}
-    </ComponentEditorFrame>
+    </div>
   )
 }

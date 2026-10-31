@@ -17,31 +17,27 @@ import {
 import { configureComponent } from "@/lib/grid/factory"
 import { useTranslation } from "react-i18next"
 import ComponentBackground from "./shared/component-background"
-import ComponentEditorFrame from "./component-editor-frame"
+import ComponentCreateFrame from "./component-create-frame"
 import FolderUI from "./folder-ui"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import FolderBorder from "./folder-border"
 
-export default function FolderEditor({
-  item,
+export default function FolderCreateDialog({
   onClose,
   onSaved,
 }: {
-  item?: FolderItem
   onClose: () => void
   onSaved: () => void
 }) {
   const { t } = useTranslation()
   const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
-  const [id] = useState(() => item?.id ?? crypto.randomUUID())
+  const [id] = useState(() => crypto.randomUUID())
   const definition = getComponentDefinition("folder")
-  const [name, setName] = useState(item?.name ?? "")
-  const [size, setSize] = useState<GridItemSize>(
-    item?.size ?? definition.defaultSize
-  )
-  const [color, setColor] = useState(item?.color ?? definition.defaultColor)
+  const [name, setName] = useState("")
+  const [size, setSize] = useState<GridItemSize>(definition.defaultSize)
+  const [color, setColor] = useState(definition.defaultColor)
   const saveItem = useTabGridStore((state) => state.saveItem)
-  const sizeOptions = getComponentSizeOptions("folder", "editor", item?.size)
+  const sizeOptions = getComponentSizeOptions("folder", "editor")
   const current = getComponentSize("folder", size) ?? definition.sizes[0]
   const resolvedSize = (
     isComponentSize("folder", size) ? size : definition.defaultSize
@@ -52,8 +48,8 @@ export default function FolderEditor({
     name: name.trim() || componentDefaultName("folder", t),
     size: resolvedSize,
     color,
-    tabs: item?.tabs ?? [],
-    dynamicEffect: item?.dynamicEffect,
+    tabs: [],
+    dynamicEffect: false,
   }
 
   function save() {
@@ -64,7 +60,6 @@ export default function FolderEditor({
     }
     saveItem(
       configureComponent({
-        existing: item,
         id,
         kind: "folder",
         name: resolvedName,
@@ -76,14 +71,10 @@ export default function FolderEditor({
   }
 
   return (
-    <ComponentEditorFrame
-      title={
-        item
-          ? t("grid.editor.editTitle", { label: componentLabel("folder", t) })
-          : t("grid.editor.configTitle", {
-              label: componentLabel("folder", t),
-            })
-      }
+    <ComponentCreateFrame
+      title={t("grid.editor.configTitle", {
+        label: componentLabel("folder", t),
+      })}
       description={t("grid.editor.descriptionWithName")}
       width={current.width}
       height={current.height}
@@ -101,7 +92,7 @@ export default function FolderEditor({
       onSizeChange={(value) => {
         if (isComponentSize("folder", value)) setSize(value)
       }}
-      submitLabel={item ? t("grid.editor.save") : t("grid.editor.confirmAdd")}
+      submitLabel={t("grid.editor.confirmAdd")}
       onSubmit={save}
       onClose={onClose}
     >
@@ -122,6 +113,6 @@ export default function FolderEditor({
           onChange={setColor}
         />
       </SettingItem>
-    </ComponentEditorFrame>
+    </ComponentCreateFrame>
   )
 }

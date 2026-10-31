@@ -2,6 +2,8 @@ import * as React from "react"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { cn } from "cn"
 
+const PopoverLayerContext = React.createContext(50)
+
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }
@@ -19,14 +21,18 @@ function PopoverContent({
   anchor,
   positionerClassName,
   animateFromAnchor = false,
+  layer: layerOverride,
   ...props
 }: PopoverPrimitive.Popup.Props & {
   positionerClassName?: string
   animateFromAnchor?: boolean
+  layer?: number
 } & Pick<
     PopoverPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "anchor"
   >) {
+  const inheritedLayer = React.useContext(PopoverLayerContext)
+  const layer = layerOverride ?? inheritedLayer
   const positionerRef = React.useCallback(
     (element: HTMLDivElement | null) => {
       if (!element || !animateFromAnchor) return
@@ -88,6 +94,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
+        style={{ zIndex: layer }}
         ref={positionerRef}
         anchor={anchor}
         align={align}
@@ -101,14 +108,16 @@ function PopoverContent({
           positionerClassName
         )}
       >
-        <PopoverPrimitive.Popup
-          data-slot="popover-content"
-          className={cn(
-            "z-50 flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-3xl bg-popover p-4 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/5 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            className
-          )}
-          {...props}
-        />
+        <PopoverLayerContext.Provider value={layer + 1}>
+          <PopoverPrimitive.Popup
+            data-slot="popover-content"
+            className={cn(
+              "z-50 flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-3xl bg-popover p-4 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/5 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+              className
+            )}
+            {...props}
+          />
+        </PopoverLayerContext.Provider>
       </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   )

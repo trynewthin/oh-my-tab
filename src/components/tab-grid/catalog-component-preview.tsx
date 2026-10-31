@@ -6,6 +6,7 @@ import {
   type GridItemSize,
 } from "@/lib/grid/registry"
 import { GRID_CELL_SIZE, GRID_GAP } from "@/lib/grid/grid-layout"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import HomeSurface from "@/components/home/home-surface"
 import { WidgetCatalogPreview } from "./widget-ui"
 
@@ -20,6 +21,7 @@ export default function CatalogComponentPreview({
   detail?: boolean
   fill?: boolean
 }) {
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const stage = useRef<HTMLDivElement>(null)
   const [available, setAvailable] = useState({ width: 0, height: 0 })
   const definition = getComponentDefinition(kind)
@@ -60,7 +62,12 @@ export default function CatalogComponentPreview({
             data-catalog-preview-content
             inert
             className={`absolute top-0 left-0 isolate origin-top-left overflow-hidden rounded-2xl ${definition.tileBorder ? "border" : ""}`}
-            style={{ width, height, transform: `scale(${scale})` }}
+            style={{
+              width,
+              height,
+              borderRadius: radius,
+              transform: `scale(${scale})`,
+            }}
           >
             <WidgetCatalogPreview kind={kind} size={resolved} />
           </div>

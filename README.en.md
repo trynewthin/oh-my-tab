@@ -32,15 +32,15 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 3. Right-click a card to see its available editing, size, and deletion options.
 4. Open **Settings** to change the theme, language, search engine, background, and effects.
 
-Choose **More actions → Edit** to reveal a rounded resize handle when hovering over a component with multiple supported sizes. Drag to preview supported sizes; release to save and reflow neighboring tiles. Escape cancels an active drag; press Escape again or click **Done** to exit. Editing and batch selection are mutually exclusive.
-
 All components have **Edit** and **Delete** in their context menu. Edit opens a popover beside the component with live updates to its common settings and specific configuration. Components with multiple supported sizes also show a lower-right resize handle. Click outside, close the popover, or press Esc to finish; invalid input does not replace saved content. Folder entries use the same nearby editing interaction. Adding components uses a separate creation flow.
 
 Under **Settings → Personalization → Tabs**, strip and square tabs share the same layout, border, background, text, and icon controls. Each family saves its own appearance, texture, and coverage, including in backups; default playback for new tabs is shared. Background textures support rotation in 90° steps and horizontal and vertical mirroring without transforming the mask, border, text, or icons. Home-page tabs support 4×1 and 4×2 strips plus 1×1, 2×2, and 4×4 squares. Use the lower-right resize handle while editing a tab to switch sizes. Squares share one saved style, with icons only at 1×1; both settings previews use the same overall scale. For 1×1 tabs, texture coverage is hidden at 0 and fills the tile at any positive value; other sizes retain fine control.
 
+**Settings → Personalization → Basic** provides one **Corner radius** setting shared by tabs, folders, and other grid components. Tab-page resets preserve this radius.
+
 **Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults for the current page. The Background reset restores the background (including rotation and mirroring) and mask without changing default playback or existing tabs' playback state, content, or sizes. Category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed.
 
-Use **Settings → Personalization → Folders** to adjust corner radius and border style, width, color, and opacity without changing folder sizes or the appearance of tabs inside them. **Reset style** restores folder texture, corners, and borders after confirmation.
+Use **Settings → Personalization → Folders** to adjust border style, width, color, and opacity without changing folder sizes or the appearance of tabs inside them. **Reset style** restores folder texture and borders after confirmation, preserving the shared corner radius from the Basic page.
 
 ## Data and privacy
 

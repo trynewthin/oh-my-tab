@@ -44,9 +44,7 @@ export default function GridDragOverlay({
   gridGap: number
   contentScale?: number
 }) {
-  const folderRadius = useHomeSettingsStore((state) =>
-    dragging?.item.kind === "folder" ? state.folderRadius : undefined
-  )
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const releaseProgress =
     dragging &&
     (intent.kind === "grid" ||
@@ -139,7 +137,7 @@ export default function GridDragOverlay({
           <div
             className={`absolute top-0 left-0 isolate ${dragging.item.kind === "tab" ? "" : searchWidget ? "overflow-hidden rounded-full [&_[data-search-input-shell]]:border-transparent [&_[data-search-input-shell]]:ring-0" : "overflow-hidden rounded-2xl"}`}
             style={{
-              borderRadius: folderRadius,
+              borderRadius: radius,
               width: contentWidth,
               height: contentHeight,
               transform: `scale(${contentScale})`,

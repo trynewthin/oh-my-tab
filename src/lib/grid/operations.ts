@@ -3,7 +3,7 @@ import type { GridItem, TabEntry, TodoTask } from "./types"
 import type { GridPositions } from "./grid-layout"
 import {
   componentLabel,
-  isComponentSize,
+  getComponentSizeOptions,
   supportsComponentAction,
 } from "./registry"
 import { createTabItem } from "@/lib/grid/factory"
@@ -76,7 +76,9 @@ export function resizeItem(
   return mapItem(items, id, (item) => {
     if (
       !supportsComponentAction(item.kind, "resize") ||
-      !isComponentSize(item.kind, size)
+      !getComponentSizeOptions(item.kind, "resize").some(
+        (option) => option.value === size
+      )
     )
       return item
     if (item.kind === "dot-canvas") {

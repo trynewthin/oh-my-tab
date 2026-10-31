@@ -8,6 +8,8 @@ import { getComponentDefinition } from "@/lib/grid/registry"
 import { useTranslation } from "react-i18next"
 import GridItemContextMenu from "./grid-item-context-menu"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import GridResizeHandle, { type GridResizeControls } from "./grid-resize-handle"
+import { useGridResizeMotion } from "./use-grid-resize-motion"
 
 export default function DraggableGridItem({
   item,
@@ -18,6 +20,8 @@ export default function DraggableGridItem({
   folderTabs,
   todoTasks,
   interactive = true,
+  resize,
+  onAnchorChange,
 }: {
   dropProgress?: number
   folderTabs?: TabEntry[]
@@ -28,18 +32,31 @@ export default function DraggableGridItem({
   onEdit: (item: GridItem) => void
   // Preview grids keep drag+FLIP but drop the context menu and dialog hooks.
   interactive?: boolean
+  resize?: GridResizeControls
+  onAnchorChange?: (element: HTMLElement | null) => void
 }) {
   const { t } = useTranslation()
-  const folderRadius = useHomeSettingsStore((state) =>
-    item.kind === "folder" ? state.folderRadius : undefined
-  )
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: item.id,
+    disabled: !!resize,
   })
 
   const definition = getComponentDefinition(item.kind)
 
-  const motionRef = useGridMotion(placement, isDragging, setNodeRef)
+  const setAnchor = useCallback(
+    (element: HTMLElement | null) => {
+      setNodeRef(element)
+      onAnchorChange?.(element)
+    },
+    [setNodeRef, onAnchorChange]
+  )
+  const motionRef = useGridMotion(placement, isDragging, setAnchor)
+  const visualRef = useGridResizeMotion(
+    placement,
+    resize?.columnStep ?? 0,
+    resize?.rowStep ?? 0
+  )
   const open = useCallback(() => onOpen(item), [onOpen, item])
   const edit = useCallback(() => onEdit(item), [onEdit, item])
 
@@ -47,45 +64,59 @@ export default function DraggableGridItem({
     <article
       ref={motionRef}
       data-grid-item-id={item.id}
+      data-grid-editing={resize ? "" : undefined}
       {...attributes}
       role="group"
       aria-label={t("grid.chrome.dragItem", { name: item.name })}
-      className={`relative min-w-0 cursor-grab outline-none ${isDragging ? "invisible" : `group isolate rounded-2xl ${definition.tileBorder ? (item.kind === "folder" ? "border border-transparent" : "border border-tile-border") : ""} focus-visible:ring-2 focus-visible:ring-ring`}`}
+      className={`group relative isolate min-w-0 outline-none ${resize ? "cursor-default" : "cursor-grab"} ${isDragging ? "invisible" : "focus-visible:ring-2 focus-visible:ring-ring"}`}
       style={{
-        borderRadius: folderRadius,
+        borderRadius: radius,
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
         gridRow: `${placement.y + 1} / span ${placement.height}`,
       }}
       onMouseDownCapture={(event) => {
+        if (resize) return
         if (event.button === 0 && item.kind === "search-minimal")
           listeners?.onMouseDown?.(event)
       }}
       onMouseDown={(event) => {
+        if (resize) return
         if (event.button !== 0 || item.kind === "search-minimal") return
         listeners?.onMouseDown?.(event)
       }}
       onKeyDown={(event) => {
+        if (resize) return
         if (event.target === event.currentTarget) listeners?.onKeyDown?.(event)
       }}
       onDragStart={(event) => event.preventDefault()}
     >
       <div
-        data-grid-item-content
-        className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
-        style={{
-          transform:
-            dropProgress !== undefined
-              ? `scale(${1 + dropProgress * 0.04})`
-              : undefined,
-        }}
+        ref={visualRef}
+        data-grid-resize-surface
+        className={`relative h-full w-full origin-top-left rounded-[inherit] ${definition.tileBorder ? (item.kind === "folder" ? "border border-transparent" : "border border-tile-border") : ""}`}
       >
-        <GridTileContent
-          item={item}
-          onOpen={open}
-          preview={!interactive}
-          folderTabs={folderTabs}
-          todoTasks={todoTasks}
-        />
+        <div
+          data-grid-item-content
+          inert={resize ? true : undefined}
+          className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
+          style={{
+            transform:
+              dropProgress !== undefined
+                ? `scale(${1 + dropProgress * 0.04})`
+                : undefined,
+          }}
+        >
+          <GridTileContent
+            item={item}
+            onOpen={open}
+            preview={!interactive}
+            folderTabs={folderTabs}
+            todoTasks={todoTasks}
+          />
+        </div>
+        {resize && (
+          <GridResizeHandle item={item} placement={placement} {...resize} />
+        )}
       </div>
     </article>
   )

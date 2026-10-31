@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Plus, ListChecks, Check, X } from "@phosphor-icons/react"
 import ComponentBackground from "./shared/component-background"
 import { useTabGridStore } from "@/stores/tab-grid-store"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import CollectionExpansion from "./collection/expansion"
 import {
   CollectionCardHeader,
@@ -33,6 +34,7 @@ export default function Todo({
   tasks?: TodoTask[]
 }) {
   const displayItem = tasks ? { ...item, tasks } : item
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [adding, setAdding] = useState(false)
@@ -42,7 +44,8 @@ export default function Todo({
   const next = remaining[0]
   const draftRow = adding ? (
     <form
-      className="relative isolate flex h-full min-h-0 items-center gap-1 overflow-hidden rounded-2xl border border-border/60 px-3 py-2"
+      className="relative isolate flex h-full min-h-0 items-center gap-1 overflow-hidden border border-border/60 px-3 py-2"
+      style={{ borderRadius: radius }}
       onSubmit={(event) => {
         event.preventDefault()
         const text = draft.trim()
@@ -218,6 +221,7 @@ export default function Todo({
       {open && (
         <CollectionExpansion
           collection={displayItem}
+          radius={radius}
           closeLabel={t("grid.chrome.closeComponent", {
             label: t("grid.component.todo.label"),
           })}

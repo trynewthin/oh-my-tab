@@ -21,10 +21,12 @@ beforeEach(async () => {
   await storage.flushStorage()
   await storage.clearAllData()
   useHomeSettingsStore.getState().resetFolderStyle()
+  useHomeSettingsStore.getState().setComponentRadius(DEFAULT_FOLDER_RADIUS)
 })
 
 afterEach(() => {
   useHomeSettingsStore.getState().resetFolderStyle()
+  useHomeSettingsStore.getState().setComponentRadius(DEFAULT_FOLDER_RADIUS)
 })
 
 test("old settings retain the original folder corners and malformed values are bounded", () => {
@@ -40,15 +42,19 @@ test("old settings retain the original folder corners and malformed values are b
   }
 })
 
-test("radius changes and reset never change tab appearance or grid dimensions", () => {
+test("one component radius updates all families without changing grid dimensions", () => {
   const before = snapshot()
   for (const radius of [0, 24, 48, 90, -10, DEFAULT_FOLDER_RADIUS]) {
-    useHomeSettingsStore.getState().setFolderRadius(radius)
+    useHomeSettingsStore.getState().setComponentRadius(radius)
     const next = snapshot()
     expect(next.home.folderRadius).toBe(
       Math.min(MAX_FOLDER_RADIUS, Math.max(0, radius))
     )
-    expect(next.home.tabAppearance).toEqual(before.home.tabAppearance)
+    expect(next.home.tabAppearance).toEqual({
+      ...before.home.tabAppearance,
+      radius: next.home.folderRadius,
+    })
+    expect(next.home.squareTabAppearance.radius).toBe(next.home.folderRadius)
     expect(next.home.gridScale).toBe(before.home.gridScale)
     expect(next.grid).toEqual(before.grid)
   }
@@ -107,7 +113,7 @@ test("folder border sanitization and backup validation preserve safe partial set
   }
 })
 
-test("reset style restores border radius and texture without touching folder contents or tabs", async () => {
+test("resetting folder style preserves the shared corner radius and folder contents", async () => {
   const before = snapshot()
   const state = useHomeSettingsStore.getState()
   state.setFolderStyle("classic")
@@ -128,8 +134,11 @@ test("reset style restores border radius and texture without touching folder con
   useHomeSettingsStore.getState().resetFolderStyle()
   const after = snapshot()
   expect(after.home.folderStyle).toBe("noise")
-  expect(after.home.folderRadius).toBe(DEFAULT_FOLDER_RADIUS)
+  expect(after.home.folderRadius).toBe(32)
   expect(after.home.folderBorder).toEqual(DEFAULT_FOLDER_BORDER)
-  expect(after.home.tabAppearance).toEqual(before.home.tabAppearance)
+  expect(after.home.tabAppearance).toEqual({
+    ...before.home.tabAppearance,
+    radius: 32,
+  })
   expect(after.grid).toEqual(before.grid)
 })

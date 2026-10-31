@@ -127,7 +127,6 @@ const borderKeys = [
   "borderWidth",
   "borderColor",
   "borderOpacity",
-  "radius",
 ] as const
 
 const backgroundKeys = [
@@ -155,7 +154,7 @@ const textKeys = [
   "textOverflow",
 ] as const
 
-const iconKeys = ["iconScale", "iconOpacity", "iconRadius", "iconFit"] as const
+const iconKeys = ["iconScale", "iconOpacity", "iconFit"] as const
 
 function defaultsOf<K extends keyof TabAppearance>(
   keys: readonly K[],
@@ -363,7 +362,11 @@ export default function TabAppearanceControls({
                 <Button
                   type="button"
                   onClick={() => {
-                    setTabAppearance(defaults)
+                    setTabAppearance({
+                      ...defaults,
+                      radius: tabAppearance.radius,
+                      iconRadius: tabAppearance.iconRadius,
+                    })
                     onResetBackground()
                     setResetOpen(false)
                   }}
@@ -541,21 +544,6 @@ export default function TabAppearanceControls({
             </SettingItem>
           </>
         )}
-        <SettingItem
-          label={t("settings.tabs.appearance.radius")}
-          htmlFor="tab-appearance-radius"
-        >
-          <RangeField
-            id="tab-appearance-radius"
-            label={t("settings.tabs.appearance.radius")}
-            unit="px"
-            value={tabAppearance.radius}
-            min={0}
-            max={48}
-            accentColor={color}
-            onChange={(radius) => setTabAppearance({ radius })}
-          />
-        </SettingItem>
       </AppearanceGroup>
 
       <AppearanceGroup
@@ -899,21 +887,6 @@ export default function TabAppearanceControls({
             max={100}
             accentColor={color}
             onChange={(iconOpacity) => setTabAppearance({ iconOpacity })}
-          />
-        </SettingItem>
-        <SettingItem
-          label={t("settings.tabs.appearance.iconRadius")}
-          htmlFor="tab-appearance-icon-radius"
-        >
-          <RangeField
-            id="tab-appearance-icon-radius"
-            label={t("settings.tabs.appearance.iconRadius")}
-            unit="%"
-            value={tabAppearance.iconRadius}
-            min={0}
-            max={50}
-            accentColor={color}
-            onChange={(iconRadius) => setTabAppearance({ iconRadius })}
           />
         </SettingItem>
         <SettingItem

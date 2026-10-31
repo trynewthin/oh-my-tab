@@ -98,11 +98,16 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
         DEFAULT_NARROW_GRID_COLUMNS,
         wideGridColumns
       ) as GridComponentColumnCount)
+  const tabAppearance = sanitizeTabAppearance({
+    ...saved?.tabAppearance,
+    radius: saved?.tabAppearance?.radius ?? saved?.folderRadius,
+  })
   return {
-    tabAppearance: sanitizeTabAppearance(saved?.tabAppearance),
-    squareTabAppearance: sanitizeSquareTabAppearance(
-      saved?.squareTabAppearance
-    ),
+    tabAppearance,
+    squareTabAppearance: {
+      ...sanitizeSquareTabAppearance(saved?.squareTabAppearance),
+      radius: tabAppearance.radius,
+    },
     squareTabTexture:
       saved?.squareTabTexture === "none" ||
       saved?.squareTabTexture === "particles"
@@ -141,7 +146,7 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
       saved?.folderStyle === "classic" || saved?.folderStyle === "none"
         ? saved.folderStyle
         : "noise",
-    folderRadius: clampFolderRadius(saved?.folderRadius),
+    folderRadius: tabAppearance.radius,
     folderBorder: sanitizeFolderBorder(saved?.folderBorder),
     tabTexture:
       saved?.tabTexture === "none" || saved?.tabTexture === "particles"

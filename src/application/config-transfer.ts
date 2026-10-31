@@ -28,8 +28,6 @@ import { sanitizeTabAppearance, validTabAppearance } from "@/lib/tab-appearance"
 import { i18n } from "@/i18n"
 import { sanitizeFolderBorder, validFolderBorder } from "@/lib/folder-border"
 import {
-  clampFolderRadius,
-  DEFAULT_FOLDER_RADIUS,
   MAX_FOLDER_RADIUS,
   DEFAULT_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
@@ -179,17 +177,18 @@ export function validateConfig(value: unknown): Config {
     Array.isArray(grid.layouts)
   )
     throw new Error(i18n.t("settings.errors.invalidContentOrSettings"))
-  home.tabAppearance = sanitizeTabAppearance(home.tabAppearance)
-  home.squareTabAppearance = sanitizeSquareTabAppearance(
-    home.squareTabAppearance
-  )
+  home.tabAppearance = sanitizeTabAppearance({
+    ...home.tabAppearance,
+    radius: home.tabAppearance?.radius ?? home.folderRadius,
+  })
+  home.squareTabAppearance = {
+    ...sanitizeSquareTabAppearance(home.squareTabAppearance),
+    radius: home.tabAppearance.radius,
+  }
   home.squareTabTexture ??= "burning"
   home.squareTabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
   home.folderBorder = sanitizeFolderBorder(home.folderBorder)
-  home.folderRadius =
-    home.folderRadius === undefined
-      ? DEFAULT_FOLDER_RADIUS
-      : clampFolderRadius(home.folderRadius)
+  home.folderRadius = home.tabAppearance.radius
   const ids = grid.items.flatMap((item) =>
     item.kind === "folder"
       ? [item.id, ...item.tabs.map((t) => t.id)]

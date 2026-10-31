@@ -1,5 +1,4 @@
 import { systemActionStatus, type SystemActionId } from "@/lib/system-actions"
-import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 
@@ -12,8 +11,5 @@ export function useSystemActionState(action: SystemActionId) {
   const selecting = useGridSelectionStore(
     (state) => action === "toggle-selection" && state.active
   )
-  const editing = useGridEditStore(
-    (state) => action === "toggle-edit" && state.active
-  )
-  return systemActionStatus(action, { canTidy, selecting, editing })
+  return systemActionStatus(action, { canTidy, selecting })
 }

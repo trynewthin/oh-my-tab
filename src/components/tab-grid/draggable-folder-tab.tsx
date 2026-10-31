@@ -37,6 +37,7 @@ export default function DraggableFolderTab({
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
+  const openingEditor = useRef(false)
   const [anchor, setAnchor] = useState<HTMLDivElement | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const removeFolderTab = useTabGridStore((state) => state.removeFolderTab)
@@ -64,6 +65,7 @@ export default function DraggableFolderTab({
     <ContextMenu
       open={menuOpen}
       onOpenChange={(open) => {
+        if (open) openingEditor.current = false
         setMenuOpen(open)
         if (!open) setConfirmDelete(false)
       }}
@@ -102,8 +104,16 @@ export default function DraggableFolderTab({
           />
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent positionerClassName="z-[80]">
-        <ContextMenuItem onClick={() => setEditing(true)}>
+      <ContextMenuContent
+        positionerClassName="z-[80]"
+        finalFocus={() => !openingEditor.current}
+      >
+        <ContextMenuItem
+          onClick={() => {
+            openingEditor.current = true
+            setEditing(true)
+          }}
+        >
           <PencilSimple />
           {t("grid.menu.edit")}
         </ContextMenuItem>

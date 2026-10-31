@@ -7,6 +7,7 @@ import {
 import { resolveResizeSize } from "@/lib/grid/resize"
 import { resizeItem } from "@/lib/grid/operations"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
+import { validGridItem } from "@/lib/grid/validation"
 
 test("tab resizing snaps at midpoint and keeps the current size on ties", () => {
   const tab = createTabItem({ name: "Tab", url: "https://example.com" })
@@ -35,7 +36,15 @@ test("folder resizing follows both axes and excludes sizes wider than the grid",
   expect(resolveResizeSize(folder, 8, 4, 8)).toBe("tall")
   expect(resolveResizeSize(folder, 8, 8, 8)).toBe("wide-tall")
   expect(resolveResizeSize(folder, 4, 8, 8)).toBe("tall")
-  expect(resolveResizeSize(folder, 8, -10, -10)).toBe("small")
+  expect(resolveResizeSize(folder, 8, -10, -10)).toBe("large")
+})
+
+test("folder 4x2 remains readable but cannot be selected by resizing", () => {
+  const folder = createFolderItem({ name: "Folder" })
+  const legacy = { ...folder, size: "small" as const }
+  expect(validGridItem(legacy)).toBe(true)
+  expect(resizeItem([folder], folder.id, "small")).toEqual([folder])
+  expect(resolveResizeSize(legacy, 8, 4, 2)).toBe("large")
 })
 
 test("drag resizing holds its current size near a boundary to avoid flickering", () => {
@@ -93,13 +102,13 @@ test("resizing pushes neighboring tiles without losing contents or overlapping p
   expect(placeItems(items, 8, positionsOnly(placements))).toEqual(placements)
 })
 
-test("resizing a todo preserves its tasks", () => {
+test("todo rejects retired smaller sizes while preserving its tasks", () => {
   const item = {
     ...createCatalogComponent("todo"),
     tasks: [{ id: "task", text: "KEEP", done: true }],
   }
   const [resized] = resizeItem([item], item.id, "small")
-  expect(resized).toEqual({ ...item, size: "small" })
+  expect(resized).toEqual(item)
 })
 
 test("canvas resizing preserves off-canvas artwork and expands its drawing area", () => {

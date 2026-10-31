@@ -2,7 +2,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function FolderBorder() {
   const border = useHomeSettingsStore((state) => state.folderBorder)
-  const radius = useHomeSettingsStore((state) => state.folderRadius)
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   return (
     <div
       aria-hidden="true"

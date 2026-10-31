@@ -1,18 +1,7 @@
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
-import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
-import GridResizeItem from "./grid-resize-item"
 import ComponentEditPopover from "./component-edit-popover"
-import { Button } from "@/components/ui/button"
-import { createPortal } from "react-dom"
 import BulkActions from "./bulk-actions"
-import { Gear, PencilSimple, Plus } from "@phosphor-icons/react"
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-} from "@/components/ui/context-menu"
 import {
   gridOccupancyBox,
   itemHeight,
@@ -32,7 +21,6 @@ import {
 } from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { runSystemAction } from "@/application/system-actions"
 import DraggableGridItem from "./draggable-grid-item"
 import CollectionExpansion from "./collection/expansion"
 import FolderExpandedGrid from "./folder-expanded-grid"
@@ -69,10 +57,14 @@ export default function TabGrid({
   fullViewport?: boolean
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
-  const editing = useGridEditStore((state) => state.active) && !preview
-  const finishEditing = useGridEditStore((state) => state.finish)
   const overlayActive = useSystemOverlayStore((state) => state.active)
-  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editSession, setEditSession] = useState<{
+    id: string
+    viewport: HTMLElement | null
+    top: number
+    left: number
+  } | null>(null)
+  const editingItemId = editSession?.id
   const [editorAnchor, setEditorAnchor] = useState<HTMLElement | null>(null)
   const resizeItem = useTabGridStore((state) => state.resizeItem)
   const [resizePreview, setResizePreview] = useState<{
@@ -89,7 +81,7 @@ export default function TabGrid({
       ? savedItems.find((item) => item.id === editingItemId)
       : undefined
   const items =
-    (editing || editedItem) && resizePreview
+    editedItem && resizePreview
       ? savedItems.map((item) =>
           item.id === resizePreview.id
             ? ({ ...item, size: resizePreview.size } as GridItem)
@@ -103,7 +95,9 @@ export default function TabGrid({
     (state) => state.narrowGridColumns
   )
   const gridScale = useHomeSettingsStore((state) => state.gridScale)
-  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
+  const folderRadius = useHomeSettingsStore(
+    (state) => state.tabAppearance.radius
+  )
   const gridRef = useRef<HTMLDivElement>(null)
   const measurementRef = useRef<HTMLDivElement>(null)
   const { pointer, measuredWidth } = useGridMeasurement({
@@ -126,18 +120,35 @@ export default function TabGrid({
   const width =
     box?.width ?? (sourceWidth > 0 ? geometry.trackWidth : measuredWidth)
   const [folderId, setFolderId] = useState<string | null>(null)
-  const openItem = useCallback((item: GridItem) => {
-    const action = getComponentDefinition(item.kind).openAction
-    if (action === "edit") {
-      setFolderId(null)
-      setEditingItemId(item.id)
-    }
-    if (action === "expand") setFolderId(item.id)
-  }, [])
   const editItem = useCallback((item: GridItem) => {
+    const viewport =
+      gridRef.current?.closest<HTMLElement>("[data-grid-scroll]") ?? null
+    setEditSession({
+      id: item.id,
+      viewport,
+      top: viewport?.scrollTop ?? 0,
+      left: viewport?.scrollLeft ?? 0,
+    })
     setFolderId(null)
-    setEditingItemId(item.id)
   }, [])
+  const openItem = useCallback(
+    (item: GridItem) => {
+      const action = getComponentDefinition(item.kind).openAction
+      if (action === "edit") editItem(item)
+      if (action === "expand") setFolderId(item.id)
+    },
+    [editItem]
+  )
+  useLayoutEffect(() => {
+    // Restore only at the edit handoff, before paint; scrolling while editing remains free.
+    if (editSession?.viewport?.isConnected) {
+      editSession.viewport.scrollTo({
+        top: editSession.top,
+        left: editSession.left,
+        behavior: "instant",
+      })
+    }
+  }, [editSession])
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
@@ -156,27 +167,8 @@ export default function TabGrid({
     | undefined
   >(undefined)
   useEffect(() => {
-    if (!editing) return
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) finishEditing()
-    }
-    window.addEventListener("keydown", close)
-    return () => window.removeEventListener("keydown", close)
-  }, [editing, finishEditing])
-  useEffect(
-    () =>
-      useGridEditStore.subscribe((state) => {
-        setResizePreview(null)
-        setEditingItemId(null)
-        if (state.active) {
-          setFolderId(null)
-        }
-      }),
-    []
-  )
-  useEffect(() => {
     const close = () => {
-      setEditingItemId(null)
+      setEditSession(null)
       setResizePreview(null)
     }
     const unsubscribeSelection = useGridSelectionStore.subscribe((state) => {
@@ -280,8 +272,7 @@ export default function TabGrid({
     dragging && intent.kind === "grid" && !intent.holdLayout
       ? settledTarget
       : undefined
-  const resizeTarget =
-    (editing || editedItem) && resizePreview ? resizePreview : null
+  const resizeTarget = editedItem && resizePreview ? resizePreview : null
   const sourceFolderId = dragging?.sourceFolderId
   const placements = useMemo(() => {
     if (preview && liveTarget) {
@@ -492,202 +483,162 @@ export default function TabGrid({
   }
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger
-        render={<section />}
-        data-tour="grid"
-        aria-label={t("grid.chrome.grid")}
-        className={`min-h-0 w-full ${fullViewport ? "" : "mx-auto max-w-[1280px]"}`}
+    <section
+      data-tour="grid"
+      aria-label={t("grid.chrome.grid")}
+      className={`min-h-0 w-full ${fullViewport ? "" : "mx-auto max-w-[1280px]"}`}
+    >
+      <DndContext
+        sensors={sensors}
+        onDragStart={startDrag}
+        onDragMove={(event: DragMoveEvent) => scheduleIntent(event.delta)}
+        onDragEnd={finishDrag}
+        onDragCancel={resetDrag}
       >
-        <DndContext
-          sensors={sensors}
-          onDragStart={startDrag}
-          onDragMove={(event: DragMoveEvent) => scheduleIntent(event.delta)}
-          onDragEnd={finishDrag}
-          onDragCancel={resetDrag}
+        <div
+          ref={measurementRef}
+          className={`flex justify-center ${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
+          style={{
+            margin: fullViewport ? undefined : "0 -20px",
+            paddingTop: fullViewport ? 8 : compactGrid ? 12 : 20,
+          }}
         >
           <div
-            ref={measurementRef}
-            className={`flex justify-center ${selecting || editing ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
+            ref={gridRef}
+            data-tab-grid-track={preview ? undefined : ""}
+            data-grid-component-columns={
+              liveGridReady ? geometry.componentColumns : undefined
+            }
+            data-grid-scale={liveGridReady ? coordinateScale : undefined}
+            className="relative grid min-h-11"
             style={{
-              margin: fullViewport ? undefined : "0 -20px",
-              paddingTop: fullViewport ? 8 : compactGrid ? 12 : 20,
+              width: width > 0 ? width : undefined,
+              gap: gridGap,
+              gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
+              gridAutoRows: metrics.rowSize,
+              flexShrink: liveGridReady ? 0 : undefined,
+              transform: liveGridReady
+                ? `scale(${coordinateScale})`
+                : undefined,
+              transformOrigin: liveGridReady ? "top left" : undefined,
+              marginRight: liveGridReady
+                ? geometry.visualWidth - width
+                : undefined,
+              marginBottom:
+                liveGridReady && scaledGridHeight > 0
+                  ? scaledGridHeight * coordinateScale - scaledGridHeight
+                  : undefined,
             }}
           >
-            <div
-              ref={gridRef}
-              data-tab-grid-track={preview ? undefined : ""}
-              data-grid-component-columns={
-                liveGridReady ? geometry.componentColumns : undefined
-              }
-              data-grid-scale={liveGridReady ? coordinateScale : undefined}
-              className="relative grid min-h-11"
-              style={{
-                width: width > 0 ? width : undefined,
-                gap: gridGap,
-                gridTemplateColumns: `repeat(${columns}, ${metrics.rowSize}px)`,
-                gridAutoRows: metrics.rowSize,
-                flexShrink: liveGridReady ? 0 : undefined,
-                transform: liveGridReady
-                  ? `scale(${coordinateScale})`
-                  : undefined,
-                transformOrigin: liveGridReady ? "top left" : undefined,
-                marginRight: liveGridReady
-                  ? geometry.visualWidth - width
-                  : undefined,
-                marginBottom:
-                  liveGridReady && scaledGridHeight > 0
-                    ? scaledGridHeight * coordinateScale - scaledGridHeight
-                    : undefined,
-              }}
-            >
-              {(width > 0 ? items : []).map((item) =>
-                selecting ? (
-                  <GridSelectionItem
-                    key={item.id}
-                    item={item}
-                    placement={placements[item.id]}
-                    selected={selectedIds.includes(item.id)}
-                    onToggle={() => toggleSelection(item.id)}
-                    selectAriaLabel={t("grid.chrome.selectItem", {
-                      name: item.name,
-                    })}
-                  />
-                ) : editing || editedItem?.id === item.id ? (
-                  <GridResizeItem
-                    key={item.id}
-                    item={item}
-                    placement={placements[item.id]}
-                    columns={columns}
-                    columnStep={columnStep}
-                    rowStep={rowStep}
-                    onAnchorChange={
-                      editedItem?.id === item.id ? setEditorAnchor : undefined
-                    }
-                    showResizeHandle={editedItem?.id === item.id}
-                    onPreview={(id, size) =>
-                      setResizePreview(size === null ? null : { id, size })
-                    }
-                    onCommit={(id, size) => {
-                      const next = savedItems.map((entry) =>
-                        entry.id === id
-                          ? ({ ...entry, size } as GridItem)
-                          : entry
-                      )
-                      const nextPlacements = placeItems(
-                        next,
-                        columns,
-                        positions,
-                        { id, position: positions[id] ?? { x: 0, y: 0 } },
-                        [id]
-                      )
-                      resizeItem(id, size)
-                      useTabGridStore
-                        .getState()
-                        .setLayout(columns, positionsOnly(nextPlacements))
-                    }}
-                  />
-                ) : (
-                  <DraggableGridItem
-                    key={item.id}
-                    item={item}
-                    placement={
-                      !dragging?.sourceFolderId && dragging?.item.id === item.id
-                        ? {
-                            ...dragging.origin,
-                            height: itemHeight(item),
-                            width: itemWidth(item, columns),
-                          }
-                        : placements[item.id]
-                    }
-                    dropProgress={
-                      intent.kind === "folder" && intent.folderId === item.id
-                        ? intent.progress
-                        : undefined
-                    }
-                    folderTabs={folderPreviews.get(item.id)}
-                    todoTasks={
-                      item.kind === "todo" && todoIntentId === item.id
-                        ? todoPreview
-                        : undefined
-                    }
-                    onOpen={openItem}
-                    onEdit={editItem}
-                  />
-                )
-              )}
-            </div>
-          </div>
-          {overlay}
-          {editedItem && editorAnchor && (
-            <ComponentEditPopover
-              key={editedItem.id}
-              item={editedItem}
-              anchor={editorAnchor}
-              columns={columns}
-              onClose={() => {
-                setEditingItemId(null)
-                setResizePreview(null)
-              }}
-            />
-          )}
-          {expandedFolder && (
-            <CollectionExpansion
-              collection={expandedFolder}
-              backgroundAnimated={false}
-              radius={folderRadius}
-              folderBorder
-              closeLabel={t("grid.chrome.closeComponent", {
-                label: componentLabel("folder", t),
-              })}
-              suspended={dialogSuspended}
-              onClose={() => setFolderId(null)}
-            >
-              {(expandedTabs ?? expandedFolder.tabs).length > 0 && (
-                <FolderExpandedGrid
-                  folder={expandedFolder}
-                  tabs={expandedTabs}
+            {(width > 0 ? items : []).map((item) =>
+              selecting ? (
+                <GridSelectionItem
+                  key={item.id}
+                  item={item}
+                  placement={placements[item.id]}
+                  selected={selectedIds.includes(item.id)}
+                  onToggle={() => toggleSelection(item.id)}
+                  selectAriaLabel={t("grid.chrome.selectItem", {
+                    name: item.name,
+                  })}
                 />
-              )}
-            </CollectionExpansion>
-          )}
-          <BulkActions />
-          {editing &&
-            !overlayActive &&
-            createPortal(
-              <div
-                role="toolbar"
-                aria-label={t("grid.menu.edit")}
-                className="fixed inset-x-4 bottom-6 z-40 mx-auto flex w-fit items-center gap-8 rounded-2xl border bg-popover p-2 text-popover-foreground shadow-xl"
-              >
-                <span className="pl-2 text-sm">{t("grid.menu.edit")}</span>
-                <Button variant="ghost" onClick={finishEditing}>
-                  {t("grid.bulk.done")}
-                </Button>
-              </div>,
-              document.body
+              ) : (
+                <DraggableGridItem
+                  key={item.id}
+                  item={item}
+                  onAnchorChange={
+                    editedItem?.id === item.id ? setEditorAnchor : undefined
+                  }
+                  resize={
+                    editedItem?.id === item.id
+                      ? {
+                          columns,
+                          columnStep,
+                          rowStep,
+                          onPreview: (id, size) =>
+                            setResizePreview(
+                              size === null ? null : { id, size }
+                            ),
+                          onCommit: (id, size) => {
+                            const next = savedItems.map((entry) =>
+                              entry.id === id
+                                ? ({ ...entry, size } as GridItem)
+                                : entry
+                            )
+                            const nextPlacements = placeItems(
+                              next,
+                              columns,
+                              positions,
+                              { id, position: positions[id] ?? { x: 0, y: 0 } },
+                              [id]
+                            )
+                            resizeItem(id, size)
+                            useTabGridStore
+                              .getState()
+                              .setLayout(columns, positionsOnly(nextPlacements))
+                          },
+                        }
+                      : undefined
+                  }
+                  placement={
+                    !dragging?.sourceFolderId && dragging?.item.id === item.id
+                      ? {
+                          ...dragging.origin,
+                          height: itemHeight(item),
+                          width: itemWidth(item, columns),
+                        }
+                      : placements[item.id]
+                  }
+                  dropProgress={
+                    intent.kind === "folder" && intent.folderId === item.id
+                      ? intent.progress
+                      : undefined
+                  }
+                  folderTabs={folderPreviews.get(item.id)}
+                  todoTasks={
+                    item.kind === "todo" && todoIntentId === item.id
+                      ? todoPreview
+                      : undefined
+                  }
+                  onOpen={openItem}
+                  onEdit={editItem}
+                />
+              )
             )}
-        </DndContext>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => runSystemAction("open-settings")}>
-          <Gear />
-          {t("shell.settingsButton.open")}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => runSystemAction("open-components")}>
-          <Plus />
-          {t("grid.chrome.addComponent")}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => runSystemAction("toggle-edit")}>
-          <PencilSimple />
-          {t("shell.moreActions.edit")}
-          {editing && (
-            <span className="ml-auto text-xs text-muted-foreground">
-              {t("shell.moreActions.editOn")}
-            </span>
-          )}
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+          </div>
+        </div>
+        {overlay}
+        {editedItem && editorAnchor && (
+          <ComponentEditPopover
+            key={editedItem.id}
+            item={editedItem}
+            anchor={editorAnchor}
+            columns={columns}
+            onClose={() => {
+              setEditSession(null)
+              setResizePreview(null)
+            }}
+          />
+        )}
+        {expandedFolder && (
+          <CollectionExpansion
+            collection={expandedFolder}
+            backgroundAnimated={false}
+            radius={folderRadius}
+            folderBorder
+            closeLabel={t("grid.chrome.closeComponent", {
+              label: componentLabel("folder", t),
+            })}
+            suspended={dialogSuspended}
+            onClose={() => setFolderId(null)}
+          >
+            {(expandedTabs ?? expandedFolder.tabs).length > 0 && (
+              <FolderExpandedGrid folder={expandedFolder} tabs={expandedTabs} />
+            )}
+          </CollectionExpansion>
+        )}
+        <BulkActions />
+      </DndContext>
+    </section>
   )
 }

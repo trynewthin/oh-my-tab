@@ -22,6 +22,10 @@ export default function ItemEditPopover({
   layer?: number
 }) {
   const { t } = useTranslation()
+  function focusEditor(popup: HTMLElement) {
+    const target = initialFocus?.current ?? popup
+    target.focus({ preventScroll: true })
+  }
   return (
     <Popover
       open
@@ -46,7 +50,8 @@ export default function ItemEditPopover({
         align="start"
         sideOffset={12}
         animateFromAnchor
-        initialFocus={initialFocus}
+        initialFocus={false}
+        onPositioned={focusEditor}
         finalFocus={false}
         layer={layer}
         className="max-h-[min(36rem,var(--available-height))] w-80 max-w-[calc(100vw-2rem)] gap-4 overflow-x-hidden overflow-y-auto data-open:animate-none data-closed:animate-none [&_[data-slot=select-trigger]]:rounded-xl [&_[data-slot=select-trigger]]:border-border [&_[data-slot=select-trigger]]:bg-muted [&_input:not([type=file]):not([type=color])]:rounded-xl [&_input:not([type=file]):not([type=color])]:border-border [&_input:not([type=file]):not([type=color])]:bg-muted [&_textarea]:rounded-xl [&_textarea]:border-border [&_textarea]:bg-muted"

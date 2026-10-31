@@ -57,8 +57,6 @@ import {
 } from "@/lib/folder-border"
 import {
   sanitizeHomeSettings,
-  clampFolderRadius,
-  DEFAULT_FOLDER_RADIUS,
   type HomeSettings,
   type TopComponent,
   type MatrixContent,
@@ -94,6 +92,7 @@ type HomeSettingsStore = HomeSettings & {
   moveSearchShortcut: (id: string, index: number) => void
   setSearchShortcutBoundary: (index: number) => void
   setFolderStyle: (value: FolderStyle) => void
+  setComponentRadius: (value: number) => void
   setFolderRadius: (value: number) => void
   setFolderBorder: (patch: Partial<FolderBorder>) => void
   resetFolderStyle: () => void
@@ -116,7 +115,7 @@ type HomeSettingsStore = HomeSettings & {
 
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...sanitizeHomeSettings(null),
       setBackgroundType: (backgroundType) => set({ backgroundType }),
       setLayoutMode: (layoutMode) => set({ layoutMode }),
@@ -236,10 +235,10 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             : { searchShortcuts: next }
         }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
-      setFolderRadius: (value) => {
-        if (Number.isFinite(value))
-          set({ folderRadius: clampFolderRadius(value) })
+      setComponentRadius: (value) => {
+        if (Number.isFinite(value)) get().setTabAppearance({ radius: value })
       },
+      setFolderRadius: (value) => get().setComponentRadius(value),
       setFolderBorder: (patch) =>
         set((state) => ({
           folderBorder: sanitizeFolderBorder({
@@ -250,7 +249,6 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       resetFolderStyle: () =>
         set({
           folderStyle: "noise",
-          folderRadius: DEFAULT_FOLDER_RADIUS,
           folderBorder: DEFAULT_FOLDER_BORDER,
         }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
@@ -274,17 +272,30 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setTransitionsEnabled: (transitionsEnabled) =>
         set({ transitionsEnabled }),
       setTabAppearance: (patch) =>
-        set((state) => ({
-          tabAppearance: sanitizeTabAppearance({
+        set((state) => {
+          const tabAppearance = sanitizeTabAppearance({
             ...state.tabAppearance,
             ...patch,
-          }),
-        })),
+          })
+          return {
+            tabAppearance,
+            folderRadius: tabAppearance.radius,
+            ...(state.squareTabAppearance.radius !== tabAppearance.radius
+              ? {
+                  squareTabAppearance: {
+                    ...state.squareTabAppearance,
+                    radius: tabAppearance.radius,
+                  },
+                }
+              : {}),
+          }
+        }),
       setSquareTabAppearance: (patch) =>
         set((state) => ({
           squareTabAppearance: sanitizeSquareTabAppearance({
             ...state.squareTabAppearance,
             ...patch,
+            radius: state.tabAppearance.radius,
           }),
         })),
       setSquareTabTexture: (squareTabTexture) => set({ squareTabTexture }),

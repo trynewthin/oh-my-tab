@@ -25,7 +25,7 @@ export const CollectionViewport = forwardRef<
       aria-label={label}
       tabIndex={expanded ? 0 : undefined}
       className={cn(
-        "min-h-0 flex-1 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl [overflow-anchor:none] [&::-webkit-scrollbar]:hidden",
+        "min-h-0 flex-1 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain rounded-[inherit] [overflow-anchor:none] [&::-webkit-scrollbar]:hidden",
         expanded &&
           "min-h-24 outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className

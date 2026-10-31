@@ -15,7 +15,7 @@ export default {
     home: "Home",
     search: "Search",
     personalization: "Personalization",
-    personalizationAppearance: "Appearance",
+    personalizationBasic: "Basic",
     personalizationMaterial: "Material",
     personalizationTabs: "Tabs",
     tabsStrip: "Strip tabs",
@@ -286,6 +286,10 @@ export default {
     dog: "Dog (•ᴥ•)",
     happy: "Happy (>ᴗ<)",
     sleepy: "Sleepy (-ω-)",
+  },
+  basic: {
+    radius: "Component corner radius",
+    resetRadius: "Reset corner radius",
   },
   appearance: {
     accentColor: "Accent color",

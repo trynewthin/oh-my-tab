@@ -22,20 +22,27 @@ function PopoverContent({
   positionerClassName,
   animateFromAnchor = false,
   layer: layerOverride,
+  onPositioned,
   ...props
 }: PopoverPrimitive.Popup.Props & {
   positionerClassName?: string
   animateFromAnchor?: boolean
   layer?: number
+  onPositioned?: (popup: HTMLElement) => void
 } & Pick<
     PopoverPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "anchor"
   >) {
   const inheritedLayer = React.useContext(PopoverLayerContext)
   const layer = layerOverride ?? inheritedLayer
+  const positionedCallback = React.useRef(onPositioned)
+  React.useLayoutEffect(() => {
+    positionedCallback.current = onPositioned
+  }, [onPositioned])
+  const observePosition = animateFromAnchor || onPositioned !== undefined
   const positionerRef = React.useCallback(
     (element: HTMLDivElement | null) => {
-      if (!element || !animateFromAnchor) return
+      if (!element || !observePosition) return
       let frame: number | undefined
       let entrance: Animation | undefined
       const positioned = () => {
@@ -45,7 +52,9 @@ function PopoverContent({
         const popup = element.querySelector<HTMLElement>(
           '[data-slot="popover-content"]'
         )
+        if (popup) positionedCallback.current?.(popup)
         if (
+          animateFromAnchor &&
           popup &&
           !window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ) {
@@ -88,7 +97,7 @@ function PopoverContent({
         delete element.dataset.followReady
       }
     },
-    [animateFromAnchor]
+    [animateFromAnchor, observePosition]
   )
 
   return (

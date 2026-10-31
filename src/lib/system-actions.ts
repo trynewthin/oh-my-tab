@@ -5,6 +5,7 @@ type SystemActionDefinition = {
   menuLabelKey?: string
   activeLabelKey?: string
   surfaces: readonly SystemActionSurface[]
+  deprecated?: boolean
 }
 
 // IDs persist in saved layouts and backups; never rename existing ones.
@@ -40,6 +41,7 @@ export const systemActionRegistry = {
     surfaces: ["grid-button", "quick-bar", "more-actions"],
   },
   "toggle-edit": {
+    deprecated: true,
     labelKey: "shell.systemActions.toggleEdit",
     menuLabelKey: "shell.moreActions.edit",
     activeLabelKey: "shell.moreActions.editOn",
@@ -57,6 +59,12 @@ export function isSystemActionId(value: unknown): value is SystemActionId {
   return typeof value === "string" && Object.hasOwn(systemActionRegistry, value)
 }
 
+export function isActiveSystemAction(value: unknown): value is SystemActionId {
+  if (!isSystemActionId(value)) return false
+  const definition = systemActionRegistry[value]
+  return !("deprecated" in definition && definition.deprecated)
+}
+
 export function isSystemActionOnSurface(
   value: unknown,
   surface: SystemActionSurface
@@ -72,19 +80,18 @@ export function isSystemActionOnSurface(
 export function systemActionIdsFor(
   surface: SystemActionSurface
 ): SystemActionId[] {
-  return (Object.keys(systemActionRegistry) as SystemActionId[]).filter((id) =>
-    isSystemActionOnSurface(id, surface)
+  return (Object.keys(systemActionRegistry) as SystemActionId[]).filter(
+    (id) => isActiveSystemAction(id) && isSystemActionOnSurface(id, surface)
   )
 }
 
 export function systemActionStatus(
   action: SystemActionId,
-  state: { canTidy: boolean; selecting: boolean; editing: boolean }
+  state: { canTidy: boolean; selecting: boolean }
 ): { disabled: boolean; pressed?: boolean } {
   if (action === "tidy-grid") return { disabled: !state.canTidy }
   if (action === "toggle-selection")
     return { disabled: false, pressed: state.selecting }
-  if (action === "toggle-edit")
-    return { disabled: false, pressed: state.editing }
+  if (!isActiveSystemAction(action)) return { disabled: true }
   return { disabled: false }
 }

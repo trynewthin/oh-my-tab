@@ -20,15 +20,13 @@ export default function GridSelectionItem({
   onToggle: () => void
   selectAriaLabel: string
 }) {
-  const folderRadius = useHomeSettingsStore((state) =>
-    item.kind === "folder" ? state.folderRadius : undefined
-  )
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   return (
     <div
       data-grid-item-id={item.id}
       className={`relative isolate min-w-0 rounded-2xl ${getComponentDefinition(item.kind).tileBorder ? (item.kind === "folder" ? "border border-transparent" : "border border-tile-border") : ""}`}
       style={{
-        borderRadius: folderRadius,
+        borderRadius: radius,
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
         gridRow: `${placement.y + 1} / span ${placement.height}`,
       }}

@@ -13,11 +13,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import {
+  isActiveSystemAction,
   systemActionIdsFor,
   systemActionRegistry,
   type SystemActionId,
 } from "@/lib/system-actions"
-import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
@@ -67,12 +67,11 @@ export default function MoreActions({
   const [open, setOpen] = useState(false)
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const selecting = useGridSelectionStore((state) => state.active)
-  const editing = useGridEditStore((state) => state.active)
   const menuActions = actions ?? ["toggle-theme", ...defaultMenuActions]
-  const uniqueMenuActions = [...new Set(menuActions)]
-  const modeActive =
-    (selecting && menuActions.includes("toggle-selection")) ||
-    (editing && menuActions.includes("toggle-edit"))
+  const uniqueMenuActions = [...new Set(menuActions)].filter(
+    isActiveSystemAction
+  )
+  const modeActive = selecting && menuActions.includes("toggle-selection")
   return (
     <div
       className={compact ? "shrink-0" : undefined}

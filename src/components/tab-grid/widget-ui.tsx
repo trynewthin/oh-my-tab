@@ -43,7 +43,7 @@ function DotCanvasTile({
       onClick={onOpen}
       className="flex h-full w-full flex-col rounded-[inherit] bg-transparent text-left"
     >
-      <div className="min-h-0 w-full flex-1">
+      <div className="min-h-0 w-full flex-1 overflow-hidden rounded-[inherit]">
         <DotArt
           pixels={resizeDots(
             item.pixels,

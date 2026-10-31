@@ -13,6 +13,7 @@ export default function SettingRange({
   unit,
   accentColor,
   editable = true,
+  showValue = true,
   formatValue,
   onChange,
 }: {
@@ -25,6 +26,7 @@ export default function SettingRange({
   unit?: string
   accentColor?: string
   editable?: boolean
+  showValue?: boolean
   formatValue?: (value: number) => string
   onChange: (value: number) => void
 }) {
@@ -57,38 +59,39 @@ export default function SettingRange({
         className="min-w-0 flex-1 outline-none"
         style={{ accentColor }}
       />
-      {editable ? (
-        <Input
-          type="number"
-          inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
-          aria-label={t("settings.common.valueLabel", { label })}
-          min={min}
-          max={max}
-          step={step}
-          value={draft ?? String(value)}
-          onFocus={() => setDraft(String(value))}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={(event) => {
-            commit(event.target.value)
-            setDraft(null)
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault()
-              event.currentTarget.blur()
-            }
-          }}
-          className="h-6 w-14 shrink-0 rounded-none border-0 bg-transparent px-0 text-right text-xs tabular-nums focus-visible:ring-0 md:text-xs"
-        />
-      ) : (
-        <output
-          htmlFor={id}
-          className="min-w-10 shrink-0 text-right text-xs tabular-nums"
-        >
-          {formatValue ? formatValue(value) : value}
-        </output>
-      )}
-      {unit && (
+      {showValue &&
+        (editable ? (
+          <Input
+            type="number"
+            inputMode={Number.isInteger(step) ? "numeric" : "decimal"}
+            aria-label={t("settings.common.valueLabel", { label })}
+            min={min}
+            max={max}
+            step={step}
+            value={draft ?? String(value)}
+            onFocus={() => setDraft(String(value))}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => {
+              commit(event.target.value)
+              setDraft(null)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                event.currentTarget.blur()
+              }
+            }}
+            className="h-6 w-8 shrink-0 [appearance:textfield] rounded-none border-0 bg-transparent px-0 text-right text-xs tabular-nums focus-visible:ring-0 md:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+        ) : (
+          <output
+            htmlFor={id}
+            className="min-w-10 shrink-0 text-right text-xs tabular-nums"
+          >
+            {formatValue ? formatValue(value) : value}
+          </output>
+        ))}
+      {showValue && unit && (
         <span
           aria-hidden="true"
           className="shrink-0 text-xs text-muted-foreground"

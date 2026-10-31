@@ -1,4 +1,8 @@
-import { isSystemActionId, type SystemActionId } from "@/lib/system-actions"
+import {
+  isActiveSystemAction,
+  isSystemActionId,
+  type SystemActionId,
+} from "@/lib/system-actions"
 
 export type SearchShortcutControl = { id: string; action: SystemActionId }
 export type SearchShortcutConfig = {
@@ -15,7 +19,6 @@ const defaultActions: readonly SystemActionId[] = [
   "open-components",
   "tidy-grid",
   "toggle-selection",
-  "toggle-edit",
   "open-settings",
 ]
 
@@ -84,6 +87,7 @@ export function sanitizeSearchShortcuts(value: unknown): SearchShortcutConfig {
   for (const [index, control] of saved.controls.entries()) {
     if (
       !validControl(control) ||
+      !isActiveSystemAction(control.action) ||
       ids.has(control.id) ||
       controls.length >= MAX_SEARCH_SHORTCUTS
     )
@@ -102,6 +106,7 @@ export function appendSearchShortcut(
   if (
     config.controls.length >= MAX_SEARCH_SHORTCUTS ||
     !validControl(control) ||
+    !isActiveSystemAction(control.action) ||
     config.controls.some((entry) => entry.id === control.id)
   )
     return config

@@ -121,6 +121,7 @@ export type ComponentDefinition = {
   defaultColor: string
   defaultSize: GridItemSize
   sizes: readonly ComponentSizeDefinition[]
+  legacySizes?: readonly ComponentSizeDefinition[]
   catalogSizes: readonly GridItemSize[]
   catalogDirectAdd: boolean
   catalogSection?: CatalogSection
@@ -183,12 +184,12 @@ export const componentRegistry = defineComponents({
     defaultColor: "#6c8bd4",
     defaultSize: "large",
     sizes: [
-      gridSize("small", "4x2", "small"),
       gridSize("large", "4x4", "large"),
       gridSize("tall", "4x8", "tall"),
       gridSize("wide", "8x4", "wide"),
       gridSize("wide-tall", "8x8", "wideTall"),
     ],
+    legacySizes: [gridSize("small", "4x2", "small")],
     catalogSizes: [],
     catalogDirectAdd: false,
     detailPreviewWidth: "compact",
@@ -351,10 +352,10 @@ export const componentRegistry = defineComponents({
     defaultNameKey: "grid.component.todo.defaultName",
     defaultColor: "#6c8bd4",
     defaultSize: "large",
-    sizes: [
+    sizes: [gridSize("large", "4x4", "large")],
+    legacySizes: [
       gridSize("small", "4x1", "small"),
       gridSize("medium", "4x2", "medium"),
-      gridSize("large", "4x4", "large"),
     ],
     catalogSizes: ["large"],
     catalogDirectAdd: true,
@@ -508,8 +509,10 @@ export function getComponentSize(
   kind: GridItemKind,
   size: unknown
 ): ComponentSizeDefinition | undefined {
-  return getComponentDefinition(kind).sizes.find(
-    (entry) => entry.value === size
+  const definition = getComponentDefinition(kind)
+  return (
+    definition.sizes.find((entry) => entry.value === size) ??
+    definition.legacySizes?.find((entry) => entry.value === size)
   )
 }
 

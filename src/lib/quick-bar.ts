@@ -1,5 +1,6 @@
 import { normalizeTabUrl } from "@/lib/grid/types"
 import {
+  isActiveSystemAction,
   isSystemActionOnSurface,
   type SystemActionId,
 } from "@/lib/system-actions"
@@ -89,7 +90,13 @@ export function sanitizeQuickBarConfig(value: unknown): QuickBarConfig {
     if (!Array.isArray(value)) return []
     return value
       .filter((control): control is QuickBarControl => {
-        if (!validQuickBarControl(control) || ids.has(control.id)) return false
+        if (
+          !validQuickBarControl(control) ||
+          (control.kind === "system" &&
+            !isActiveSystemAction(control.action)) ||
+          ids.has(control.id)
+        )
+          return false
         ids.add(control.id)
         return true
       })

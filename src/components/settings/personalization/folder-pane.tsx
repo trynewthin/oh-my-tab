@@ -15,7 +15,6 @@ import { settingsControlClassName } from "../shared/control-styles"
 import ScaledGridPreview from "./scaled-grid-preview"
 import SettingRange from "../shared/setting-range"
 import AppearanceResetButton from "./appearance-reset-button"
-import { MAX_FOLDER_RADIUS } from "@/lib/home-settings"
 import ColorPicker from "@/components/ui/color-picker"
 import type { FolderBorder } from "@/lib/folder-border"
 
@@ -80,8 +79,6 @@ export default function FolderPane() {
   const { t } = useTranslation()
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
   const setFolderStyle = useHomeSettingsStore((state) => state.setFolderStyle)
-  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
-  const setFolderRadius = useHomeSettingsStore((state) => state.setFolderRadius)
   const border = useHomeSettingsStore((state) => state.folderBorder)
   const setBorder = useHomeSettingsStore((state) => state.setFolderBorder)
   const resetStyle = useHomeSettingsStore((state) => state.resetFolderStyle)
@@ -244,17 +241,6 @@ export default function FolderPane() {
           </SettingItem>
         </>
       )}
-      <SettingItem label={t("settings.folders.radius")} htmlFor="folder-radius">
-        <SettingRange
-          id="folder-radius"
-          label={t("settings.folders.radius")}
-          value={folderRadius}
-          min={0}
-          max={MAX_FOLDER_RADIUS}
-          unit="px"
-          onChange={setFolderRadius}
-        />
-      </SettingItem>
       <AppearanceResetButton
         label={t("settings.folders.resetStyle")}
         onReset={resetStyle}

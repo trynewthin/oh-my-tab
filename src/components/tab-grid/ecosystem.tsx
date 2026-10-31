@@ -88,7 +88,7 @@ export default function Ecosystem({
     <div
       ref={container}
       data-garden-static={!animated || undefined}
-      className="relative h-full w-full p-3"
+      className="relative h-full w-full rounded-[inherit] p-3"
     >
       {preview ? (
         <div className="relative h-full w-full">{art}</div>
@@ -98,7 +98,7 @@ export default function Ecosystem({
           aria-label={t("grid.chrome.editComponent", {
             label: componentLabel("ecosystem", t),
           })}
-          className="h-full w-full cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-full w-full cursor-pointer rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onEdit}
         >
           {art}

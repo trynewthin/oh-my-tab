@@ -1,5 +1,5 @@
 import type { ReactElement } from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { PencilSimple, Trash } from "@phosphor-icons/react"
 import {
   ContextMenu,
@@ -23,13 +23,27 @@ export default function GridItemContextMenu({
 }) {
   const { t } = useTranslation()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const openingEditor = useRef(false)
   const removeItem = useTabGridStore((state) => state.removeItem)
   return (
-    <ContextMenu onOpenChange={() => setConfirmDelete(false)}>
+    <ContextMenu
+      onOpenChange={(open) => {
+        setConfirmDelete(false)
+        if (open) openingEditor.current = false
+      }}
+    >
       <ContextMenuTrigger render={children} />
-      <ContextMenuContent className="min-w-44">
+      <ContextMenuContent
+        className="min-w-44"
+        finalFocus={() => !openingEditor.current}
+      >
         <ContextMenuGroup className="grid gap-0.5">
-          <ContextMenuItem onClick={onEdit}>
+          <ContextMenuItem
+            onClick={() => {
+              openingEditor.current = true
+              onEdit()
+            }}
+          >
             <PencilSimple />
             {t("grid.menu.edit")}
           </ContextMenuItem>

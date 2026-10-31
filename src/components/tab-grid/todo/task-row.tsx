@@ -1,6 +1,7 @@
 import { useCallback, useRef, type CSSProperties, type ReactNode } from "react"
 import { useDraggable } from "@dnd-kit/core"
 import type { TodoTaskDragData } from "../drag-types"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 export default function TodoTaskRow({
   id,
@@ -23,6 +24,7 @@ export default function TodoTaskRow({
   done: boolean
   children: ReactNode
 }) {
+  const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const node = useRef<HTMLDivElement | null>(null)
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `todo-task:${surface}:${todoId}:${id}`,
@@ -49,7 +51,7 @@ export default function TodoTaskRow({
       data-tab-id={id}
       data-todo-done={done}
       className={`${className} ${sortable ? "cursor-grab" : ""} ${isDragging ? "invisible" : ""}`}
-      style={style}
+      style={{ ...style, borderRadius: radius }}
       {...attributes}
       onMouseDown={(event) => {
         if (!sortable || event.button !== 0) return

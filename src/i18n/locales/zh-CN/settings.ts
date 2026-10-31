@@ -15,7 +15,7 @@ export default {
     home: "主页",
     search: "搜索",
     personalization: "个性化",
-    personalizationAppearance: "外观",
+    personalizationBasic: "基础",
     personalizationMaterial: "材质",
     personalizationTabs: "标签",
     tabsStrip: "条形标签",
@@ -270,6 +270,10 @@ export default {
     dog: "小狗 (•ᴥ•)",
     happy: "开心 (>ᴗ<)",
     sleepy: "困困 (-ω-)",
+  },
+  basic: {
+    radius: "组件圆角",
+    resetRadius: "重置圆角",
   },
   appearance: {
     accentColor: "主题色",

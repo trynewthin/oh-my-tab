@@ -42,7 +42,7 @@ export default function DotArt({
       preserveAspectRatio="none"
       role="img"
       aria-label={t("grid.dotCanvas.canvasLabel")}
-      className="h-full w-full overflow-hidden rounded-2xl"
+      className="h-full w-full overflow-hidden rounded-[inherit]"
       style={{ touchAction: onPointerDown ? "none" : undefined }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

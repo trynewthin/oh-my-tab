@@ -2,7 +2,6 @@ import { i18n } from "@/i18n"
 import { placeItems, positionsOnly } from "@/lib/grid/grid-layout"
 import type { SettingsSection } from "@/lib/settings-sections"
 import type { SystemActionId } from "@/lib/system-actions"
-import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
@@ -36,13 +35,10 @@ function tidyGrid() {
 }
 
 export function runSystemAction(request: SystemActionRequest) {
-  const editing = useGridEditStore.getState()
-
   if (typeof request !== "string") {
     if (request.id === "set-theme")
       useThemeStore.getState().setTheme(request.theme)
     else {
-      editing.finish()
       useSystemOverlayStore.getState().openSettings(request.section)
     }
     return
@@ -62,27 +58,21 @@ export function runSystemAction(request: SystemActionRequest) {
       tidyGrid()
       return
     case "toggle-selection":
-      editing.finish()
       useGridSelectionStore.getState().toggleMode()
       return
     case "toggle-edit":
-      useGridSelectionStore.getState().finish()
-      editing.toggleMode()
+      // Retained only so historical controls remain readable.
       return
     case "open-settings":
-      editing.finish()
       useSystemOverlayStore.getState().openSettings()
       return
     case "open-components":
-      editing.finish()
       useSystemOverlayStore.getState().open("components")
       return
     case "add-tab":
-      editing.finish()
       useSystemOverlayStore.getState().open("add-tab")
       return
     case "add-folder":
-      editing.finish()
       useSystemOverlayStore.getState().open("add-folder")
       return
   }

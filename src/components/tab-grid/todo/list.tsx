@@ -129,7 +129,7 @@ export default function TodoList({
               className={
                 task.id === TODO_GAP_ID
                   ? `relative ${showDelete ? "h-12 min-w-0" : "mb-2 min-h-11"}`
-                  : `group/task relative isolate flex items-center gap-2 ${cards || showDelete ? `${showDelete ? "h-12 min-w-0" : "mb-2 min-h-11"} overflow-hidden rounded-2xl border border-border/60 px-3 py-2` : "py-1.5"}`
+                  : `group/task relative isolate flex items-center gap-2 ${cards || showDelete ? `${showDelete ? "h-12 min-w-0" : "mb-2 min-h-11"} overflow-hidden border border-border/60 px-3 py-2` : "py-1.5"}`
               }
               style={cards ? { height: rowHeight, minHeight: 0 } : undefined}
               done={task.done}

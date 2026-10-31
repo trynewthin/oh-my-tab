@@ -30,7 +30,9 @@ export default function FolderCreateDialog({
   onSaved: () => void
 }) {
   const { t } = useTranslation()
-  const folderRadius = useHomeSettingsStore((state) => state.folderRadius)
+  const folderRadius = useHomeSettingsStore(
+    (state) => state.tabAppearance.radius
+  )
   const [id] = useState(() => crypto.randomUUID())
   const definition = getComponentDefinition("folder")
   const [name, setName] = useState("")

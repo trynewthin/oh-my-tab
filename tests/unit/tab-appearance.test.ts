@@ -345,7 +345,7 @@ test("sanitizeHomeSettings always exposes a complete appearance", () => {
   ).toEqual(sanitizeTabAppearance({ display: "text" }))
 })
 
-test("square styles persist independently through storage and backup restore", async () => {
+test("square styles share the common radius while preserving other settings through backup restore", async () => {
   const state = useHomeSettingsStore.getState()
   state.setTabAppearance({ radius: 31, backgroundRotation: 180 })
   const strip = snapshot().home
@@ -374,7 +374,7 @@ test("square styles persist independently through storage and backup restore", a
     tabEffectCoverage: strip.tabEffectCoverage,
     squareTabAppearance: {
       direction: "top",
-      radius: 4,
+      radius: 31,
       backgroundRotation: 90,
       backgroundFlipX: true,
     },
@@ -385,9 +385,10 @@ test("square styles persist independently through storage and backup restore", a
     .getState()
     .setSquareTabAppearance(DEFAULT_SQUARE_TAB_APPEARANCE)
   expect(snapshot().home.tabAppearance).toEqual(strip.tabAppearance)
-  expect(snapshot().home.squareTabAppearance).toEqual(
-    DEFAULT_SQUARE_TAB_APPEARANCE
-  )
+  expect(snapshot().home.squareTabAppearance).toEqual({
+    ...DEFAULT_SQUARE_TAB_APPEARANCE,
+    radius: 31,
+  })
   expect(snapshot().grid).toEqual(saved.grid)
 })
 

@@ -74,6 +74,8 @@ export function createPixiEffect(
   void Promise.all([lease.ready, import("pixi.js")])
     .then(([renderer, { Container, Sprite, Texture }]) => {
       if (stopped) return
+      // Size can change while the renderer loads, before updateScene exists.
+      burning = createBurningTexture(color, seed, columns, fill)
       const stage = new Container()
       const createCells = () =>
         Array.from({ length: rows * columns }, (_, index) => {

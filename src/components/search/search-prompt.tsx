@@ -55,6 +55,9 @@ export default function SearchPrompt({
   const setDraft = usePromptStore((state) => state.setDraft)
   const items = useTabGridStore((state) => state.items)
   const themeColor = useHomeSettingsStore((state) => state.color)
+  const componentRadius = useHomeSettingsStore(
+    (state) => state.tabAppearance.radius
+  )
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const openInNewTab = useSearchEngineStore((state) => state.openInNewTab)
   const storedSearchBoxStyle = useHomeSettingsStore(
@@ -193,6 +196,7 @@ export default function SearchPrompt({
           {!embedded && <SearchShortcuts compact />}
           <div
             data-search-input-shell
+            style={embedded ? { borderRadius: componentRadius } : undefined}
             className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${!embedded ? surfaceShadowClassName : ""} ${searchSurfaceBackgroundClassName(backgroundType)}`}
           >
             <SearchEngineSelect inset={embedded ? "padded" : "flush"} />
@@ -280,6 +284,7 @@ export default function SearchPrompt({
         </div>
       ) : (
         <PromptInput
+          style={embedded ? { borderRadius: componentRadius } : undefined}
           className={`${embedded ? "relative isolate h-full overflow-hidden rounded-2xl shadow-none" : `relative isolate overflow-hidden ${surfaceShadowClassName}`} ${backgroundType === "solid" ? "dark:bg-card" : searchSurfaceBackgroundClassName(backgroundType)}`}
           value={draft}
           onValueChange={(value) => {

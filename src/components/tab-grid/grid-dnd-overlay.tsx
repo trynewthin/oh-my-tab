@@ -8,7 +8,7 @@ export function ItemGlow({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 rounded-2xl"
+      className="pointer-events-none absolute inset-0 rounded-[inherit]"
       style={{
         background: color,
         opacity,

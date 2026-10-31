@@ -16,7 +16,7 @@
       "children": [
         {
           "id": "personalization-appearance",
-          "labelKey": "settings.nav.personalizationAppearance"
+          "labelKey": "settings.nav.personalizationBasic"
         },
         {
           "id": "personalization-material",

@@ -22,7 +22,14 @@ import {
   positionsOnly,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { DndContext, type DragMoveEvent } from "@dnd-kit/core"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { runSystemAction } from "@/application/system-actions"
@@ -43,6 +50,7 @@ import { previewFolderTabs, previewTodoTasks } from "./drag/model"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 const emptyPositions: GridPositions = {}
+const ignoreItem = () => {}
 
 export default function TabGrid({
   preview = false,
@@ -125,6 +133,21 @@ export default function TabGrid({
     box?.width ?? (sourceWidth > 0 ? geometry.trackWidth : measuredWidth)
   const [editor, setEditor] = useState<{ item?: GridItem } | null>(null)
   const [folderId, setFolderId] = useState<string | null>(null)
+  const openItem = useCallback((item: GridItem) => {
+    const action = getComponentDefinition(item.kind).openAction
+    if (action === "edit") setEditor({ item })
+    if (action === "expand") setFolderId(item.id)
+  }, [])
+  const editItem = useCallback(
+    (item: GridItem) => {
+      if (item.kind === "tab" && !preview) {
+        setEditor(null)
+        setFolderId(null)
+        setEditingTabId(item.id)
+      } else setEditor({ item })
+    },
+    [preview]
+  )
   const widthColumns = area?.columns ?? metrics.columns
   const compactGrid = metrics.compact
   const gridGap = metrics.gap
@@ -220,7 +243,7 @@ export default function TabGrid({
     heldLayout,
     dialogSuspended,
     startDrag,
-    updateIntent,
+    scheduleIntent,
     finishDrag,
     resetDrag,
   } = drag
@@ -259,13 +282,19 @@ export default function TabGrid({
     }, 120)
     return () => clearTimeout(timer)
   }, [targetId, targetX, targetY, holdPreview])
-  const previewItems =
-    dragging?.sourceFolderId && gridTarget ? [...items, dragging.item] : items
+  const includeFolderTab = !!(dragging?.sourceFolderId && gridTarget)
+  const previewItems = useMemo(
+    () => (includeFolderTab && dragging ? [...items, dragging.item] : items),
+    [items, dragging, includeFolderTab]
+  )
   const liveTarget =
     dragging && intent.kind === "grid" && !intent.holdLayout
       ? settledTarget
       : undefined
-  const placements = (() => {
+  const resizeTarget =
+    (editing || editedTab) && resizePreview ? resizePreview : null
+  const sourceFolderId = dragging?.sourceFolderId
+  const placements = useMemo(() => {
     if (preview && liveTarget) {
       // Preview runs the drop-commit resolution, so animation matches the landing.
       const resolved = resolvePreviewDrop(
@@ -282,19 +311,86 @@ export default function TabGrid({
       previewItems,
       columns,
       positions,
-      (editing || editedTab) && resizePreview
+      resizeTarget
         ? {
-            id: resizePreview.id,
-            position: positions[resizePreview.id] ?? { x: 0, y: 0 },
+            id: resizeTarget.id,
+            position: positions[resizeTarget.id] ?? { x: 0, y: 0 },
           }
         : liveTarget,
-      (editing || editedTab) && resizePreview
-        ? [resizePreview.id]
-        : dragging?.sourceFolderId
-          ? [dragging.sourceFolderId]
-          : []
+      resizeTarget ? [resizeTarget.id] : sourceFolderId ? [sourceFolderId] : []
     )
-  })()
+  }, [
+    preview,
+    liveTarget,
+    items,
+    columns,
+    area?.rows,
+    positions,
+    previewItems,
+    resizeTarget,
+    sourceFolderId,
+  ])
+
+  const folderIntentId =
+    intent.kind === "folder" || intent.kind === "reorder"
+      ? intent.folderId
+      : undefined
+  const folderIntentIndex = intent.kind === "reorder" ? intent.index : undefined
+  const intentKind = intent.kind
+  const sourceFolderIndex = dragging?.sourceFolderIndex
+  const draggedId = dragging?.item.id
+  const folderPreviews = useMemo(() => {
+    const result = new Map<
+      string,
+      Extract<GridItem, { kind: "folder" }>["tabs"]
+    >()
+    for (const item of items) {
+      if (item.kind !== "folder") continue
+      if (
+        item.id === folderIntentId &&
+        (intentKind === "folder" || intentKind === "reorder")
+      ) {
+        result.set(
+          item.id,
+          previewFolderTabs(
+            item.tabs,
+            draggedId,
+            folderIntentIndex ?? item.tabs.length
+          )
+        )
+      } else if (
+        item.id === sourceFolderId &&
+        sourceFolderIndex !== undefined
+      ) {
+        result.set(
+          item.id,
+          previewFolderTabs(item.tabs, draggedId, sourceFolderIndex)
+        )
+      }
+    }
+    return result
+  }, [
+    items,
+    folderIntentId,
+    folderIntentIndex,
+    intentKind,
+    sourceFolderId,
+    sourceFolderIndex,
+    draggedId,
+  ])
+  const todoIntentId =
+    intent.kind === "todo-reorder" ? intent.todoId : undefined
+  const todoIntentIndex =
+    intent.kind === "todo-reorder" ? intent.index : undefined
+  const draggedTaskId = dragging?.todoTask?.id
+  const todoPreview = useMemo(() => {
+    const todo = items.find(
+      (item) => item.id === todoIntentId && item.kind === "todo"
+    )
+    return todo?.kind === "todo" && todoIntentIndex !== undefined
+      ? previewTodoTasks(todo.tasks, draggedTaskId, todoIntentIndex)
+      : undefined
+  }, [items, todoIntentId, todoIntentIndex, draggedTaskId])
 
   useEffect(() => {
     if (preview || width <= 0 || dragging || resizePreview) return
@@ -367,7 +463,7 @@ export default function TabGrid({
       <DndContext
         sensors={sensors}
         onDragStart={startDrag}
-        onDragMove={(event: DragMoveEvent) => updateIntent(event.delta)}
+        onDragMove={(event: DragMoveEvent) => scheduleIntent(event.delta)}
         onDragEnd={finishDrag}
         onDragCancel={resetDrag}
       >
@@ -396,8 +492,8 @@ export default function TabGrid({
                   height: itemHeight(item),
                 }
               }
-              onOpen={() => {}}
-              onEdit={() => {}}
+              onOpen={ignoreItem}
+              onEdit={ignoreItem}
             />
           ))}
         </div>
@@ -417,7 +513,7 @@ export default function TabGrid({
         <DndContext
           sensors={sensors}
           onDragStart={startDrag}
-          onDragMove={(event: DragMoveEvent) => updateIntent(event.delta)}
+          onDragMove={(event: DragMoveEvent) => scheduleIntent(event.delta)}
           onDragEnd={finishDrag}
           onDragCancel={resetDrag}
         >
@@ -520,57 +616,14 @@ export default function TabGrid({
                         ? intent.progress
                         : undefined
                     }
-                    folderTabs={
-                      item.kind !== "folder"
-                        ? undefined
-                        : intent.kind === "folder" &&
-                            intent.folderId === item.id
-                          ? previewFolderTabs(
-                              item.tabs,
-                              dragging?.item.id,
-                              item.tabs.length
-                            )
-                          : intent.kind === "reorder" &&
-                              intent.folderId === item.id
-                            ? previewFolderTabs(
-                                item.tabs,
-                                dragging?.item.id,
-                                intent.index
-                              )
-                            : dragging?.sourceFolderId === item.id &&
-                                dragging.sourceFolderIndex !== undefined
-                              ? previewFolderTabs(
-                                  item.tabs,
-                                  dragging.item.id,
-                                  dragging.sourceFolderIndex
-                                )
-                              : undefined
-                    }
+                    folderTabs={folderPreviews.get(item.id)}
                     todoTasks={
-                      item.kind === "todo" &&
-                      intent.kind === "todo-reorder" &&
-                      intent.todoId === item.id
-                        ? previewTodoTasks(
-                            item.tasks,
-                            dragging?.todoTask?.id,
-                            intent.index
-                          )
+                      item.kind === "todo" && todoIntentId === item.id
+                        ? todoPreview
                         : undefined
                     }
-                    onOpen={() => {
-                      const action = getComponentDefinition(
-                        item.kind
-                      ).openAction
-                      if (action === "edit") setEditor({ item })
-                      if (action === "expand") setFolderId(item.id)
-                    }}
-                    onEdit={() => {
-                      if (item.kind === "tab" && !preview) {
-                        setEditor(null)
-                        setFolderId(null)
-                        setEditingTabId(item.id)
-                      } else setEditor({ item })
-                    }}
+                    onOpen={openItem}
+                    onEdit={editItem}
                   />
                 )
               )}

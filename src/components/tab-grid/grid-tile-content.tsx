@@ -1,7 +1,8 @@
 import { WidgetTile } from "./widget-ui"
+import { memo } from "react"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 
-export default function GridTileContent({
+export default memo(function GridTileContent({
   item,
   onOpen,
   preview = false,
@@ -26,4 +27,4 @@ export default function GridTileContent({
       todoTasks={todoTasks}
     />
   )
-}
+})

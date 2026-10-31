@@ -1,4 +1,5 @@
 import { useDraggable } from "@dnd-kit/core"
+import { useCallback } from "react"
 import type { GridPlacement } from "@/lib/grid/grid-layout"
 import { useGridMotion } from "./use-grid-motion"
 import GridTileContent from "./grid-tile-content"
@@ -23,8 +24,8 @@ export default function DraggableGridItem({
   todoTasks?: TodoTask[]
   placement: GridPlacement
   item: GridItem
-  onOpen: () => void
-  onEdit: () => void
+  onOpen: (item: GridItem) => void
+  onEdit: (item: GridItem) => void
   // Preview grids keep drag+FLIP but drop the context menu and dialog hooks.
   interactive?: boolean
 }) {
@@ -39,6 +40,8 @@ export default function DraggableGridItem({
   const definition = getComponentDefinition(item.kind)
 
   const motionRef = useGridMotion(placement, isDragging, setNodeRef)
+  const open = useCallback(() => onOpen(item), [onOpen, item])
+  const edit = useCallback(() => onEdit(item), [onEdit, item])
 
   const tile = (
     <article
@@ -78,7 +81,7 @@ export default function DraggableGridItem({
       >
         <GridTileContent
           item={item}
-          onOpen={onOpen}
+          onOpen={open}
           preview={!interactive}
           folderTabs={folderTabs}
           todoTasks={todoTasks}
@@ -90,7 +93,7 @@ export default function DraggableGridItem({
   if (!interactive) return tile
 
   return (
-    <GridItemContextMenu item={item} onEdit={onEdit}>
+    <GridItemContextMenu item={item} onEdit={edit}>
       {tile}
     </GridItemContextMenu>
   )

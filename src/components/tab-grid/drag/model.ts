@@ -63,6 +63,45 @@ export type Intent =
       releaseProgress: number
     }
 
+export function sameDragIntent(a: Intent, b: Intent): boolean {
+  switch (a.kind) {
+    case "none":
+      return b.kind === "none"
+    case "grid":
+      return (
+        b.kind === "grid" &&
+        a.position.x === b.position.x &&
+        a.position.y === b.position.y &&
+        a.holdLayout === b.holdLayout &&
+        a.releaseProgress === b.releaseProgress &&
+        a.ready === b.ready
+      )
+    case "folder":
+      return (
+        b.kind === "folder" &&
+        a.folderId === b.folderId &&
+        a.ready === b.ready &&
+        a.progress === b.progress &&
+        a.releaseProgress === b.releaseProgress &&
+        a.color === b.color
+      )
+    case "reorder":
+      return (
+        b.kind === "reorder" &&
+        a.folderId === b.folderId &&
+        a.index === b.index &&
+        a.releaseProgress === b.releaseProgress
+      )
+    case "todo-reorder":
+      return (
+        b.kind === "todo-reorder" &&
+        a.todoId === b.todoId &&
+        a.index === b.index &&
+        a.releaseProgress === b.releaseProgress
+      )
+  }
+}
+
 export function previewFolderTabs(
   tabs: TabEntry[],
   tabId: string | undefined,

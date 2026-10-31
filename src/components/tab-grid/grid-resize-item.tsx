@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { isSquareTabSize, type GridItem } from "@/lib/grid/types"
 import type { GridPlacement } from "@/lib/grid/grid-layout"
@@ -13,7 +13,6 @@ import GridTileContent from "./grid-tile-content"
 import { useGridMotion } from "./use-grid-motion"
 import { useGridResizeMotion } from "./use-grid-resize-motion"
 
-const ResizeTileContent = memo(GridTileContent)
 const ignoreOpen = () => {}
 
 type Session = {
@@ -137,7 +136,7 @@ export default function GridResizeItem({
           inert
           className="pointer-events-none relative h-full overflow-hidden rounded-[inherit]"
         >
-          <ResizeTileContent item={item} preview onOpen={ignoreOpen} />
+          <GridTileContent item={item} preview onOpen={ignoreOpen} />
         </div>
         {resizable && (
           <button

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type MutableRefObject,
@@ -27,12 +28,13 @@ import {
 import { containsPoint, gridPositionFromPoint } from "./drag/geometry"
 import {
   reorderTodoTasks,
+  sameDragIntent,
   type DragSession,
   type Intent,
   type Point,
 } from "./drag/model"
 import {
-  findGridItemBounds,
+  readFolderBounds,
   folderInsertionIndex,
   todoInsertionIndex,
 } from "./drag/surfaces"
@@ -40,8 +42,7 @@ import {
 const FOLDER_DROP_INSET = 0.08
 const FOLDER_DROP_EXIT_INSET = 0.04
 
-// Owns the drag lifecycle: session capture, the per-frame intent state machine
-// (grid / folder-charge / folder-reorder), and the rAF charge/release timers.
+// One frame scheduler handles pointer updates and folder charge/release timing.
 export function useGridDrag({
   items,
   widthColumns,
@@ -85,13 +86,20 @@ export function useGridDrag({
   const hover = useRef<{
     folderId: string
     startedAt: number
-    frame: number
   } | null>(null)
   const release = useRef<{
     startedAt: number
-    frame: number
     from: number
   } | null>(null)
+  const intentFrame = useRef<number | null>(null)
+  const pendingDelta = useRef<Point>({ x: 0, y: 0 })
+  const folderIds = useMemo(
+    () =>
+      new Set(
+        items.filter((item) => item.kind === "folder").map((item) => item.id)
+      ),
+    [items]
+  )
 
   const columns = dragging?.columns ?? widthColumns
   const columnStep = ((width + gridGap) / columns) * coordinateScale
@@ -99,20 +107,18 @@ export function useGridDrag({
 
   function publish(next: Intent) {
     intentRef.current = next
-    setIntent((previous) =>
-      JSON.stringify(previous) === JSON.stringify(next) ? previous : next
-    )
+    setIntent((previous) => (sameDragIntent(previous, next) ? previous : next))
   }
   function clearHover() {
-    if (hover.current) cancelAnimationFrame(hover.current.frame)
+    if (!hover.current) return
     hover.current = null
     setHeldLayout(null)
   }
   function clearRelease() {
-    if (release.current) cancelAnimationFrame(release.current.frame)
     release.current = null
   }
   function resetDrag() {
+    cancelTimers()
     clearHover()
     clearRelease()
     sessionRef.current = null
@@ -121,13 +127,15 @@ export function useGridDrag({
     setDialogSuspended(false)
   }
   const cancelTimers = useCallback(() => {
-    if (hover.current) cancelAnimationFrame(hover.current.frame)
-    if (release.current) cancelAnimationFrame(release.current.frame)
+    if (intentFrame.current !== null) cancelAnimationFrame(intentFrame.current)
+    intentFrame.current = null
   }, [])
   useEffect(() => cancelTimers, [cancelTimers])
 
   function startDrag(event: DragStartEvent) {
+    cancelTimers()
     clearHover()
+    clearRelease()
     // startDrag only fires while idle, so the stored layout is the snapshot.
     const placements = resolvePlacements(columns)
     const data = event.active.data.current as GridDragData | undefined
@@ -222,6 +230,15 @@ export function useGridDrag({
     setDragging(session)
   }
 
+  function scheduleIntent(delta: Point) {
+    pendingDelta.current = delta
+    if (intentFrame.current !== null) return
+    intentFrame.current = requestAnimationFrame(() => {
+      intentFrame.current = null
+      updateIntent(pendingDelta.current)
+    })
+  }
+
   function currentRelease() {
     const currentIntent = intentRef.current
     return currentIntent.kind === "grid" ||
@@ -240,7 +257,6 @@ export function useGridDrag({
     if (!release.current) {
       release.current = {
         startedAt: performance.now(),
-        frame: 0,
         from: current,
       }
     }
@@ -249,9 +265,7 @@ export function useGridDrag({
     const elapsed = performance.now() - transition.startedAt
     const amount = duration === 0 ? 1 : Math.min(1, elapsed / duration)
     const progress = transition.from + (1 - transition.from) * amount
-    cancelAnimationFrame(transition.frame)
-    if (amount < 1)
-      transition.frame = requestAnimationFrame(() => updateIntent(delta))
+    if (amount < 1) scheduleIntent(delta)
     else release.current = null
     return progress
   }
@@ -260,7 +274,6 @@ export function useGridDrag({
     const session = sessionRef.current
     const grid = gridRef.current?.getBoundingClientRect()
     if (!session || !grid) return
-    const placements = resolvePlacements(columns)
     const point =
       session.mouse && pointer.current
         ? pointer.current
@@ -316,11 +329,12 @@ export function useGridDrag({
       session.dialogExited = true
       setDialogSuspended(true)
     }
+    const folderBounds =
+      session.item.kind === "tab"
+        ? readFolderBounds(gridRef.current, folderIds)
+        : undefined
     if (session.sourceFolderId) {
-      const sourceBounds = findGridItemBounds(
-        gridRef.current,
-        session.sourceFolderId
-      )
+      const sourceBounds = folderBounds?.get(session.sourceFolderId)
       if (sourceBounds && containsPoint(point, sourceBounds)) {
         clearHover()
         clearRelease()
@@ -347,7 +361,7 @@ export function useGridDrag({
       for (const folder of items) {
         if (folder.kind !== "folder" || folder.id === session.sourceFolderId)
           continue
-        const rect = findGridItemBounds(gridRef.current, folder.id)
+        const rect = folderBounds?.get(folder.id)
         if (!rect) continue
         const ratio = overlapRatio(overlay, rect)
         const retained = hover.current?.folderId === folder.id
@@ -366,12 +380,11 @@ export function useGridDrag({
       }
       if (best) {
         if (hover.current?.folderId !== best.folderId) {
-          if (hover.current) cancelAnimationFrame(hover.current.frame)
           hover.current = {
             folderId: best.folderId,
             startedAt: performance.now(),
-            frame: 0,
           }
+          const placements = resolvePlacements(columns)
           setHeldLayout(
             Object.fromEntries(
               items.map((item) => [
@@ -387,9 +400,7 @@ export function useGridDrag({
           (performance.now() - candidate.startedAt) / FOLDER_CHARGE_DURATION
         )
         const ready = progress >= 1
-        cancelAnimationFrame(candidate.frame)
-        if (!ready)
-          candidate.frame = requestAnimationFrame(() => updateIntent(delta))
+        if (!ready) scheduleIntent(delta)
         // Approaching a folder never resizes the overlay: the folder glows and
         // previews the gap instead.
         clearRelease()
@@ -434,6 +445,7 @@ export function useGridDrag({
   }
 
   function finishDrag(event: DragEndEvent) {
+    cancelTimers()
     const session = sessionRef.current
     if (!session) {
       resetDrag()
@@ -512,7 +524,7 @@ export function useGridDrag({
     heldLayout,
     dialogSuspended,
     startDrag,
-    updateIntent,
+    scheduleIntent,
     finishDrag,
     resetDrag,
     cancelTimers,

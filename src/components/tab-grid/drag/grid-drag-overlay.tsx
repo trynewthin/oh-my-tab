@@ -1,4 +1,5 @@
 import { Check } from "@phosphor-icons/react"
+import { useMemo } from "react"
 import { createPortal } from "react-dom"
 import {
   DragOverlay,
@@ -21,6 +22,7 @@ const snapToWholePixels: Modifier = ({ transform }) => ({
   x: Math.round(transform.x),
   y: Math.round(transform.y),
 })
+const ignoreOpen = () => {}
 
 // Floating drag preview, portalled into document.body to escape clipping.
 export default function GridDragOverlay({
@@ -55,29 +57,35 @@ export default function GridDragOverlay({
       : dragging?.sourceFolderId
         ? 0
         : 1
-  const overlayItem = !dragging
-    ? undefined
-    : intent.kind === "folder" && dragging.item.kind === "tab"
-      ? {
-          ...dragging.item,
-          color: mixHexColor(
-            dragging.item.color,
-            intent.color,
-            intent.progress
-          ),
-        }
-      : dragging.sourceFolderId &&
-          dragging.sourceFolderColor &&
-          dragging.item.kind === "tab"
-        ? {
-            ...dragging.item,
-            color: mixHexColor(
-              dragging.sourceFolderColor,
-              dragging.item.color,
-              releaseProgress
-            ),
-          }
-        : dragging.item
+  const folderColor = intent.kind === "folder" ? intent.color : undefined
+  const folderProgress = intent.kind === "folder" ? intent.progress : 0
+  const overlayItem = useMemo(
+    () =>
+      !dragging
+        ? undefined
+        : folderColor !== undefined && dragging.item.kind === "tab"
+          ? {
+              ...dragging.item,
+              color: mixHexColor(
+                dragging.item.color,
+                folderColor,
+                folderProgress
+              ),
+            }
+          : dragging.sourceFolderId &&
+              dragging.sourceFolderColor &&
+              dragging.item.kind === "tab"
+            ? {
+                ...dragging.item,
+                color: mixHexColor(
+                  dragging.sourceFolderColor,
+                  dragging.item.color,
+                  releaseProgress
+                ),
+              }
+            : dragging.item,
+    [dragging, folderColor, folderProgress, releaseProgress]
+  )
   // A folder tab starts as its source row and only grows (releaseProgress);
   // grid items keep their grab size for the whole drag.
   const compactSize = dragging?.sourceFolderId
@@ -180,7 +188,7 @@ export default function GridDragOverlay({
             ) : (
               <GridTileContent
                 item={overlayItem ?? dragging.item}
-                onOpen={() => {}}
+                onOpen={ignoreOpen}
                 preview
                 compactTab={releaseProgress < 1}
               />

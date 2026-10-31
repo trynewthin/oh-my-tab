@@ -10,14 +10,17 @@ import {
 // The only module that reads the rendered grid, folder and todo surfaces from
 // the DOM, keeping the drag hook free of queries. No React, stores, dnd-kit or
 // mutation belongs here.
-export function findGridItemBounds(
+export function readFolderBounds(
   grid: HTMLDivElement | null,
-  id: string
-): Bounds | null {
-  const element = Array.from(grid?.children ?? []).find(
-    (node) => node.getAttribute("data-grid-item-id") === id
-  )
-  return element?.getBoundingClientRect() ?? null
+  ids: ReadonlySet<string>
+): Map<string, Bounds> {
+  const bounds = new Map<string, Bounds>()
+  if (!grid || ids.size === 0) return bounds
+  for (const element of Array.from(grid?.children ?? [])) {
+    const id = element.getAttribute("data-grid-item-id")
+    if (id && ids.has(id)) bounds.set(id, element.getBoundingClientRect())
+  }
+  return bounds
 }
 
 export function folderInsertionIndex(

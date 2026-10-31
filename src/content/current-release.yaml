@@ -1,12 +1,12 @@
-version: 1.5.7
+version: 1.5.8
 notes:
   zh-CN:
-    - 网格支持缩放（60%–200%，默认 100%），组件列数扩展到 1–10，大屏不再空出一截。
-    - 新增星轨材质预览，材质设置更简洁。
-    - 标签动效可设置覆盖范围。
-    - 修复下班倒计时进度行位置偏高的问题。
+    - 新增快捷坞，集中放置常用操作和网页。
+    - 组件支持就近编辑和拖动调整大小。
+    - 丰富标签外观设置，长条与方形可分别调整，组件圆角统一管理。
+    - 优化拖拽与过渡动画。
   en:
-    - Grid scaling (60%–200%, default 100%) and 1–10 component columns, so large screens are filled.
-    - Added a star trail material preview and simplified material settings.
-    - Tab effect coverage is now configurable.
-    - Fixed the clock-out countdown progress row sitting too high.
+    - Added shortcut docks for frequently used actions and websites.
+    - Edit components in place and drag to resize them.
+    - Expanded tab appearance settings, with separate styles for rectangular and square tabs and shared component corners.
+    - Improved dragging and transitions.

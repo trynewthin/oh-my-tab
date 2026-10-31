@@ -63,6 +63,7 @@ const grid = {
     addComponent: "添加组件",
     selectItem: "选择{{name}}",
     dragItem: "拖动 {{name}} 放置",
+    resizeItem: "调整{{name}}大小",
     sizeOptions: "{{label}}大小",
     editComponent: "编辑{{label}}",
     closeComponent: "关闭{{label}}",

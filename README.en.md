@@ -32,6 +32,8 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 3. Right-click a card to see its available editing, size, and deletion options.
 4. Open **Settings** to change the theme, language, search engine, background, and effects.
 
+Choose **More actions → Edit** to reveal a rounded resize handle when hovering over a tab or folder. Drag to preview supported sizes; release to save and reflow neighboring tiles. Escape cancels an active drag; press Escape again or click **Done** to exit. Editing and batch selection are mutually exclusive.
+
 Under **Settings → Personalization → Tabs**, strip and square tabs share the same layout, border, background, text, and icon controls. Each family saves its own appearance, texture, and coverage, including in backups; default playback for new tabs is shared. Background textures support rotation in 90° steps and horizontal and vertical mirroring without transforming the mask, border, text, or icons. Square previews show 1×1, 2×2, and 4×4 together using the same saved style; available home-page tab sizes are unchanged.
 
 **Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults for the current page. The Background reset restores the background (including rotation and mirroring) and mask without changing default playback or existing tabs' playback state, content, or sizes. Category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed.

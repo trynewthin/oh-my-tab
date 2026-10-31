@@ -77,8 +77,35 @@ export function migrateGrid(value: unknown) {
   const grid = structuredClone(record(value))
   if (!Array.isArray(grid.items)) return grid
   const retained = dropRemovedGridItems(grid.items)
-  grid.items = retained.items.map((value) => {
+  const ids = new Set(retained.items.map((value) => record(value).id))
+  grid.items = retained.items.flatMap((value) => {
     const item = record(value)
+    if (item.kind === "countdown") {
+      if (item.size === "large") item.size = "small"
+      if (item.size === "medium") item.size = "wide"
+    }
+    if (
+      item.kind === "countdown" &&
+      item.event === undefined &&
+      Array.isArray(item.events)
+    ) {
+      const events = item.events
+      delete item.events
+      if (events.length === 0) return [{ ...item, event: null }]
+      // Each event gets a card; the first keeps the saved ID and position.
+      return events.map((event, index) => {
+        let id = item.id
+        if (index > 0) {
+          const base = `${item.id}:countdown:${index}`
+          id = base
+          let suffix = 1
+          while (ids.has(id)) id = `${base}:${suffix++}`
+          ids.add(id)
+        }
+        const { title, date } = record(event)
+        return { ...item, id, event: { title, date } }
+      })
+    }
     if (item.kind === "ecosystem" && Array.isArray(item.plants)) {
       item.plants = item.plants.map(migratePlant)
       if (Array.isArray(item.album)) item.album = item.album.map(migratePlant)
@@ -89,7 +116,7 @@ export function migrateGrid(value: unknown) {
       item.loop ??= false
       item.phase ??= "focus"
     }
-    return item
+    return [item]
   })
   for (const positions of Object.values(record(grid.layouts)))
     for (const id of retained.removedIds) delete record(positions)[id]

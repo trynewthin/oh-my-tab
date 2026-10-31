@@ -39,6 +39,12 @@ export const systemActionRegistry = {
     activeLabelKey: "shell.moreActions.batchOn",
     surfaces: ["grid-button", "quick-bar", "more-actions"],
   },
+  "toggle-edit": {
+    labelKey: "shell.systemActions.toggleEdit",
+    menuLabelKey: "shell.moreActions.edit",
+    activeLabelKey: "shell.moreActions.editOn",
+    surfaces: ["grid-button", "quick-bar", "more-actions"],
+  },
   "open-settings": {
     labelKey: "shell.systemActions.openSettings",
     surfaces: ["grid-button", "quick-bar"],
@@ -73,10 +79,12 @@ export function systemActionIdsFor(
 
 export function systemActionStatus(
   action: SystemActionId,
-  state: { canTidy: boolean; selecting: boolean }
+  state: { canTidy: boolean; selecting: boolean; editing: boolean }
 ): { disabled: boolean; pressed?: boolean } {
   if (action === "tidy-grid") return { disabled: !state.canTidy }
   if (action === "toggle-selection")
     return { disabled: false, pressed: state.selecting }
+  if (action === "toggle-edit")
+    return { disabled: false, pressed: state.editing }
   return { disabled: false }
 }

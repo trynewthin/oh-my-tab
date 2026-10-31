@@ -42,6 +42,8 @@ const shell = {
     undo: "撤销",
     batch: "批量操作",
     batchOn: "已开启",
+    edit: "编辑",
+    editOn: "已开启",
   },
   systemActions: {
     toggleTheme: "切换深浅色",
@@ -50,6 +52,7 @@ const shell = {
     openComponents: "打开组件",
     tidyGrid: "一键整理",
     toggleSelection: "多选",
+    toggleEdit: "编辑",
     openSettings: "打开设置",
   },
   settingsButton: {

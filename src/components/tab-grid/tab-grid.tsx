@@ -1,6 +1,11 @@
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
+import { useGridEditStore } from "@/stores/grid-edit-store"
+import { useSystemOverlayStore } from "@/stores/system-overlay-store"
+import GridResizeItem from "./grid-resize-item"
+import { Button } from "@/components/ui/button"
+import { createPortal } from "react-dom"
 import BulkActions from "./bulk-actions"
-import { Gear, Plus } from "@phosphor-icons/react"
+import { Gear, PencilSimple, Plus } from "@phosphor-icons/react"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -13,6 +18,7 @@ import {
   itemWidth,
   placeItems,
   resolveGridGeometry,
+  positionsOnly,
   type GridPositions,
 } from "@/lib/grid/grid-layout"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
@@ -55,11 +61,27 @@ export default function TabGrid({
   fullViewport?: boolean
 } = {}) {
   const selecting = useGridSelectionStore((state) => state.active) && !preview
+  const editing = useGridEditStore((state) => state.active) && !preview
+  const finishEditing = useGridEditStore((state) => state.finish)
+  const overlayActive = useSystemOverlayStore((state) => state.active)
+  const resizeItem = useTabGridStore((state) => state.resizeItem)
+  const [resizePreview, setResizePreview] = useState<{
+    id: string
+    size: GridItem["size"]
+  } | null>(null)
   const { t } = useTranslation()
   const selectedIds = useGridSelectionStore((state) => state.ids)
   const toggleSelection = useGridSelectionStore((state) => state.toggle)
   const storeItems = useTabGridStore((state) => state.items)
-  const items = itemsOverride ?? storeItems
+  const savedItems = itemsOverride ?? storeItems
+  const items =
+    editing && resizePreview
+      ? savedItems.map((item) =>
+          item.id === resizePreview.id
+            ? ({ ...item, size: resizePreview.size } as GridItem)
+            : item
+        )
+      : savedItems
   const layouts = useTabGridStore((state) => state.layouts)
   const ensureLayout = useTabGridStore((state) => state.ensureLayout)
   const wideGridColumns = useHomeSettingsStore((state) => state.wideGridColumns)
@@ -108,6 +130,25 @@ export default function TabGrid({
       }
     | undefined
   >(undefined)
+  useEffect(() => {
+    if (!editing) return
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) finishEditing()
+    }
+    window.addEventListener("keydown", close)
+    return () => window.removeEventListener("keydown", close)
+  }, [editing, finishEditing])
+  useEffect(
+    () =>
+      useGridEditStore.subscribe((state) => {
+        setResizePreview(null)
+        if (state.active) {
+          setFolderId(null)
+          setEditor(null)
+        }
+      }),
+    []
+  )
 
   // Previews keep placements in local state; the live grid reads the store.
   const [previewPlaced, setPreviewPlaced] = useState<GridPositions>(
@@ -212,15 +253,33 @@ export default function TabGrid({
       previewItems,
       columns,
       positions,
-      liveTarget,
-      dragging?.sourceFolderId ? [dragging.sourceFolderId] : []
+      editing && resizePreview
+        ? {
+            id: resizePreview.id,
+            position: positions[resizePreview.id] ?? { x: 0, y: 0 },
+          }
+        : liveTarget,
+      editing && resizePreview
+        ? [resizePreview.id]
+        : dragging?.sourceFolderId
+          ? [dragging.sourceFolderId]
+          : []
     )
   })()
 
   useEffect(() => {
-    if (preview || width <= 0 || dragging) return
+    if (preview || width <= 0 || dragging || resizePreview) return
     ensureLayout(columns)
-  }, [preview, columns, width, items, layouts, dragging, ensureLayout])
+  }, [
+    preview,
+    columns,
+    width,
+    items,
+    layouts,
+    dragging,
+    resizePreview,
+    ensureLayout,
+  ])
 
   const expandedFolder =
     folderId === null
@@ -335,7 +394,7 @@ export default function TabGrid({
         >
           <div
             ref={measurementRef}
-            className={`flex justify-center ${selecting ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
+            className={`flex justify-center ${selecting || editing ? "pb-28" : "pb-4"} ${fullViewport ? "px-0" : "px-5"}`}
             style={{
               margin: fullViewport ? undefined : "0 -20px",
               paddingTop: fullViewport ? 8 : compactGrid ? 12 : 20,
@@ -379,6 +438,36 @@ export default function TabGrid({
                     selectAriaLabel={t("grid.chrome.selectItem", {
                       name: item.name,
                     })}
+                  />
+                ) : editing ? (
+                  <GridResizeItem
+                    key={item.id}
+                    item={item}
+                    placement={placements[item.id]}
+                    columns={columns}
+                    columnStep={columnStep}
+                    rowStep={rowStep}
+                    onPreview={(id, size) =>
+                      setResizePreview(size === null ? null : { id, size })
+                    }
+                    onCommit={(id, size) => {
+                      const next = savedItems.map((entry) =>
+                        entry.id === id
+                          ? ({ ...entry, size } as GridItem)
+                          : entry
+                      )
+                      const nextPlacements = placeItems(
+                        next,
+                        columns,
+                        positions,
+                        { id, position: positions[id] ?? { x: 0, y: 0 } },
+                        [id]
+                      )
+                      resizeItem(id, size)
+                      useTabGridStore
+                        .getState()
+                        .setLayout(columns, positionsOnly(nextPlacements))
+                    }}
                   />
                 ) : (
                   <DraggableGridItem
@@ -476,6 +565,21 @@ export default function TabGrid({
             </CollectionExpansion>
           )}
           <BulkActions />
+          {editing &&
+            !overlayActive &&
+            createPortal(
+              <div
+                role="toolbar"
+                aria-label={t("grid.menu.edit")}
+                className="fixed inset-x-4 bottom-6 z-40 mx-auto flex w-fit items-center gap-8 rounded-2xl border bg-popover p-2 text-popover-foreground shadow-xl"
+              >
+                <span className="pl-2 text-sm">{t("grid.menu.edit")}</span>
+                <Button variant="ghost" onClick={finishEditing}>
+                  {t("grid.bulk.done")}
+                </Button>
+              </div>,
+              document.body
+            )}
         </DndContext>
       </ContextMenuTrigger>
       <ContextMenuContent>
@@ -486,6 +590,15 @@ export default function TabGrid({
         <ContextMenuItem onClick={() => runSystemAction("open-components")}>
           <Plus />
           {t("grid.chrome.addComponent")}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => runSystemAction("toggle-edit")}>
+          <PencilSimple />
+          {t("shell.moreActions.edit")}
+          {editing && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              {t("shell.moreActions.editOn")}
+            </span>
+          )}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

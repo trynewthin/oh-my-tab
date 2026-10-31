@@ -15,6 +15,7 @@ const defaultActions: readonly SystemActionId[] = [
   "open-components",
   "tidy-grid",
   "toggle-selection",
+  "toggle-edit",
   "open-settings",
 ]
 

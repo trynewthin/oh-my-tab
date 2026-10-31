@@ -6,6 +6,7 @@ import {
   Plus,
   Gear,
   GridFour,
+  PencilSimple,
   SquaresFour,
   type Icon,
 } from "@phosphor-icons/react"
@@ -17,6 +18,7 @@ export const systemActionIcons = {
   "add-folder": FolderPlus,
   "tidy-grid": GridFour,
   "toggle-selection": Checks,
+  "toggle-edit": PencilSimple,
   "open-settings": Gear,
   "open-components": SquaresFour,
 } as const satisfies Record<SystemActionId, Icon>

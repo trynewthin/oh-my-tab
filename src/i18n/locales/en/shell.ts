@@ -42,6 +42,8 @@ const shell = {
     undo: "Undo",
     batch: "Batch select",
     batchOn: "On",
+    edit: "Edit",
+    editOn: "On",
   },
   systemActions: {
     toggleTheme: "Toggle light/dark",
@@ -50,6 +52,7 @@ const shell = {
     openComponents: "Open components",
     tidyGrid: "Tidy up",
     toggleSelection: "Multi-select",
+    toggleEdit: "Edit",
     openSettings: "Open settings",
   },
   settingsButton: {

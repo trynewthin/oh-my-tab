@@ -66,6 +66,7 @@ const grid = {
     addComponent: "Add component",
     selectItem: "Select {{name}}",
     dragItem: "Drag {{name}} to reposition",
+    resizeItem: "Resize {{name}}",
     sizeOptions: "{{label}} size",
     editComponent: "Edit {{label}}",
     closeComponent: "Close {{label}}",

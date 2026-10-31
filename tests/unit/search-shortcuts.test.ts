@@ -22,10 +22,11 @@ describe("search quick buttons", () => {
       "open-components",
       "tidy-grid",
       "toggle-selection",
+      "toggle-edit",
       "open-settings",
     ])
-    expect(config.collapseBefore).toBe(6)
-    expect(searchShortcutGroups(config).hidden).toHaveLength(6)
+    expect(config.collapseBefore).toBe(7)
+    expect(searchShortcutGroups(config).hidden).toHaveLength(7)
     expect(
       searchShortcutGroups(config).visible.map((control) => control.action)
     ).toEqual(["open-settings"])
@@ -38,15 +39,15 @@ describe("search quick buttons", () => {
       id: "extra-settings",
       action: "open-settings",
     })
-    expect(added.controls).toHaveLength(8)
-    expect(added.collapseBefore).toBe(6)
+    expect(added.controls).toHaveLength(9)
+    expect(added.collapseBefore).toBe(7)
     const moved = moveSearchShortcut(added, "extra-settings", 0)
     expect(moved.controls[0].id).toBe("extra-settings")
     const uncovered = setSearchShortcutBoundary(moved, 2)
     expect(uncovered.collapseBefore).toBe(2)
     const removed = removeSearchShortcut(uncovered, "extra-settings")
     expect(removed.collapseBefore).toBe(1)
-    expect(removed.controls).toHaveLength(7)
+    expect(removed.controls).toHaveLength(8)
   })
 
   test("rejects bad saved actions and keeps valid buttons during recovery", () => {

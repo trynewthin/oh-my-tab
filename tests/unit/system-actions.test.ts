@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest"
 
 import { runSystemAction } from "@/application/system-actions"
+import { useGridEditStore } from "@/stores/grid-edit-store"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import {
   isSystemActionOnSurface,
@@ -15,6 +16,7 @@ describe("system button actions", () => {
   beforeEach(() => {
     useThemeStore.setState({ theme: "light" })
     useGridSelectionStore.setState({ active: false, ids: [] })
+    useGridEditStore.setState({ active: false })
     useSystemOverlayStore.setState({
       active: null,
       settingsSection: defaultSettingsSection,
@@ -40,6 +42,40 @@ describe("system button actions", () => {
     expect(useGridSelectionStore.getState().active).toBe(true)
     runSystemAction("toggle-selection")
     expect(useGridSelectionStore.getState().active).toBe(false)
+  })
+
+  test("toggles edit mode", () => {
+    runSystemAction("toggle-edit")
+    expect(useGridEditStore.getState().active).toBe(true)
+    runSystemAction("toggle-edit")
+    expect(useGridEditStore.getState().active).toBe(false)
+  })
+
+  test("keeps edit and multi-select modes exclusive", () => {
+    runSystemAction("toggle-selection")
+    runSystemAction("toggle-edit")
+    expect(useGridEditStore.getState().active).toBe(true)
+    expect(useGridSelectionStore.getState().active).toBe(false)
+    runSystemAction("toggle-selection")
+    expect(useGridSelectionStore.getState().active).toBe(true)
+    expect(useGridEditStore.getState().active).toBe(false)
+  })
+
+  test("leaves edit mode when opening add, component or settings surfaces", () => {
+    for (const action of [
+      "add-tab",
+      "add-folder",
+      "open-components",
+      "open-settings",
+    ] as const) {
+      runSystemAction("toggle-edit")
+      expect(useGridEditStore.getState().active).toBe(true)
+      runSystemAction(action)
+      expect(useGridEditStore.getState().active).toBe(false)
+    }
+    runSystemAction("toggle-edit")
+    runSystemAction({ id: "open-settings", section: "search-engines" })
+    expect(useGridEditStore.getState().active).toBe(false)
   })
 
   test("opens one global surface at a time and keeps the settings section", () => {
@@ -72,17 +108,31 @@ describe("system button actions", () => {
       "open-components",
       "tidy-grid",
       "toggle-selection",
+      "toggle-edit",
     ])
     expect(isSystemActionOnSurface("add-tab", "quick-bar")).toBe(true)
     expect(isSystemActionOnSurface("add-folder", "grid-button")).toBe(true)
+    expect(isSystemActionOnSurface("toggle-edit", "quick-bar")).toBe(true)
     expect(isSystemActionOnSurface("set-theme", "grid-button")).toBe(false)
     expect(
-      systemActionStatus("tidy-grid", { canTidy: false, selecting: false })
+      systemActionStatus("tidy-grid", {
+        canTidy: false,
+        selecting: false,
+        editing: false,
+      })
     ).toEqual({ disabled: true })
     expect(
       systemActionStatus("toggle-selection", {
         canTidy: true,
         selecting: true,
+        editing: false,
+      })
+    ).toEqual({ disabled: false, pressed: true })
+    expect(
+      systemActionStatus("toggle-edit", {
+        canTidy: true,
+        selecting: false,
+        editing: true,
       })
     ).toEqual({ disabled: false, pressed: true })
   })

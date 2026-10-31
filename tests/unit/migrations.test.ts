@@ -66,6 +66,77 @@ afterEach(() => {
 })
 
 describe("committed local migrations", () => {
+  it.each([
+    [0, "large", "small"],
+    [1, "medium", "wide"],
+    [4, "large", "small"],
+    [0, "small", "small"],
+    [1, "wide", "wide"],
+  ] as const)(
+    "migrates %s legacy countdown events with size %s to %s without losing cards or positions",
+    async (count, size, expectedSize) => {
+      const events = Array.from({ length: count }, (_, index) => ({
+        id: `event-${index}`,
+        title: `Event ${index}`,
+        date: "2026-12-31",
+      }))
+      const countdown = {
+        ...createCatalogComponent("countdown"),
+        id: "countdown",
+        size,
+        events,
+      } as Record<string, unknown>
+      delete countdown.event
+      const other = {
+        ...createCatalogComponent("calendar"),
+        id: "countdown:countdown:1",
+      }
+      const layouts = { 16: { countdown: { x: 4, y: 2 } } }
+      await storage.writeEntries({
+        "omt.tab-grid": saved({ items: [countdown, other], layouts }, 1),
+      })
+
+      await rehydrateData()
+
+      const grid = (await envelope("omt.tab-grid")).state
+      const cards = grid.items.filter(
+        (item: { kind: string }) => item.kind === "countdown"
+      )
+      expect(cards).toHaveLength(Math.max(1, count))
+      expect(cards.map((item: { event: unknown }) => item.event)).toEqual(
+        count ? events.map(({ title, date }) => ({ title, date })) : [null]
+      )
+      expect(cards[0]).toMatchObject({ id: "countdown", size: expectedSize })
+      expect(cards.every((item: object) => !("events" in item))).toBe(true)
+      expect(grid.items).toContainEqual(other)
+      expect(
+        new Set(grid.items.map((item: { id: string }) => item.id)).size
+      ).toBe(grid.items.length)
+      expect(grid.layouts).toEqual(layouts)
+      expect(grid.items.every(validGridItem)).toBe(true)
+      const before = await storage.allEntries()
+      await rehydrateData()
+      expect(await storage.allEntries()).toEqual(before)
+    }
+  )
+  it.each([null, { title: "KEEP", date: "invalid" }])(
+    "preserves raw storage when a legacy countdown event is invalid: %j",
+    async (event) => {
+      const countdown = {
+        ...createCatalogComponent("countdown"),
+        events: [event],
+      } as Record<string, unknown>
+      delete countdown.event
+      const raw = saved({ items: [countdown], layouts: {} }, 1)
+      legacyLocalStorage.set("omt.tab-grid", raw)
+      const before = await storage.allEntries()
+
+      await expect(rehydrateData()).rejects.toThrow()
+
+      expect(await storage.allEntries()).toEqual(before)
+      expect(legacyLocalStorage.get("omt.tab-grid")).toBe(raw)
+    }
+  )
   it("upgrades the version 3 development profile with version 1 privacy without losing data", async () => {
     const legacyAppearance = { padding: 12, fontSize: 14, iconSize: 32 }
     const tabAppearance = sanitizeTabAppearance(legacyAppearance)
@@ -477,6 +548,33 @@ describe("committed local migrations", () => {
 })
 
 describe("backup migration boundary", () => {
+  it.each([1, 2, 3])(
+    "preserves every legacy countdown event when importing format %s",
+    (version) => {
+      const source = JSON.parse(JSON.stringify(snapshot()))
+      source.version = version
+      source.home.backgroundImage = null
+      const countdown = {
+        ...createCatalogComponent("countdown"),
+        events: [
+          { id: "first", title: "First", date: "2026-12-01" },
+          { id: "second", title: "Second", date: "2026-12-31" },
+        ],
+      } as Record<string, unknown>
+      delete countdown.event
+      source.grid = { items: [countdown], layouts: {} }
+      const before = structuredClone(source)
+
+      const config = validateConfig(source)
+
+      expect(config.grid.items).toHaveLength(2)
+      expect(config.grid.items).toMatchObject([
+        { id: countdown.id, event: { title: "First", date: "2026-12-01" } },
+        { event: { title: "Second", date: "2026-12-31" } },
+      ])
+      expect(source).toEqual(before)
+    }
+  )
   it.each([1, 2, 3])(
     "preserves plants when importing historical format %s",
     async (version) => {

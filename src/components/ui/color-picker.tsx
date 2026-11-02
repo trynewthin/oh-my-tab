@@ -25,17 +25,22 @@ export default function ColorPicker({
   onChange,
   label,
   className,
+  disabled = false,
+  popoverLayer,
 }: {
   value: string
   onChange: (value: string) => void
   label: string
   className?: string
+  disabled?: boolean
+  popoverLayer?: number
 }) {
   const { t } = useTranslation()
   const id = useId()
   return (
     <Popover>
       <PopoverTrigger
+        disabled={disabled}
         render={
           <Button
             variant="outline"
@@ -55,7 +60,11 @@ export default function ColorPicker({
           {value.toUpperCase()}
         </span>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 gap-4 p-4">
+      <PopoverContent
+        align="end"
+        className="w-64 gap-4 p-4"
+        layer={popoverLayer}
+      >
         <div
           role="group"
           aria-label={t("shell.colorPicker.presets", { label })}

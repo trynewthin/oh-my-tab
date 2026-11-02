@@ -213,7 +213,7 @@ export default function SearchPrompt({
           <div
             data-search-input-shell
             style={embedded ? { borderRadius: componentRadius } : undefined}
-            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border bg-clip-padding transition-all focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${!embedded ? surfaceShadowClassName : ""} ${searchSurfaceBackgroundClassName(backgroundType)}`}
+            className={`flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-full border border-transparent bg-clip-padding transition-colors focus-within:border-ring ${!embedded ? surfaceShadowClassName : ""} ${searchSurfaceBackgroundClassName(backgroundType)}`}
           >
             <SearchEngineSelect inset={embedded ? "padded" : "flush"} />
             <input

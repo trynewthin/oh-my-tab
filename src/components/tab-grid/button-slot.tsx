@@ -85,6 +85,7 @@ export default function ButtonSlot({
     ((item.size === "medium" ? 48 : 28) * appearance.iconScale) / 100
   const controlStyle: CSSProperties = {
     containerType: "size",
+    justifyContent: wide && (!editing || preview) ? "flex-end" : "center",
     alignItems: !wide
       ? "center"
       : appearance.direction === "top"
@@ -92,6 +93,12 @@ export default function ButtonSlot({
         : appearance.direction === "bottom"
           ? "flex-end"
           : "center",
+  }
+  const editingControlStyle: CSSProperties = {
+    ...controlStyle,
+    width: "min(100cqw, 100cqh)",
+    height: "min(100cqw, 100cqh)",
+    alignItems: "center",
   }
   const glyphStyle: CSSProperties = {
     width: `min(${iconSize}px, 100cqw, 100cqh)`,
@@ -178,22 +185,27 @@ export default function ButtonSlot({
             editing && !preview ? (
               <div
                 key={control.id}
-                style={controlStyle}
-                className={`${controlClassName} rounded-lg border border-foreground/20`}
+                style={{ containerType: "size" }}
+                className="grid h-full min-h-0 min-w-0 place-items-center"
               >
-                {glyph(control)}
-                <button
-                  type="button"
-                  className="absolute -top-1.5 -right-1.5 z-10 flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm outline-none hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={t("grid.buttonSlot.remove")}
-                  title={t("grid.buttonSlot.remove")}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onRemoveControl?.(control.id, event.currentTarget)
-                  }}
+                <div
+                  style={editingControlStyle}
+                  className={`${controlClassName} rounded-lg border border-foreground/20`}
                 >
-                  <Minus className="size-3" weight="bold" />
-                </button>
+                  {glyph(control)}
+                  <button
+                    type="button"
+                    className="absolute -top-1.5 -right-1.5 z-10 flex size-4 items-center justify-center rounded-full bg-red-500 text-white shadow-sm outline-none hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={t("grid.buttonSlot.remove")}
+                    title={t("grid.buttonSlot.remove")}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onRemoveControl?.(control.id, event.currentTarget)
+                    }}
+                  >
+                    <Minus className="size-3" weight="bold" />
+                  </button>
+                </div>
               </div>
             ) : control.kind === "system" ? (
               <SystemSlotControl

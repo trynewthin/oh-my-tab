@@ -2,11 +2,17 @@ version: 1.5.8
 notes:
   zh-CN:
     - 新增快捷坞，集中放置常用操作和网页。
-    - 组件支持就近编辑和拖动调整大小。
+    - 修复快捷坞编辑框比例，统一为正方形；最右侧图标与普通标签对齐。
+    - 组件支持就近编辑和拖动调整大小，编辑面板四周对称渐进模糊，目标组件显示在模糊层上方。
+    - 标签支持单字文字图标，可设置背景颜色和圆角，左侧预览、右侧编辑；图标操作按钮靠右排列，悬停展开操作文字。
     - 丰富标签外观设置，长条与方形可分别调整，组件圆角统一管理。
+    - 输入控件默认无边框、聚焦仅显示单层细边框；移除面板的半透明装饰描边。
     - 优化拖拽与过渡动画。
   en:
     - Added shortcut docks for frequently used actions and websites.
-    - Edit components in place and drag to resize them.
+    - Fixed square shortcut dock editing frames and aligned trailing icons with tabs.
+    - Edit components in place and drag to resize them, with symmetric blur around the editor and the target layered above it.
+    - Create single-character tab icons with custom background colors and corners in a side-by-side editor; right-aligned icon actions expand labels on hover.
     - Expanded tab appearance settings, with separate styles for rectangular and square tabs and shared component corners.
+    - Input controls show a single thin border only on focus; removed translucent decorative panel outlines.
     - Improved dragging and transitions.

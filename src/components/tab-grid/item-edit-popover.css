@@ -1,0 +1,54 @@
+[data-item-edit-target] {
+  isolation: isolate;
+  z-index: 40;
+}
+
+.item-edit-backdrop {
+  position: absolute;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.item-edit-backdrop[data-ready] {
+  opacity: 1;
+}
+
+.item-edit-backdrop > span {
+  --fog-reach: clamp(180px, 28vw, 420px);
+  --fog-strength: 3px;
+
+  position: absolute;
+  inset: calc(-1 * var(--fog-reach));
+  backdrop-filter: blur(var(--fog-strength));
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 72%);
+}
+
+.item-edit-backdrop[data-ready] > span {
+  animation: item-edit-fog-settle 480ms ease-out both;
+}
+
+.item-edit-backdrop > span:nth-child(2) {
+  --fog-reach: clamp(120px, 20vw, 280px);
+  --fog-strength: 8px;
+}
+
+.item-edit-backdrop > span:nth-child(3) {
+  --fog-reach: clamp(72px, 12vw, 168px);
+  --fog-strength: 18px;
+}
+
+@keyframes item-edit-fog-settle {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item-edit-backdrop[data-ready] > span {
+    animation: none;
+  }
+}

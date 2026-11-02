@@ -1,5 +1,5 @@
-import { ArrowClockwise, UploadSimple } from "@phosphor-icons/react"
-import { useEffect, useState } from "react"
+import { ArrowClockwise, TextT, UploadSimple } from "@phosphor-icons/react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import SettingItem from "@/components/settings/shared/setting-item"
 import { settingsControlClassName } from "@/components/settings/shared/control-styles"
@@ -19,6 +19,23 @@ import { encodeTabIcon, readTabIcon } from "@/lib/grid/tab-icon"
 import { normalizeTabUrl } from "@/lib/grid/types"
 import { toast } from "@/stores/toast-store"
 import TabIconCrop from "./tab-icon-crop"
+import TabTextIconDialog from "./tab-text-icon-dialog"
+
+const iconActionClassName =
+  "group/icon-action w-auto min-w-8 gap-0 px-[7px] motion-reduce:transition-none"
+
+function IconActionLabel({ children }: { children: ReactNode }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid grid-cols-[0fr] opacity-0 transition-[grid-template-columns,opacity] duration-200 group-focus-within/icon-action:grid-cols-[1fr] group-focus-within/icon-action:opacity-100 group-hover/icon-action:grid-cols-[1fr] group-hover/icon-action:opacity-100 motion-reduce:transition-none"
+    >
+      <span className="min-w-0 overflow-hidden">
+        <span className="block pl-1.5">{children}</span>
+      </span>
+    </span>
+  )
+}
 
 export default function TabIconControls({
   url,
@@ -40,12 +57,13 @@ export default function TabIconControls({
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
   const [refreshOpen, setRefreshOpen] = useState(false)
+  const [textIconOpen, setTextIconOpen] = useState(false)
   const [cropImage, setCropImage] = useState<ImageBitmap | null>(null)
 
   useEffect(() => () => cropImage?.close(), [cropImage])
   useEffect(() => {
-    onDialogOpenChange?.(refreshOpen || cropImage !== null)
-  }, [refreshOpen, cropImage, onDialogOpenChange])
+    onDialogOpenChange?.(refreshOpen || textIconOpen || cropImage !== null)
+  }, [refreshOpen, textIconOpen, cropImage, onDialogOpenChange])
 
   async function refresh() {
     const normalized = normalizeTabUrl(url)
@@ -97,11 +115,14 @@ export default function TabIconControls({
         label={t("grid.editor.icon")}
         description={t("grid.editor.iconHint")}
       >
-        <div className="grid w-full grid-cols-2 gap-2">
+        <div className="flex w-full min-w-0 justify-end gap-2">
           <Button
             type="button"
             variant="outline"
-            className={`min-w-0 px-2 ${settingsControlClassName} ${controlClassName}`}
+            size="icon"
+            aria-label={t("grid.editor.refreshIcon")}
+            title={t("grid.editor.refreshIcon")}
+            className={`${settingsControlClassName} ${controlClassName} ${iconActionClassName}`}
             disabled={busy}
             onClick={() => {
               if (icon) setRefreshOpen(true)
@@ -109,23 +130,23 @@ export default function TabIconControls({
             }}
           >
             <ArrowClockwise aria-hidden="true" />
-            <span className="truncate">{t("grid.editor.refreshIcon")}</span>
+            <IconActionLabel>{t("grid.editor.refreshIcon")}</IconActionLabel>
           </Button>
           <Button
             variant="outline"
+            size="icon"
+            aria-label={t("grid.editor.uploadIcon")}
+            title={t("grid.editor.uploadIcon")}
             render={<label />}
-            className={`relative min-w-0 cursor-pointer px-2 ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName} ${controlClassName}`}
+            className={`relative cursor-pointer ${busy ? "pointer-events-none opacity-50" : ""} ${settingsControlClassName} ${controlClassName} ${iconActionClassName}`}
             aria-disabled={busy}
           >
             <UploadSimple aria-hidden="true" />
-            <span className="truncate">
-              {t(
-                busy ? "grid.editor.processingIcon" : "grid.editor.uploadIcon"
-              )}
-            </span>
+            <IconActionLabel>{t("grid.editor.uploadIcon")}</IconActionLabel>
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
+              aria-label={t("grid.editor.uploadIcon")}
               className="sr-only"
               disabled={busy}
               onChange={(event) => {
@@ -134,6 +155,19 @@ export default function TabIconControls({
                 void upload(file)
               }}
             />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={t("grid.editor.textIcon")}
+            title={t("grid.editor.textIcon")}
+            className={`${settingsControlClassName} ${controlClassName} ${iconActionClassName}`}
+            disabled={busy}
+            onClick={() => setTextIconOpen(true)}
+          >
+            <TextT aria-hidden="true" />
+            <IconActionLabel>{t("grid.editor.textIconButton")}</IconActionLabel>
           </Button>
         </div>
         <AlertDialog
@@ -171,6 +205,14 @@ export default function TabIconControls({
           </AlertDialogContent>
         </AlertDialog>
       </SettingItem>
+      {textIconOpen && (
+        <TabTextIconDialog
+          contentClassName={alertClassName}
+          overlayClassName={alertOverlayClassName}
+          onClose={() => setTextIconOpen(false)}
+          onConfirm={onIconChange}
+        />
+      )}
       {cropImage && (
         <TabIconCrop
           image={cropImage}

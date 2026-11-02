@@ -42,7 +42,7 @@ export default function SettingRange({
 
   return (
     <div
-      className={`flex h-8 w-full min-w-0 items-center gap-2 rounded-2xl px-3 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 ${settingsControlSurface}`}
+      className={`flex h-8 w-full min-w-0 items-center gap-2 rounded-2xl px-3 transition-colors focus-within:border-ring ${settingsControlSurface}`}
     >
       <input
         id={id}
@@ -81,7 +81,7 @@ export default function SettingRange({
                 event.currentTarget.blur()
               }
             }}
-            className="h-6 w-8 shrink-0 [appearance:textfield] rounded-none border-0 bg-transparent px-0 text-right text-xs tabular-nums focus-visible:ring-0 md:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="h-6 w-8 shrink-0 [appearance:textfield] rounded-none border-0 bg-transparent px-0 text-right text-xs tabular-nums md:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
         ) : (
           <output

@@ -1,5 +1,54 @@
 export const TAB_ICON_MAX_BYTES = 64 * 1024
 const TAB_ICON_MAX_DATA_LENGTH = Math.ceil(TAB_ICON_MAX_BYTES / 3) * 4 + 64
+const iconCharacterSegmenter = new Intl.Segmenter(undefined, {
+  granularity: "grapheme",
+})
+
+export function isSingleIconCharacter(text: string): boolean {
+  if (
+    !/[\p{L}\p{N}\p{P}\p{S}]/u.test(text) ||
+    /[\p{Cc}\p{Cs}\p{Z}]/u.test(text)
+  )
+    return false
+  const characters = iconCharacterSegmenter.segment(text)[Symbol.iterator]()
+  return !characters.next().done && !!characters.next().done
+}
+
+export async function createTextTabIcon(
+  text: string,
+  appearance: { backgroundColor: string; radius: number }
+): Promise<string> {
+  if (!isSingleIconCharacter(text)) throw new Error("tabIconCharacterInvalid")
+  if (
+    !/^#[0-9a-f]{6}$/i.test(appearance.backgroundColor) ||
+    !Number.isFinite(appearance.radius) ||
+    appearance.radius < 0 ||
+    appearance.radius > 50
+  )
+    throw new Error("tabIconAppearanceInvalid")
+  const canvas = document.createElement("canvas")
+  canvas.width = 128
+  canvas.height = 128
+  const context = canvas.getContext("2d")
+  if (!context) throw new Error("tabIconInvalid")
+  context.beginPath()
+  context.roundRect(0, 0, 128, 128, (128 * appearance.radius) / 100)
+  context.clip()
+  context.fillStyle = appearance.backgroundColor
+  context.fillRect(0, 0, 128, 128)
+  context.font = "bold 88px sans-serif"
+  context.fillStyle = "#ffffff"
+  context.textAlign = "center"
+  const metrics = context.measureText(text)
+  context.fillText(
+    text,
+    64,
+    64 +
+      (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2,
+    112
+  )
+  return encodeIconCanvas(canvas)
+}
 
 export type TabIconCropArea = { x: number; y: number; size: number }
 
@@ -69,6 +118,10 @@ export async function encodeTabIcon(
     128,
     128
   )
+  return encodeIconCanvas(canvas)
+}
+
+async function encodeIconCanvas(canvas: HTMLCanvasElement): Promise<string> {
   for (const quality of [0.9, 0.75, 0.55]) {
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/webp", quality)

@@ -20,7 +20,7 @@
 - `npm run test:webdav`：验证 WebDAV 连接、上传、恢复和并发保护。
 - `npm run dev` / `npm run website:dev`：开发服务器与官网开发服务器。
 
-提交前至少运行改动直接相关的测试和 `npm run check`；修改共享组件、持久化或构建入口时追加 `npm run build` 和 `npm test`；修改扩展入口、权限或 CSP 时追加 `npm run test:extension`。端到端测试使用 `vite preview`，源码变化后先构建。
+端到端测试使用 `vite preview`，源码变化后先构建。
 
 ## 环境
 

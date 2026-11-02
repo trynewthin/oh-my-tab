@@ -92,7 +92,7 @@ function PromptInput({
         <div
           onClick={handleClick}
           className={cn(
-            "cursor-text rounded-3xl border border-input bg-background p-2 shadow-xs",
+            "cursor-text rounded-3xl border border-transparent bg-background p-2 transition-colors focus-within:border-ring",
             disabled && "cursor-not-allowed opacity-60",
             className
           )}
@@ -171,7 +171,7 @@ function PromptInputTextarea({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       className={cn(
-        "min-h-[44px] w-full resize-none border-none bg-transparent text-primary shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+        "min-h-[44px] w-full resize-none border-none bg-transparent text-primary shadow-none outline-none",
         className
       )}
       rows={1}

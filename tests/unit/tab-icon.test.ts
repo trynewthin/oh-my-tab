@@ -1,10 +1,51 @@
 import { describe, expect, it } from "vitest"
-import { squareTabIconCrop, validTabIcon } from "@/lib/grid/tab-icon"
+import {
+  createTextTabIcon,
+  isSingleIconCharacter,
+  squareTabIconCrop,
+  validTabIcon,
+} from "@/lib/grid/tab-icon"
 import { validTabEntry } from "@/lib/grid/validation"
 
 const webp = `data:image/webp;base64,${btoa("RIFF\0\0\0\0WEBP")}`
 
 describe("custom tab icons", () => {
+  it.each(["文", "A", "7", "𠮷", "e\u0301", "👩🏽‍💻"])(
+    "accepts one visible grapheme: %s",
+    (text) => {
+      expect(isSingleIconCharacter(text)).toBe(true)
+    }
+  )
+
+  it.each([
+    "",
+    " ",
+    "\n",
+    "\u200b",
+    "\u0301",
+    "文字",
+    "AB",
+    "文 ",
+    "A\n",
+    "\ud800",
+  ])("rejects blank, multiple, or malformed characters: %j", async (text) => {
+    expect(isSingleIconCharacter(text)).toBe(false)
+    await expect(
+      createTextTabIcon(text, { backgroundColor: "#334155", radius: 20 })
+    ).rejects.toThrow("tabIconCharacterInvalid")
+  })
+
+  it.each([
+    { backgroundColor: "red", radius: 20 },
+    { backgroundColor: "#12345g", radius: 20 },
+    { backgroundColor: "#334155", radius: -1 },
+    { backgroundColor: "#334155", radius: 51 },
+    { backgroundColor: "#334155", radius: NaN },
+  ])("rejects invalid text icon appearance: %j", async (appearance) => {
+    await expect(createTextTabIcon("文", appearance)).rejects.toThrow(
+      "tabIconAppearanceInvalid"
+    )
+  })
   it("calculates a bounded square crop for dragging and zooming", () => {
     expect(
       squareTabIconCrop({ width: 400, height: 200 }, 1, { x: 200, y: 100 })

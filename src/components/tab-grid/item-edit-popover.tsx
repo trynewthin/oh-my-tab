@@ -33,26 +33,48 @@ export default function ItemEditPopover({
   const [popup, setPopup] = useState<HTMLElement | null>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
-    anchor.setAttribute("data-item-edit-target", "")
-    return () => anchor.removeAttribute("data-item-edit-target")
-  }, [anchor])
-  useLayoutEffect(() => {
     const backdrop = backdropRef.current
-    const host = anchor.parentElement
-    if (!popup || !backdrop || !host) return
+    if (!popup || !backdrop) return
     let frame: number | undefined
     let moving = false
     const update = () => {
       const panel = (popup.parentElement ?? popup).getBoundingClientRect()
-      const parent = host.getBoundingClientRect()
-      const scaleX = parent.width / (host.offsetWidth || parent.width || 1) || 1
-      const scaleY =
-        parent.height / (host.offsetHeight || parent.height || 1) || 1
+      const target = anchor.getBoundingClientRect()
+      const reach = Math.min(420, Math.max(180, window.innerWidth * 0.28))
+      const width = panel.width + reach * 2
+      const height = panel.height + reach * 2
+      const padding = 8
+      const radius =
+        Math.min(
+          Number.parseFloat(getComputedStyle(anchor).borderTopLeftRadius) || 0,
+          target.width / 2,
+          target.height / 2
+        ) + padding
+      // One continuous alpha mask avoids seams between backdrop-filter layers.
+      const mask = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <radialGradient id="fog">
+            <stop offset="0" stop-color="white"/>
+            <stop offset="0.35" stop-color="white" stop-opacity="0.95"/>
+            <stop offset="0.68" stop-color="white" stop-opacity="0.5"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="feather" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4"/>
+          </filter>
+          <mask id="target" maskUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="${height}" style="mask-type:luminance">
+            <rect width="${width}" height="${height}" fill="white"/>
+            <rect x="${target.left - panel.left + reach - padding}" y="${target.top - panel.top + reach - padding}" width="${target.width + padding * 2}" height="${target.height + padding * 2}" rx="${radius}" fill="black" filter="url(#feather)"/>
+          </mask>
+        </defs>
+        <rect width="${width}" height="${height}" fill="url(#fog)" mask="url(#target)"/>
+      </svg>`
       Object.assign(backdrop.style, {
-        left: `${(panel.left - parent.left) / scaleX - host.clientLeft + host.scrollLeft}px`,
-        top: `${(panel.top - parent.top) / scaleY - host.clientTop + host.scrollTop}px`,
-        width: `${panel.width / scaleX}px`,
-        height: `${panel.height / scaleY}px`,
+        left: `${panel.left - reach}px`,
+        top: `${panel.top - reach}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        maskImage: `url("data:image/svg+xml,${encodeURIComponent(mask)}")`,
       })
       backdrop.setAttribute("data-ready", "")
       if (moving) frame = requestAnimationFrame(update)
@@ -81,7 +103,7 @@ export default function ItemEditPopover({
     }
     const resize = new ResizeObserver(schedule)
     resize.observe(popup)
-    resize.observe(host)
+    resize.observe(anchor)
     const position = new MutationObserver(schedule)
     const positioner = popup.parentElement
     if (positioner) {
@@ -155,19 +177,15 @@ export default function ItemEditPopover({
             <CloseIcon />
           </Button>
         </div>
-        {anchor.parentElement &&
-          createPortal(
-            <div
-              ref={backdropRef}
-              aria-hidden="true"
-              className="item-edit-backdrop"
-            >
-              <span />
-              <span />
-              <span />
-            </div>,
-            anchor.parentElement
-          )}
+        {createPortal(
+          <div
+            ref={backdropRef}
+            aria-hidden="true"
+            className="item-edit-backdrop"
+            style={{ zIndex: (layer ?? 50) - 1 }}
+          />,
+          document.body
+        )}
         {children}
       </PopoverContent>
     </Popover>

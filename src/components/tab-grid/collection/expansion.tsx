@@ -16,6 +16,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import FolderBorder from "../folder-border"
 
 const EXPAND_DURATION = 0.42
+const COLLAPSE_DURATION = 0.3
 const HEADER_EXIT_DURATION = 0.12
 const HEADER_ENTER_DURATION = 0.38
 const HEADER_OFFSET_Y = 16
@@ -156,7 +157,8 @@ function resetClosingStyles(panel: HTMLElement) {
   if (title) {
     gsap.killTweensOf(title)
     gsap.set(title, {
-      clearProps: "font-size,line-height,opacity,transform",
+      clearProps:
+        "font-size,line-height,opacity,transform,position,left,top,width,height,margin",
     })
   }
   if (actions) {
@@ -195,6 +197,8 @@ export default function CollectionExpansion({
   const sourcePointerEvents = useRef("")
   const closeRef = useRef(onClose)
   const closing = useRef(false)
+  const transition = useRef<gsap.core.Timeline | null>(null)
+  const pendingFrame = useRef(0)
   const titleId = useId()
 
   useEffect(() => {
@@ -291,6 +295,7 @@ export default function CollectionExpansion({
             panel.focus({ preventScroll: true })
         },
       })
+      transition.current = timeline
       timeline.to(
         panel,
         {
@@ -349,9 +354,8 @@ export default function CollectionExpansion({
         )
       }
     }
-    let animationFrame = 0
     if (reduced) play()
-    else animationFrame = requestAnimationFrame(play)
+    else pendingFrame.current = requestAnimationFrame(play)
     function resize() {
       if (!closing.current)
         gsap.to(panel, {
@@ -363,7 +367,8 @@ export default function CollectionExpansion({
     window.addEventListener("resize", resize)
     return () => {
       window.removeEventListener("resize", resize)
-      cancelAnimationFrame(animationFrame)
+      cancelAnimationFrame(pendingFrame.current)
+      transition.current?.kill()
       gsap.killTweensOf(panel)
       resetClosingStyles(panel)
       if (source) {
@@ -400,6 +405,10 @@ export default function CollectionExpansion({
     const panel = panelRef.current
     if (!panel || closing.current) return
     closing.current = true
+    cancelAnimationFrame(pendingFrame.current)
+    transition.current?.kill()
+    gsap.killTweensOf(panel)
+    panel.style.pointerEvents = "none"
     const source = sourceRef.current
     const origin = source?.isConnected ? source.getBoundingClientRect() : null
     const grid = panel.querySelector<HTMLElement>(
@@ -407,9 +416,6 @@ export default function CollectionExpansion({
     )
     const header = panel.querySelector<HTMLElement>("[data-collection-header]")
     const title = panel.querySelector<HTMLElement>("[data-collection-title]")
-    const sourceHeader = source?.querySelector<HTMLElement>(
-      "[data-collection-header]"
-    )
     const sourceTitle = source?.querySelector<HTMLElement>(
       "[data-collection-title]"
     )
@@ -417,7 +423,6 @@ export default function CollectionExpansion({
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches
-    if (sourceHeader) gsap.set(sourceHeader, { y: 14, opacity: 0 })
     if (grid) grid.dataset.collapsing = "true"
     const rows = Array.from(
       grid?.querySelectorAll<HTMLElement>("[data-stack-row]") ?? []
@@ -431,12 +436,7 @@ export default function CollectionExpansion({
           height: origin.height,
         }
       : currentPanel
-    const currentFrames = rows.map((row, index) => ({
-      ...frame(row),
-      opacity: 1,
-      shade: 0,
-      zIndex: rows.length - index,
-    }))
+    const currentFrames = Array.from(collectionFrames(grid).values())
     const sourceRows = collectionFrames(source)
     const targetFrames = rows.map((row, index) => {
       const sourceFrame = sourceRows.get(row.dataset.tabId)
@@ -453,6 +453,12 @@ export default function CollectionExpansion({
       grid.style.minHeight = `${grid.getBoundingClientRect().height}px`
       pinRows(rows, currentFrames)
     }
+    const targetTitle = sourceTitle ? frame(sourceTitle) : null
+    const currentTitle = title ? frame(title) : null
+    if (header) gsap.set(header, { clearProps: "transform" })
+    if (title && currentTitle)
+      gsap.set(title, { ...currentTitle, position: "fixed", margin: 0 })
+    const actions = panel.querySelector<HTMLElement>("[data-collection-actions]")
     void panel.offsetWidth
     const play = () => {
       const timeline = gsap.timeline({
@@ -463,21 +469,14 @@ export default function CollectionExpansion({
             source.style.pointerEvents = sourcePointerEvents.current
           }
           closeRef.current()
-          if (sourceHeader)
-            gsap.to(sourceHeader, {
-              y: 0,
-              opacity: 1,
-              duration: reduced ? 0 : 0.18,
-              ease: "power2.out",
-              clearProps: "opacity,transform",
-            })
         },
       })
+      transition.current = timeline
       timeline.to(
         panel,
         {
           ...(origin ? targetPanel : { opacity: 0 }),
-          duration: reduced ? 0 : 0.42,
+          duration: reduced ? 0 : COLLAPSE_DURATION,
           ease: "power3.inOut",
           overwrite: true,
         },
@@ -494,7 +493,7 @@ export default function CollectionExpansion({
             opacity: targetFrames[index].opacity,
             zIndex: targetFrames[index].zIndex,
             "--stack-shade": targetFrames[index].shade,
-            duration: reduced ? 0 : 0.42,
+            duration: reduced ? 0 : COLLAPSE_DURATION,
             ease: "power3.inOut",
           },
           0
@@ -504,27 +503,25 @@ export default function CollectionExpansion({
         timeline.to(
           title,
           {
+            ...targetTitle,
             fontSize: sourceTitleStyle.fontSize,
             lineHeight: sourceTitleStyle.lineHeight,
-            duration: reduced ? 0 : 0.42,
+            duration: reduced ? 0 : COLLAPSE_DURATION,
             ease: "power3.inOut",
           },
           0
         )
       if (header)
+        timeline.to(header, { opacity: 1, duration: reduced ? 0 : 0.1 }, 0)
+      if (actions)
         timeline.to(
-          header,
-          {
-            y: 14,
-            opacity: 0,
-            duration: reduced ? 0 : 0.16,
-            ease: "power2.in",
-          },
-          reduced ? 0 : 0.06
+          actions,
+          { opacity: 0, duration: reduced ? 0 : 0.08, ease: "power2.out" },
+          0
         )
     }
     if (reduced) play()
-    else requestAnimationFrame(play)
+    else pendingFrame.current = requestAnimationFrame(play)
   }, [])
 
   useEffect(() => {

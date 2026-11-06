@@ -53,10 +53,13 @@ export default function ItemEditPopover({
       // One continuous alpha mask avoids seams between backdrop-filter layers.
       const mask = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <defs>
-          <radialGradient id="fog">
+          <radialGradient id="blur-coverage">
             <stop offset="0" stop-color="white"/>
-            <stop offset="0.35" stop-color="white" stop-opacity="0.95"/>
-            <stop offset="0.68" stop-color="white" stop-opacity="0.5"/>
+            <stop offset="0.5" stop-color="white"/>
+            <stop offset="0.6" stop-color="white" stop-opacity="0.9"/>
+            <stop offset="0.7" stop-color="white" stop-opacity="0.65"/>
+            <stop offset="0.8" stop-color="white" stop-opacity="0.35"/>
+            <stop offset="0.9" stop-color="white" stop-opacity="0.1"/>
             <stop offset="1" stop-color="white" stop-opacity="0"/>
           </radialGradient>
           <filter id="feather" x="-50%" y="-50%" width="200%" height="200%">
@@ -67,7 +70,7 @@ export default function ItemEditPopover({
             <rect x="${target.left - panel.left + reach - padding}" y="${target.top - panel.top + reach - padding}" width="${target.width + padding * 2}" height="${target.height + padding * 2}" rx="${radius}" fill="black" filter="url(#feather)"/>
           </mask>
         </defs>
-        <rect width="${width}" height="${height}" fill="url(#fog)" mask="url(#target)"/>
+        <rect width="${width}" height="${height}" fill="url(#blur-coverage)" mask="url(#target)"/>
       </svg>`
       Object.assign(backdrop.style, {
         left: `${panel.left - reach}px`,

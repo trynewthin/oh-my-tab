@@ -153,6 +153,10 @@
   background: color-mix(in srgb, var(--card) 55%, transparent);
 }
 
+[data-grid-item-id][data-grid-editing] .folder-glass {
+  box-shadow: none;
+}
+
 @keyframes folder-noise-drift {
   from {
     opacity: 0.62;

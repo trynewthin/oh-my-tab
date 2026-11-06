@@ -29,10 +29,10 @@ import FolderExpandedGrid from "./folder-expanded-grid"
 import { componentLabel, getComponentDefinition } from "@/lib/grid/registry"
 import type { GridItem } from "@/lib/grid/types"
 import { useTranslation } from "react-i18next"
+import { useBulkDrag } from "./use-bulk-drag"
 import { useGridDrag } from "./use-grid-drag"
 import GridDragOverlay from "./drag/grid-drag-overlay"
 import useGridMeasurement from "./use-grid-measurement"
-import GridSelectionItem from "./grid-selection-item"
 import { resolvePreviewDrop } from "./preview-drop"
 import useGridSensors from "./use-grid-sensors"
 import { previewFolderTabs, previewTodoTasks } from "./drag/model"
@@ -340,6 +340,16 @@ export default function TabGrid({
     sourceFolderId,
   ])
 
+  const bulkPlacements = useBulkDrag({
+    active: selecting,
+    gridRef,
+    items,
+    placements,
+    columns,
+    columnStep,
+    rowStep,
+  })
+
   const folderIntentId =
     intent.kind === "folder" || intent.kind === "reorder"
       ? intent.folderId
@@ -559,89 +569,86 @@ export default function TabGrid({
                   : undefined,
             }}
           >
-            {(width > 0 ? items : []).map((item) =>
-              selecting ? (
-                <GridSelectionItem
-                  key={item.id}
-                  item={item}
-                  placement={placements[item.id]}
-                  selected={selectedIds.includes(item.id)}
-                  onToggle={() => toggleSelection(item.id)}
-                  selectAriaLabel={t("grid.chrome.selectItem", {
-                    name: item.name,
-                  })}
-                />
-              ) : (
-                <DraggableGridItem
-                  key={item.id}
-                  item={item}
-                  onAnchorChange={
-                    editedItem?.id === item.id ? setEditorAnchor : undefined
-                  }
-                  onAddControl={
-                    editedItem?.id === item.id ? openDockDialog : undefined
-                  }
-                  onRemoveControl={
-                    editedItem?.id === item.id ? openSlotRemoval : undefined
-                  }
-                  resize={
-                    editedItem?.id === item.id
-                      ? {
-                          columns,
-                          columnStep,
-                          rowStep,
-                          onPreview: (id, size) =>
-                            setResizePreview(
-                              size === null ? null : { id, size }
-                            ),
-                          onCommit: (id, size) => {
-                            const next = savedItems.map((entry) =>
-                              entry.id === id
-                                ? ({ ...entry, size } as GridItem)
-                                : entry
-                            )
-                            const nextPlacements = placeItems(
-                              next,
-                              columns,
-                              positions,
-                              { id, position: positions[id] ?? { x: 0, y: 0 } },
-                              [id]
-                            )
-                            resizeItem(id, size)
-                            useTabGridStore
-                              .getState()
-                              .setLayout(columns, positionsOnly(nextPlacements))
-                          },
-                        }
+            {(width > 0 ? items : []).map((item) => (
+              <DraggableGridItem
+                key={item.id}
+                item={item}
+                bulkMoving={!!bulkPlacements && selectedIds.includes(item.id)}
+                selection={
+                  selecting
+                    ? {
+                        selected: selectedIds.includes(item.id),
+                        onToggle: () => toggleSelection(item.id),
+                        label: t("grid.chrome.selectItem", { name: item.name }),
+                      }
+                    : undefined
+                }
+                onAnchorChange={
+                  editedItem?.id === item.id ? setEditorAnchor : undefined
+                }
+                onAddControl={
+                  editedItem?.id === item.id ? openDockDialog : undefined
+                }
+                onRemoveControl={
+                  editedItem?.id === item.id ? openSlotRemoval : undefined
+                }
+                resize={
+                  editedItem?.id === item.id
+                    ? {
+                        columns,
+                        columnStep,
+                        rowStep,
+                        onPreview: (id, size) =>
+                          setResizePreview(
+                            size === null ? null : { id, size }
+                          ),
+                        onCommit: (id, size) => {
+                          const next = savedItems.map((entry) =>
+                            entry.id === id
+                              ? ({ ...entry, size } as GridItem)
+                              : entry
+                          )
+                          const nextPlacements = placeItems(
+                            next,
+                            columns,
+                            positions,
+                            { id, position: positions[id] ?? { x: 0, y: 0 } },
+                            [id]
+                          )
+                          resizeItem(id, size)
+                          useTabGridStore
+                            .getState()
+                            .setLayout(columns, positionsOnly(nextPlacements))
+                        },
+                      }
+                    : undefined
+                }
+                placement={
+                  !dragging?.sourceFolderId && dragging?.item.id === item.id
+                    ? {
+                        ...dragging.origin,
+                        height: itemHeight(item),
+                        width: itemWidth(item, columns),
+                      }
+                    : (bulkPlacements ?? placements)[item.id]
+                }
+                dropProgress={
+                  intent.kind === "slot" && intent.slotId === item.id
+                    ? 1
+                    : intent.kind === "folder" && intent.folderId === item.id
+                      ? intent.progress
                       : undefined
-                  }
-                  placement={
-                    !dragging?.sourceFolderId && dragging?.item.id === item.id
-                      ? {
-                          ...dragging.origin,
-                          height: itemHeight(item),
-                          width: itemWidth(item, columns),
-                        }
-                      : placements[item.id]
-                  }
-                  dropProgress={
-                    intent.kind === "slot" && intent.slotId === item.id
-                      ? 1
-                      : intent.kind === "folder" && intent.folderId === item.id
-                        ? intent.progress
-                        : undefined
-                  }
-                  folderTabs={folderPreviews.get(item.id)}
-                  todoTasks={
-                    item.kind === "todo" && todoIntentId === item.id
-                      ? todoPreview
-                      : undefined
-                  }
-                  onOpen={openItem}
-                  onEdit={editItem}
-                />
-              )
-            )}
+                }
+                folderTabs={folderPreviews.get(item.id)}
+                todoTasks={
+                  item.kind === "todo" && todoIntentId === item.id
+                    ? todoPreview
+                    : undefined
+                }
+                onOpen={openItem}
+                onEdit={editItem}
+              />
+            ))}
           </div>
         </div>
         {overlay}

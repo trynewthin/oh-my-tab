@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core"
 import { useCallback } from "react"
 import type { GridPlacement } from "@/lib/grid/grid-layout"
 import { useGridMotion } from "./use-grid-motion"
+import GridSelectionItem from "./grid-selection-item"
 import GridTileContent from "./grid-tile-content"
 import type { GridItem, TabEntry, TodoTask } from "@/lib/grid/types"
 import { getComponentDefinition } from "@/lib/grid/registry"
@@ -21,6 +22,8 @@ export default function DraggableGridItem({
   todoTasks,
   interactive = true,
   resize,
+  selection,
+  bulkMoving = false,
   onAnchorChange,
   onAddControl,
   onRemoveControl,
@@ -35,6 +38,12 @@ export default function DraggableGridItem({
   // Preview grids keep drag+FLIP but drop the context menu and dialog hooks.
   interactive?: boolean
   resize?: GridResizeControls
+  bulkMoving?: boolean
+  selection?: {
+    selected: boolean
+    onToggle: () => void
+    label: string
+  }
   onAnchorChange?: (element: HTMLElement | null) => void
   onAddControl?: () => void
   onRemoveControl?: (controlId: string, anchor: HTMLElement) => void
@@ -43,7 +52,7 @@ export default function DraggableGridItem({
   const radius = useHomeSettingsStore((state) => state.tabAppearance.radius)
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: item.id,
-    disabled: !!resize,
+    disabled: !!resize || !!selection,
   })
 
   const definition = getComponentDefinition(item.kind)
@@ -55,7 +64,7 @@ export default function DraggableGridItem({
     },
     [setNodeRef, onAnchorChange]
   )
-  const motionRef = useGridMotion(placement, isDragging, setAnchor)
+  const motionRef = useGridMotion(placement, isDragging || bulkMoving, setAnchor)
   const visualRef = useGridResizeMotion(
     placement,
     resize?.columnStep ?? 0,
@@ -72,25 +81,31 @@ export default function DraggableGridItem({
       {...attributes}
       role="group"
       aria-label={t("grid.chrome.dragItem", { name: item.name })}
-      className={`group relative isolate min-w-0 outline-none ${resize ? "cursor-default" : "cursor-grab"} ${isDragging ? "invisible" : "focus-visible:ring-2 focus-visible:ring-ring"}`}
+      className={`group relative isolate min-w-0 outline-none ${resize || selection ? "cursor-default" : "cursor-grab"} ${isDragging ? "invisible" : "focus-visible:ring-2 focus-visible:ring-ring"}`}
       style={{
         borderRadius: radius,
         gridColumn: `${placement.x + 1} / span ${placement.width}`,
         gridRow: `${placement.y + 1} / span ${placement.height}`,
       }}
       onMouseDownCapture={(event) => {
-        if (resize) return
+        if (resize || selection) return
         if (event.button === 0 && item.kind === "search-minimal")
           listeners?.onMouseDown?.(event)
       }}
       onMouseDown={(event) => {
-        if (resize) return
+        if (resize || selection) return
         if (event.button !== 0 || item.kind === "search-minimal") return
         listeners?.onMouseDown?.(event)
       }}
       onKeyDown={(event) => {
-        if (resize) return
+        if (resize || selection) return
         if (event.target === event.currentTarget) listeners?.onKeyDown?.(event)
+      }}
+      onContextMenuCapture={(event) => {
+        if (selection) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
       }}
       onDragStart={(event) => event.preventDefault()}
     >
@@ -101,7 +116,7 @@ export default function DraggableGridItem({
       >
         <div
           data-grid-item-content
-          inert={resize && item.kind !== "button-slot" ? true : undefined}
+          inert={selection || (resize && item.kind !== "button-slot") ? true : undefined}
           className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
           style={{
             transform:
@@ -121,6 +136,14 @@ export default function DraggableGridItem({
             todoTasks={todoTasks}
           />
         </div>
+        {selection && (
+          <GridSelectionItem
+            item={item}
+            selected={selection.selected}
+            onToggle={selection.onToggle}
+            selectAriaLabel={selection.label}
+          />
+        )}
         {resize && (
           <GridResizeHandle item={item} placement={placement} {...resize} />
         )}

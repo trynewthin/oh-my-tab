@@ -120,7 +120,7 @@ function NavigationEntry<RouteId extends string>({
     <div>
       <Button
         variant="ghost"
-        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full"}`}
+        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full bg-clip-border"}`}
         style={
           selected
             ? {

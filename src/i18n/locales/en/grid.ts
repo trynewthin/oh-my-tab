@@ -159,6 +159,7 @@ const grid = {
     invalidTab: "Enter a name and a valid http / https URL.",
   },
   bulk: {
+    select: "Select",
     toolbar: "Bulk actions",
     group: "Group",
     groupDisabled: "Only tabs and folders can be grouped",

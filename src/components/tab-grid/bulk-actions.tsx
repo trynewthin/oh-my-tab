@@ -1,7 +1,7 @@
 import MotionPresence from "@/components/effects/motion-presence"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import EffectSurface from "@/components/effects/effect-surface"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ComponentProps, type ReactNode } from "react"
+import { Selection, FolderPlus, Trash, Check } from "@phosphor-icons/react"
+import MarqueeSelection from "./marquee-selection"
 import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,27 @@ import { useTabGridStore } from "@/stores/tab-grid-store"
 import { resolveGroupAction } from "@/lib/grid/grid-operations"
 import { useTranslation } from "react-i18next"
 
+function BulkActionButton({
+  label,
+  children,
+  ...props
+}: ComponentProps<typeof Button> & { label: string; children: ReactNode }) {
+  return (
+    <Button
+      {...props}
+      aria-label={label}
+      className="group h-14 min-w-14 gap-0 rounded-full border-[1.75px] border-foreground/20 bg-popover px-[10.375px] text-sm font-semibold text-popover-foreground shadow-lg transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+    >
+      {children}
+      <span className="grid min-w-0 grid-cols-[0fr] opacity-0 transition-[grid-template-columns,opacity] duration-200 ease-out group-hover:grid-cols-[1fr] group-hover:opacity-100 group-focus-visible:grid-cols-[1fr] group-focus-visible:opacity-100 motion-reduce:transition-none">
+        <span className="min-w-0 overflow-hidden">
+          <span className="pl-[7px]">{label}</span>
+        </span>
+      </span>
+    </Button>
+  )
+}
+
 export default function BulkActions() {
   const { t } = useTranslation()
   const active = useGridSelectionStore((state) => state.active)
@@ -28,6 +49,10 @@ export default function BulkActions() {
   const groupAction = resolveGroupAction(selected)
   const [dialog, setDialog] = useState<"group" | "delete" | null>(null)
   const [name, setName] = useState("")
+  const [selecting, setSelecting] = useState(false)
+  useEffect(() => {
+    if (!active) setSelecting(false)
+  }, [active])
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (
@@ -40,63 +65,50 @@ export default function BulkActions() {
     if (active) window.addEventListener("keydown", close)
     return () => window.removeEventListener("keydown", close)
   }, [active, finish])
-  const burning = selected.length > 0 || dialog !== null
-  const effectColor = useHomeSettingsStore((state) => state.color)
   return (
     <>
+      {active && selecting && dialog === null && <MarqueeSelection />}
       {createPortal(
         <MotionPresence
           visible={active}
           direction="bottom"
           role="toolbar"
           aria-label={t("grid.bulk.toolbar")}
-          className="fixed inset-x-4 bottom-6 isolate z-40 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-2xl border bg-popover p-2 text-popover-foreground shadow-xl"
-          data-effect={burning ? "burning" : "static"}
+          className="fixed inset-x-4 bottom-6 z-40 mx-auto flex w-fit max-w-[calc(100%-2rem)] items-center gap-[7px]"
         >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
+          <BulkActionButton
+            label={t("grid.bulk.select")}
+            aria-pressed={selecting}
+            onClick={() => setSelecting((value) => !value)}
           >
-            <EffectSurface
-              textureId={"selection-bar"}
-              color={effectColor}
-              animated={burning}
-            />
-          </div>
-          <div className="relative z-10 flex min-w-56 items-center justify-between gap-8">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                disabled={groupAction.kind === "disabled"}
-                title={
-                  groupAction.kind === "disabled"
-                    ? t("grid.bulk.groupDisabled")
-                    : undefined
-                }
-                onClick={() => {
-                  const keys = selected.map((item) => item.id)
-                  if (groupAction.kind === "move") {
-                    if (useTabGridStore.getState().groupItems(keys)) finish()
-                    return
-                  }
-                  setName(t("grid.component.folder.defaultName"))
-                  setDialog("group")
-                }}
-              >
-                {t("grid.bulk.group")}
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={!selected.length}
-                onClick={() => setDialog("delete")}
-              >
-                {t("grid.bulk.delete")}
-              </Button>
-            </div>
-            <Button variant="ghost" onClick={finish}>
-              {t("grid.bulk.done")}
-            </Button>
-          </div>
+            <Selection weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+          </BulkActionButton>
+          <BulkActionButton
+            label={t("grid.bulk.group")}
+            disabled={groupAction.kind === "disabled"}
+            title={groupAction.kind === "disabled" ? t("grid.bulk.groupDisabled") : undefined}
+            onClick={() => {
+              const keys = selected.map((item) => item.id)
+              if (groupAction.kind === "move") {
+                if (useTabGridStore.getState().groupItems(keys)) finish()
+                return
+              }
+              setName(t("grid.component.folder.defaultName"))
+              setDialog("group")
+            }}
+          >
+            <FolderPlus weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+          </BulkActionButton>
+          <BulkActionButton
+            label={t("grid.bulk.delete")}
+            disabled={!selected.length}
+            onClick={() => setDialog("delete")}
+          >
+            <Trash weight="bold" className="size-[31.5px] stroke-current text-destructive [stroke-width:1.3125]" />
+          </BulkActionButton>
+          <BulkActionButton label={t("grid.bulk.done")} onClick={finish}>
+            <Check weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+          </BulkActionButton>
         </MotionPresence>,
         document.body
       )}

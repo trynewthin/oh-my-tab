@@ -154,6 +154,7 @@ const grid = {
     invalidTab: "请输入名称和有效的 http / https 网址。",
   },
   bulk: {
+    select: "选择",
     toolbar: "批量操作",
     group: "成组",
     groupDisabled: "仅标签和文件夹可成组",

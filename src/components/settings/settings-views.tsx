@@ -1,16 +1,18 @@
-import type { ReactElement } from "react"
+import { lazy, type ReactElement } from "react"
 import type { SettingsSection } from "@/lib/settings-sections"
-import AboutSettings from "./about/about-settings"
-import GeneralSettings from "./general/general-settings"
-import HomeSettings from "./home/home-settings"
-import PersonalizationSettings from "./personalization/personalization-settings"
-import SearchEngineSettings from "./search/search-engine-settings"
+const AboutSettings = lazy(() => import("./about/about-settings"))
+const GeneralSettings = lazy(() => import("./general/general-settings"))
+const HomeSettings = lazy(() => import("./home/home-settings"))
+const PersonalizationSettings = lazy(
+  () => import("./personalization/personalization-settings")
+)
+const SearchEngineSettings = lazy(() => import("./search/search-engine-settings"))
 
 export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   "general-basic": () => <GeneralSettings pane="basic" />,
   "general-data": () => <GeneralSettings pane="data" />,
   "home-top": () => <HomeSettings />,
-  "search-engines": SearchEngineSettings,
+  "search-engines": () => <SearchEngineSettings />,
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />
   ),

@@ -1,4 +1,4 @@
-import { createElement, useState } from "react"
+import { createElement, Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import ApplicationDialog, {
@@ -138,7 +138,16 @@ export default function SettingsApplication() {
             },
           }}
         >
-          <View />
+          <Suspense
+            fallback={
+              <div aria-busy="true" className="space-y-4 p-1">
+                <div className="h-8 w-1/3 rounded-lg bg-muted motion-safe:animate-pulse" />
+                <div className="h-24 rounded-xl bg-muted motion-safe:animate-pulse" />
+              </div>
+            }
+          >
+            <View />
+          </Suspense>
         </MaterialPreviewContext.Provider>
       </div>
     </ApplicationDialog>

@@ -2,6 +2,7 @@ import { lazy, Suspense, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import DotMatrix from "@/components/dot-matrix/dot-matrix"
 import TabGrid from "@/components/tab-grid/tab-grid"
+import SelectionFlames from "@/components/effects/selection-flames"
 import Toaster from "@/components/ui/toaster"
 import {
   backgroundPaletteStyle,
@@ -137,6 +138,7 @@ export default function HomeUI() {
           <OnboardingTour />
         </Suspense>
       )}
+      <SelectionFlames />
       <Toaster />
     </div>
   )

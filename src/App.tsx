@@ -16,15 +16,16 @@ async function retryDevImport<T>(load: () => Promise<T>): Promise<T> {
   throw failure
 }
 
-const SettingsApplication = lazy(() =>
+const loadSettingsApplication = () =>
   retryDevImport(() => import("@/components/settings/settings-application"))
-)
-const ComponentsApplication = lazy(
-  () => import("@/components/tab-grid/grid-item-dialog")
-)
-const SystemCreateDialog = lazy(
-  () => import("@/components/application/system-create-dialog")
-)
+const loadComponentsApplication = () =>
+  import("@/components/tab-grid/grid-item-dialog")
+const loadSystemCreateDialog = () =>
+  import("@/components/application/system-create-dialog")
+
+const SettingsApplication = lazy(loadSettingsApplication)
+const ComponentsApplication = lazy(loadComponentsApplication)
+const SystemCreateDialog = lazy(loadSystemCreateDialog)
 
 // The settings tree is heavy and only needed after the first open; it stays
 // mounted afterwards so open/close animations keep working.
@@ -84,6 +85,23 @@ function DeferredCreateDialog() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const preload = () => {
+      // A failed warm-up must leave the normal lazy-load path available to retry.
+      void Promise.allSettled([
+        loadSettingsApplication(),
+        loadComponentsApplication(),
+        loadSystemCreateDialog(),
+      ])
+    }
+    if ("requestIdleCallback" in window) {
+      const handle = window.requestIdleCallback(preload)
+      return () => window.cancelIdleCallback(handle)
+    }
+    const timer = setTimeout(preload, 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <>
       <AppRouter />

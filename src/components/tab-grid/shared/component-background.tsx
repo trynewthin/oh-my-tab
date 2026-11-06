@@ -1,13 +1,16 @@
-import { useEffect, useId, useRef, type CSSProperties } from "react"
+import { useEffect, useId, useMemo, useRef, type CSSProperties } from "react"
+import { resolveFolderGlow } from "@/lib/folder-glow"
 import { mountPixiFolder } from "@/components/effects/pixi-folder"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import "./component-background.css"
 
 export default function ComponentBackground({
   color,
+  appearanceId,
   animated = false,
 }: {
   color: string
+  appearanceId?: string
   animated?: boolean
 }) {
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
@@ -15,10 +18,12 @@ export default function ComponentBackground({
   const glass = backgroundType !== "solid"
   const ref = useRef<HTMLDivElement>(null)
   const noiseId = useId().replaceAll(":", "")
+  const glowId = appearanceId ?? noiseId
+  const glow = useMemo(() => resolveFolderGlow(glowId), [glowId])
   useEffect(() => {
     if (folderStyle !== "classic" || !ref.current) return
-    return mountPixiFolder(ref.current, color, animated)
-  }, [folderStyle, color, animated])
+    return mountPixiFolder(ref.current, color, animated, glow)
+  }, [folderStyle, color, animated, glow])
 
   return (
     <div
@@ -26,7 +31,16 @@ export default function ComponentBackground({
       aria-hidden="true"
       data-animated={animated ? "true" : undefined}
       className={`folder-glass folder-glass--${folderStyle} ${glass ? "folder-glass--blur" : ""} pointer-events-none absolute inset-0 z-0 rounded-[inherit]`}
-      style={{ "--folder-color": color } as CSSProperties}
+      style={
+        {
+          "--folder-color": color,
+          "--glow-x": `${glow.x * 100}%`,
+          "--glow-y": `${glow.y * 100}%`,
+          "--glow-radius-x": `${glow.radiusX * 100}%`,
+          "--glow-radius-y": `${glow.radiusY * 100}%`,
+          "--glow-opacity": `${glow.opacity * 100}%`,
+        } as CSSProperties
+      }
     >
       {folderStyle === "noise" && (
         <>

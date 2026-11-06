@@ -1,10 +1,12 @@
 import { acquirePixiRenderer, presentPixi } from "@/lib/pixi/shared-renderer"
+import type { resolveFolderGlow } from "@/lib/folder-glow"
 import { subscribeBurningFrame } from "./burning-clock"
 
 export function mountPixiFolder(
   element: HTMLElement,
   color: string,
-  animated: boolean
+  animated: boolean,
+  glow: ReturnType<typeof resolveFolderGlow>
 ) {
   const lease = acquirePixiRenderer()
   let stopped = false
@@ -23,29 +25,32 @@ export function mountPixiFolder(
       const rgb = [1, 3, 5]
         .map((start) => parseInt(color.slice(start, start + 2), 16))
         .join(",")
-      function ellipse(
+      function arc(
         cx: number,
         cy: number,
         rx: number,
         ry: number,
-        alpha: number,
-        end: number
+        alpha: number
       ) {
         ctx.save()
         ctx.translate(cx * 256, cy * 256)
         ctx.scale(rx * 256, ry * 256)
         const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
-        gradient.addColorStop(0, `rgba(${rgb},${alpha})`)
-        gradient.addColorStop(end, "transparent")
+        gradient.addColorStop(0, `rgba(${rgb},0)`)
+        gradient.addColorStop(0.48, `rgba(${rgb},0)`)
+        gradient.addColorStop(0.66, `rgba(${rgb},${alpha * 0.25})`)
+        gradient.addColorStop(0.76, `rgba(${rgb},${alpha})`)
+        gradient.addColorStop(0.82, `rgba(${rgb},${alpha * 0.5})`)
+        gradient.addColorStop(1, `rgba(${rgb},0)`)
         ctx.fillStyle = gradient
         ctx.fillRect(-4, -4, 8, 8)
         ctx.restore()
       }
-      ellipse(0.65, 1.15, 1.1, 0.45, 0.14, 0.75)
-      ellipse(1.05, 0, 0.95, 0.65, 0.26, 0.72)
+      arc(glow.x, glow.y, glow.radiusX, glow.radiusY, glow.opacity)
       const texture = Texture.from(source)
       const stage = new Container(),
         sprite = new Sprite(texture)
+      sprite.anchor.set(0.5)
       stage.addChild(sprite)
       element.dataset.pixiFolderReady = ""
       let width = element.clientWidth,
@@ -53,16 +58,14 @@ export function mountPixiFolder(
       let unsubscribe: (() => void) | undefined
       const paint = (time?: number) => {
         const moving = time !== undefined && animated
-        const scale = moving ? 1.16 : 1
-        sprite.width = width * scale
-        sprite.height = height * scale
-        sprite.x = moving
-          ? (width - sprite.width) / 2 + Math.sin(time * 0.72) * width * 0.06
-          : 0
-        sprite.y = moving
-          ? (height - sprite.height) / 2 + Math.cos(time * 0.58) * height * 0.06
-          : 0
-        sprite.alpha = moving ? 0.74 + Math.sin(time * 0.9) * 0.18 : 1
+        const phase = (time ?? 0) * glow.speed + glow.phase
+        sprite.width = width * (moving ? 1.36 + Math.sin(phase) * 0.12 : 1)
+        sprite.height =
+          height * (moving ? 1.36 + Math.cos(phase * 0.83) * 0.12 : 1)
+        sprite.x = width * (moving ? 0.5 + Math.sin(phase * 0.71) * 0.08 : 0.5)
+        sprite.y =
+          height * (moving ? 0.5 + Math.cos(phase * 0.63) * 0.08 : 0.5)
+        sprite.alpha = moving ? 0.88 + Math.sin(phase * 1.17) * 0.12 : 1
         presentPixi(renderer, stage, canvas, width, height)
       }
       const resize = new ResizeObserver(() => {

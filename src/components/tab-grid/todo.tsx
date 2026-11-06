@@ -106,6 +106,7 @@ export default function Todo({
     <>
       <div className="relative isolate h-full w-full overflow-hidden rounded-[inherit]">
         <ComponentBackground
+          appearanceId={item.id}
           color={item.color}
           animated={!preview && !!item.dynamicEffect}
         />

@@ -84,7 +84,7 @@ export default function FolderCreateDialog({
       previewBorderTransparent
       preview={
         <>
-          <ComponentBackground color={preview.color} />
+          <ComponentBackground appearanceId={preview.id} color={preview.color} />
           <FolderUI item={preview} preview onOpen={() => {}} />
           <FolderBorder />
         </>

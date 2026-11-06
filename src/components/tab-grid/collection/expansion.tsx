@@ -571,6 +571,7 @@ export default function CollectionExpansion({
     >
       {folderBorder && <FolderBorder />}
       <ComponentBackground
+        appearanceId={collection.id}
         color={collection.color}
         animated={backgroundAnimated && !!collection.dynamicEffect}
       />

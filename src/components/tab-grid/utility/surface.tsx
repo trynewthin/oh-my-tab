@@ -83,6 +83,7 @@ export function WidgetSurface({
     >
       {background && (
         <ComponentBackground
+          appearanceId={item.id}
           color={item.color}
           animated={!preview && !!item.dynamicEffect}
         />

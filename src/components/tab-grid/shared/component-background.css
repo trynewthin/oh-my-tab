@@ -85,17 +85,14 @@
 }
 
 .folder-glass--classic::before {
-  background:
-    radial-gradient(
-      ellipse 95% 65% at 105% 0%,
-      color-mix(in srgb, var(--folder-color) 16%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      ellipse 110% 45% at 65% 115%,
-      color-mix(in srgb, var(--folder-color) 8%, transparent),
-      transparent 75%
-    );
+  background: radial-gradient(
+    ellipse var(--glow-radius-x) var(--glow-radius-y) at var(--glow-x) var(--glow-y),
+    transparent 48%,
+    color-mix(in srgb, var(--folder-color) calc(var(--glow-opacity) * 0.25), transparent) 66%,
+    color-mix(in srgb, var(--folder-color) var(--glow-opacity), transparent) 76%,
+    color-mix(in srgb, var(--folder-color) calc(var(--glow-opacity) * 0.5), transparent) 82%,
+    transparent 100%
+  );
 }
 
 .folder-glass--classic::after {
@@ -122,13 +119,12 @@
 }
 
 .folder-glass--classic[data-animated="true"]::before {
-  background-size: 165% 165%;
   animation: folder-color-flow 6s ease-in-out infinite alternate;
 }
 
 @keyframes folder-color-flow {
   from {
-    opacity: 0.68;
+    opacity: 0.84;
     transform: translate3d(-4%, -3%, 0) scale(1.04);
   }
   to {

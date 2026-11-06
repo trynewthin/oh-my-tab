@@ -23,7 +23,9 @@ export default function HomeContextMenu({
         onContextMenuCapture={(event) => {
           if (
             event.target instanceof Element &&
-            event.target.closest('input, textarea, [contenteditable="true"]')
+            event.target.closest('input, textarea, [contenteditable="true"]') &&
+            event.target.closest('[data-slot="context-menu-trigger"]') ===
+              event.currentTarget
           )
             event.stopPropagation()
         }}

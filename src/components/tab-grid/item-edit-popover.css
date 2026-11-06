@@ -12,6 +12,16 @@
   animation: item-edit-fog-settle 480ms ease-out both;
 }
 
+.item-edit-backdrop[data-closing] {
+  animation: item-edit-exit 100ms ease-in both;
+}
+
+@keyframes item-edit-exit {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes item-edit-fog-settle {
   from {
     opacity: 0;
@@ -23,6 +33,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .item-edit-backdrop[data-ready] {
+    animation: none;
+  }
+
+  .item-edit-backdrop[data-closing] {
+    opacity: 0;
     animation: none;
   }
 }

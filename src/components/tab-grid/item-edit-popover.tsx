@@ -30,6 +30,7 @@ export default function ItemEditPopover({
   layer?: number
 }) {
   const { t } = useTranslation()
+  const [open, setOpen] = useState(true)
   const [popup, setPopup] = useState<HTMLElement | null>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
@@ -140,8 +141,11 @@ export default function ItemEditPopover({
   }
   return (
     <Popover
-      open
+      open={open}
       modal={false}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) onClose()
+      }}
       onOpenChange={(open, details) => {
         if (open) return
         const target = details.event.target
@@ -153,7 +157,7 @@ export default function ItemEditPopover({
           details.cancel()
           return
         }
-        onClose()
+        setOpen(false)
       }}
     >
       <PopoverContent
@@ -166,7 +170,7 @@ export default function ItemEditPopover({
         onPositioned={focusEditor}
         finalFocus={false}
         layer={layer}
-        className="relative max-h-[min(36rem,var(--available-height))] w-80 max-w-[calc(100vw-2rem)] gap-4 overflow-x-hidden overflow-y-auto data-open:animate-none data-closed:animate-none [&_[data-slot=select-trigger]]:rounded-xl [&_[data-slot=select-trigger]]:bg-muted [&_input:not([type=file]):not([type=color])]:rounded-xl [&_input:not([type=file]):not([type=color])]:bg-muted [&_textarea]:rounded-xl [&_textarea]:bg-muted"
+        className="relative max-h-[min(36rem,var(--available-height))] w-80 max-w-[calc(100vw-2rem)] gap-4 overflow-x-hidden overflow-y-auto data-open:animate-none data-closed:animate-[item-edit-exit_100ms_ease-in_both] motion-reduce:data-closed:animate-none [&_[data-slot=select-trigger]]:rounded-xl [&_[data-slot=select-trigger]]:bg-muted [&_input:not([type=file]):not([type=color])]:rounded-xl [&_input:not([type=file]):not([type=color])]:bg-muted [&_textarea]:rounded-xl [&_textarea]:bg-muted"
       >
         <div className="flex items-center justify-between gap-3">
           <PopoverTitle>{title}</PopoverTitle>
@@ -174,7 +178,7 @@ export default function ItemEditPopover({
             type="button"
             variant="ghost"
             size="icon-sm"
-            onClick={onClose}
+            onClick={() => setOpen(false)}
             aria-label={t("shell.common.close")}
           >
             <CloseIcon />
@@ -185,6 +189,7 @@ export default function ItemEditPopover({
             ref={backdropRef}
             aria-hidden="true"
             className="item-edit-backdrop"
+            data-closing={!open ? "" : undefined}
             style={{ zIndex: (layer ?? 50) - 1 }}
           />,
           document.body

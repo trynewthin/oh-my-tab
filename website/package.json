@@ -15,9 +15,11 @@
     "react-i18next": "^17.0.14"
   },
   "devDependencies": {
+    "@rolldown/plugin-babel": "^0.2.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
+    "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "~6",
     "vite": "^8"
   }

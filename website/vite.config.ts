@@ -1,5 +1,6 @@
 import path from "node:path"
-import react from "@vitejs/plugin-react"
+import react, { reactCompilerPreset } from "@vitejs/plugin-react"
+import babel from "@rolldown/plugin-babel"
 import { defineConfig, type Plugin } from "vite"
 
 const root = import.meta.dirname
@@ -46,7 +47,11 @@ function cleanUrls(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), cleanUrls()],
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+    cleanUrls(),
+  ],
   build: {
     rollupOptions: {
       input: {

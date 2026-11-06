@@ -3,7 +3,8 @@ import { yamlContent } from "./plugins/yaml-content.ts"
 import path from "path"
 import { faviconProxy } from "./plugins/favicon-proxy.ts"
 import tailwindcss from "@tailwindcss/vite"
-import react from "@vitejs/plugin-react"
+import react, { reactCompilerPreset } from "@vitejs/plugin-react"
+import babel from "@rolldown/plugin-babel"
 import { defineConfig } from "vite"
 
 export default defineConfig({
@@ -11,6 +12,7 @@ export default defineConfig({
   plugins: [
     yamlContent(),
     react(),
+    babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
     faviconProxy(),
     searchSuggestionsProxy(),

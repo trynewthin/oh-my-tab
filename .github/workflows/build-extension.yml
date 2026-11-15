@@ -78,6 +78,46 @@ jobs:
           echo 'The ZIP contains manifest.json at its root. Extract it to load unpacked in Chrome or Edge.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Trusted builds also include a CRX signed with the stable repository signing key.' >> "$GITHUB_STEP_SUMMARY"
 
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, e2e]
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: oh-my-tab-*
+          path: packages
+          merge-multiple: true
+      - name: Check Chrome Web Store credentials
+        id: creds
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          if [ -z "$EXTENSION_ID" ] || [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ] || [ -z "$REFRESH_TOKEN" ] || [ -z "$PUBLISHER_ID" ]; then
+            echo '::warning::Chrome Web Store secrets not fully configured; skipping store publish.'
+            echo 'present=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'present=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload ZIP and submit for review
+        if: steps.creds.outputs.present == 'true'
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
+        run: |
+          ZIP=$(ls packages/*.zip | head -n 1)
+          npx --yes chrome-webstore-upload-cli@4 --source "$ZIP"
+
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20

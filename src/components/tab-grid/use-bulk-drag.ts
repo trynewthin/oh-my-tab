@@ -1,11 +1,21 @@
 import { useEffect, useState, type RefObject } from "react"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { placeItems, positionsOnly, type GridPlacement } from "@/lib/grid/grid-layout"
+import {
+  placeItems,
+  positionsOnly,
+  type GridPlacement,
+} from "@/lib/grid/grid-layout"
 import type { GridItem } from "@/lib/grid/types"
 
 export function useBulkDrag({
-  active, gridRef, items, placements, columns, columnStep, rowStep,
+  active,
+  gridRef,
+  items,
+  placements,
+  columns,
+  columnStep,
+  rowStep,
 }: {
   active: boolean
   gridRef: RefObject<HTMLDivElement | null>
@@ -15,7 +25,9 @@ export function useBulkDrag({
   columnStep: number
   rowStep: number
 }) {
-  const [preview, setPreview] = useState<Record<string, GridPlacement> | null>(null)
+  const [preview, setPreview] = useState<Record<string, GridPlacement> | null>(
+    null
+  )
   useEffect(() => {
     const grid = gridRef.current
     if (!active || !grid) return
@@ -40,12 +52,18 @@ export function useBulkDrag({
       const target = event.target
       if (!(target instanceof Element)) return
       const tile = target.closest<HTMLElement>("[data-grid-item-id]")
-      const ids = useGridSelectionStore.getState().ids.filter((id) => placements[id])
-      if (!tile?.dataset.gridItemId || !ids.includes(tile.dataset.gridItemId)) return
+      const ids = useGridSelectionStore
+        .getState()
+        .ids.filter((id) => placements[id])
+      if (!tile?.dataset.gridItemId || !ids.includes(tile.dataset.gridItemId))
+        return
       const selected = ids.map((id) => placements[id])
       gesture = {
-        pointerId: event.pointerId, x: event.clientX, y: event.clientY,
-        scrollTop: viewport?.scrollTop ?? 0, scrollLeft: viewport?.scrollLeft ?? 0,
+        pointerId: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        scrollTop: viewport?.scrollTop ?? 0,
+        scrollLeft: viewport?.scrollLeft ?? 0,
         ids,
         minX: Math.min(...selected.map((value) => value.x)),
         minY: Math.min(...selected.map((value) => value.y)),
@@ -56,10 +74,15 @@ export function useBulkDrag({
     }
     const update = () => {
       if (!gesture) return
-      const x = current.x - gesture.x + (viewport?.scrollLeft ?? 0) - gesture.scrollLeft
-      const y = current.y - gesture.y + (viewport?.scrollTop ?? 0) - gesture.scrollTop
+      const x =
+        current.x - gesture.x + (viewport?.scrollLeft ?? 0) - gesture.scrollLeft
+      const y =
+        current.y - gesture.y + (viewport?.scrollTop ?? 0) - gesture.scrollTop
       if (!next && Math.hypot(x, y) < 5) return
-      const dx = Math.max(-gesture.minX, Math.min(columns - gesture.maxX, Math.round(x / columnStep)))
+      const dx = Math.max(
+        -gesture.minX,
+        Math.min(columns - gesture.maxX, Math.round(x / columnStep))
+      )
       const dy = Math.max(-gesture.minY, Math.round(y / rowStep))
       if (next && dx === deltaX && dy === deltaY) return
       deltaX = dx
@@ -92,8 +115,14 @@ export function useBulkDrag({
           click.preventDefault()
           click.stopPropagation()
         }
-        window.addEventListener("click", suppressClick, { capture: true, once: true })
-        setTimeout(() => window.removeEventListener("click", suppressClick, true), 0)
+        window.addEventListener("click", suppressClick, {
+          capture: true,
+          once: true,
+        })
+        setTimeout(
+          () => window.removeEventListener("click", suppressClick, true),
+          0
+        )
         if (deltaX || deltaY)
           useTabGridStore.getState().setLayout(columns, positionsOnly(next))
       }

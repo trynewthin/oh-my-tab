@@ -599,9 +599,7 @@ export default function TabGrid({
                         columnStep,
                         rowStep,
                         onPreview: (id, size) =>
-                          setResizePreview(
-                            size === null ? null : { id, size }
-                          ),
+                          setResizePreview(size === null ? null : { id, size }),
                         onCommit: (id, size) => {
                           const next = savedItems.map((entry) =>
                             entry.id === id

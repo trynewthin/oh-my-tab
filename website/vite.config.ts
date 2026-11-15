@@ -47,11 +47,7 @@ function cleanUrls(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [
-    react(),
-    babel({ presets: [reactCompilerPreset()] }),
-    cleanUrls(),
-  ],
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] }), cleanUrls()],
   build: {
     rollupOptions: {
       input: {

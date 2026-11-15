@@ -10,7 +10,12 @@ export default function MarqueeSelection() {
     if (!viewport || !box) return
     const previousCursor = viewport.style.cursor
     viewport.style.cursor = "crosshair"
-    let start: { x: number; y: number; scrollTop: number; scrollLeft: number } | null = null
+    let start: {
+      x: number
+      y: number
+      scrollTop: number
+      scrollLeft: number
+    } | null = null
     let pointerId: number | null = null
     let baseIds: string[] = []
     let previousIds: string[] = []
@@ -23,7 +28,8 @@ export default function MarqueeSelection() {
       if (!start) return
       const originX = start.x - (viewport.scrollLeft - start.scrollLeft)
       const originY = start.y - (viewport.scrollTop - start.scrollTop)
-      if (!dragged && Math.hypot(current.x - originX, current.y - originY) < 4) return
+      if (!dragged && Math.hypot(current.x - originX, current.y - originY) < 4)
+        return
       dragged = true
       const bounds = viewport.getBoundingClientRect()
       const left = Math.max(bounds.left, Math.min(originX, current.x))
@@ -38,15 +44,23 @@ export default function MarqueeSelection() {
         height: `${Math.max(0, bottom - top)}px`,
       })
       const ids = new Set(baseIds)
-      viewport.querySelectorAll<HTMLElement>("[data-grid-item-id]").forEach((tile) => {
-        const rect = tile.getBoundingClientRect()
-        if (
-          right > left && bottom > top &&
-          tile.dataset.gridItemId && rect.width > 0 && rect.height > 0 &&
-          rect.right > left && rect.left < right &&
-          rect.bottom > top && rect.top < bottom
-        ) ids.add(tile.dataset.gridItemId)
-      })
+      viewport
+        .querySelectorAll<HTMLElement>("[data-grid-item-id]")
+        .forEach((tile) => {
+          const rect = tile.getBoundingClientRect()
+          if (
+            right > left &&
+            bottom > top &&
+            tile.dataset.gridItemId &&
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.right > left &&
+            rect.left < right &&
+            rect.bottom > top &&
+            rect.top < bottom
+          )
+            ids.add(tile.dataset.gridItemId)
+        })
       useGridSelectionStore.getState().setIds([...ids])
     }
     const down = (event: PointerEvent) => {
@@ -55,8 +69,16 @@ export default function MarqueeSelection() {
       if (!(target instanceof Element) || !viewport.contains(target)) return
       if (target.closest('[role="dialog"], [role="menu"]')) return
       const tile = target.closest<HTMLElement>("[data-grid-item-id]")
-      if (tile?.dataset.gridItemId && useGridSelectionStore.getState().ids.includes(tile.dataset.gridItemId)) return
-      if (!target.closest("[data-grid-item-id]") && target.closest("button, input, textarea, a")) return
+      if (
+        tile?.dataset.gridItemId &&
+        useGridSelectionStore.getState().ids.includes(tile.dataset.gridItemId)
+      )
+        return
+      if (
+        !target.closest("[data-grid-item-id]") &&
+        target.closest("button, input, textarea, a")
+      )
+        return
       start = {
         x: event.clientX,
         y: event.clientY,
@@ -66,7 +88,8 @@ export default function MarqueeSelection() {
       current = { x: event.clientX, y: event.clientY }
       pointerId = event.pointerId
       previousIds = useGridSelectionStore.getState().ids
-      baseIds = event.shiftKey || event.metaKey || event.ctrlKey ? previousIds : []
+      baseIds =
+        event.shiftKey || event.metaKey || event.ctrlKey ? previousIds : []
       dragged = false
       event.preventDefault()
     }
@@ -80,7 +103,9 @@ export default function MarqueeSelection() {
       if (dragged) {
         suppressClick = true
         clearTimeout(clickTimer)
-        clickTimer = setTimeout(() => { suppressClick = false }, 0)
+        clickTimer = setTimeout(() => {
+          suppressClick = false
+        }, 0)
       }
       start = null
       pointerId = null

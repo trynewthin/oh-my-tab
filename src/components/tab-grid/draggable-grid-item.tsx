@@ -64,7 +64,11 @@ export default function DraggableGridItem({
     },
     [setNodeRef, onAnchorChange]
   )
-  const motionRef = useGridMotion(placement, isDragging || bulkMoving, setAnchor)
+  const motionRef = useGridMotion(
+    placement,
+    isDragging || bulkMoving,
+    setAnchor
+  )
   const visualRef = useGridResizeMotion(
     placement,
     resize?.columnStep ?? 0,
@@ -116,7 +120,11 @@ export default function DraggableGridItem({
       >
         <div
           data-grid-item-content
-          inert={selection || (resize && item.kind !== "button-slot") ? true : undefined}
+          inert={
+            selection || (resize && item.kind !== "button-slot")
+              ? true
+              : undefined
+          }
           className={`relative h-full rounded-[inherit] transition-transform duration-200 ease-out motion-reduce:transition-none ${isDragging ? "hidden" : ""}`}
           style={{
             transform:

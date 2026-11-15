@@ -63,8 +63,7 @@ export function mountPixiFolder(
         sprite.height =
           height * (moving ? 1.36 + Math.cos(phase * 0.83) * 0.12 : 1)
         sprite.x = width * (moving ? 0.5 + Math.sin(phase * 0.71) * 0.08 : 0.5)
-        sprite.y =
-          height * (moving ? 0.5 + Math.cos(phase * 0.63) * 0.08 : 0.5)
+        sprite.y = height * (moving ? 0.5 + Math.cos(phase * 0.63) * 0.08 : 0.5)
         sprite.alpha = moving ? 0.88 + Math.sin(phase * 1.17) * 0.12 : 1
         presentPixi(renderer, stage, canvas, width, height)
       }

@@ -86,11 +86,22 @@
 
 .folder-glass--classic::before {
   background: radial-gradient(
-    ellipse var(--glow-radius-x) var(--glow-radius-y) at var(--glow-x) var(--glow-y),
+    ellipse var(--glow-radius-x) var(--glow-radius-y) at var(--glow-x)
+      var(--glow-y),
     transparent 48%,
-    color-mix(in srgb, var(--folder-color) calc(var(--glow-opacity) * 0.25), transparent) 66%,
+    color-mix(
+        in srgb,
+        var(--folder-color) calc(var(--glow-opacity) * 0.25),
+        transparent
+      )
+      66%,
     color-mix(in srgb, var(--folder-color) var(--glow-opacity), transparent) 76%,
-    color-mix(in srgb, var(--folder-color) calc(var(--glow-opacity) * 0.5), transparent) 82%,
+    color-mix(
+        in srgb,
+        var(--folder-color) calc(var(--glow-opacity) * 0.5),
+        transparent
+      )
+      82%,
     transparent 100%
   );
 }

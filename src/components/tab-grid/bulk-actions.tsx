@@ -50,9 +50,11 @@ export default function BulkActions() {
   const [dialog, setDialog] = useState<"group" | "delete" | null>(null)
   const [name, setName] = useState("")
   const [selecting, setSelecting] = useState(false)
-  useEffect(() => {
+  const [wasActive, setWasActive] = useState(active)
+  if (wasActive !== active) {
+    setWasActive(active)
     if (!active) setSelecting(false)
-  }, [active])
+  }
   useEffect(() => {
     const close = (event: KeyboardEvent) => {
       if (
@@ -81,12 +83,19 @@ export default function BulkActions() {
             aria-pressed={selecting}
             onClick={() => setSelecting((value) => !value)}
           >
-            <Selection weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+            <Selection
+              weight="bold"
+              className="size-[31.5px] stroke-current [stroke-width:1.3125]"
+            />
           </BulkActionButton>
           <BulkActionButton
             label={t("grid.bulk.group")}
             disabled={groupAction.kind === "disabled"}
-            title={groupAction.kind === "disabled" ? t("grid.bulk.groupDisabled") : undefined}
+            title={
+              groupAction.kind === "disabled"
+                ? t("grid.bulk.groupDisabled")
+                : undefined
+            }
             onClick={() => {
               const keys = selected.map((item) => item.id)
               if (groupAction.kind === "move") {
@@ -97,17 +106,26 @@ export default function BulkActions() {
               setDialog("group")
             }}
           >
-            <FolderPlus weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+            <FolderPlus
+              weight="bold"
+              className="size-[31.5px] stroke-current [stroke-width:1.3125]"
+            />
           </BulkActionButton>
           <BulkActionButton
             label={t("grid.bulk.delete")}
             disabled={!selected.length}
             onClick={() => setDialog("delete")}
           >
-            <Trash weight="bold" className="size-[31.5px] stroke-current text-destructive [stroke-width:1.3125]" />
+            <Trash
+              weight="bold"
+              className="size-[31.5px] stroke-current [stroke-width:1.3125] text-destructive"
+            />
           </BulkActionButton>
           <BulkActionButton label={t("grid.bulk.done")} onClick={finish}>
-            <Check weight="bold" className="size-[31.5px] stroke-current [stroke-width:1.3125]" />
+            <Check
+              weight="bold"
+              className="size-[31.5px] stroke-current [stroke-width:1.3125]"
+            />
           </BulkActionButton>
         </MotionPresence>,
         document.body

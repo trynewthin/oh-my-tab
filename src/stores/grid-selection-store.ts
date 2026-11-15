@@ -15,7 +15,8 @@ export const useGridSelectionStore = create<{
   },
   setIds: (ids) =>
     set((state) =>
-      state.ids.length === ids.length && state.ids.every((id, index) => id === ids[index])
+      state.ids.length === ids.length &&
+      state.ids.every((id, index) => id === ids[index])
         ? state
         : { ids }
     ),

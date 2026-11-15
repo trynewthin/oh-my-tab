@@ -458,7 +458,9 @@ export default function CollectionExpansion({
     if (header) gsap.set(header, { clearProps: "transform" })
     if (title && currentTitle)
       gsap.set(title, { ...currentTitle, position: "fixed", margin: 0 })
-    const actions = panel.querySelector<HTMLElement>("[data-collection-actions]")
+    const actions = panel.querySelector<HTMLElement>(
+      "[data-collection-actions]"
+    )
     void panel.offsetWidth
     const play = () => {
       const timeline = gsap.timeline({

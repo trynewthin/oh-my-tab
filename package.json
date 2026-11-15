@@ -11,13 +11,10 @@
     "src/main.tsx",
     "src/popup.tsx"
   ],
-  "workspaces": [
-    "website"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run verify:architecture && npm run test:unit && npm run website:build",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run verify:architecture && npm run test:unit",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,mjs,ts,tsx,json,css,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{js,mjs,ts,tsx,json,css,md,yml,yaml}\"",
@@ -32,11 +29,7 @@
     "test:icons": "vitest run tests/unit/favicon-cache.test.ts",
     "test:unit": "vitest run",
     "store-assets": "node scripts/assets/capture-store.mjs",
-    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs",
-    "website:dev": "npm run dev --workspace @oh-my-tab/website",
-    "website:build": "npm run build --workspace @oh-my-tab/website",
-    "website:preview": "npm run preview --workspace @oh-my-tab/website",
-    "website:assets": "node scripts/assets/capture-website.mjs"
+    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

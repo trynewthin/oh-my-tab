@@ -1,6 +1,6 @@
 # 文档中心
 
-面向使用者的产品介绍与安装方法在根目录 [README](../README.md)；隐私政策正文只在 `website/src/i18n/locales/{zh-CN,en}.ts` 维护，并发布到 https://ohmytab.vercel.app/privacy。
+面向使用者的产品介绍与安装方法在根目录 [README](../README.md)；隐私政策正文只在 [oh-my-tab-website](https://github.com/trynewthin/oh-my-tab-website) 仓库的 `src/i18n/locales/{zh-CN,en}.ts` 维护，并发布到 https://ohmytab.vercel.app/privacy。
 
 ## 文档
 
@@ -13,5 +13,5 @@
 
 - `docs/brand/`：扩展图标源文件
 - `docs/store-assets/`：商店截图、宣传图和商品说明
-- `website/`：官网与隐私政策前端
+- [oh-my-tab-website](https://github.com/trynewthin/oh-my-tab-website)：官网与隐私政策前端
 - `materials/`：按平台分类的本地发布准备区，不纳入 Git

@@ -2,7 +2,7 @@ import { createPixiEffect, type PixiEffect } from "./pixi-effect"
 import { createParticleCell, particleCell } from "./particle-texture"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useVisualTransition } from "./use-visual-transition"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
   textureSeed,
   burningCell,
@@ -10,6 +10,12 @@ import {
 } from "./burning-texture"
 import { subscribeBurningFrame } from "./burning-clock"
 import type { EffectStyle } from "@/stores/home-settings-store"
+import {
+  createFairIsleTexture,
+  FAIR_ISLE_CELL_SIZE,
+  FAIR_ISLE_GAP,
+  FAIR_ISLE_STITCH_IMAGE,
+} from "./fair-isle-texture"
 
 import { textureGrid, TEXTURE_CELL_SIZE, TEXTURE_GAP } from "./texture-grid"
 
@@ -40,6 +46,10 @@ export default function EffectSurface({
     (state) => state.tabTexture
   )
   const effectStyle = effectStyleOverride ?? configuredEffectStyle
+  const knit = effectStyle === "fair-isle"
+  const cellSize = knit ? FAIR_ISLE_CELL_SIZE : TEXTURE_CELL_SIZE
+  const cellGap = knit ? FAIR_ISLE_GAP : TEXTURE_GAP
+  const fairIslePalette = useHomeSettingsStore((state) => state.fairIslePalette)
   const amplitude = useHomeSettingsStore((state) => state.burningAmplitude)
   const {
     progress: reveal,
@@ -56,6 +66,10 @@ export default function EffectSurface({
   const hidden = phase === "hidden" && !transitioning
   const hasGrid = grid.columns > 0 && grid.rows > 0
   const seed = textureSeed(textureId)
+  const isleTexture = useMemo(
+    () => createFairIsleTexture(color, seed, fairIslePalette),
+    [color, seed, fairIslePalette]
+  )
 
   useLayoutEffect(() => {
     const element = region.current
@@ -70,7 +84,7 @@ export default function EffectSurface({
       // display:none (drag hide, portal teardown) reports 0x0; ignoring it
       // keeps the last real grid instead of collapsing to a sliver.
       if (!width || !height) return
-      const next = textureGrid(width, height)
+      const next = textureGrid(width, height, cellSize, cellGap)
       setGrid((current) =>
         current.columns === next.columns &&
         current.rows === next.rows &&
@@ -86,14 +100,20 @@ export default function EffectSurface({
     })
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [cellSize, cellGap])
 
   useEffect(() => {
     effectState.current = { color, grid }
   }, [color, grid])
 
   useEffect(() => {
-    if (effectStyle === "none" || hidden || !hasGrid || !region.current) return
+    if (
+      (effectStyle !== "burning" && effectStyle !== "particles") ||
+      hidden ||
+      !hasGrid ||
+      !region.current
+    )
+      return
     const initial = effectState.current
     const effect = createPixiEffect(
       region.current,
@@ -159,13 +179,9 @@ export default function EffectSurface({
         const appearance = particle
           ? particle(time, reveal.current.value, amplitude, pointer)
           : {
-              backgroundColor: burning(
-                x,
-                y,
-                time,
-                reveal.current.value,
-                amplitude
-              ),
+              backgroundColor: knit
+                ? isleTexture(x, y, time, reveal.current.value)
+                : burning(x, y, time, reveal.current.value, amplitude),
               transform: "none",
             }
         if (entry.backgroundColor !== appearance.backgroundColor) {
@@ -180,7 +196,7 @@ export default function EffectSurface({
     }
     let unsubscribe: (() => void) | undefined
     const resume = () => {
-      if ((!animated || amplitude === 0) && !transitioning) {
+      if ((!animated || amplitude === 0 || knit) && !transitioning) {
         paint()
         return
       }
@@ -220,6 +236,8 @@ export default function EffectSurface({
     seed,
     reveal,
     fill,
+    knit,
+    isleTexture,
   ])
 
   return (
@@ -233,15 +251,15 @@ export default function EffectSurface({
       <div
         ref={region}
         className="absolute inset-y-0 right-0 overflow-hidden"
-        style={{ width: `${coverage}%` }}
+        style={{ width: `${knit ? 100 : coverage}%` }}
       >
         {effectStyle !== "none" && (
           <div
             className="absolute top-0 right-0 grid"
             style={{
-              gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${TEXTURE_CELL_SIZE}px)`,
-              gridAutoRows: `${TEXTURE_CELL_SIZE}px`,
-              gap: TEXTURE_GAP,
+              gridTemplateColumns: `repeat(${Math.max(1, grid.columns)}, ${cellSize}px)`,
+              gridAutoRows: `${cellSize}px`,
+              gap: cellGap,
               top: grid.top,
             }}
           >
@@ -267,23 +285,34 @@ export default function EffectSurface({
                           fill
                         )
                       : {
-                          backgroundColor: burningCell(
-                            color,
-                            seed,
-                            x,
-                            y,
-                            grid.columns,
-                            undefined,
-                            initialVisibility,
-                            amplitude,
-                            fill
-                          ),
+                          backgroundColor: knit
+                            ? isleTexture(x, y, undefined, initialVisibility)
+                            : burningCell(
+                                color,
+                                seed,
+                                x,
+                                y,
+                                grid.columns,
+                                undefined,
+                                initialVisibility,
+                                amplitude,
+                                fill
+                              ),
                           transform: "none",
                         }),
                   }}
                 />
               )
             })}
+            {knit && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: FAIR_ISLE_STITCH_IMAGE,
+                  backgroundSize: `${FAIR_ISLE_CELL_SIZE}px ${FAIR_ISLE_CELL_SIZE}px`,
+                }}
+              />
+            )}
           </div>
         )}
       </div>

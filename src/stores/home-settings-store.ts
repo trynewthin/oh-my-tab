@@ -46,6 +46,7 @@ export type {
   SearchBoxStyle,
   HomeLayoutMode,
 } from "@/lib/home-settings"
+export type { FairIslePaletteId } from "@/lib/fair-isle"
 export {
   MIN_TAB_EFFECT_COVERAGE,
   MAX_TAB_EFFECT_COVERAGE,
@@ -69,6 +70,7 @@ import {
   MIN_TAB_EFFECT_COVERAGE,
   MAX_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
+import { type FairIslePaletteId } from "@/lib/fair-isle"
 type HomeSettingsStore = HomeSettings & {
   addQuickSystemControl: (side: QuickBarSide, action: SystemActionId) => void
   addQuickSiteControl: (
@@ -112,6 +114,7 @@ type HomeSettingsStore = HomeSettings & {
   setSquareTabAppearance: (patch: Partial<TabAppearance>) => void
   setSquareTabTexture: (value: TabTexture) => void
   setSquareTabEffectCoverage: (value: number) => void
+  setFairIslePalette: (value: FairIslePaletteId) => void
 }
 
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
@@ -304,6 +307,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
           }),
         })),
       setSquareTabTexture: (squareTabTexture) => set({ squareTabTexture }),
+      setFairIslePalette: (fairIslePalette) => set({ fairIslePalette }),
       setSquareTabEffectCoverage: (value) => {
         if (Number.isFinite(value))
           set({

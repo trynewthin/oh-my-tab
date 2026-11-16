@@ -14,6 +14,7 @@ import type { EffectStyle } from "@/stores/home-settings-store"
 const options = [
   { value: "burning", labelKey: "settings.effects.burning" },
   { value: "particles", labelKey: "settings.effects.particles" },
+  { value: "fair-isle", labelKey: "settings.effects.fairIsle" },
   { value: "none", labelKey: "settings.effects.none" },
 ] as const
 

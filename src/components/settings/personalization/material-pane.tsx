@@ -8,6 +8,7 @@ import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"
 import SettingRange from "../shared/setting-range"
 import { MAX_STAR_TRAIL_SPEED, MIN_STAR_TRAIL_SPEED } from "@/lib/star-trails"
+import { FAIR_ISLE_PALETTE_IDS, type FairIslePaletteId } from "@/lib/fair-isle"
 
 export default function MaterialPane() {
   const { t } = useTranslation()
@@ -21,6 +22,11 @@ export default function MaterialPane() {
     (state) => state.setTransitionsEnabled
   )
   const color = useHomeSettingsStore((state) => state.color)
+  const fairIslePalette = useHomeSettingsStore((state) => state.fairIslePalette)
+  const setFairIslePalette = useHomeSettingsStore(
+    (state) => state.setFairIslePalette
+  )
+  const fairIsle = materialPreview.value === "fair-isle"
   const starTrails = materialPreview.value === "star-trails"
   const controlId = starTrails ? "star-trail-speed" : "burning-amplitude"
   const controlValue = starTrails ? materialPreview.starTrailSpeed : amplitude
@@ -58,6 +64,29 @@ export default function MaterialPane() {
             <ToggleGroupItem value="static">
               {t("settings.material.static")}
             </ToggleGroupItem>
+          </ToggleGroup>
+        </SettingItem>
+      )}
+      {fairIsle && (
+        <SettingItem
+          label={t("settings.material.fairIslePalette")}
+          labelId="fair-isle-palette-label"
+        >
+          <ToggleGroup
+            aria-labelledby="fair-isle-palette-label"
+            className={settingsControlSurface}
+            value={[fairIslePalette]}
+            onValueChange={(values) => {
+              const value = values[0]
+              if (FAIR_ISLE_PALETTE_IDS.includes(value as FairIslePaletteId))
+                setFairIslePalette(value as FairIslePaletteId)
+            }}
+          >
+            {FAIR_ISLE_PALETTE_IDS.map((id) => (
+              <ToggleGroupItem key={id} value={id}>
+                {t(`settings.material.fairIslePalettes.${id}`)}
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
         </SettingItem>
       )}

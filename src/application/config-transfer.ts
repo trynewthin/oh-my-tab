@@ -32,6 +32,7 @@ import {
   DEFAULT_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
 import { sanitizeSquareTabAppearance } from "@/lib/tab-appearance"
+import { isFairIslePaletteId } from "@/lib/fair-isle"
 
 export function snapshot() {
   const home = useHomeSettingsStore.getState()
@@ -70,6 +71,7 @@ export function snapshot() {
       squareTabAppearance: home.squareTabAppearance,
       squareTabTexture: home.squareTabTexture,
       squareTabEffectCoverage: home.squareTabEffectCoverage,
+      fairIslePalette: home.fairIslePalette,
     },
     theme: { theme: useThemeStore.getState().theme },
     search: {
@@ -128,7 +130,7 @@ export function validateConfig(value: unknown): Config {
         home.folderRadius > MAX_FOLDER_RADIUS)) ||
     (home.folderBorder !== undefined &&
       !validFolderBorder(home.folderBorder)) ||
-    !["none", "burning", "particles"].includes(home.tabTexture) ||
+    !["none", "burning", "particles", "fair-isle"].includes(home.tabTexture) ||
     !Number.isFinite(home.tabEffectCoverage) ||
     home.tabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||
     home.tabEffectCoverage > MAX_TAB_EFFECT_COVERAGE ||
@@ -138,7 +140,7 @@ export function validateConfig(value: unknown): Config {
     typeof home.text !== "string" ||
     home.text.length > 80 ||
     !hex(home.color) ||
-    !["none", "burning", "particles"].includes(home.tabTexture) ||
+    !["none", "burning", "particles", "fair-isle"].includes(home.tabTexture) ||
     !Number.isFinite(home.burningAmplitude) ||
     home.burningAmplitude < 0 ||
     home.burningAmplitude > 2 ||
@@ -148,7 +150,11 @@ export function validateConfig(value: unknown): Config {
     (home.squareTabAppearance !== undefined &&
       !validTabAppearance(home.squareTabAppearance)) ||
     (home.squareTabTexture !== undefined &&
-      !["none", "burning", "particles"].includes(home.squareTabTexture)) ||
+      !["none", "burning", "particles", "fair-isle"].includes(
+        home.squareTabTexture
+      )) ||
+    (home.fairIslePalette !== undefined &&
+      !isFairIslePaletteId(home.fairIslePalette)) ||
     (home.squareTabEffectCoverage !== undefined &&
       (!Number.isFinite(home.squareTabEffectCoverage) ||
         home.squareTabEffectCoverage < MIN_TAB_EFFECT_COVERAGE ||

@@ -32,10 +32,11 @@ import {
   type TabAppearance,
 } from "@/lib/tab-appearance"
 import { sanitizeFolderBorder, type FolderBorder } from "@/lib/folder-border"
+import { isFairIslePaletteId, type FairIslePaletteId } from "@/lib/fair-isle"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
-export type EffectStyle = "none" | "burning" | "particles"
+export type EffectStyle = "none" | "burning" | "particles" | "fair-isle"
 export type FolderStyle = "classic" | "noise" | "none"
 export type TabTexture = EffectStyle
 export type BackgroundType = "solid" | "image"
@@ -82,6 +83,7 @@ export type HomeSettings = {
   squareTabAppearance: TabAppearance
   squareTabTexture: TabTexture
   squareTabEffectCoverage: number
+  fairIslePalette: FairIslePaletteId
 }
 
 export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
@@ -110,7 +112,8 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
     },
     squareTabTexture:
       saved?.squareTabTexture === "none" ||
-      saved?.squareTabTexture === "particles"
+      saved?.squareTabTexture === "particles" ||
+      saved?.squareTabTexture === "fair-isle"
         ? saved.squareTabTexture
         : "burning",
     squareTabEffectCoverage:
@@ -149,9 +152,14 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
     folderRadius: tabAppearance.radius,
     folderBorder: sanitizeFolderBorder(saved?.folderBorder),
     tabTexture:
-      saved?.tabTexture === "none" || saved?.tabTexture === "particles"
+      saved?.tabTexture === "none" ||
+      saved?.tabTexture === "particles" ||
+      saved?.tabTexture === "fair-isle"
         ? saved.tabTexture
         : "burning",
+    fairIslePalette: isFairIslePaletteId(saved?.fairIslePalette)
+      ? saved.fairIslePalette
+      : "auto",
     tabEffectCoverage:
       typeof saved?.tabEffectCoverage === "number" &&
       Number.isFinite(saved.tabEffectCoverage)

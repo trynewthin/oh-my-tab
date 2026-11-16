@@ -19,6 +19,7 @@ import {
   applyWebdavSnapshot,
   deleteWebdavSnapshot,
   renameWebdavSnapshot,
+  resetWebdavIndex,
   type WebdavHistory,
   type WebdavSnapshot,
 } from "@/application/webdav-sync"
@@ -55,6 +56,11 @@ export default function WebdavSnapshots({
     busy || !ready || !saved || !!pending || !!syncPlan || removeOpen
   async function refresh() {
     setHistory(await readWebdavHistory())
+  }
+  async function resetIndex() {
+    await resetWebdavIndex()
+    toast(t("settings.webdav.indexReset"), "success")
+    await refresh()
   }
   async function removeSnapshot() {
     if (!history || !target) return
@@ -161,6 +167,23 @@ export default function WebdavSnapshots({
           <DialogTitle className="pr-36">
             {t("settings.webdav.snapshots")}
           </DialogTitle>
+          {history?.indexCorrupt && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              <p>{t("settings.webdav.indexCorrupt")}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                disabled={busy}
+                onClick={() => void run(resetIndex)}
+              >
+                {t("settings.webdav.resetIndex")}
+              </Button>
+            </div>
+          )}
           {history ? (
             <WebdavSnapshotList
               snapshots={history.snapshots}

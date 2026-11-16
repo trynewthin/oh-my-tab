@@ -108,6 +108,9 @@ export default {
     connectionSettings: "{{status}}，点击配置 WebDAV",
     syncNow: "同步",
     protectedSnapshot: "保留",
+    legacySnapshot: "旧格式",
+    corruptSnapshot: "已损坏",
+    legacySnapshotError: "该快照由旧版格式保存，无法应用。",
     renameSnapshot: "重命名",
     applySnapshot: "应用",
     applySnapshotTitle: "应用同步快照？",
@@ -153,6 +156,10 @@ export default {
     synced: "同步完成",
     cleanupFailed: "同步已完成，但部分过期快照未能删除，下次同步会重试",
     invalidHistory: "远端版本记录或快照损坏，无法同步",
+    indexCorrupt:
+      "远端同步索引已损坏。快照文件仍在服务器上，但需要重置索引后才能读取。",
+    resetIndex: "重置远端索引",
+    indexReset: "远端索引已重置，快照文件仍保留在服务器上。",
     connectionChanged: "连接配置已变化，请重新同步",
     chooseVersion: "选择同步版本",
     chooseDescription:
@@ -201,6 +208,10 @@ export default {
     eraseBody:
       "将删除本机的全部设置、网格组件、书签和缓存，页面恢复为新用户状态。此操作不可撤销，建议先导出备份。",
     eraseConfirm: "确认清除",
+    migrationIssues: "部分数据降级恢复",
+    migrationIssuesHint:
+      "上次恢复或更新时有 {{count}} 项数据未能完整读取，已保留可读部分。",
+    dismissReport: "知道了",
   },
   home: {
     gridScale: "网格缩放",

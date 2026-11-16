@@ -111,6 +111,10 @@ export default {
     connectionSettings: "{{status}}. Configure WebDAV",
     syncNow: "Sync",
     protectedSnapshot: "Kept",
+    legacySnapshot: "Older format",
+    corruptSnapshot: "Damaged",
+    legacySnapshotError:
+      "This snapshot was saved by an older format and cannot be applied.",
     renameSnapshot: "Rename",
     applySnapshot: "Apply",
     applySnapshotTitle: "Apply sync snapshot?",
@@ -162,6 +166,10 @@ export default {
     cleanupFailed:
       "Sync completed, but some expired snapshots could not be deleted. Cleanup will retry on the next sync.",
     invalidHistory: "The remote version index or snapshot is damaged",
+    indexCorrupt:
+      "The remote sync index is damaged. Snapshot files are still on the server, but they cannot be reached until the index is reset.",
+    resetIndex: "Reset remote index",
+    indexReset: "Remote index reset. Snapshot files remain on the server.",
     connectionChanged: "Connection settings changed. Please sync again.",
     chooseVersion: "Choose a version",
     chooseDescription:
@@ -215,6 +223,10 @@ export default {
     eraseBody:
       "This deletes all settings, grid components, bookmarks, and cached data on this device, returning the page to a fresh state. This cannot be undone; export a backup first.",
     eraseConfirm: "Clear data",
+    migrationIssues: "Partial restore",
+    migrationIssuesHint:
+      "{{count}} item(s) could not be fully read during the last recovery or update. Readable parts were kept.",
+    dismissReport: "Dismiss",
   },
   home: {
     gridScale: "Grid scale",

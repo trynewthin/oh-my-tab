@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { webdavSnapshotName } from "@/lib/webdav-sync"
 import { Button } from "@/components/ui/button"
-import type { WebdavSnapshot } from "@/application/webdav-sync"
+import type { MarkedSnapshot } from "@/application/webdav-sync"
 
 export default function WebdavSnapshotList({
   snapshots,
@@ -19,13 +19,13 @@ export default function WebdavSnapshotList({
   selectedId,
   onSelect,
 }: {
-  snapshots: WebdavSnapshot[]
+  snapshots: MarkedSnapshot[]
   busy?: boolean
-  onApply?: (snapshot: WebdavSnapshot) => void
-  onDelete?: (snapshot: WebdavSnapshot) => void
-  onRename?: (snapshot: WebdavSnapshot) => void
+  onApply?: (snapshot: MarkedSnapshot) => void
+  onDelete?: (snapshot: MarkedSnapshot) => void
+  onRename?: (snapshot: MarkedSnapshot) => void
   selectedId?: string
-  onSelect?: (snapshot: WebdavSnapshot) => void
+  onSelect?: (snapshot: MarkedSnapshot) => void
 }) {
   const { t } = useTranslation()
   if (!snapshots.length)
@@ -51,6 +51,16 @@ export default function WebdavSnapshotList({
               {snapshot.protected && (
                 <span className="rounded-md border border-border px-1.5 text-xs font-normal text-muted-foreground">
                   {t("settings.webdav.protectedSnapshot")}
+                </span>
+              )}
+              {snapshot.state === "legacy" && (
+                <span className="rounded-md border border-border px-1.5 text-xs font-normal text-muted-foreground">
+                  {t("settings.webdav.legacySnapshot")}
+                </span>
+              )}
+              {snapshot.state === "corrupt" && (
+                <span className="rounded-md border border-destructive px-1.5 text-xs font-normal text-destructive">
+                  {t("settings.webdav.corruptSnapshot")}
                 </span>
               )}
               {index === 0 && (

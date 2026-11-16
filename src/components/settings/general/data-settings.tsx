@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
-import { useTabGridStore } from "@/stores/tab-grid-store"
+import { resetDemoData } from "@/application/demo-data"
 import { useDataSettingsState } from "./use-data-settings"
 
 export default function DataSettings() {
@@ -88,7 +88,7 @@ export default function DataSettings() {
           <Button
             variant="outline"
             className={settingsControlClassName}
-            onClick={() => useTabGridStore.getState().resetToMock()}
+            onClick={() => resetDemoData()}
           >
             {t("settings.data.resetMock")}
           </Button>

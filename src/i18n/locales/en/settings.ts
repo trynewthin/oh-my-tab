@@ -229,7 +229,7 @@ export default {
     dismissReport: "Dismiss",
     resetMock: "Reset demo data",
     resetMockHint:
-      "Development builds only: restore the grid to the bundled demo content.",
+      "Development builds only: restore the complete demo dataset — grid, personalization, search engines, garden — to its initial state.",
   },
   home: {
     gridScale: "Grid scale",

@@ -59,7 +59,6 @@ type TabGridState = {
   transferTab: (move: TabTransfer) => void
   transferIntoSlot: (move: SlotTransfer) => boolean
   removeSlotControl: (removal: SlotRemoval) => boolean
-  resetToMock: () => void
   items: GridItem[]
 
   setItemDynamicEffect: (id: string, enabled: boolean) => void
@@ -97,11 +96,6 @@ export const useTabGridStore = create<TabGridState>()(
           lastLayoutColumns: columns,
         })),
       items: devInitialItems(),
-      resetToMock: () =>
-        set({
-          items: import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : [],
-          layouts: {},
-        }),
       updateTodoTasks: (id, change) =>
         set((state) => ({ items: updateTodoTasks(state.items, id, change) })),
       transferTab: (move) => set((state) => transferTab(state, move)),

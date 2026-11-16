@@ -94,7 +94,7 @@ test("restoring components preserves folder size, artwork and right-edge calenda
     .toEqual({ size: "small", count: 576, columns: 24, total: 3 })
 })
 
-test("invalid saved component stops loading without rewriting the stored list", async ({
+test("invalid saved component is skipped without rewriting the stored list", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -114,12 +114,31 @@ test("invalid saved component stops loading without rewriting the stored list", 
     )
   })
   await page.goto("/")
-  await expect(page.locator("#root")).toContainText("已停止加载以保留原始数据")
+  // The unreadable component is dropped instead of blocking the page; the
+  // degraded read is explained in the migration report.
+  await expect(page.getByRole("combobox", { name: "对话输入" })).toBeVisible()
+  await expect(page.locator("#root")).not.toContainText("保留原始数据")
   const items = await page.evaluate(
     () => JSON.parse(localStorage.getItem("omt.tab-grid")!).state.items
   )
-
   expect(items).toEqual([
     { id: "invalid", kind: "unknown", name: "保留原始数据" },
   ])
+  const report = await page.evaluate(
+    () =>
+      new Promise<string | undefined>((resolve, reject) => {
+        const request = indexedDB.open("oh-my-tab-data", 1)
+        request.onsuccess = () => {
+          const get = request.result
+            .transaction("entries", "readonly")
+            .objectStore("entries")
+            .get("omt.migration-report")
+          get.onsuccess = () => resolve(get.result as string | undefined)
+          get.onerror = () => reject(get.error)
+        }
+        request.onerror = () => reject(request.error)
+      })
+  )
+  const entries = JSON.parse(report ?? "[]") as { key: string }[]
+  expect(entries.some((entry) => entry.key === "omt.tab-grid")).toBe(true)
 })

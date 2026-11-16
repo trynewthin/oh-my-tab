@@ -17,7 +17,9 @@ export default function WebdavSyncDialog({
   const snapshots = plan ? syncPlanSnapshots(plan) : []
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected =
-    snapshots.find((snapshot) => snapshot.id === selectedId) ?? snapshots[0]
+    snapshots.find((snapshot) => snapshot.id === selectedId) ??
+    snapshots.find((snapshot) => snapshot.state !== "corrupt") ??
+    snapshots[0]
   return (
     <Dialog
       open={!!plan}

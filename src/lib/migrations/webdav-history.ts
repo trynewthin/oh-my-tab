@@ -27,8 +27,17 @@ type MigrationIO = {
 }
 const INDEX = "oh-my-tab-sync.json"
 const MAX_INDEX_BYTES = 4 * 1024 * 1024
+
+// The remote index exists but its contents are unusable (unreadable or an
+// unrecognized version). Callers may offer a reset path instead of failing.
+export class RemoteIndexError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "RemoteIndexError"
+  }
+}
 function invalid(): never {
-  throw new Error(i18n.t("settings.webdav.invalidHistory"))
+  throw new RemoteIndexError(i18n.t("settings.webdav.invalidHistory"))
 }
 function requireEtag(file: RemoteFile) {
   if (!file.etag || file.etag.startsWith("W/"))
@@ -50,11 +59,20 @@ async function migrate(io: MigrationIO): Promise<RemoteFile | null> {
   let index: RemoteIndex
   let legacy: RemoteFile | null = null
   if (existing) {
-    const raw = JSON.parse(await existing.blob.text())
+    let raw: { version?: unknown } | undefined
+    try {
+      raw = JSON.parse(await existing.blob.text())
+    } catch {
+      invalid()
+    }
     if (raw?.version === 4) return existing
-    if (![1, 2, 3].includes(raw?.version)) invalid()
+    if (![1, 2, 3].includes(raw?.version as number)) invalid()
     requireEtag(existing)
-    index = parseRemoteIndex(JSON.stringify({ ...raw, version: 4 }))
+    try {
+      index = parseRemoteIndex(JSON.stringify({ ...raw, version: 4 }))
+    } catch {
+      invalid()
+    }
   } else {
     legacy = await io.fetch("oh-my-tab.zip")
     if (!legacy) return null

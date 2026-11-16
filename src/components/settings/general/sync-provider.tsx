@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
+import { isSyncProviderId } from "@/lib/sync/providers"
 import type { Pending } from "./data-settings-types"
 import type { SyncProvider } from "./use-data-settings"
 
@@ -35,7 +36,7 @@ export default function SyncProviderSelect({
         value={provider}
         disabled={busy || !!pending || !ready}
         onValueChange={(value) => {
-          if (value !== "local" && value !== "webdav") return
+          if (!isSyncProviderId(value)) return
           void onSelect(value)
         }}
       >

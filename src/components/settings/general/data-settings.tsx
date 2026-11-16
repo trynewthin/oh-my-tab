@@ -7,10 +7,15 @@ import WebdavRow from "./webdav-row"
 import WebdavSnapshots from "./webdav-snapshots"
 import WebdavSyncDialog from "./webdav-sync-dialog"
 import WebdavRemoveDialog from "./webdav-remove-dialog"
+import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
+import SettingItem from "../shared/setting-item"
+import { settingsControlClassName } from "../shared/control-styles"
 import { useDataSettingsState } from "./use-data-settings"
 
 export default function DataSettings() {
   const state = useDataSettingsState()
+  const { t } = useTranslation()
   const {
     busy,
     ready,
@@ -30,6 +35,22 @@ export default function DataSettings() {
   )
   return (
     <div className="space-y-4">
+      {state.migrationIssues > 0 && (
+        <SettingItem
+          label={t("settings.data.migrationIssues")}
+          description={t("settings.data.migrationIssuesHint", {
+            count: state.migrationIssues,
+          })}
+        >
+          <Button
+            variant="outline"
+            className={settingsControlClassName}
+            onClick={state.dismissMigrationReport}
+          >
+            {t("settings.data.dismissReport")}
+          </Button>
+        </SettingItem>
+      )}
       <LocalBackup
         busy={busy || !!syncPlan || removeOpen}
         pending={pending}

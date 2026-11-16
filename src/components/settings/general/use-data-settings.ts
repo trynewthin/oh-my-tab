@@ -3,6 +3,10 @@ import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
 import { readEntries, writeEntries, subscribeStorage } from "@/lib/storage"
 import {
+  MIGRATION_REPORT_KEY,
+  readMigrationReport,
+} from "@/lib/migration-report"
+import {
   authorizeWebdav,
   testWebdav,
   type WebdavConnection,
@@ -20,9 +24,10 @@ import {
   type WebdavSyncPlan,
 } from "@/application/webdav-sync"
 import { DEFAULT_SNAPSHOT_LIMIT, type SyncDirection } from "@/lib/webdav-sync"
+import type { SyncProviderId } from "@/lib/sync/providers"
 import type { Pending } from "./data-settings-types"
 
-export type SyncProvider = "local" | "webdav"
+export type SyncProvider = SyncProviderId
 const emptyConnection: WebdavConnection = {
   url: "",
   username: "",
@@ -43,6 +48,7 @@ export function useDataSettingsState() {
   const [connected, setConnected] = useState(false)
   const [snapshotLimit, setSnapshotLimit] = useState(DEFAULT_SNAPSHOT_LIMIT)
   const [pending, setPending] = useState<Pending | null>(null)
+  const [migrationIssues, setMigrationIssues] = useState(0)
   const [syncPlan, setSyncPlan] = useState<WebdavSyncPlan | null>(null)
 
   useEffect(() => {
@@ -53,7 +59,9 @@ export function useDataSettingsState() {
       const check = ++checkVersion.current
       try {
         const values = await readEntries(["omt.webdav", "omt.sync-provider"])
+        const report = await readMigrationReport().catch(() => [])
         if (!active || version !== loadVersion) return
+        setMigrationIssues(report.length)
         const parsed = parseWebdavSettings(values["omt.webdav"])
         const provider =
           values["omt.sync-provider"] === "webdav" ? "webdav" : "local"
@@ -224,6 +232,10 @@ export function useDataSettingsState() {
       }
     })
   }
+  function dismissMigrationReport() {
+    void writeEntries({ [MIGRATION_REPORT_KEY]: null }, false)
+    setMigrationIssues(0)
+  }
   function changeWebdavOpen(open: boolean) {
     if (busy) return
     if (open && saved) {
@@ -240,6 +252,8 @@ export function useDataSettingsState() {
     ready,
     syncProvider,
     selectProvider,
+    migrationIssues,
+    dismissMigrationReport,
     webdavOpen,
     removeOpen,
     setRemoveOpen,

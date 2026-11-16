@@ -90,5 +90,17 @@ export function parseRemoteIndex(text: string): RemoteIndex {
     )
   )
     invalidIndex()
-  return value
+  return {
+    ...value,
+    // `state` is a read-time annotation added by the sync engine, not part
+    // of the index schema: drop any copy an older write persisted, or a
+    // repaired snapshot would stay flagged damaged.
+    snapshots: value.snapshots.map(
+      (item: WebdavSnapshot & { state?: unknown }) => {
+        const { state, ...snapshot } = item
+        void state
+        return snapshot
+      }
+    ),
+  }
 }

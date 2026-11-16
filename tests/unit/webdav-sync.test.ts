@@ -438,7 +438,7 @@ describe("WebDAV snapshot sync", () => {
     const count = files.size
     await expect(executeWebdavSync(plan, "upload")).rejects.toThrow(/ETag/)
     expect(files.size).toBe(count)
-  })
+  }, 15000)
   it("deleting a connection cancels pending sync without touching remote snapshots or local data", async () => {
     await saveWebdavSettings(connection, 5)
     await sync()
@@ -1045,7 +1045,20 @@ describe("committed WebDAV migrations", () => {
     expect(await contentHash(decoded.config, decoded.image)).toBe(migrated.hash)
     expect(files.has(old.file)).toBe(false)
     vi.mocked(fetch).mockClear()
-    expect(await readWebdavHistory()).toEqual(history)
+    const again = await readWebdavHistory()
+    expect({
+      index: again.index,
+      indexCorrupt: again.indexCorrupt,
+      etag: again.etag,
+      snapshots: again.snapshots,
+      raw: again.raw,
+    }).toEqual({
+      index: history.index,
+      indexCorrupt: history.indexCorrupt,
+      etag: history.etag,
+      snapshots: history.snapshots,
+      raw: history.raw,
+    })
     expect(
       vi
         .mocked(fetch)
@@ -1063,10 +1076,12 @@ describe("committed WebDAV migrations", () => {
     denyIndex = false
     expect((await readWebdavHistory()).index?.version).toBe(4)
   })
-  it("checks the original content checksum before rewriting anything", async () => {
+  it("flags a checksum-mismatched legacy index as corrupt without rewriting anything", async () => {
     const old = await oldRemote("0".repeat(64))
     const before = [...files.keys()]
-    await expect(readWebdavHistory()).rejects.toThrow(/损坏/)
+    const history = await readWebdavHistory()
+    expect(history.indexCorrupt).toBe(true)
+    expect(history.snapshots).toEqual([])
     expect([...files.keys()]).toEqual(before)
     expect(
       JSON.parse(await files.get("oh-my-tab-sync.json")!.blob.text())

@@ -77,20 +77,25 @@ export async function createWebdavSnapshot() {
 
 export async function readWebdavHistory(): Promise<WebdavHistory> {
   const syncStore = store()
-  const backend = await mustBackend()
-  return readSyncHistory({ backend, store: syncStore })
+  const { backend, raw } = await mustBackend()
+  const history = await readSyncHistory({ backend, store: syncStore })
+  // The backend was built from `raw`; a different live session would pair
+  // this backend with another server's history.
+  if (history.raw !== raw)
+    throw new Error(i18n.t("settings.webdav.connectionChanged"))
+  return history
 }
 
 export async function resetWebdavIndex() {
   const syncStore = store()
-  const backend = await mustBackend()
-  return resetRemoteIndex({ backend, store: syncStore })
+  const { backend, raw } = await mustBackend()
+  return resetRemoteIndex({ backend, store: syncStore, expectedRaw: raw })
 }
 
 async function mustBackend() {
   const current = await store().read()
   if (!current) throw new Error("not connected")
-  return webdavBackend(current.session)
+  return { backend: webdavBackend(current.session), raw: current.raw }
 }
 
 export function renameWebdavSnapshot(

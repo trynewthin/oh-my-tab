@@ -90,7 +90,9 @@ async function readIndexedSnapshot(
   backend: SyncBackend,
   snapshot: WebdavSnapshot
 ): Promise<SnapshotRead> {
-  const file = await backend.get(snapshot.file)
+  // Any fetch failure (missing, oversized, unreadable response) degrades
+  // this snapshot to corrupt instead of aborting the whole history read.
+  const file = await backend.get(snapshot.file).catch(() => null)
   if (!file) return { status: "corrupt" }
   let contents
   try {
@@ -364,12 +366,23 @@ async function cleanHistory(
   return failed.length === 0
 }
 
-export function uniqueSnapshots(snapshots: WebdavSnapshot[]) {
-  const hashes = new Map<string, WebdavSnapshot>()
+const damaged = (snapshot: MarkedSnapshot) =>
+  snapshot.state === "corrupt" || snapshot.state === "legacy"
+
+export function uniqueSnapshots(snapshots: MarkedSnapshot[]) {
+  const hashes = new Map<string, MarkedSnapshot>()
   for (const snapshot of snapshots) {
     if (snapshot.manual) continue
     const previous = hashes.get(snapshot.hash)
-    if (!previous || (!previous.protected && snapshot.protected))
+    // A healthy copy always outranks a damaged one: dedup must not keep a
+    // corrupt entry and garbage-collect its readable replacement.
+    if (
+      !previous ||
+      (damaged(previous) && !damaged(snapshot)) ||
+      (damaged(previous) === damaged(snapshot) &&
+        !previous.protected &&
+        snapshot.protected)
+    )
       hashes.set(snapshot.hash, snapshot)
   }
   const ordinaryIds = new Set([...hashes.values()].map(({ id }) => id))
@@ -392,7 +405,13 @@ function retainedIndex(
     ...index,
     version: 4,
     snapshotLimit,
-    snapshots: retained,
+    // `state` is a read-time annotation, not history: never persist it, or a
+    // repaired file would stay flagged corrupt forever.
+    snapshots: retained.map((snapshot) => {
+      const { state, ...rest } = snapshot
+      void state
+      return rest
+    }),
     garbage: [
       ...new Set([
         ...index.garbage,
@@ -472,7 +491,8 @@ export async function readSyncHistory<S extends SyncSession>(options: {
       const read = await readIndexedSnapshot(backend, snapshot)
       snapshots.push({
         ...snapshot,
-        ...(read.status !== "ok" ? { state: read.status } : {}),
+        // Fresh reads always win over a state persisted by an older write.
+        state: read.status === "ok" ? undefined : read.status,
       })
     }
   const persisted = await store.read()
@@ -575,7 +595,11 @@ export async function applySnapshot<S extends SyncSession>(
     const backup = contents.backup
     await currentHistory(current)
     await restoreBackup(backup, revision)
-    const latest = current.snapshots[0]
+    // Mirror remoteState: the baseline tracks the first readable snapshot,
+    // not the index head, which may be a damaged entry.
+    const latest = current.snapshots.find(
+      (snapshot) => snapshot.state !== "corrupt" && snapshot.state !== "legacy"
+    )
     const session = {
       ...current.session,
       ...(latest
@@ -637,11 +661,16 @@ export async function deleteSnapshot<S extends SyncSession>(
 export async function resetRemoteIndex<S extends SyncSession>(options: {
   backend: SyncBackend
   store: SyncStore<S>
+  // The raw settings the backend was built from; a different live value
+  // means the connection changed between reads.
+  expectedRaw?: string
 }) {
-  const { backend, store } = options
+  const { backend, store, expectedRaw } = options
   const current = await store.read()
   if (!current || typeof current.raw !== "string")
     throw new Error(i18n.t("settings.webdav.notConnected"))
+  if (expectedRaw !== undefined && current.raw !== expectedRaw)
+    throw new Error(i18n.t("settings.webdav.connectionChanged"))
   return navigator.locks.request("omt-webdav", async () => {
     const latest = await freshIndex(backend)
     // Refuse to wipe a healthy, non-empty index: that is real history, not
@@ -765,7 +794,18 @@ export async function executeSync<S extends SyncSession>(
         hash: plan.localHash,
         change,
       }
-      const all = [snapshot, ...(current.index?.snapshots ?? [])]
+      // Carry the read marks into dedup so a damaged snapshot cannot win
+      // the hash slot over this verified upload and get it garbage-collected.
+      const all = [
+        snapshot,
+        ...(current.index?.snapshots ?? []).map((entry) =>
+          current.corrupt.includes(entry.id)
+            ? { ...entry, state: "corrupt" as const }
+            : current.legacy.includes(entry.id)
+              ? { ...entry, state: "legacy" as const }
+              : entry
+        ),
+      ]
       const index = retainedIndex(
         current.index ?? {
           version: 4,

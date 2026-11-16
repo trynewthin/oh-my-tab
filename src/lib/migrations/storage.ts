@@ -122,7 +122,16 @@ export async function migrateStoredData() {
           const currentGarden =
             source["omt.garden"] == null
               ? undefined
-              : JSON.parse(source["omt.garden"] as string).state
+              : (() => {
+                  const envelope = JSON.parse(source["omt.garden"] as string)
+                  const version = envelope?.version ?? 0
+                  // Never reparse a record this client cannot fully read: a
+                  // future garden rewritten here would lose its version
+                  // guard and the fields only a newer client understands.
+                  if (!Number.isInteger(version) || version > STORAGE_VERSION)
+                    throw new Error(i18n.t("core.hydrate.readFailed"))
+                  return envelope.state
+                })()
           const next = migrateGardenData(
             grid ?? { items: [] },
             garden ?? currentGarden,

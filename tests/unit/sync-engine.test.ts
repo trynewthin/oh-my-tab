@@ -228,3 +228,52 @@ describe("resetRemoteIndex", () => {
     expect(files.get("oh-my-tab-sync.json")).toBeTruthy()
   })
 })
+
+describe("resilience regressions", () => {
+  it("treats a backend read failure as a corrupt snapshot, not a history abort", async () => {
+    const broken = await makeSnapshot(true)
+    const good = await makeSnapshot(true)
+    await writeIndex([broken, good])
+    const failing: SyncBackend = {
+      ...backend,
+      get: async (path, maxBytes) => {
+        if (path === broken.file) throw new Error("500 boom")
+        return backend.get(path, maxBytes)
+      },
+    }
+    const history = await readSyncHistory({ backend: failing, store })
+    expect(history.snapshots[0].state).toBe("corrupt")
+    expect(history.snapshots[1].state).toBeUndefined()
+  })
+
+  it("drops the damaged duplicate, keeps the healthy copy and never persists state", async () => {
+    const good = await makeSnapshot()
+    // Same content hash as `good`, but its file was never uploaded: a
+    // damage-aware dedup must keep `good`, not the dead index entry.
+    const dupId = crypto.randomUUID()
+    const deadDuplicate = {
+      ...good,
+      id: dupId,
+      file: `oh-my-tab-snapshot-${dupId}.zip`,
+    }
+    await writeIndex([deadDuplicate, good])
+    // Local changes force a real upload, so dedup runs over the index.
+    await seed("CHANGED")
+    const plan = await prepareSync({ backend, store })
+    expect(plan.remote.corrupt).toContain(deadDuplicate.id)
+    await executeSync(plan, "upload", { forceSnapshot: true })
+    const indexText = await files.get("oh-my-tab-sync.json")!.blob.text()
+    const index = parseRemoteIndex(indexText)
+    expect(index.snapshots.some((s) => s.id === deadDuplicate.id)).toBe(false)
+    expect(index.snapshots.some((s) => s.id === good.id)).toBe(true)
+    // `state` is a read-time annotation; persisting it would flag a repaired
+    // file as corrupt forever.
+    expect(indexText).not.toContain('"state"')
+  })
+
+  it("refuses to reset the index when the connection changed mid-read", async () => {
+    await expect(
+      resetRemoteIndex({ backend, store, expectedRaw: "different-raw" })
+    ).rejects.toThrow()
+  })
+})

@@ -114,20 +114,20 @@ const KINDS: BandKind[] = [
 export function makeIsle(seed: number): Isle {
   const r = mulberry32(seed)
   const bands: IsleBand[] = []
-  let y = 0
+  let pos = 0
   const count = 5 + Math.floor(r() * 4)
   for (let i = 0; i < count; i++) {
     const band = KINDS[Math.floor(r() * KINDS.length)](r)
     const yarn: Yarn = r() < 0.28 ? "accent" : "fg"
-    bands.push({ start: y, h: band.h, yarn, hit: band.hit })
-    y += band.h
+    bands.push({ start: pos, h: band.h, yarn, hit: band.hit })
+    pos += band.h
     if (i < count - 1) {
       const gap = 1 + Math.floor(r() * 2)
-      bands.push({ start: y, h: gap, yarn: "bg", hit: () => false })
-      y += gap
+      bands.push({ start: pos, h: gap, yarn: "bg", hit: () => false })
+      pos += gap
     }
   }
-  return { bands, total: y }
+  return { bands, total: pos }
 }
 
 export function fairIsleYarns(
@@ -151,11 +151,13 @@ export function createFairIsleTexture(
   const isle = makeIsle(seed)
   const yarns = fairIsleYarns(color, palette)
   return (x: number, y: number, _time?: number, visibility = 1) => {
-    const idx = ((y % isle.total) + isle.total) % isle.total
+    // Motif bands run vertically: columns read across the tab like a scarf
+    // knit side to side. Band index comes from x; patterns draw along y.
+    const idx = ((x % isle.total) + isle.total) % isle.total
     const band = isle.bands.find(
       (b) => idx >= b.start && idx < b.start + b.h
     ) as IsleBand
-    const yarn = band.hit(x, idx - band.start) ? band.yarn : "bg"
+    const yarn = band.hit(y, idx - band.start) ? band.yarn : "bg"
     const value = yarns[yarn]
     return visibility >= 1
       ? value

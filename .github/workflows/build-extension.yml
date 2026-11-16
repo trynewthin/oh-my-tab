@@ -2,10 +2,10 @@ name: Build extension
 
 on:
   push:
-    branches: [main]
+    branches: [nightly, stable]
     tags: ["v*"]
   pull_request:
-    branches: [main]
+    branches: [nightly, stable]
   workflow_dispatch:
 
 permissions:

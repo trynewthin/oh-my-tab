@@ -85,14 +85,21 @@ type SnapshotRead =
   | { status: "ok"; backup: Backup; hash: string }
   | { status: "legacy" }
   | { status: "corrupt" }
+  | { status: "unreadable" }
 
 async function readIndexedSnapshot(
   backend: SyncBackend,
   snapshot: WebdavSnapshot
 ): Promise<SnapshotRead> {
-  // Any fetch failure (missing, oversized, unreadable response) degrades
-  // this snapshot to corrupt instead of aborting the whole history read.
-  const file = await backend.get(snapshot.file).catch(() => null)
+  // Distinguish verified-corrupt (missing file, bad contents) from
+  // unreadable (the fetch itself failed): only the former may lose its
+  // slot; the latter leaves this snapshot's state undetermined.
+  let file
+  try {
+    file = await backend.get(snapshot.file)
+  } catch {
+    return { status: "unreadable" }
+  }
   if (!file) return { status: "corrupt" }
   let contents
   try {
@@ -248,6 +255,11 @@ async function remoteState(
         corrupt,
         legacy,
       }
+    // An entry we could not fetch may still be a valid backup — possibly
+    // newer than anything below it. Abort instead of deciding direction
+    // against an indeterminate remote.
+    if (read.status === "unreadable")
+      throw new Error(i18n.t("settings.webdav.networkFailed"))
     if (read.status === "legacy") legacy.push(snapshot.id)
     else corrupt.push(snapshot.id)
   }
@@ -492,7 +504,12 @@ export async function readSyncHistory<S extends SyncSession>(options: {
       snapshots.push({
         ...snapshot,
         // Fresh reads always win over a state persisted by an older write.
-        state: read.status === "ok" ? undefined : read.status,
+        state:
+          read.status === "ok"
+            ? undefined
+            : read.status === "unreadable"
+              ? "corrupt"
+              : read.status,
       })
     }
   const persisted = await store.read()

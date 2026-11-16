@@ -277,3 +277,39 @@ describe("resilience regressions", () => {
     ).rejects.toThrow()
   })
 })
+
+describe("indeterminate remote reads", () => {
+  it("aborts prepareSync when a listed snapshot cannot be fetched", async () => {
+    const head = await makeSnapshot()
+    await writeIndex([head])
+    const failing: SyncBackend = {
+      ...backend,
+      get: async (path, maxBytes) => {
+        if (path === head.file) throw new Error("500 boom")
+        return backend.get(path, maxBytes)
+      },
+    }
+    // A transient fetch failure must not masquerade as corruption: syncing
+    // against an indeterminate remote could overwrite a valid backup.
+    await expect(prepareSync({ backend: failing, store })).rejects.toThrow()
+    expect(files.get(head.file)).toBeTruthy()
+  })
+
+  it("ignores a state annotation persisted in the index", async () => {
+    const entry = await makeSnapshot()
+    const index = {
+      version: 4,
+      snapshotLimit: 5,
+      snapshots: [{ ...entry, state: "corrupt" }],
+      garbage: [],
+    }
+    await backend.put(
+      "oh-my-tab-sync.json",
+      new Blob([JSON.stringify(index)]),
+      { ifNoneMatch: true }
+    )
+    const plan = await prepareSync({ backend, store })
+    expect(plan.remote.corrupt).toEqual([])
+    expect(plan.remote.id).toBe(entry.id)
+  })
+})

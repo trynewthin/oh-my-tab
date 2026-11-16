@@ -1,5 +1,6 @@
 import { migrateWebdavSettings } from "./webdav-settings"
 import { STORAGE_VERSION } from "@/lib/data-version"
+import { appendMigrationReport } from "@/lib/migration-report"
 import {
   DATA_KEYS,
   DEVICE_KEYS,
@@ -27,15 +28,18 @@ export async function migrateStoredData() {
       const current = await readEntries(keys)
       stage = MARKER
       const completed = current[MARKER] === STORAGE_VERSION
-      if (
-        typeof current[MARKER] === "number" &&
-        current[MARKER] > STORAGE_VERSION
-      )
-        throw new Error(i18n.t("core.hydrate.readFailed"))
+      const report: { key: string; reason: string; partial?: boolean }[] = []
+      const failed = new Set<string>()
+      // A marker ahead of this client means a newer version migrated; it is
+      // not corruption, so note it and keep reading instead of failing.
+      const markerAhead =
+        typeof current[MARKER] === "number" && current[MARKER] > STORAGE_VERSION
+      if (markerAhead)
+        report.push({ key: MARKER, reason: "newer-client", partial: true })
       const updates: Record<string, unknown> = {}
       const source = { ...current }
       const legacyKeys: string[] = []
-      if (!completed) {
+      if (!completed && !markerAhead) {
         for (const key of [...DATA_KEYS, ...DEVICE_KEYS]) {
           stage = `localStorage: ${key}`
           const old = localStorage.getItem(key)
@@ -61,67 +65,114 @@ export async function migrateStoredData() {
       for (const key of PERSIST_KEYS) {
         stage = key
         if (source[key] == null) continue
-        if (typeof source[key] !== "string")
-          throw new Error(i18n.t("core.hydrate.readFailed"))
-        const envelope = JSON.parse(source[key])
-        const version = envelope?.version ?? 0
-        if (
-          !Number.isInteger(version) ||
-          version < 0 ||
-          version > STORAGE_VERSION ||
-          !envelope?.state ||
-          typeof envelope.state !== "object" ||
-          Array.isArray(envelope.state)
-        )
-          throw new Error(i18n.t("core.hydrate.readFailed"))
-        if (version === STORAGE_VERSION) continue
-        let state = record(envelope.state)
-        if (key === "omt.home-settings")
-          state = { ...sanitizeHomeSettings(migrateHome(state)) }
-        if (key === "omt.tab-grid") state = migrateGrid(state)
-        if (key === "omt.search-engines")
-          state = { ...state, openInNewTab: state.openInNewTab ?? true }
-        if (key === "omt.privacy")
-          state = {
-            suggestions: version === 0 ? false : state.suggestions === true,
-            icons: state.icons === true,
-            browserSearch: state.browserSearch !== false,
+        // One unreadable or unmigratable key must not block the rest: skip
+        // it and let hydration's tolerant reader try a degraded read.
+        try {
+          if (typeof source[key] !== "string")
+            throw new Error(i18n.t("core.hydrate.readFailed"))
+          const envelope = JSON.parse(source[key])
+          const version = envelope?.version ?? 0
+          if (
+            !Number.isInteger(version) ||
+            version < 0 ||
+            !envelope?.state ||
+            typeof envelope.state !== "object" ||
+            Array.isArray(envelope.state)
+          )
+            throw new Error(i18n.t("core.hydrate.readFailed"))
+          if (version > STORAGE_VERSION) {
+            const minRead = envelope?.minReadVersion
+            if (Number.isInteger(minRead) && minRead > STORAGE_VERSION)
+              throw new Error(i18n.t("core.hydrate.readFailed"))
+            report.push({ key, reason: "newer-version", partial: true })
+            continue
           }
-        states.set(key, state)
+          if (version === STORAGE_VERSION) continue
+          let state = record(envelope.state)
+          if (key === "omt.home-settings")
+            state = { ...sanitizeHomeSettings(migrateHome(state)) }
+          if (key === "omt.tab-grid") state = migrateGrid(state)
+          if (key === "omt.search-engines")
+            state = { ...state, openInNewTab: state.openInNewTab ?? true }
+          if (key === "omt.privacy")
+            state = {
+              suggestions: version === 0 ? false : state.suggestions === true,
+              icons: state.icons === true,
+              browserSearch: state.browserSearch !== false,
+            }
+          states.set(key, state)
+        } catch (error) {
+          failed.add(key)
+          report.push({
+            key,
+            reason: error instanceof Error ? error.message : "unreadable",
+          })
+        }
       }
       // The marker covers legacy import, not later writes from older clients.
-      if (completed && states.size === 0) return
+      if (completed && states.size === 0) {
+        if (report.length) await appendMigrationReport(report)
+        return
+      }
       const grid = states.get("omt.tab-grid")
       const garden = states.get("omt.garden")
       stage = "omt.garden / omt.tab-grid"
       if (grid || garden || source["omt.garden"] == null) {
-        const currentGarden =
-          source["omt.garden"] == null
-            ? undefined
-            : JSON.parse(source["omt.garden"] as string).state
-        const next = migrateGardenData(
-          grid ?? { items: [] },
-          garden ?? currentGarden,
-          Date.now()
-        )
-        if (!validSharedGarden(next))
-          throw new Error(i18n.t("core.hydrate.readFailed"))
-        states.set("omt.garden", next)
+        try {
+          const currentGarden =
+            source["omt.garden"] == null
+              ? undefined
+              : JSON.parse(source["omt.garden"] as string).state
+          const next = migrateGardenData(
+            grid ?? { items: [] },
+            garden ?? currentGarden,
+            Date.now()
+          )
+          if (!validSharedGarden(next))
+            throw new Error(i18n.t("core.hydrate.readFailed"))
+          states.set("omt.garden", next)
+        } catch (error) {
+          failed.add("omt.garden")
+          report.push({
+            key: "omt.garden",
+            reason: error instanceof Error ? error.message : "unreadable",
+          })
+        }
       }
-      if (grid) states.set("omt.tab-grid", { ...sanitizePersisted(grid) })
+      if (grid)
+        try {
+          states.set("omt.tab-grid", { ...sanitizePersisted(grid) })
+        } catch (error) {
+          // Do not commit an unsanitized migrated grid: leave the original
+          // record for the tolerant reader.
+          states.delete("omt.tab-grid")
+          failed.add("omt.tab-grid")
+          report.push({
+            key: "omt.tab-grid",
+            reason: error instanceof Error ? error.message : "unreadable",
+          })
+        }
       const home = states.get("omt.home-settings")
       stage = "omt.home-settings: backgroundImage"
       if (
         typeof home?.backgroundImage === "string" &&
         home.backgroundImage.startsWith("data:image/")
       ) {
-        const blob = dataUrlToBlob(home.backgroundImage)
-        const id = `asset:${crypto.randomUUID()}`
-        updates[id] = {
-          createdAt: Date.now(),
-          value: chromeStorage() ? await blobToDataUrl(blob) : blob,
+        try {
+          const blob = dataUrlToBlob(home.backgroundImage)
+          const id = `asset:${crypto.randomUUID()}`
+          updates[id] = {
+            createdAt: Date.now(),
+            value: chromeStorage() ? await blobToDataUrl(blob) : blob,
+          }
+          home.backgroundImage = id
+        } catch (error) {
+          report.push({
+            key: "omt.home-settings",
+            reason: error instanceof Error ? error.message : "unreadable",
+            partial: true,
+          })
         }
-        home.backgroundImage = id
       }
       for (const [key, state] of states)
         updates[key] = JSON.stringify({ state, version: STORAGE_VERSION })
@@ -137,12 +188,14 @@ export async function migrateStoredData() {
         }
       }
       stage = "commit"
+      if (report.length) await appendMigrationReport(report)
       if (Object.keys(updates).length)
         await writeEntries(updates, true, current)
       // Cleanup follows a successful commit; an interrupted retry reuses the
       // committed entries.
       stage = "localStorage cleanup"
-      for (const key of legacyKeys) localStorage.removeItem(key)
+      for (const key of legacyKeys)
+        if (!failed.has(key)) localStorage.removeItem(key)
       if (!completed)
         await writeEntries({ [MARKER]: STORAGE_VERSION }, false, {
           [MARKER]: current[MARKER],

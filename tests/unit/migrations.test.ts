@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import * as storage from "@/lib/storage"
 import { CONFIG_VERSION, STORAGE_VERSION } from "@/lib/data-version"
 import { migrateStoredData } from "@/lib/migrations/storage"
+import { readMigrationReport } from "@/lib/migration-report"
 import { migrateConfig } from "@/lib/migrations/v2"
 import * as conversions from "@/lib/migrations/v2"
 import {
@@ -129,12 +130,17 @@ describe("committed local migrations", () => {
       delete countdown.event
       const raw = saved({ items: [countdown], layouts: {} }, 1)
       legacyLocalStorage.set("omt.tab-grid", raw)
-      const before = await storage.allEntries()
 
-      await expect(rehydrateData()).rejects.toThrow()
+      await expect(rehydrateData()).resolves.toBeUndefined()
 
-      expect(await storage.allEntries()).toEqual(before)
+      // The unmigratable record is never rewritten and its legacy copy is
+      // kept; the failure shows up in the migration report instead.
+      expect(
+        (await storage.readEntries(["omt.tab-grid"]))["omt.tab-grid"]
+      ).toBe(raw)
       expect(legacyLocalStorage.get("omt.tab-grid")).toBe(raw)
+      const report = await readMigrationReport()
+      expect(report.some((entry) => entry.key === "omt.tab-grid")).toBe(true)
     }
   )
   it("upgrades the version 3 development profile with version 1 privacy without losing data", async () => {
@@ -329,16 +335,20 @@ describe("committed local migrations", () => {
     saved([], STORAGE_VERSION),
     "{invalid json",
   ])(
-    "rejects invalid or future records after migration completes",
+    "degrades invalid or future records instead of failing hydration",
     async (raw) => {
       await migrateStoredData()
       await storage.writeEntries({
         "omt.home-settings": saved({ text: "KEEP" }),
         "omt.privacy": raw,
       })
-      const before = await storage.allEntries()
-      await expect(rehydrateData()).rejects.toThrow()
-      expect(await storage.allEntries()).toEqual(before)
+      await expect(rehydrateData()).resolves.toBeUndefined()
+      // The unreadable record stays in place and is reported, not dropped.
+      expect((await storage.readEntries(["omt.privacy"]))["omt.privacy"]).toBe(
+        raw
+      )
+      const report = await readMigrationReport()
+      expect(report.some((entry) => entry.key === "omt.privacy")).toBe(true)
     }
   )
   it("commits fields, shared garden, images and versions before hydration, then skips conversion", async () => {
@@ -535,15 +545,14 @@ describe("committed local migrations", () => {
   it.each([
     saved({ items: [{ kind: "unknown" }], layouts: {} }),
     saved({ items: [], layouts: {} }, STORAGE_VERSION + 1),
-  ])("does not mark invalid or future data migrated", async (raw) => {
+  ])("skips and reports invalid or future data", async (raw) => {
     await storage.writeEntries({ "omt.tab-grid": raw })
-    await expect(migrateStoredData()).rejects.toThrow()
+    await expect(migrateStoredData()).resolves.toBeUndefined()
     expect((await storage.readEntries(["omt.tab-grid"]))["omt.tab-grid"]).toBe(
       raw
     )
-    expect(
-      (await storage.readEntries(["omt.migrations"]))["omt.migrations"]
-    ).toBeUndefined()
+    const report = await readMigrationReport()
+    expect(report.some((entry) => entry.key === "omt.tab-grid")).toBe(true)
   })
 })
 

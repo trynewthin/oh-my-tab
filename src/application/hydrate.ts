@@ -8,10 +8,12 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 import { usePrivacyStore } from "@/stores/privacy-store"
 import { useLocaleStore } from "@/stores/locale-store"
 import {
+  drainReadIssues,
   flushStorage,
   initializeStorage,
   subscribeStorage,
 } from "@/lib/storage"
+import { appendMigrationReport } from "@/lib/migration-report"
 import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
 const stores = [
@@ -59,6 +61,15 @@ export function rehydrateData(keys?: string[]): Promise<void> {
     }
     await migrateStoredData()
     await rehydrateStores(pending === "all" ? undefined : pending)
+    const issues = drainReadIssues()
+    if (issues.length)
+      await appendMigrationReport(
+        issues.map((issue) => ({
+          key: issue.key,
+          reason: issue.reason,
+          partial: issue.reason === "partial",
+        }))
+      ).catch(() => {})
   })
   rehydrateTail = run.catch(() => {})
   return run

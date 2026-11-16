@@ -1,6 +1,7 @@
 import { createJSONStorage, type StateStorage } from "zustand/middleware"
 
 import { STORAGE_VERSION } from "@/lib/data-version"
+import { sanitizeState } from "@/lib/sanitize"
 
 import { i18n } from "@/i18n"
 
@@ -155,13 +156,76 @@ export async function initializeStorage() {
   })
 }
 const loaded = new Map<string, unknown>()
+
+export type ReadIssue = {
+  key: string
+  reason: "unreadable" | "partial"
+}
+const readIssues: ReadIssue[] = []
+function recordReadIssue(issue: ReadIssue) {
+  readIssues.push(issue)
+}
+// Drains issues accumulated during hydration; hydrate.ts folds them into
+// the migration report so degraded reads stay visible to the user.
+export function drainReadIssues(): ReadIssue[] {
+  const issues = readIssues.splice(0)
+  return issues
+}
+
+function tolerantEnvelope(
+  name: string,
+  envelope: unknown
+): { state: Record<string, unknown>; partial: boolean } | null {
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope))
+    return null
+  const { version, minReadVersion, state } = envelope as {
+    version?: unknown
+    minReadVersion?: unknown
+    state?: unknown
+  }
+  if (!Number.isInteger(version) || (version as number) < 0) return null
+  // A writer that knows its data is unreadable below a reader version can
+  // say so explicitly; otherwise attempt a best-effort read.
+  if (
+    (version as number) > STORAGE_VERSION &&
+    Number.isInteger(minReadVersion) &&
+    (minReadVersion as number) > STORAGE_VERSION
+  )
+    return null
+  const result = sanitizeState(name, state)
+  // Every read through this path is degraded by definition (the envelope is
+  // not the current version), so partial is unconditional.
+  return result.ok ? { state: result.state, partial: true } : null
+}
+
 const adapter: StateStorage = {
   async getItem(name) {
     const value = (await readEntries([name]))[name]
     if (value != null) {
-      const envelope = typeof value === "string" ? JSON.parse(value) : null
-      if (envelope?.version !== STORAGE_VERSION)
-        throw new Error(i18n.t("core.hydrate.readFailed"))
+      let envelope: unknown = null
+      if (typeof value === "string")
+        try {
+          envelope = JSON.parse(value)
+        } catch {
+          envelope = undefined
+        }
+      if (
+        envelope === undefined ||
+        (envelope as { version?: unknown })?.version !== STORAGE_VERSION
+      ) {
+        const tolerant = tolerantEnvelope(name, envelope)
+        if (!tolerant) {
+          recordReadIssue({ key: name, reason: "unreadable" })
+          loaded.set(name, value)
+          return null
+        }
+        if (tolerant.partial) recordReadIssue({ key: name, reason: "partial" })
+        loaded.set(name, value)
+        return JSON.stringify({
+          state: tolerant.state,
+          version: STORAGE_VERSION,
+        })
+      }
     }
     loaded.set(name, value)
     return typeof value === "string" ? value : null

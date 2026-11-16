@@ -48,10 +48,16 @@ export async function prepareWebdavSync(): Promise<WebdavSyncPlan> {
   const syncStore = store()
   const current = await syncStore.read()
   if (!current) throw new Error(i18n.t("settings.webdav.notConnected"))
-  return prepareSync({
+  const plan = await prepareSync({
     backend: webdavBackend(current.session),
     store: syncStore,
   })
+  // The backend was built from `current`; if the settings changed in
+  // another tab before the engine read them, the plan pairs this backend
+  // with a different server — refuse instead of syncing the wrong host.
+  if (plan.raw !== current.raw)
+    throw new Error(i18n.t("settings.webdav.connectionChanged"))
+  return plan
 }
 
 export async function executeWebdavSync(

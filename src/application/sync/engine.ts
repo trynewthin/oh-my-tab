@@ -177,21 +177,28 @@ async function remoteState(
       indexFile = (await freshIndex(backend)) ?? indexFile
   } catch (error) {
     if (error instanceof RemoteIndexError) {
-      // Keep the corrupt file's ETag so an upload can overwrite it with a
-      // conditional write instead of failing on If-None-Match.
+      // Another device may have repaired the index between reads: if the
+      // latest file parses, fall through to the normal path with it.
       const latest = await freshIndex(backend).catch(() => null)
-      return {
-        index: null,
-        indexEtag: latest?.etag ?? null,
-        indexCorrupt: true,
-        backup: null,
-        large: false,
-        change: null,
-        corrupt: [],
-        legacy: [],
-      }
-    }
-    throw error
+      if (latest)
+        try {
+          parseRemoteIndex(await latest.blob.text())
+          indexFile = latest
+        } catch {
+          indexFile = undefined
+        }
+      if (!indexFile)
+        return {
+          index: null,
+          indexEtag: latest?.etag ?? null,
+          indexCorrupt: true,
+          backup: null,
+          large: false,
+          change: null,
+          corrupt: [],
+          legacy: [],
+        }
+    } else throw error
   }
   if (!indexFile)
     return {
@@ -665,9 +672,17 @@ export async function resetRemoteIndex<S extends SyncSession>(options: {
 
 export function syncPlanSnapshots<S extends SyncSession>(
   plan: SyncPlan<S>
-): WebdavSnapshot[] {
-  if (plan.remote.index) return uniqueSnapshots(plan.remote.index.snapshots)
-  return []
+): MarkedSnapshot[] {
+  if (!plan.remote.index) return []
+  const corrupt = new Set(plan.remote.corrupt)
+  const legacy = new Set(plan.remote.legacy)
+  return uniqueSnapshots(plan.remote.index.snapshots).map((snapshot) =>
+    corrupt.has(snapshot.id)
+      ? { ...snapshot, state: "corrupt" as const }
+      : legacy.has(snapshot.id)
+        ? { ...snapshot, state: "legacy" as const }
+        : snapshot
+  )
 }
 
 export async function executeSync<S extends SyncSession>(
@@ -698,7 +713,12 @@ export async function executeSync<S extends SyncSession>(
       !current.indexCorrupt &&
       (current.hash === plan.localHash ||
         current.index?.snapshots.some(
-          (snapshot) => snapshot.hash === plan.localHash
+          // Only a snapshot this client verified it can read counts as
+          // coverage; a damaged copy must not suppress a fresh upload.
+          (snapshot) =>
+            snapshot.hash === plan.localHash &&
+            !current.corrupt.includes(snapshot.id) &&
+            !current.legacy.includes(snapshot.id)
         ))
     ) {
       const settled = current.index
@@ -831,7 +851,15 @@ export async function executeSync<S extends SyncSession>(
         current.indexEtag
       )
       cleanupComplete = settled.cleanupComplete
-      remoteId = settled.index.snapshots[0]?.id ?? remoteId
+      // The baseline mirrors what the next remoteState will pick as remote
+      // head: the first snapshot that was verified readable — settled head
+      // when it is readable, the fallback otherwise.
+      remoteId =
+        settled.index.snapshots.find(
+          (snapshot) =>
+            !current.corrupt.includes(snapshot.id) &&
+            !current.legacy.includes(snapshot.id)
+        )?.id ?? remoteId
     }
     const session = {
       ...plan.session,

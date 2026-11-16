@@ -1,4 +1,5 @@
 import { migrateStoredData } from "@/lib/migrations/storage"
+import { seedDemoData } from "@/application/demo-data"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useThemeStore } from "@/stores/theme-store"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
@@ -81,6 +82,10 @@ export async function prepareData() {
       await initializeStorage()
       stage = "rehydrateData"
       await rehydrateData()
+      if (import.meta.env.DEV) {
+        stage = "seedDemoData"
+        await seedDemoData()
+      }
       stage = "flushStorage"
       await flushStorage()
     } catch (cause) {

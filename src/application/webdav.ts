@@ -16,8 +16,11 @@ export function normalizeWebdav(settings: WebdavSettings): WebdavSettings {
   } catch {
     throw new Error(i18n.t("settings.webdav.addressInvalid"))
   }
+  const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+  const allowedPlain =
+    import.meta.env.DEV && url.protocol === "http:" && loopback
   if (
-    url.protocol !== "https:" ||
+    (url.protocol !== "https:" && !allowedPlain) ||
     url.username ||
     url.password ||
     url.search ||

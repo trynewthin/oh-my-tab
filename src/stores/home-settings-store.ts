@@ -362,6 +362,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         squareTabAppearance,
         squareTabTexture,
         squareTabEffectCoverage,
+        fairIslePalette,
       }) => ({
         layoutMode,
         quickBar,
@@ -391,6 +392,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         squareTabAppearance,
         squareTabTexture,
         squareTabEffectCoverage,
+        fairIslePalette,
       }),
       merge: (persisted, current) => ({
         ...current,

@@ -235,9 +235,17 @@ export const useTabGridStore = create<TabGridState>()(
       merge: (persisted, current) => {
         if (persisted == null) return current
         const clean = sanitizePersisted(persisted)
+        // A production visit leaves an empty persisted grid; in development
+        // reseed the mock items once (a dev who emptied the grid keeps the
+        // bumped version and is not reseeded again).
+        const reseed =
+          import.meta.env.DEV &&
+          clean.items.length === 0 &&
+          clean.mockDataVersion !== MOCK_DATA_VERSION
         return {
           ...current,
           ...clean,
+          items: reseed ? current.items : clean.items,
           mockDataVersion: import.meta.env.DEV
             ? MOCK_DATA_VERSION
             : clean.mockDataVersion,

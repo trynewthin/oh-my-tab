@@ -29,7 +29,8 @@
     "test:icons": "vitest run tests/unit/favicon-cache.test.ts",
     "test:unit": "vitest run",
     "store-assets": "node scripts/assets/capture-store.mjs",
-    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs"
+    "test:webdav": "npm run build && node scripts/verification/verify-webdav.mjs",
+    "dev:webdav": "node scripts/dev/mock-webdav.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

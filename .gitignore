@@ -43,3 +43,4 @@ packages/
 
 # Local publishing materials
 materials/
+.mock-webdav/

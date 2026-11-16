@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
+import { useTabGridStore } from "@/stores/tab-grid-store"
 import { useDataSettingsState } from "./use-data-settings"
 
 export default function DataSettings() {
@@ -79,6 +80,20 @@ export default function DataSettings() {
       <WebdavSyncDialog state={state} />
       <WebdavRemoveDialog state={state} />
       {confirmation}
+      {import.meta.env.DEV && (
+        <SettingItem
+          label={t("settings.data.resetMock")}
+          description={t("settings.data.resetMockHint")}
+        >
+          <Button
+            variant="outline"
+            className={settingsControlClassName}
+            onClick={() => useTabGridStore.getState().resetToMock()}
+          >
+            {t("settings.data.resetMock")}
+          </Button>
+        </SettingItem>
+      )}
       <EraseData busy={busy} pending={!!pending || !!syncPlan || removeOpen} />
     </div>
   )

@@ -59,6 +59,7 @@ type TabGridState = {
   transferTab: (move: TabTransfer) => void
   transferIntoSlot: (move: SlotTransfer) => boolean
   removeSlotControl: (removal: SlotRemoval) => boolean
+  resetToMock: () => void
   items: GridItem[]
 
   setItemDynamicEffect: (id: string, enabled: boolean) => void
@@ -96,6 +97,11 @@ export const useTabGridStore = create<TabGridState>()(
           lastLayoutColumns: columns,
         })),
       items: devInitialItems(),
+      resetToMock: () =>
+        set({
+          items: import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : [],
+          layouts: {},
+        }),
       updateTodoTasks: (id, change) =>
         set((state) => ({ items: updateTodoTasks(state.items, id, change) })),
       transferTab: (move) => set((state) => transferTab(state, move)),
@@ -235,13 +241,9 @@ export const useTabGridStore = create<TabGridState>()(
       merge: (persisted, current) => {
         if (persisted == null) return current
         const clean = sanitizePersisted(persisted)
-        // A production visit leaves an empty persisted grid; in development
-        // reseed the mock items once (a dev who emptied the grid keeps the
-        // bumped version and is not reseeded again).
-        const reseed =
-          import.meta.env.DEV &&
-          clean.items.length === 0 &&
-          clean.mockDataVersion !== MOCK_DATA_VERSION
+        // Development hard-seeds the mock grid whenever the persisted grid
+        // is empty, regardless of which build or version stored it.
+        const reseed = import.meta.env.DEV && clean.items.length === 0
         return {
           ...current,
           ...clean,

@@ -227,6 +227,9 @@ export default {
     migrationIssuesHint:
       "{{count}} item(s) could not be fully read during the last recovery or update. Readable parts were kept.",
     dismissReport: "Dismiss",
+    resetMock: "Reset demo data",
+    resetMockHint:
+      "Development builds only: restore the grid to the bundled demo content.",
   },
   home: {
     gridScale: "Grid scale",

@@ -212,6 +212,8 @@ export default {
     migrationIssuesHint:
       "上次恢复或更新时有 {{count}} 项数据未能完整读取，已保留可读部分。",
     dismissReport: "知道了",
+    resetMock: "重置演示数据",
+    resetMockHint: "仅开发环境可见：把网格恢复为内置演示内容。",
   },
   home: {
     gridScale: "网格缩放",

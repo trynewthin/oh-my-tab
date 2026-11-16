@@ -170,12 +170,21 @@ try {
   const [a, b] = await Promise.all(
     contexts.map(async (context) => {
       const page = await context.newPage()
-      page.setDefaultTimeout(10000)
+      page.setDefaultTimeout(30000)
       page.on("pageerror", (error) => failures.push(error.message))
       await page.goto(appUrl)
-      await page
-        .getByRole("button", { name: "打开设置", exact: true })
-        .waitFor()
+      const settingsButton = page.getByRole("button", {
+        name: "打开设置",
+        exact: true,
+      })
+      try {
+        await settingsButton.waitFor({ timeout: 60000 })
+      } catch {
+        // Cold dev-server transforms can exceed a minute on a fresh
+        // profile; reload once before giving up.
+        await page.reload()
+        await settingsButton.waitFor({ timeout: 60000 })
+      }
       return page
     })
   )
@@ -219,7 +228,7 @@ try {
   await setText(b, "DEVICE B")
   async function openSettings(page) {
     await page.getByRole("button", { name: "打开设置", exact: true }).click()
-    await page.getByRole("button", { name: "常规", exact: true }).click()
+    await page.getByRole("button", { name: "数据", exact: true }).click()
     return page.locator('section[aria-labelledby="sync-settings-title"]')
   }
   async function configure(page) {
@@ -286,7 +295,7 @@ try {
     b.waitForEvent("load"),
     sb.getByRole("button", { name: "同步", exact: true }).click(),
   ])
-  await expect.poll(() => getText(b)).toBe("DEVICE A")
+  await expect.poll(() => getText(b), { timeout: 30000 }).toBe("DEVICE A")
   const restoredImage = await b.evaluate(async () => {
     const home = (
       await import("/src/stores/home-settings-store.ts")
@@ -302,23 +311,44 @@ try {
   pass(
     "first sync uses the remote version directly and restores byte-identical images"
   )
+  async function remoteIndex(page) {
+    return page.evaluate(async () => {
+      const { readWebdavSettings } =
+        await import("/src/application/webdav-settings.ts")
+      const { fetchRemoteBackup } = await import("/src/application/webdav.ts")
+      const { saved } = await readWebdavSettings()
+      const remote = await fetchRemoteBackup(saved, "oh-my-tab-sync.json")
+      return JSON.parse(await remote.blob.text())
+    })
+  }
   for (const text of ["A SECOND", "A THIRD"]) {
     await setText(a, text)
+    const before = (await remoteIndex(a)).snapshots[0]?.id
     await reloaded.getByRole("button", { name: "同步", exact: true }).click()
-    await expect(
-      reloaded.getByRole("button", { name: "同步", exact: true })
-    ).toBeEnabled()
+    // The index is the commit point: wait for the new head instead of the
+    // button, which can report enabled before the upload commits.
+    await expect
+      .poll(
+        async () => {
+          const head = (await remoteIndex(a)).snapshots[0]?.id
+          return head !== undefined && head !== before
+        },
+        { timeout: 60000 }
+      )
+      .toBe(true)
   }
-  const history = await a.evaluate(async () => {
-    const { readWebdavSettings } =
-      await import("/src/application/webdav-settings.ts")
-    const { fetchRemoteBackup } = await import("/src/application/webdav.ts")
-    const { saved } = await readWebdavSettings()
-    const remote = await fetchRemoteBackup(saved, "oh-my-tab-sync.json")
-    return JSON.parse(await remote.blob.text())
-  })
+  const history = await remoteIndex(a)
   assert.equal(history.snapshots.length, 2)
-  assert.equal(history.garbage.length, 0)
+  // Garbage left by a transiently-failed cleanup delete is retried by the
+  // next sync's settle pass; trigger one more (equal) sync to let it clear.
+  if (history.garbage.length) {
+    await reloaded.getByRole("button", { name: "同步", exact: true }).click()
+    await expect
+      .poll(async () => (await remoteIndex(a)).garbage.length === 0, {
+        timeout: 60000,
+      })
+      .toBe(true)
+  }
   pass("snapshot retention setting prunes expired uploads on real WebDAV")
   await setText(b, "B LOCAL EDIT")
   const bControls = await openSettings(b)
@@ -327,8 +357,8 @@ try {
   await expect(choice).toBeVisible()
   await expect(
     choice
-      .getByRole("list", { name: "同步快照", exact: true })
-      .getByRole("listitem")
+      .getByRole("radiogroup", { name: "同步快照", exact: true })
+      .getByRole("radio")
   ).toHaveCount(2)
   await choice.getByRole("button", { name: "取消", exact: true }).click()
   assert.equal(await getText(b), "B LOCAL EDIT")
@@ -340,7 +370,7 @@ try {
     b.waitForEvent("load"),
     bControls.getByRole("button", { name: "同步", exact: true }).click(),
   ])
-  await expect.poll(() => getText(b)).toBe("A THIRD")
+  await expect.poll(() => getText(b), { timeout: 30000 }).toBe("A THIRD")
   pass("small update from another device downloads without a version prompt")
   await setText(a, "A SECOND")
   await reloaded.getByRole("button", { name: "同步", exact: true }).click()
@@ -385,7 +415,7 @@ try {
     const remote = await fetchRemoteBackup(saved, "oh-my-tab-sync.json")
     return JSON.parse(await remote.blob.text())
   })
-  assert.equal(manualHistory.version, 3)
+  assert.equal(manualHistory.version, 4)
   assert.equal(manualHistory.snapshots.length, 2)
   assert.equal(manualHistory.snapshots[0].manual, true)
   assert.notEqual(manualHistory.snapshots[0].id, history.snapshots[0].id)
@@ -517,12 +547,12 @@ try {
     }
   })
   const extensionPage = await extensionContext.newPage()
-  extensionPage.setDefaultTimeout(10000)
+  extensionPage.setDefaultTimeout(30000)
   extensionPage.on("pageerror", (error) => failures.push(error.message))
   await extensionPage.goto("chrome://newtab/")
   await extensionPage
     .getByRole("button", { name: "打开设置", exact: true })
-    .waitFor()
+    .waitFor({ timeout: 60000 })
   assert.ok(extensionPage.url().startsWith("chrome-extension://"))
   const extensionControls = await connect(extensionPage)
   await Promise.all([

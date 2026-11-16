@@ -315,6 +315,14 @@ export default function EffectSurface({
             )}
           </div>
         )}
+        {knit && (
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse 78% 62% at 50% 52%, color-mix(in srgb, var(--card) 68%, transparent) 18%, transparent 74%)`,
+            }}
+          />
+        )}
       </div>
     </div>
   )

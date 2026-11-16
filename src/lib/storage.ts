@@ -156,9 +156,11 @@ export async function initializeStorage() {
   })
 }
 const loaded = new Map<string, unknown>()
-// Records that failed even the tolerant read stay untouched so a hydrated
-// store's default state can never overwrite them.
+// Records that failed even the tolerant read stay untouched until the store
+// writes; the first write then archives the original under a rescue key so
+// neither the old data nor the new edits are lost.
 const protectedKeys = new Set<string>()
+const RESCUE_PREFIX = "rescue:"
 
 export type ReadIssue = {
   key: string
@@ -248,16 +250,19 @@ const adapter: StateStorage = {
     return typeof value === "string" ? value : null
   },
   setItem(name, value) {
-    if (protectedKeys.has(name)) return
     const before = loaded.get(name)
     if (before === value) return
     loaded.set(name, value)
-    void writeEntries({ [name]: value }, true, { [name]: before }).catch(
-      () => {}
-    )
+    const values: Record<string, unknown> = { [name]: value }
+    if (protectedKeys.delete(name)) values[`${RESCUE_PREFIX}${name}`] = before
+    void writeEntries(values, true, { [name]: before }).catch(() => {})
   },
   removeItem(name) {
-    void writeEntries({ [name]: null }).catch(() => {})
+    const values: Record<string, unknown> = { [name]: null }
+    if (protectedKeys.delete(name))
+      values[`${RESCUE_PREFIX}${name}`] = loaded.get(name)
+    loaded.set(name, null)
+    void writeEntries(values).catch(() => {})
   },
 }
 export function storageOptions<T = unknown>() {
@@ -375,6 +380,7 @@ export async function clearAllData() {
       })
     }
     loaded.clear()
+    protectedKeys.clear()
     channel.postMessage(keys)
     listeners.forEach((listener) => listener(keys))
   })

@@ -193,6 +193,7 @@ export function validateConfig(value: unknown): Config {
   }
   home.squareTabTexture ??= "burning"
   home.squareTabEffectCoverage ??= DEFAULT_TAB_EFFECT_COVERAGE
+  home.fairIslePalette ??= "auto"
   home.folderBorder = sanitizeFolderBorder(home.folderBorder)
   home.folderRadius = home.tabAppearance.radius
   const ids = grid.items.flatMap((item) =>

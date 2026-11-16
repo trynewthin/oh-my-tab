@@ -132,6 +132,9 @@ export async function migrateStoredData() {
             throw new Error(i18n.t("core.hydrate.readFailed"))
           states.set("omt.garden", next)
         } catch (error) {
+          // Same rule as the grid: never commit an unsanitized migrated
+          // garden — leave the original record for the tolerant reader.
+          states.delete("omt.garden")
           failed.add("omt.garden")
           report.push({
             key: "omt.garden",

@@ -66,7 +66,7 @@ export function rehydrateData(keys?: string[]): Promise<void> {
       await appendMigrationReport(
         issues.map((issue) => ({
           key: issue.key,
-          reason: issue.reason,
+          reason: issue.message ?? issue.reason,
           partial: issue.reason === "partial",
         }))
       ).catch(() => {})

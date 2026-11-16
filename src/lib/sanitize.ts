@@ -7,7 +7,8 @@ import { validSharedGarden } from "@/lib/shared-garden"
 // fully understand is reduced to the fields it can still interpret instead
 // of rejecting the whole key. `partial` marks reads that dropped data.
 export type SanitizedState =
-  { ok: true; state: Record<string, unknown>; partial: boolean } | { ok: false }
+  | { ok: true; state: Record<string, unknown>; partial: boolean }
+  | { ok: false; error?: unknown }
 
 function ok(state: Record<string, unknown>, partial: boolean): SanitizedState {
   return { ok: true, state, partial }
@@ -82,7 +83,7 @@ export function sanitizeState(key: string, state: unknown): SanitizedState {
   if (!sanitizer) return ok(state, true)
   try {
     return sanitizer(state)
-  } catch {
-    return { ok: false }
+  } catch (error) {
+    return { ok: false, error }
   }
 }

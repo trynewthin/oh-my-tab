@@ -156,10 +156,14 @@ export async function initializeStorage() {
   })
 }
 const loaded = new Map<string, unknown>()
+// Records that failed even the tolerant read stay untouched so a hydrated
+// store's default state can never overwrite them.
+const protectedKeys = new Set<string>()
 
 export type ReadIssue = {
   key: string
   reason: "unreadable" | "partial"
+  message?: string
 }
 const readIssues: ReadIssue[] = []
 function recordReadIssue(issue: ReadIssue) {
@@ -172,18 +176,18 @@ export function drainReadIssues(): ReadIssue[] {
   return issues
 }
 
-function tolerantEnvelope(
-  name: string,
-  envelope: unknown
-): { state: Record<string, unknown>; partial: boolean } | null {
+type TolerantRead =
+  { state: Record<string, unknown>; partial: boolean } | { error?: unknown }
+
+function tolerantEnvelope(name: string, envelope: unknown): TolerantRead {
   if (!envelope || typeof envelope !== "object" || Array.isArray(envelope))
-    return null
+    return {}
   const { version, minReadVersion, state } = envelope as {
     version?: unknown
     minReadVersion?: unknown
     state?: unknown
   }
-  if (!Number.isInteger(version) || (version as number) < 0) return null
+  if (!Number.isInteger(version) || (version as number) < 0) return {}
   // A writer that knows its data is unreadable below a reader version can
   // say so explicitly; otherwise attempt a best-effort read.
   if (
@@ -191,11 +195,13 @@ function tolerantEnvelope(
     Number.isInteger(minReadVersion) &&
     (minReadVersion as number) > STORAGE_VERSION
   )
-    return null
+    return {}
   const result = sanitizeState(name, state)
   // Every read through this path is degraded by definition (the envelope is
   // not the current version), so partial is unconditional.
-  return result.ok ? { state: result.state, partial: true } : null
+  return result.ok
+    ? { state: result.state, partial: true }
+    : { error: result.error }
 }
 
 const adapter: StateStorage = {
@@ -214,8 +220,18 @@ const adapter: StateStorage = {
         (envelope as { version?: unknown })?.version !== STORAGE_VERSION
       ) {
         const tolerant = tolerantEnvelope(name, envelope)
-        if (!tolerant) {
-          recordReadIssue({ key: name, reason: "unreadable" })
+        if (!("state" in tolerant)) {
+          recordReadIssue({
+            key: name,
+            reason: "unreadable",
+            message:
+              tolerant.error instanceof Error
+                ? tolerant.error.message
+                : undefined,
+          })
+          // The store now holds defaults in memory; protect the unreadable
+          // record so a later write cannot clobber it.
+          protectedKeys.add(name)
           loaded.set(name, value)
           return null
         }
@@ -227,10 +243,12 @@ const adapter: StateStorage = {
         })
       }
     }
+    protectedKeys.delete(name)
     loaded.set(name, value)
     return typeof value === "string" ? value : null
   },
   setItem(name, value) {
+    if (protectedKeys.has(name)) return
     const before = loaded.get(name)
     if (before === value) return
     loaded.set(name, value)

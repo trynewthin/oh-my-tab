@@ -23,7 +23,14 @@ export default function AboutSettings({
               <img
                 src={`${import.meta.env.BASE_URL}icons/icon-128.png`}
                 alt=""
-                className="size-16 shrink-0"
+                className="size-16 shrink-0 dark:hidden"
+                width={64}
+                height={64}
+              />
+              <img
+                src={`${import.meta.env.BASE_URL}icons/icon-dark-128.png`}
+                alt=""
+                className="hidden size-16 shrink-0 dark:block"
                 width={64}
                 height={64}
               />

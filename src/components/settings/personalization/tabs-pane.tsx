@@ -7,7 +7,7 @@ import TabBackgroundControls from "./tab-background-controls"
 import type { GridItem, TabItem } from "@/lib/grid/types"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
-const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
+const appIcon = `${import.meta.env.BASE_URL}icons/mark-128.png`
 
 function previewTab(
   name: string,

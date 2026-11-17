@@ -1,13 +1,13 @@
 version: 1.6.0
 notes:
   zh-CN:
-    - 换上全新蓝色标签页形象，同步更新扩展、页面和设置预览中的应用图标。
+    - 启用全新蓝色标签页形象，提供深浅色与透明图标，适配扩展、标签页和海报。
     - 统一书签、布局、个性化设置与花园数据的保存流程，提升跨页面使用时的一致性。
     - 备份、导入恢复与 WebDAV 共用校验和版本检查，避免过期操作覆盖新修改。
     - 迁移时保留旧数据，增强损坏数据、较新格式与背景图片的保护。
     - Nightly 版本现可从 GitHub Releases 下载，正式版继续通过 Chrome 商店发布。
   en:
-    - Meet the new blue tab mascot, with updated app icons across the extension, page, and settings previews.
+    - New blue tab mascot with light, dark, and transparent variants for the extension, browser tabs, and posters.
     - Unified how bookmarks, layouts, personalization, and garden data are saved for more consistent use across pages.
     - Backups, imports, restores, and WebDAV now share validation and version checks to prevent stale changes from overwriting newer data.
     - Improved migration, unreadable-data recovery, newer-format protection, and background image handling while retaining legacy data.

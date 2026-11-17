@@ -18,7 +18,7 @@ import AppearanceResetButton from "./appearance-reset-button"
 import ColorPicker from "@/components/ui/color-picker"
 import type { FolderBorder } from "@/lib/folder-border"
 
-const appIcon = `${import.meta.env.BASE_URL}icons/icon-128.png`
+const appIcon = `${import.meta.env.BASE_URL}icons/mark-128.png`
 
 function previewTab(name: string): TabEntry {
   return {

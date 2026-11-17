@@ -17,11 +17,22 @@
 
 - `docs/store-assets/description.txt`：完整商品说明，唯一维护位置。
 - `docs/store-assets/`：五张 1280×800 功能截图，以及 440×280、1400×560 两张宣传图。
-- `docs/brand/oh-my-tab-icon.svg`：可编辑图标源文件；`npm run icons` 生成品牌 PNG 和扩展各尺寸图标。
+- `docs/brand/oh-my-tab-icon.svg`：可编辑图标源文件；`npm run icons` 生成深浅色底板图标、透明标识，以及扩展各尺寸 PNG。
 - `website/src/i18n/locales/{zh-CN,en}.ts`：隐私政策正文，发布到 https://ohmytab.vercel.app/privacy。
 - `public/manifest.json`：清单与权限的唯一来源。
 - `packages/`：待上传的 Chrome Store ZIP，已忽略；`scripts/release/verify-packages.py` 校验包结构与密钥残留。
 - `materials/`：按平台分类的本地准备区，已忽略；只有确认随仓库维护的成品才复制到 `docs/store-assets/`。
+
+## 图标素材
+
+运行 `npm run icons` 从可编辑源文件生成 SVG、1024px PNG 和扩展尺寸 PNG。深色版本提高蓝色主体与折面的亮度，用于深色底图。
+
+| 用途                                   | 浅色底图                                                                            | 深色底图                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 圆角底板，用于独立图标和海报           | [SVG](../brand/oh-my-tab-icon-light.svg) · [PNG](../brand/oh-my-tab-icon-light.png) | [SVG](../brand/oh-my-tab-icon-dark.svg) · [PNG](../brand/oh-my-tab-icon-dark.png) |
+| 无背景标识，用于标签、叠图和自定义底色 | [SVG](../brand/oh-my-tab-mark-light.svg) · [PNG](../brand/oh-my-tab-mark-light.png) | [SVG](../brand/oh-my-tab-mark-dark.svg) · [PNG](../brand/oh-my-tab-mark-dark.png) |
+
+标签预览使用 `public/icons/mark-*.png` 透明图标；网页 favicon 使用透明 SVG，按系统深浅色切换配色，并提供 PNG 回退。扩展清单继续使用 `icon-*.png` 底板图标。
 
 ## 单一用途
 

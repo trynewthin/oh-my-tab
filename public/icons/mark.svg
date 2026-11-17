@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     width="1024" height="1024" viewBox="100 100 1060 1060"
+     fill="none" shape-rendering="geometricPrecision"
+     role="img" aria-labelledby="title description">
+  <title id="title">Oh My Tab — Sly Tab</title>
+  <desc id="description">Editable vector reconstruction of the approved cobalt browser-tab mascot, with half-lidded ivory eyes, an asymmetric smirk, an indigo folded side, and a coral rear tab. All artwork consists of editable paths and SVG gradients. The separate background layer may be hidden for transparent use.</desc>
+  <defs>
+    <!-- Palette: cobalt #1530EC, rim #496BFF, indigo #1C1687,
+         coral #FF7664, ivory #FFF4E9, canvas #FDF7F2. -->
+    <linearGradient id="cobalt-body" gradientUnits="userSpaceOnUse"
+                    x1="425" y1="315" x2="1005" y2="952">
+      <stop offset="0" stop-color="#172FEE"/>
+      <stop offset="0.56" stop-color="#1530EC"/>
+      <stop offset="1" stop-color="#102DE7"/>
+    </linearGradient>
+    <linearGradient id="cobalt-rim" gradientUnits="userSpaceOnUse"
+                    x1="350" y1="327" x2="652" y2="514">
+      <stop offset="0" stop-color="#4C6FFF"/>
+      <stop offset="1" stop-color="#3E5EFA"/>
+    </linearGradient>
+    <linearGradient id="indigo-fold" gradientUnits="userSpaceOnUse"
+                    x1="323" y1="497" x2="545" y2="990">
+      <stop offset="0" stop-color="#21188D"/>
+      <stop offset="1" stop-color="#1B1584"/>
+    </linearGradient>
+    <linearGradient id="coral-tab" gradientUnits="userSpaceOnUse"
+                    x1="819" y1="324" x2="1025" y2="444">
+      <stop offset="0" stop-color="#FF806C"/>
+      <stop offset="1" stop-color="#FF6D60"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hide this single layer for a transparent background. -->
+  
+
+  <g id="rear-tab" inkscape:groupmode="layer" inkscape:label="02 · Coral rear tab">
+    <path id="rear-tab-shape" fill="url(#coral-tab)"
+          d="M 787 338
+             L 934 319
+             C 951 317 961 316 973 316
+             C 1012 316 1033 343 1026 391
+             L 1017 437
+             L 855 457
+             Z"/>
+  </g>
+
+  <g id="tab-body" inkscape:groupmode="layer" inkscape:label="03 · Cobalt tab body">
+    <path id="body-outline" fill="url(#cobalt-body)"
+          d="M 440 304
+             C 359 312 291 377 259 451
+             C 247 479 242 507 235 538
+             L 174 814
+             C 162 866 168 909 196 945
+             C 224 981 263 992 321 986
+             L 900 944
+             C 986 940 1027 902 1041 822
+             L 1091 548
+             C 1100 501 1093 465 1072 441
+             C 1047 414 1014 406 975 412
+             L 876 424
+             C 843 429 828 421 818 399
+             C 809 380 802 351 791 326
+             C 776 290 752 273 719 274
+             C 678 273 650 275 614 280
+             Z"/>
+  </g>
+
+  <g id="folded-side" inkscape:groupmode="layer" inkscape:label="04 · Indigo folded side">
+    <path id="side-and-smile-return" fill="url(#indigo-fold)"
+          d="M 382 467
+             C 371 485 350 491 323 500
+             C 283 512 248 537 228 580
+             L 174 814
+             C 162 866 168 909 196 945
+             C 224 981 263 992 321 986
+             L 741 955
+             C 775 943 803 900 837 847
+             C 804 869 762 868 718 850
+             C 680 863 645 872 607 879
+             L 407 913
+             C 359 921 332 920 306 904
+             C 279 887 269 866 275 828
+             C 280 796 292 753 308 701
+             Z"/>
+  </g>
+
+  <g id="upper-rim" inkscape:groupmode="layer" inkscape:label="05 · Cobalt shoulder highlight">
+    <path id="continuous-shoulder" fill="url(#cobalt-rim)"
+          d="M 228 580
+             L 242 515
+             C 254 431 310 344 395 313
+             C 411 308 426 305 440 304
+             L 614 280
+             C 650 275 678 273 719 274
+             C 752 273 776 290 791 326
+             C 777 298 759 294 736 295
+             C 726 295 716 297 701 299
+             L 514 330
+             C 468 338 441 355 419 392
+             L 382 467
+             C 371 485 350 491 323 500
+             C 283 512 248 537 228 580
+             Z"/>
+  </g>
+
+  <g id="expression" inkscape:groupmode="layer" inkscape:label="06 · Expression — eyes and smirk" fill="#FFF4E9">
+    <path id="left-half-lidded-eye"
+          d="M 412 671
+             C 500 651 590 635 678 625
+             C 673 682 644 721 598 746
+             C 565 760 522 766 486 757
+             C 445 746 419 714 412 671
+             Z"/>
+    <path id="right-half-lidded-eye"
+          d="M 748 619
+             C 814 604 887 590 957 582
+             C 953 630 927 674 881 690
+             C 850 701 818 702 791 689
+             C 766 675 752 651 748 619
+             Z"/>
+    <path id="asymmetric-smirk"
+          d="M 718 850
+             C 783 827 842 799 891 768
+             C 881 802 865 831 837 847
+             C 804 869 762 868 718 850
+             Z"/>
+  </g>
+<style>@media (prefers-color-scheme: dark) { stop[stop-color="#172FEE"] { stop-color: #5A7AFF; }
+stop[stop-color="#1530EC"] { stop-color: #4265FA; }
+stop[stop-color="#102DE7"] { stop-color: #3551E0; }
+stop[stop-color="#4C6FFF"] { stop-color: #9AAEFF; }
+stop[stop-color="#3E5EFA"] { stop-color: #7692FF; }
+stop[stop-color="#21188D"] { stop-color: #3D32B5; }
+stop[stop-color="#1B1584"] { stop-color: #2D249B; }
+stop[stop-color="#FF806C"] { stop-color: #FFA18B; }
+stop[stop-color="#FF6D60"] { stop-color: #FF887B; } }</style></svg>

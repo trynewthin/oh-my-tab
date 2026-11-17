@@ -50,7 +50,7 @@ export default function SquareTabsPane() {
   const item = useMemo(
     () => ({
       ...createTabItem({ name: "Oh My Tab", url: "https://oh-my-tab.example" }),
-      icon: `${import.meta.env.BASE_URL}icons/icon-128.png`,
+      icon: `${import.meta.env.BASE_URL}icons/mark-128.png`,
       color,
     }),
     [color]

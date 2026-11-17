@@ -190,7 +190,10 @@ const data = async (file) =>
   "data:image/png;base64," + (await readFile(file)).toString("base64")
 const light = await data(`${captureOut}/capture-light.png`),
   dark = await data(`${captureOut}/capture-dark.png`)
-const icon = await data("public/icons/icon-128.png")
+const brandIcons = {
+  light: await data("public/icons/icon-128.png"),
+  dark: await data("public/icons/icon-dark-128.png"),
+}
 const ctx = await browser.newContext({
   viewport: { width: 1280, height: 800 },
   deviceScaleFactor: 1,
@@ -250,7 +253,7 @@ for (const [name, theme, title, sub, src, tags] of slides) {
   const d = theme === "dark"
   await render(
     name,
-    `<html lang="zh-CN"><meta charset="utf-8"><style>${base(d)}</style><div class="page"><header><img src="${icon}"><b>OH MY TAB</b></header><div class="copy"><h1>${title}</h1><p>${sub}</p><div class="tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div></div>${src ? `<div class="shot"><img src="${src}"></div>` : `<div class="duo"><div class="shot"><div class="label">LIGHT · 浅色</div><img src="${light}"></div><div class="shot"><div class="label">DARK · 深色</div><img src="${dark}"></div></div>`}<footer>真实界面 · 示例内容</footer></div></html>`
+    `<html lang="zh-CN"><meta charset="utf-8"><style>${base(d)}</style><div class="page"><header><img src="${brandIcons[theme]}"><b>OH MY TAB</b></header><div class="copy"><h1>${title}</h1><p>${sub}</p><div class="tags">${tags.map((t) => `<span>${t}</span>`).join("")}</div></div>${src ? `<div class="shot"><img src="${src}"></div>` : `<div class="duo"><div class="shot"><div class="label">LIGHT · 浅色</div><img src="${light}"></div><div class="shot"><div class="label">DARK · 深色</div><img src="${dark}"></div></div>`}<footer>真实界面 · 示例内容</footer></div></html>`
   )
 }
 for (const [name, width, height] of [
@@ -260,7 +263,7 @@ for (const [name, width, height] of [
   const small = width === 440
   await render(
     name,
-    `<html><style>*{box-sizing:border-box}body{margin:0;background:#202333;color:#f1eff7;font-family:'PingFang SC',system-ui,sans-serif}.promo{position:relative;width:${width}px;height:${height}px;overflow:hidden;background:radial-gradient(ellipse at 85% 20%,#71668a80,transparent 70%)}.brand{position:absolute;left:${small ? 25 : 70}px;top:${small ? 26 : 130}px;z-index:2}.brand img{width:${small ? 48 : 90}px;height:${small ? 48 : 90}px;display:block;margin-bottom:${small ? 14 : 25}px}.brand b{font-size:${small ? 25 : 49}px;letter-spacing:${small ? 1 : 2}px;font-weight:600}.screen{position:absolute;right:${small ? -55 : 35}px;top:${small ? 125 : 65}px;width:${small ? 335 : 750}px;border:1px solid #ffffff30;border-radius:${small ? 10 : 18}px;overflow:hidden;transform:rotate(-7deg);box-shadow:0 20px 45px #0005}.screen img{width:100%;display:block}.back{right:${small ? 120 : 185}px;top:${small ? 168 : 190}px;transform:rotate(7deg);opacity:.65}</style><div class="promo"><div class="brand"><img src="${icon}"><b>Oh My Tab</b></div><div class="screen back"><img src="${light}"></div><div class="screen"><img src="${dark}"></div></div></html>`,
+    `<html><style>*{box-sizing:border-box}body{margin:0;background:#202333;color:#f1eff7;font-family:'PingFang SC',system-ui,sans-serif}.promo{position:relative;width:${width}px;height:${height}px;overflow:hidden;background:radial-gradient(ellipse at 85% 20%,#71668a80,transparent 70%)}.brand{position:absolute;left:${small ? 25 : 70}px;top:${small ? 26 : 130}px;z-index:2}.brand img{width:${small ? 48 : 90}px;height:${small ? 48 : 90}px;display:block;margin-bottom:${small ? 14 : 25}px}.brand b{font-size:${small ? 25 : 49}px;letter-spacing:${small ? 1 : 2}px;font-weight:600}.screen{position:absolute;right:${small ? -55 : 35}px;top:${small ? 125 : 65}px;width:${small ? 335 : 750}px;border:1px solid #ffffff30;border-radius:${small ? 10 : 18}px;overflow:hidden;transform:rotate(-7deg);box-shadow:0 20px 45px #0005}.screen img{width:100%;display:block}.back{right:${small ? 120 : 185}px;top:${small ? 168 : 190}px;transform:rotate(7deg);opacity:.65}</style><div class="promo"><div class="brand"><img src="${brandIcons.dark}"><b>Oh My Tab</b></div><div class="screen back"><img src="${light}"></div><div class="screen"><img src="${dark}"></div></div></html>`,
     width,
     height
   )

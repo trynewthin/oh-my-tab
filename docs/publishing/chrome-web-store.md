@@ -4,6 +4,15 @@
 
 审核状态以 Chrome Web Store 开发者后台为准，版本更新内容以对应 GitHub Release 为准。
 
+## 发布渠道
+
+| 渠道    | 触发方式                                             | 版本与分发                                                                                                                      |
+| ------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Nightly | 推送到 `nightly`，或在该分支手动运行 Build extension | 生成 `vX.Y.Z-nightly.YYYYMMDD.构建序号` GitHub 预发布，包含 ZIP 和 CRX；不提交 Chrome 商店，不替代 Latest 正式版。              |
+| Stable  | 将版本提交合入 `stable`，再推送对应的 `vX.Y.Z` 标签  | 生成无后缀的正式 Release 和安装包，并按现有凭据及 `chrome-web-store` 环境规则提交 Chrome 商店。单独推送 `stable` 只构建和检查。 |
+
+标签版本必须与 `package.json`、`public/manifest.json` 一致。也支持推送 `vX.Y.Z-nightly.<标识>` 标签生成预发布；其他后缀不会触发商店发布。Nightly 的展示版本写入构建产物的 `version_name`，清单的数字 `version` 保持 Chrome 支持的格式。
+
 ## 材料位置
 
 - `docs/store-assets/description.txt`：完整商品说明，唯一维护位置。

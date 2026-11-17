@@ -1,12 +1,12 @@
-version: 1.5.9
+version: 1.6.0
 notes:
   zh-CN:
-    - 在扩展和网站中启用 React Compiler，减少不必要的重渲染，提升整体响应速度。
-    - 批量选择支持框选与批量拖拽移动，对话框按需加载，操作更轻快。
-    - 优化文件夹收合过渡动画，经典文件夹的光效质感与运动更细腻流畅。
-    - 改进搜索编辑与弹层退出过渡，统一编辑面板背景模糊与文件夹阴影表现。
+    - 统一书签、布局、个性化设置与花园数据的保存流程，提升跨页面使用时的一致性。
+    - 备份、导入恢复与 WebDAV 共用校验和版本检查，避免过期操作覆盖新修改。
+    - 迁移时保留旧数据，增强损坏数据、较新格式与背景图片的保护。
+    - Nightly 版本现可从 GitHub Releases 下载，正式版继续通过 Chrome 商店发布。
   en:
-    - Enabled React Compiler across the extension and website to cut unnecessary re-renders and improve responsiveness.
-    - Bulk selection now supports marquee selection and drag-to-move for groups, with dialogs loaded on demand.
-    - Smoothed folder collapse transitions and refined classic folder glow textures and motion.
-    - Polished search editing and popover exit transitions, and unified the editor backdrop blur with folder shadows.
+    - Unified how bookmarks, layouts, personalization, and garden data are saved for more consistent use across pages.
+    - Backups, imports, restores, and WebDAV now share validation and version checks to prevent stale changes from overwriting newer data.
+    - Improved migration, unreadable-data recovery, newer-format protection, and background image handling while retaining legacy data.
+    - Nightly builds are available as GitHub prereleases, while stable releases continue through the Chrome Web Store.

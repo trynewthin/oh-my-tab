@@ -16,7 +16,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      channel: ${{ steps.plan.outputs.channel }}
+      release: ${{ steps.plan.outputs.release }}
+      tag: ${{ steps.plan.outputs.tag }}
+      version_name: ${{ steps.plan.outputs.version_name }}
+      package_name: ${{ steps.plan.outputs.package_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Plan release channel
+        id: plan
+        run: node --experimental-strip-types scripts/release/plan.ts >> "$GITHUB_OUTPUT"
+      - name: Require stable tags to belong to stable
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && steps.plan.outputs.channel == 'stable'
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/stable; then
+            echo '::error::Stable release tags must point to a commit on the stable branch.'
+            exit 1
+          fi
+
   build:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,11 +58,17 @@ jobs:
         run: npm run check
       - name: Build extension
         run: npm run build
+      - name: Label packaged version
+        env:
+          RELEASE_CHANNEL: ${{ needs.plan.outputs.channel }}
+          RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
+        run: node --experimental-strip-types scripts/release/plan.ts --label
       - name: Prepare ZIP
         id: package
+        env:
+          PACKAGE_NAME: ${{ needs.plan.outputs.package_name }}
         run: |
-          VERSION=$(node -p 'JSON.parse(require("fs").readFileSync("dist/manifest.json", "utf8")).version')
-          NAME="oh-my-tab-${VERSION}-${GITHUB_SHA:0:7}"
+          NAME="$PACKAGE_NAME"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           mkdir -p packages
           (cd dist && zip -q -r "../packages/${NAME}.zip" .)
@@ -79,8 +112,8 @@ jobs:
           echo 'Trusted builds also include a CRX signed with the stable repository signing key.' >> "$GITHUB_STEP_SUMMARY"
 
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, e2e]
+    if: github.event_name == 'push' && needs.plan.outputs.channel == 'stable' && needs.plan.outputs.release == 'true' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') && !contains(github.ref_name, '+')
+    needs: [plan, build, e2e]
     runs-on: ubuntu-latest
     environment: chrome-web-store
     permissions:
@@ -88,9 +121,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: oh-my-tab-*
+          name: ${{ needs.plan.outputs.package_name }}
           path: packages
-          merge-multiple: true
       - name: Check Chrome Web Store credentials
         id: creds
         env:
@@ -119,6 +151,7 @@ jobs:
           npx --yes chrome-webstore-upload-cli@4 --source "$ZIP"
 
   e2e:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -137,8 +170,8 @@ jobs:
         run: npm test
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, e2e]
+    if: needs.plan.outputs.release == 'true'
+    needs: [plan, build, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -146,14 +179,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: oh-my-tab-*
+          name: ${{ needs.plan.outputs.package_name }}
           path: packages
-          merge-multiple: true
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          RELEASE_CHANNEL: ${{ needs.plan.outputs.channel }}
+          RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
         run: |
           cat > release-notes.md <<'NOTES'
           可自由整理的新标签页，包含常用网站、文件夹、搜索和实用小组件。
@@ -161,9 +195,16 @@ jobs:
           下载 ZIP，解压后在 Chrome / Edge 扩展管理页开启开发者模式，选择「加载已解压的扩展程序」。
           CRX 使用固定密钥签名；浏览器可能限制商店外 CRX 安装。
           NOTES
+          if [ "$RELEASE_CHANNEL" = nightly ]; then
+            echo '' >> release-notes.md
+            echo 'Nightly 预发布版本，仅通过 GitHub Release 分发，不提交 Chrome Web Store。' >> release-notes.md
+            FLAGS=(--prerelease --latest=false)
+          else
+            FLAGS=(--verify-tag --latest)
+          fi
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" packages/* --clobber
           else
-            gh release create "$RELEASE_TAG" packages/* --verify-tag \
-              --title "Oh My Tab $RELEASE_TAG" --notes-file release-notes.md
+            gh release create "$RELEASE_TAG" packages/* --target "$GITHUB_SHA" \
+              --title "Oh My Tab $RELEASE_VERSION_NAME" --notes-file release-notes.md "${FLAGS[@]}"
           fi

@@ -243,7 +243,9 @@ describe("WebDAV snapshot sync", () => {
     expect(plan.remote.backup?.config.home.newTabsDynamicEffect).toBe(false)
     await executeWebdavSync(plan, "download")
     expect((await currentBackup()).config.home.newTabsDynamicEffect).toBe(false)
-    expect((await prepareWebdavSync()).direction).toBe("equal")
+    const restored = await prepareWebdavSync()
+    expect(restored.localBackup.config).toEqual(restored.remote.backup?.config)
+    expect(restored.direction).toBe("equal")
   })
 
   it("uploads an initial snapshot, persists the baseline and excludes credentials from ZIP", async () => {

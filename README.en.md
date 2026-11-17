@@ -10,7 +10,7 @@ A customizable new tab page for your favorite sites, folders, and widgets.
 
 - Drag sites and folders to organize them; adjust grid columns and card sizes.
 - Find saved bookmarks or search the web with your chosen search engine.
-- Add clocks, calendars, to-do lists, countdowns, Pomodoro timers, clock-out countdowns, dot canvases, and pixel planters.
+- Make the page your own with clocks, calendars, to-do lists, Pomodoro timers, and other widgets.
 - Customize themes, backgrounds, and effects; switch between English and Simplified Chinese.
 - Import browser bookmarks and move data with ZIP backups or manual WebDAV sync.
 
@@ -32,23 +32,11 @@ Open a new tab to get started. Pin the extension to your toolbar to quickly save
 3. Right-click a card to see its available editing, size, and deletion options.
 4. Open **Settings** to change the theme, language, search engine, background, and effects.
 
-All components have **Edit** and **Delete** in their context menu. Edit opens a popover beside the component with live updates to its common settings and specific configuration. Components with multiple supported sizes also show a lower-right resize handle. Click outside, close the popover, or press Esc to finish; invalid input does not replace saved content. Folder entries use the same nearby editing interaction. Adding components uses a separate creation flow.
-
-**Shortcut dock** supports 4×1, 2×1, and 2×2 layouts, holding up to four actions or sites at 4×1 and 2×2, and two at 2×1. While editing, click an empty slot to choose and add an action or site in a dialog. You can also move tabs and system buttons into it by dragging. While editing, the minus button on each existing shortcut offers deletion or release. Release restores a dragged tab’s saved appearance and size, or a 1×1 system button. Entries saved without their original appearance use defaults. Each 4×1 dock shows its editable title on the left. Narrow layouts hide the title, with a single row at 2×1 and a two-by-two icon grid at 2×2. Resizing never discards stored controls.
-
-Under **Settings → Personalization → Tabs**, strip and square tabs share the same layout, border, background, text, and icon controls. Each family saves its own appearance, texture, and coverage, including in backups; default playback for new tabs is shared. Background textures support rotation in 90° steps and horizontal and vertical mirroring without transforming the mask, border, text, or icons. Home-page tabs support 4×1 and 4×2 strips plus 1×1, 2×2, and 4×4 squares. Use the lower-right resize handle while editing a tab to switch sizes. Squares share one saved style, also used by 1×1 system buttons for their background, borders, and icon layout while retaining their system actions. At 1×1, only icons are shown; both settings previews use the same overall scale. For 1×1 tabs, texture coverage is hidden at 0 and fills the tile at any positive value; other sizes retain fine control.
-
-**Settings → Personalization → Basic** provides one **Corner radius** setting shared by tabs, folders, and other grid components. Tab-page resets preserve this radius.
-
-**Reset all**, to the right of the category tabs, requires confirmation before restoring appearance defaults for the current page. The Background reset restores the background (including rotation and mirroring) and mask without changing default playback or existing tabs' playback state, content, or sizes. Category resets sit at the bottom right, near the page bottom for short forms and after the content when scrolling is needed.
-
-Use **Settings → Personalization → Folders** to adjust border style, width, color, and opacity without changing folder sizes or the appearance of tabs inside them. **Reset style** restores folder texture and borders after confirmation, preserving the shared corner radius from the Basic page.
-
 ## Data and privacy
 
 Bookmarks, layouts, preferences, and background images are stored on your device by default. Oh My Tab contains no advertising or behavioral analytics.
 
-Search suggestions, third-party site icons, browser bookmark import, WebDAV, and network reads from the weather and RSS widgets require you to opt in or initiate the action. Weather never requests device location, and network widgets do not load automatically when added or previewed. ZIP backups are not encrypted; store them securely. See the [privacy policy](https://ohmytab.vercel.app/privacy) for permission usage and network access details.
+Search suggestions, site icons, bookmark import, WebDAV, and network widgets require you to opt in or initiate the action. ZIP backups are not encrypted; store them securely. See the [privacy policy](https://ohmytab.vercel.app/privacy) for permission usage and network access details.
 
 <details>
 <summary>Development and contributions</summary>

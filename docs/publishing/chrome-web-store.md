@@ -17,7 +17,7 @@
 
 - `docs/store-assets/description.txt`：完整商品说明，唯一维护位置。
 - `docs/store-assets/`：五张 1280×800 功能截图，以及 440×280、1400×560 两张宣传图。
-- `docs/brand/oh-my-tab-icon.png`：扩展图标源文件。
+- `docs/brand/oh-my-tab-icon.svg`：可编辑图标源文件；`npm run icons` 生成品牌 PNG 和扩展各尺寸图标。
 - `website/src/i18n/locales/{zh-CN,en}.ts`：隐私政策正文，发布到 https://ohmytab.vercel.app/privacy。
 - `public/manifest.json`：清单与权限的唯一来源。
 - `packages/`：待上传的 Chrome Store ZIP，已忽略；`scripts/release/verify-packages.py` 校验包结构与密钥残留。

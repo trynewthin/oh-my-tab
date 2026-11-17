@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1736" viewBox="0 0 1680 1736" role="img" aria-labelledby="title desc">
-<title id="title">Oh My Tab 当前架构：nightly e005da7</title>
-<desc id="desc">中文模块架构图。新标签页和工具栏弹窗完成数据初始化后渲染 React 界面；界面调用 Zustand 状态和 application 业务流程，两者复用 lib 模型、算法和平台适配器。数据存于 chrome.storage.local 或 IndexedDB，可导出 ZIP，并通过 application 中的 WebDAV 适配器同步远程快照。右侧列出架构判断、横切能力、依赖门禁与改进方向；底部展示启动和快照上传路径。箭头展示主要关系，不穷举全部导入。</desc>
-<metadata>Repository: trynewthin/oh-my-tab; branch: nightly; commit: e005da7; source review: 2026-11-17. Verification statistics refer to checks already completed for this commit. No source changes made for this diagram.</metadata>
+<title id="title">Oh My Tab 架构总览</title>
+<desc id="desc">新标签页和工具栏弹窗完成数据初始化后渲染 React 界面；界面调用 Zustand 状态和 application 业务流程，两者复用 lib 模型、算法和平台适配器。数据存于 chrome.storage.local 或 IndexedDB，可导出 ZIP，并通过 application 中的 WebDAV 适配器同步远程快照。右侧列出运行边界、横切能力、依赖约束与组件接入职责；底部展示启动和快照上传路径。箭头展示主要关系，不穷举全部导入。</desc>
+<metadata>Repository: trynewthin/oh-my-tab. Module architecture and runtime data flows.</metadata>
 <defs>
 <marker id="call-end" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#7d8da1" stroke-width="1.7"/></marker>
 <marker id="call-start" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 9 1 L 1 5 L 9 9" fill="none" stroke="#7d8da1" stroke-width="1.7"/></marker>
@@ -12,12 +12,12 @@
 <text x="358" y="88" font-size="42" font-weight="700" fill="#172b3a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">架构总览</text>
 <text x="56" y="132" font-size="21" font-weight="400" fill="#596d7d" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">本地优先的模块化前端应用  /  Chrome MV3 · React 19 · TypeScript · Zustand</text>
 <rect x="1260" y="48" width="364" height="44" rx="22" fill="#e8efef" stroke="#d4e1df"/>
-<text x="1442" y="77" font-size="16" font-weight="600" fill="#2a625d" text-anchor="middle" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">nightly  ·  e005da7  ·  2026-11-17</text>
+<text x="1442" y="77" font-size="18" font-weight="600" fill="#2a625d" text-anchor="middle" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">模块边界 · 数据流 · 运行路径</text>
 <path d="M 58 176 L 102 176" fill="none" stroke="#7d8da1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#call-end)"/>
 <text x="114" y="183" font-size="17" font-weight="400" fill="#596d7d" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">主要调用 / 依赖</text>
 <path d="M 332 176 L 376 176" fill="none" stroke="#b27a28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" marker-start="url(#io-start)" marker-end="url(#io-end)"/>
 <text x="388" y="183" font-size="17" font-weight="400" fill="#596d7d" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">数据读写（非 import）</text>
-<text x="1624" y="183" font-size="16" font-weight="400" fill="#728290" text-anchor="end" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">模块级视图 · 点击模块可查看源码</text>
+<text x="1624" y="183" font-size="16" font-weight="400" fill="#728290" text-anchor="end" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">模块级视图</text>
 <rect x="56" y="210" width="1112" height="1138" rx="24" fill="#edf1f4" stroke="#e0e6eb"/>
 <text x="80" y="240" font-size="15" font-weight="600" fill="#6a7a88" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">运行于浏览器 / 扩展页面内</text>
 <path d="M 612 354 L 612 408" fill="none" stroke="#7d8da1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#call-end)"/>
@@ -35,7 +35,7 @@
 <path d="M 243 1150 L 243 1231" fill="none" stroke="#b27a28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" marker-start="url(#io-start)" marker-end="url(#io-end)"/>
 <path d="M 612 1150 L 612 1231" fill="none" stroke="#b27a28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" marker-start="url(#io-start)" marker-end="url(#io-end)"/>
 <path d="M 1144 792 L 1156 792 L 1156 1210 L 981 1210 L 981 1231" fill="none" stroke="#b27a28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6" marker-start="url(#io-start)" marker-end="url(#io-end)"/>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/main.tsx" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/main.tsx" target="_blank">
 <rect x="80" y="260" width="1064" height="94" rx="18" fill="#ffffff" stroke="#ced9e2"/>
 <rect x="102" y="282" width="46" height="46" rx="13" fill="#e7edf2" stroke="#e7edf2"/>
 <text x="125" y="313" font-size="28" font-weight="700" fill="#4b657c" text-anchor="middle" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">↗</text>
@@ -45,22 +45,22 @@
 <rect x="80" y="408" width="1064" height="168" rx="18" fill="#f7fafc" stroke="#cad9e7"/>
 <text x="104" y="443" font-size="23" font-weight="700" fill="#335874" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">01  界面与交互</text>
 <text x="1120" y="442" font-size="16" font-weight="400" fill="#6c8091" text-anchor="end" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">页面组织 + 功能组件</text>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/pages/home/index.tsx" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/pages/home/index.tsx" target="_blank">
 <rect x="104" y="464" width="324" height="88" rx="12" fill="#ffffff" stroke="#dce5ec"/>
 <text x="120" y="497" font-size="20" font-weight="600" fill="#37546a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">页面编排</text>
 <text x="120" y="528" font-size="15" font-weight="400" fill="#657e92" text-anchor="start" font-family="DejaVu Sans Mono, monospace">pages · router · layouts</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/components/tab-grid/tab-grid.tsx" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/components/tab-grid/tab-grid.tsx" target="_blank">
 <rect x="450" y="464" width="324" height="88" rx="12" fill="#ffffff" stroke="#dce5ec"/>
 <text x="466" y="497" font-size="20" font-weight="600" fill="#37546a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">网格 / 小组件 / 搜索 / 设置</text>
 <text x="466" y="528" font-size="15" font-weight="400" fill="#657e92" text-anchor="start" font-family="DejaVu Sans Mono, monospace">components · tab-grid</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/components/effects/effect-surface.tsx" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/components/effects/effect-surface.tsx" target="_blank">
 <rect x="796" y="464" width="324" height="88" rx="12" fill="#ffffff" stroke="#dce5ec"/>
 <text x="812" y="497" font-size="20" font-weight="600" fill="#37546a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">共享控件与动效</text>
 <text x="812" y="528" font-size="15" font-weight="400" fill="#657e92" text-anchor="start" font-family="DejaVu Sans Mono, monospace">ui · effects · dot-matrix</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/stores/tab-grid-store.ts" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/stores/tab-grid-store.ts" target="_blank">
 <rect x="80" y="652" width="492" height="208" rx="18" fill="#eef1ff" stroke="#cdd5f3"/>
 <text x="104" y="690" font-size="24" font-weight="700" fill="#4b5292" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">02  状态层</text>
 <text x="104" y="724" font-size="20" font-weight="600" fill="#4b5292" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">Zustand + persist</text>
@@ -68,7 +68,7 @@
 <text x="104" y="796" font-size="18" font-weight="400" fill="#647190" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">持久化数据与临时 UI 状态分别建 store</text>
 <text x="104" y="832" font-size="16" font-weight="400" fill="#737fa4" text-anchor="start" font-family="DejaVu Sans Mono, monospace">src/stores/</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/application/sync/engine.ts" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/application/sync/engine.ts" target="_blank">
 <rect x="652" y="652" width="492" height="208" rx="18" fill="#fff6e8" stroke="#e9d5b4"/>
 <text x="676" y="690" font-size="24" font-weight="700" fill="#8b602c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">03  业务编排</text>
 <text x="676" y="724" font-size="20" font-weight="600" fill="#785d3c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">启动 / 导入导出 / WebDAV 同步</text>
@@ -79,19 +79,19 @@
 <rect x="80" y="936" width="1064" height="214" rx="18" fill="#edf8f4" stroke="#bfdcce"/>
 <text x="104" y="973" font-size="24" font-weight="700" fill="#276e5c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">04  模型、算法与平台适配</text>
 <text x="1120" y="972" font-size="16" font-weight="400" fill="#538574" text-anchor="end" font-family="DejaVu Sans Mono, monospace">src/lib/</text>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/lib/grid/registry.ts" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/lib/grid/registry.ts" target="_blank">
 <rect x="104" y="994" width="324" height="132" rx="12" fill="#ffffff" stroke="#d6e7de"/>
 <text x="120" y="1028" font-size="20" font-weight="600" fill="#316c5c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">网格模型与计算</text>
 <text x="120" y="1064" font-size="14" font-weight="400" fill="#608273" text-anchor="start" font-family="DejaVu Sans Mono, monospace">registry · types · factory</text>
 <text x="120" y="1093" font-size="14" font-weight="400" fill="#608273" text-anchor="start" font-family="DejaVu Sans Mono, monospace">layout · operations · transfer</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/lib/backup-codec.ts" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/lib/backup-codec.ts" target="_blank">
 <rect x="450" y="994" width="324" height="132" rx="12" fill="#ffffff" stroke="#d6e7de"/>
 <text x="466" y="1028" font-size="20" font-weight="600" fill="#316c5c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">数据格式与迁移</text>
 <text x="466" y="1064" font-size="14" font-weight="400" fill="#608273" text-anchor="start" font-family="DejaVu Sans Mono, monospace">backup-codec · migrations</text>
 <text x="466" y="1093" font-size="14" font-weight="400" fill="#608273" text-anchor="start" font-family="DejaVu Sans Mono, monospace">data-version · sanitize</text>
 </a>
-<a href="https://github.com/trynewthin/oh-my-tab/blob/e005da7/src/lib/storage.ts" target="_blank">
+<a href="https://github.com/trynewthin/oh-my-tab/blob/nightly/src/lib/storage.ts" target="_blank">
 <rect x="796" y="994" width="324" height="132" rx="12" fill="#ffffff" stroke="#d6e7de"/>
 <text x="812" y="1028" font-size="20" font-weight="600" fill="#316c5c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">存储与网络契约</text>
 <text x="812" y="1064" font-size="14" font-weight="400" fill="#608273" text-anchor="start" font-family="DejaVu Sans Mono, monospace">storage · sync/backend</text>
@@ -111,12 +111,12 @@
 <text x="836" y="1287" font-size="16" font-weight="400" fill="#857352" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">WebDAV：快照 + 索引</text>
 <text x="836" y="1311" font-size="15" font-weight="400" fill="#94846c" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">天气 / RSS 等组件数据源</text>
 <rect x="1192" y="210" width="432" height="246" rx="22" fill="#18392f" stroke="#18392f"/>
-<text x="1218" y="247" font-size="18" font-weight="600" fill="#9ecdbc" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">架构判断</text>
-<text x="1218" y="288" font-size="25" font-weight="700" fill="#ffffff" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">分层成立，适合继续迭代</text>
-<text x="1218" y="330" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">页面、状态、业务流程已有明确分工；</text>
-<text x="1218" y="361" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">数据优先留在本地，同步是可选能力。</text>
-<text x="1218" y="405" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">核心业务运行在扩展 / 浏览器页面内，</text>
-<text x="1218" y="435" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">当前项目没有自建业务服务端。</text>
+<text x="1218" y="247" font-size="18" font-weight="600" fill="#9ecdbc" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">运行边界</text>
+<text x="1218" y="288" font-size="25" font-weight="700" fill="#ffffff" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">本地存储为主，按需联网</text>
+<text x="1218" y="330" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">页面与业务逻辑运行在浏览器页面内，</text>
+<text x="1218" y="361" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">持久化由统一存储适配器处理。</text>
+<text x="1218" y="405" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">WebDAV 同步和联网组件按需使用，</text>
+<text x="1218" y="435" font-size="18" font-weight="400" fill="#c9dfd5" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">外部访问受扩展权限控制。</text>
 <rect x="1192" y="480" width="432" height="258" rx="18" fill="white" stroke="#dce3e9"/>
 <text x="1218" y="519" font-size="23" font-weight="700" fill="#304b61" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">横切能力</text>
 <text x="1218" y="559" font-size="19" font-weight="600" fill="#4e6375" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">国际化与主题</text>
@@ -126,24 +126,24 @@
 <text x="1218" y="691" font-size="19" font-weight="600" fill="#4e6375" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">动效生命周期</text>
 <text x="1218" y="718" font-size="16" font-weight="400" fill="#7a8894" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">effects / PixiJS / 共享时钟</text>
 <rect x="1192" y="762" width="432" height="318" rx="18" fill="white" stroke="#dce3e9"/>
-<text x="1218" y="803" font-size="23" font-weight="700" fill="#304b61" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">依赖边界与质量门禁</text>
+<text x="1218" y="803" font-size="23" font-weight="700" fill="#304b61" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">依赖约束</text>
 <text x="1218" y="845" font-size="18" font-weight="400" fill="#566b7b" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">lib 不依赖 store、application、UI</text>
 <text x="1218" y="879" font-size="18" font-weight="400" fill="#566b7b" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">store 不依赖 application、UI</text>
 <text x="1218" y="913" font-size="18" font-weight="400" fill="#566b7b" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">application 不依赖 UI</text>
 <path d="M 1218 938 H 1598" stroke="#dce3e9" stroke-width="1.5"/>
 <text x="1218" y="970" font-size="18" font-weight="400" fill="#566b7b" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">架构脚本检查目录方向与静态循环</text>
-<text x="1218" y="1006" font-size="16" font-weight="600" fill="#297361" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">上次验证 · e005da7</text>
-<text x="1218" y="1034" font-size="16" font-weight="400" fill="#657e72" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">319 模块无静态循环 · 451 项单测通过</text>
-<text x="1218" y="1060" font-size="16" font-weight="400" fill="#657e72" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">GitHub Actions：build / e2e 通过</text>
+<text x="1218" y="1006" font-size="16" font-weight="600" fill="#297361" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">检查入口</text>
+<text x="1218" y="1034" font-size="16" font-weight="400" fill="#657e72" text-anchor="start" font-family="DejaVu Sans Mono, monospace">npm run verify:architecture</text>
+<text x="1218" y="1060" font-size="16" font-weight="400" fill="#657e72" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">规则定义在 scripts/verification/ 下</text>
 <rect x="1192" y="1104" width="432" height="244" rx="18" fill="#fffaf2" stroke="#e7dcc8"/>
-<text x="1218" y="1145" font-size="23" font-weight="700" fill="#806138" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">后续改进方向</text>
+<text x="1218" y="1145" font-size="23" font-weight="700" fill="#806138" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">组件接入职责</text>
 <text x="1218" y="1188" font-size="17" font-weight="700" fill="#b1946b" text-anchor="start" font-family="DejaVu Sans Mono, monospace">01</text>
-<text x="1256" y="1188" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">按职责拆分同步引擎（930 行）</text>
+<text x="1256" y="1188" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">registry：元数据、尺寸与能力</text>
 <text x="1218" y="1230" font-size="17" font-weight="700" fill="#b1946b" text-anchor="start" font-family="DejaVu Sans Mono, monospace">02</text>
-<text x="1256" y="1230" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">拆分网格与外观设置大组件</text>
+<text x="1256" y="1230" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">factory：创建默认组件数据</text>
 <text x="1218" y="1272" font-size="17" font-weight="700" fill="#b1946b" text-anchor="start" font-family="DejaVu Sans Mono, monospace">03</text>
-<text x="1256" y="1272" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">统一组件注册、渲染与编辑接入</text>
-<text x="1218" y="1323" font-size="15" font-weight="400" fill="#a29480" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">以上为演进建议，并非已完成改造。</text>
+<text x="1256" y="1272" font-size="18" font-weight="400" fill="#806f55" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">WidgetTile：按组件类型分派渲染</text>
+<text x="1218" y="1323" font-size="15" font-weight="400" fill="#a29480" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">编辑表单与数据校验配合组件类型维护。</text>
 <rect x="56" y="1376" width="1568" height="268" rx="22" fill="#ffffff" stroke="#dce3e9"/>
 <text x="80" y="1416" font-size="23" font-weight="700" fill="#304b61" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">关键运行路径</text>
 <text x="1600" y="1416" font-size="14" font-weight="400" fill="#7a8c9a" text-anchor="end" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">跨页更新：writeEntries → BroadcastChannel → rehydrateData → store → UI</text>
@@ -188,6 +188,5 @@
 <text x="1314" y="1610" font-size="14" font-weight="400" fill="#7a8c9a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">仅在索引提交成功后</text>
 <text x="80" y="1550" font-size="16" font-weight="600" fill="#64788a" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">上传快照（节选；下载经校验后走备份恢复流程）</text>
 <text x="56" y="1681" font-size="16" font-weight="400" fill="#6d7d89" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">读图说明：实线为主要调用 / 依赖方向；虚线为平台数据读写，双向读写不表示双向 import；省略部分直接依赖与模块内部连线。</text>
-<text x="56" y="1710" font-size="15" font-weight="400" fill="#87949e" text-anchor="start" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">依据当前 nightly 源码整理；质量状态引用此前已完成的验证。本图未修改项目代码。</text>
 <text x="1624" y="1710" font-size="15" font-weight="400" fill="#87949e" text-anchor="end" font-family="DejaVu Sans, WenQuanYi Micro Hei, Noto Sans CJK SC, Microsoft YaHei, sans-serif">trynewthin / oh-my-tab</text>
 </svg>

@@ -4,9 +4,7 @@
 
 ## 架构总览
 
-[![Oh My Tab 模块架构与关键运行路径](assets/architecture.svg)](assets/architecture.svg)
-
-点击图片可打开 SVG 放大查看。图示基于 `nightly` 的 [e005da7](https://github.com/trynewthin/oh-my-tab/commit/e005da7)，包含模块关系、启动与同步路径；图中验证状态和改进建议对应这一版本。
+![Oh My Tab 模块架构与关键运行路径](assets/architecture.svg)
 
 ## 模块边界
 

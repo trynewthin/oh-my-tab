@@ -3,7 +3,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { runSystemAction } from "@/application/system-actions"
-import GradualBlur from "@/components/effects/gradual-blur"
 import { systemActionIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
 import TabIcon from "@/components/tab-grid/tab-icon"
@@ -156,19 +155,8 @@ export default function QuickBar() {
     <div ref={container} className="sticky top-0 z-40 w-full pt-2">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-10"
-      >
-        <GradualBlur
-          position="top"
-          target="parent"
-          exponential
-          strength={1}
-          height="2.5rem"
-          divCount={3}
-          opacity={1}
-          zIndex={0}
-        />
-      </div>
+        className="quick-bar-backdrop pointer-events-none absolute inset-x-0 top-0 h-10"
+      />
       <div className="relative z-10 mx-auto" style={{ width: trackWidth }}>
         <QuickBarTrack config={quickBar} />
       </div>

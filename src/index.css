@@ -21,6 +21,13 @@
   background-color: var(--background-swatch-dark);
 }
 
+.quick-bar-backdrop {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+  mask-image: linear-gradient(to bottom, #000, transparent);
+}
+
 @media (max-width: 479px) {
   [data-settings-content] .grid.grid-cols-2.items-center {
     grid-template-columns: max-content minmax(0, 1fr);

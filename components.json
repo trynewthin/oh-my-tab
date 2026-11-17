@@ -20,8 +20,5 @@
     "hooks": "@/hooks"
   },
   "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {
-    "@react-bits": "https://reactbits.dev/r/{name}.json"
-  }
+  "menuAccent": "subtle"
 }

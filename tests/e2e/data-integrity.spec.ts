@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState, readStoredValue } from "../helpers/storage"
 
 test("restoring components preserves folder size, artwork and right-edge calendar placement", async ({
   page,
@@ -59,38 +60,23 @@ test("restoring components preserves folder size, artwork and right-edge calenda
   const editor = page.getByRole("dialog", { name: "编辑文件夹", exact: true })
   await editor.getByRole("button", { name: "关闭", exact: true }).click()
   await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          new Promise<{
-            size: string
-            count: number
-            columns: unknown
-            total: number
-          }>((resolve) => {
-            const request = indexedDB.open("oh-my-tab-data", 1)
-            request.onsuccess = () => {
-              const db = request.result
-              const read = db
-                .transaction("entries")
-                .objectStore("entries")
-                .get("omt.tab-grid")
-              read.onsuccess = () => {
-                const items = JSON.parse(read.result).state.items
-                const art = items.find((i: { id: string }) => i.id === "art")
-                resolve({
-                  size: items.find((i: { id: string }) => i.id === "folder")
-                    .size,
-                  count: art.pixels.length,
-                  columns: art.pixelColumns ?? null,
-                  total: items.length,
-                })
-                db.close()
-              }
-            }
-          })
-      )
-    )
+    .poll(async () => {
+      const { items } = await readStoredState<{
+        items: {
+          id: string
+          size: string
+          pixels?: string[]
+          pixelColumns?: number
+        }[]
+      }>(page, "omt.tab-grid")
+      const art = items.find((item) => item.id === "art")
+      return {
+        size: items.find((item) => item.id === "folder")?.size,
+        count: art?.pixels?.length,
+        columns: art?.pixelColumns ?? null,
+        total: items.length,
+      }
+    })
     .toEqual({ size: "small", count: 576, columns: 24, total: 3 })
 })
 
@@ -124,21 +110,7 @@ test("invalid saved component is skipped without rewriting the stored list", asy
   expect(items).toEqual([
     { id: "invalid", kind: "unknown", name: "保留原始数据" },
   ])
-  const report = await page.evaluate(
-    () =>
-      new Promise<string | undefined>((resolve, reject) => {
-        const request = indexedDB.open("oh-my-tab-data", 1)
-        request.onsuccess = () => {
-          const get = request.result
-            .transaction("entries", "readonly")
-            .objectStore("entries")
-            .get("omt.migration-report")
-          get.onsuccess = () => resolve(get.result as string | undefined)
-          get.onerror = () => reject(get.error)
-        }
-        request.onerror = () => reject(request.error)
-      })
-  )
+  const report = await readStoredValue<string>(page, "omt.migration-report")
   const entries = JSON.parse(report ?? "[]") as { key: string }[]
   expect(entries.some((entry) => entry.key === "omt.tab-grid")).toBe(true)
 })

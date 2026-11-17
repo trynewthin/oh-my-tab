@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "../helpers/storage"
 
 test("todo supports adding, completing, size options and persistence", async ({
   page,
@@ -38,34 +39,15 @@ test("todo supports adding, completing, size options and persistence", async ({
   await expect(page.getByRole("menu")).toHaveCount(0)
   await region.getByRole("checkbox", { name: "完成 阅读", exact: true }).check()
   await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          new Promise<number>((resolve, reject) => {
-            const request = indexedDB.open("oh-my-tab-data", 1)
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => {
-              const db = request.result
-              const read = db
-                .transaction("entries")
-                .objectStore("entries")
-                .get("omt.tab-grid")
-              read.onsuccess = () => {
-                const item = JSON.parse(read.result).state.items.find(
-                  (i: { kind: string }) => i.kind === "todo"
-                )
-                resolve(
-                  item?.size === "large" &&
-                    item.tasks.every((task: { done: boolean }) => task.done)
-                    ? item.tasks.length
-                    : -1
-                )
-                db.close()
-              }
-            }
-          })
-      )
-    )
+    .poll(async () => {
+      const { items } = await readStoredState<{
+        items: { kind: string; size: string; tasks: { done: boolean }[] }[]
+      }>(page, "omt.tab-grid")
+      const item = items.find((candidate) => candidate.kind === "todo")
+      return item?.size === "large" && item.tasks.every((task) => task.done)
+        ? item.tasks.length
+        : -1
+    })
     .toBe(2)
   await page.reload()
   await expect(

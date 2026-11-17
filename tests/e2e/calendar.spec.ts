@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { readStoredState } from "../helpers/storage"
 
 test("calendar can be added, navigated, edited and restored", async ({
   page,
@@ -32,30 +33,12 @@ test("calendar can be added, navigated, edited and restored", async ({
   await expect(editor.getByLabel("名称", { exact: true })).toHaveCount(0)
   await editor.getByRole("button", { name: "关闭", exact: true }).click()
   await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          new Promise<string>((resolve, reject) => {
-            const request = indexedDB.open("oh-my-tab-data", 1)
-            request.onerror = () => reject(request.error)
-            request.onsuccess = () => {
-              const db = request.result
-              const read = db
-                .transaction("entries")
-                .objectStore("entries")
-                .get("omt.tab-grid")
-              read.onsuccess = () => {
-                resolve(
-                  JSON.parse(read.result).state.items.find(
-                    (item: { kind: string }) => item.kind === "calendar"
-                  )?.name
-                )
-                db.close()
-              }
-            }
-          })
-      )
-    )
+    .poll(async () => {
+      const { items } = await readStoredState<{
+        items: { kind: string; name: string }[]
+      }>(page, "omt.tab-grid")
+      return items.find((item) => item.kind === "calendar")?.name
+    })
     .toBe("日历")
   await page.reload()
   await expect(

@@ -27,8 +27,7 @@ import {
 import { MOCK_DATA_VERSION } from "@/lib/grid/mock-version"
 import { mockGridItems } from "@/lib/grid/mock-data"
 
-// Function form keeps the mock list tree-shakeable; a DEV-gated top-level
-// constant would survive dead-code elimination through `merge` below.
+// Function form keeps the mock list tree-shakeable in production builds.
 const devInitialItems = (): GridItem[] =>
   import.meta.env.DEV ? mockGridItems((key) => i18n.t(key)) : []
 
@@ -234,17 +233,10 @@ export const useTabGridStore = create<TabGridState>()(
       }),
       merge: (persisted, current) => {
         if (persisted == null) return current
-        const clean = sanitizePersisted(persisted)
-        // Development hard-seeds the mock grid whenever the persisted grid
-        // is empty, regardless of which build or version stored it.
-        const reseed = import.meta.env.DEV && clean.items.length === 0
+        // Startup and reset seed demo data; rehydration must preserve backups.
         return {
           ...current,
-          ...clean,
-          items: reseed ? current.items : clean.items,
-          mockDataVersion: import.meta.env.DEV
-            ? MOCK_DATA_VERSION
-            : clean.mockDataVersion,
+          ...sanitizePersisted(persisted),
         }
       },
     }

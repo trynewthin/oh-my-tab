@@ -2,13 +2,18 @@
 
 [返回文档中心](../README.md)
 
+## 架构总览
+
+[![Oh My Tab 模块架构与关键运行路径](assets/architecture.svg)](assets/architecture.svg)
+
+点击图片可打开 SVG 放大查看。图示基于 `nightly` 的 [e005da7](https://github.com/trynewthin/oh-my-tab/commit/e005da7)，包含模块关系、启动与同步路径；图中验证状态和改进建议对应这一版本。
+
 ## 模块边界
 
 - `src/main.tsx` / `src/popup.tsx`：新标签页与工具栏入口；`src/pages/` 组合页面。
 - `src/components/`：界面与交互。通用控件在 `ui/`，网格与拖拽在 `tab-grid/`，视觉效果在 `effects/`。
 - `src/stores/`：状态与 action；`src/application/`：启动、备份、同步等跨 store 流程。
 - `src/lib/`：模型、计算和浏览器适配器，不依赖 store 或界面。
-- `website/`：独立官网 workspace，部署配置在根目录 `vercel.json`。
 
 持久化操作经 store 或 application 完成；视图不另建数据转换流程。文件夹与待办复用 `tab-grid/collection/`，其他共用表面放 `shared/`。导入方向和静态循环由 `npm run verify:architecture` 检查，规则以该脚本为准。
 

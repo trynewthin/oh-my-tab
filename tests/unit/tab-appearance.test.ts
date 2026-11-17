@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import * as storage from "@/lib/storage"
-import {
-  importConfig,
-  snapshot,
-  validateConfig,
-} from "@/application/config-transfer"
+import { importConfig, validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { rehydrateData } from "@/application/hydrate"
 import {
   DEFAULT_TAB_APPEARANCE,
@@ -222,7 +219,7 @@ describe("tab appearance store", () => {
 
 describe("tab appearance persistence and backups", () => {
   test("defaults missing fields on hydration, including legacy records", () => {
-    const merge = useHomeSettingsStore.persist.getOptions().merge
+    const merge = useHomeSettingsStore.projection.getOptions().merge
     const current = useHomeSettingsStore.getState()
     expect(merge?.({ text: "KEEP" }, current)).toMatchObject({
       text: "KEEP",

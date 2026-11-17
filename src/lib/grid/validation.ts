@@ -1,4 +1,4 @@
-import { validGardenPlant } from "@/lib/garden"
+import { validGardenPlant } from "@/lib/garden-plant"
 import { isComponentSize, isGridItemKind } from "@/lib/grid/registry"
 import { isUtilityWidget } from "@/lib/grid/utility-types"
 import { validUtilityWidget } from "@/lib/widgets/model"

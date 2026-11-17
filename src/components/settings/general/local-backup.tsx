@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/stores/toast-store"
 import { createBackup, readBackup, downloadBackup } from "@/application/backup"
-import { storageRevision } from "@/lib/storage"
+import { workspaceRevision } from "@/application/workspace"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import type { Pending } from "./data-settings-types"
@@ -60,7 +60,7 @@ export default function LocalBackup({
           event.currentTarget.value = ""
           if (file)
             void run(async () => {
-              const revision = await storageRevision()
+              const revision = await workspaceRevision()
               setPending({
                 kind: "restore",
                 backup: await readBackup(file),

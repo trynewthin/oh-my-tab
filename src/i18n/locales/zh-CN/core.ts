@@ -18,6 +18,9 @@ const core = {
     indexedDbLabel: "IndexedDB 本地存储",
     blocked: "请关闭其他旧版页面后重试",
     staleWrite: "数据已在其他页面更新，请重新操作",
+    readOnly: "数据来自更新版本，已保护原值；请更新应用后再编辑",
+    legacyChanged:
+      "旧版页面在迁移后修改了数据，两份数据均已保留；请关闭旧版页面并处理存储冲突后重试",
     saveFailed: "保存失败",
     persistFailed: "数据保存失败，请检查浏览器存储空间后重试",
     permission: "请重新加载扩展以启用 Chrome 存储权限",

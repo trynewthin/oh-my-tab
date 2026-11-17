@@ -1,6 +1,5 @@
-import { storageOptions } from "@/lib/storage"
+import { project } from "@/lib/data/projection"
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
 export type Theme = "light" | "dark" | "system"
 type ThemeState = {
@@ -9,14 +8,13 @@ type ThemeState = {
 }
 
 export const useThemeStore = create<ThemeState>()(
-  persist(
+  project(
     (set) => ({
       theme: "light",
       setTheme: (theme) => set({ theme }),
     }),
     {
-      ...storageOptions(),
-      name: "omt.theme-mode",
+      section: "theme",
       partialize: ({ theme }) => ({ theme }),
       merge: (persisted, current) => {
         const theme = (persisted as { theme?: unknown } | null)?.theme

@@ -2,7 +2,7 @@ import { isMatrixPet, type MatrixPet } from "@/lib/matrix-pets"
 import {
   isBackgroundPaletteId,
   type BackgroundPaletteId,
-} from "@/lib/background-palettes"
+} from "@/lib/background-palette-model"
 import {
   clampGridScale,
   DEFAULT_GRID_SCALE,

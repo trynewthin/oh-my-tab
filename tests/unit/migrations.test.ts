@@ -7,11 +7,8 @@ import { migrateStoredData } from "@/lib/migrations/storage"
 import { readMigrationReport } from "@/lib/migration-report"
 import { migrateConfig } from "@/lib/migrations/v2"
 import * as conversions from "@/lib/migrations/v2"
-import {
-  snapshot,
-  validateConfig,
-  importConfig,
-} from "@/application/config-transfer"
+import { validateConfig, importConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { rehydrateData } from "@/application/hydrate"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import { validGridItem } from "@/lib/grid/validation"

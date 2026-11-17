@@ -1,6 +1,6 @@
 import { sanitizeHomeSettings } from "@/lib/home-settings"
 import { sanitizePersisted } from "@/lib/grid/persisted"
-import { validGardenPlant } from "@/lib/garden"
+import { validGardenPlant } from "@/lib/garden-plant"
 import { validSharedGarden } from "@/lib/shared-garden"
 
 // Tolerant per-key readers: an envelope whose version this client does not

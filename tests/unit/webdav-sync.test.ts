@@ -6,11 +6,8 @@ import {
   storageRevision,
   writeEntries,
 } from "@/lib/storage"
-import {
-  snapshot,
-  importConfig,
-  type Config,
-} from "@/application/config-transfer"
+import { importConfig, type Config } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { createBackup, readBackup } from "@/application/backup"
 import { rehydrateData } from "@/application/hydrate"
 import { contentHash, defaultWebdavSnapshotName } from "@/lib/webdav-sync"
@@ -207,8 +204,7 @@ describe("persisted WebDAV connections", () => {
 
 describe("WebDAV snapshot sync", () => {
   it("accepts snapshots created before newer config defaults were introduced", async () => {
-    const oldConfig = structuredClone(initial)
-    oldConfig.version = 1
+    const oldConfig = { ...structuredClone(initial), version: 1 }
     delete (oldConfig.home as Partial<Config["home"]>).newTabsDynamicEffect
     const blob = await encodeBackup(oldConfig)
     const hash = await contentHash(oldConfig)
@@ -998,8 +994,7 @@ describe("snapshot names and retention", () => {
 
 describe("committed WebDAV migrations", () => {
   async function oldRemote(hashOverride?: string) {
-    const config = structuredClone(initial)
-    config.version = 1
+    const config = { ...structuredClone(initial), version: 1 }
     delete (config.home as Partial<Config["home"]>).searchShortcuts
     const id = crypto.randomUUID()
     const file = `oh-my-tab-snapshot-${id}.zip`

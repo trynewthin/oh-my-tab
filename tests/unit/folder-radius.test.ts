@@ -5,11 +5,8 @@ import {
   sanitizeHomeSettings,
 } from "@/lib/home-settings"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import {
-  importConfig,
-  snapshot,
-  validateConfig,
-} from "@/application/config-transfer"
+import { importConfig, validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { rehydrateData } from "@/application/hydrate"
 import * as storage from "@/lib/storage"
 import {

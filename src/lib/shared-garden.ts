@@ -1,5 +1,5 @@
 import type { GardenPlant } from "@/lib/grid/types"
-import { validGardenPlant } from "@/lib/garden"
+import { validGardenPlant } from "@/lib/garden-plant"
 
 export type SharedGarden = {
   points: number

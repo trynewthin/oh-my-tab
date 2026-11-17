@@ -7,7 +7,8 @@ import {
   sanitizeQuickBarConfig,
   validQuickBarConfig,
 } from "@/lib/quick-bar"
-import { snapshot, validateConfig } from "@/application/config-transfer"
+import { validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 
 describe("quick bar configuration", () => {
   it("starts with default controls and keeps valid controls in their own regions", () => {

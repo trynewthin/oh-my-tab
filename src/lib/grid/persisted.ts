@@ -1,4 +1,4 @@
-import { i18n } from "@/i18n"
+import { DataError } from "@/lib/data/errors"
 import type { GridItem } from "./types"
 import { validGridItem } from "./validation"
 import {
@@ -17,7 +17,10 @@ export function sanitizePersisted(persisted: unknown): {
     items !== undefined &&
     (!Array.isArray(items) || !items.every(validGridItem))
   ) {
-    throw new Error(i18n.t("grid.error.corruptGrid"))
+    throw new DataError("VALIDATION", {
+      section: "grid",
+      reason: "corruptGrid",
+    })
   }
   const storedItems: GridItem[] = Array.isArray(items) ? items : []
   const savedLayouts = (

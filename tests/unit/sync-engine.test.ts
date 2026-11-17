@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import { clearAllData, flushStorage, storageRevision } from "@/lib/storage"
-import {
-  snapshot,
-  importConfig,
-  type Config,
-} from "@/application/config-transfer"
+import { importConfig, type Config } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { createBackup, readBackup } from "@/application/backup"
 import { rehydrateData } from "@/application/hydrate"
 import { contentHash } from "@/lib/webdav-sync"

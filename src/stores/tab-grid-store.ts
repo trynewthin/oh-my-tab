@@ -1,10 +1,9 @@
-import { storageOptions } from "@/lib/storage"
+import { project } from "@/lib/data/projection"
 import { groupComponents, resolveGroupAction } from "@/lib/grid/grid-operations"
 import { mergeBookmarks, type ImportedBookmark } from "@/lib/bookmark-import"
 import { ensureLayoutColumns } from "@/lib/grid/grid-layout"
 import { toast } from "@/stores/toast-store"
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 import { type GridItem, type TabEntry, type TodoTask } from "@/lib/grid/types"
 import { sanitizePersisted } from "@/lib/grid/persisted"
 import { createFolderItem, createTabItem } from "@/lib/grid/factory"
@@ -83,7 +82,7 @@ type TabGridState = {
 }
 
 export const useTabGridStore = create<TabGridState>()(
-  persist(
+  project(
     (set, get) => ({
       mockDataVersion: import.meta.env.DEV ? MOCK_DATA_VERSION : 0,
       layouts: {},
@@ -222,8 +221,7 @@ export const useTabGridStore = create<TabGridState>()(
         })),
     }),
     {
-      ...storageOptions(),
-      name: "omt.tab-grid",
+      section: "grid",
       // lastLayoutColumns stays tab-local: persisting it makes tabs with
       // different column counts overwrite each other in a ping-pong loop.
       partialize: ({ items, layouts, mockDataVersion }) => ({

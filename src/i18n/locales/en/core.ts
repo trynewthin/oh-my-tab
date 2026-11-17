@@ -20,6 +20,10 @@ const core = {
     indexedDbLabel: "IndexedDB local storage",
     blocked: "Close other pages running an older version and try again",
     staleWrite: "Data was updated in another page. Please try again.",
+    readOnly:
+      "This data requires a newer app version. The original is protected; update the app before editing.",
+    legacyChanged:
+      "An older page changed data after migration. Both copies are preserved; close older pages and resolve the storage conflict before retrying.",
     saveFailed: "Save failed",
     persistFailed:
       "Failed to save data. Check the browser storage space and try again.",

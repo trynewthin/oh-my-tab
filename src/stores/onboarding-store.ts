@@ -1,6 +1,5 @@
-import { storageOptions } from "@/lib/storage"
+import { project } from "@/lib/data/projection"
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
 export const useOnboardingStore = create<{
   seen: boolean
@@ -8,7 +7,7 @@ export const useOnboardingStore = create<{
   start: () => void
   finish: () => void
 }>()(
-  persist(
+  project(
     (set) => ({
       seen: false,
       replay: false,
@@ -16,8 +15,7 @@ export const useOnboardingStore = create<{
       finish: () => set({ seen: true, replay: false }),
     }),
     {
-      ...storageOptions(),
-      name: "omt.onboarding",
+      section: "onboarding",
       partialize: ({ seen }) => ({ seen }),
     }
   )

@@ -88,7 +88,8 @@ export default function DataSettings() {
           <Button
             variant="outline"
             className={settingsControlClassName}
-            onClick={() => resetDemoData()}
+            disabled={busy}
+            onClick={() => void state.run(resetDemoData)}
           >
             {t("settings.data.resetMock")}
           </Button>

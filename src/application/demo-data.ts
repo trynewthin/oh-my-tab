@@ -1,33 +1,55 @@
-import { writeEntries } from "@/lib/storage"
+import { writeEntries, flushStorage } from "@/lib/storage"
+import { workspace, dataError } from "@/application/workspace"
+import { defaultConfig } from "@/lib/data/config"
+import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useThemeStore } from "@/stores/theme-store"
+import { useSearchEngineStore } from "@/stores/search-engine-store"
+import { useGardenStore } from "@/stores/garden-store"
+import { useOnboardingStore } from "@/stores/onboarding-store"
 import { DEFAULT_SNAPSHOT_LIMIT } from "@/lib/webdav-sync"
 import {
   readWebdavSettings,
   WEBDAV_KEY,
   type SavedWebdav,
 } from "@/application/webdav-settings"
-import { useGardenStore } from "@/stores/garden-store"
-import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import { useOnboardingStore } from "@/stores/onboarding-store"
-import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { useTabGridStore } from "@/stores/tab-grid-store"
-import { useThemeStore } from "@/stores/theme-store"
 
 /**
  * Restore the complete demo dataset: showcase grid plus factory defaults for
  * every other data store, in one shot. Dev builds only.
  */
-export function resetDemoData() {
+export async function resetDemoData() {
   if (!import.meta.env.DEV) return
-  useTabGridStore.setState(useTabGridStore.getInitialState())
-  useHomeSettingsStore.setState(useHomeSettingsStore.getInitialState())
-  useThemeStore.setState(useThemeStore.getInitialState())
-  useSearchEngineStore.setState(useSearchEngineStore.getInitialState())
-  useGardenStore.setState({
-    ...useGardenStore.getInitialState(),
-    initialized: true,
-    pointsUpdatedAt: Date.now(),
-  })
-  useOnboardingStore.setState({ seen: true, replay: false })
+  await flushStorage()
+  const { revision } = await workspace.readSections([])
+  const config = defaultConfig()
+  const initial = useTabGridStore.getInitialState()
+  config.grid = {
+    items: initial.items,
+    layouts: initial.layouts,
+    mockDataVersion: initial.mockDataVersion,
+  }
+  config.onboarding.seen = true
+  try {
+    await workspace.replace({
+      config,
+      expectedRevision: revision,
+      requestId: crypto.randomUUID(),
+      issuedAt: Date.now(),
+    })
+    await Promise.all(
+      [
+        useTabGridStore,
+        useHomeSettingsStore,
+        useThemeStore,
+        useSearchEngineStore,
+        useGardenStore,
+        useOnboardingStore,
+      ].map((store) => store.projection.rehydrate())
+    )
+  } catch (error) {
+    throw dataError(error)
+  }
 }
 
 /** URL of the dev mock WebDAV server (see scripts/dev/mock-webdav.mjs). */
@@ -39,13 +61,13 @@ function mockWebdavUrl() {
 }
 
 /**
- * Startup demo seeding (dev builds only): an empty grid restores the full
+ * Startup demo seeding (dev builds only): a new workspace gets the full
  * demo dataset, and an unconfigured WebDAV slot is prefilled with a session
  * pointing at the dev mock server so sync is usable without any setup.
  */
-export async function seedDemoData() {
+export async function seedDemoData(seedGrid: boolean) {
   if (!import.meta.env.DEV) return
-  if (useTabGridStore.getState().items.length === 0) resetDemoData()
+  if (seedGrid) await resetDemoData()
   const current = await readWebdavSettings().catch(() => null)
   if (current?.saved || current?.raw != null) return
   const session: SavedWebdav = {

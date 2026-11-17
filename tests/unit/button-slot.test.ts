@@ -19,7 +19,8 @@ import { validGridItem } from "@/lib/grid/validation"
 import { resizeItem, upsertBookmark } from "@/lib/grid/operations"
 import type { ButtonSlotItem, GridItem } from "@/lib/grid/types"
 import { decodeBackup, encodeBackup } from "@/lib/backup-codec"
-import { snapshot, validateConfig } from "@/application/config-transfer"
+import { validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { CONFIG_VERSION } from "@/lib/data-version"
 
 function slot(size: ButtonSlotItem["size"] = "wide"): ButtonSlotItem {

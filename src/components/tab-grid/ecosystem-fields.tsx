@@ -1,4 +1,5 @@
 import GardenAlbum from "./garden-album"
+import { saveGardenWidget } from "@/application/garden"
 import { useGardenStore } from "@/stores/garden-store"
 import {
   careForPlant,
@@ -67,22 +68,7 @@ export default function EcosystemFields({
         )
     )
       return
-    const { points, pointsUpdatedAt, album, lastCheckIn } = next
-    useGardenStore.setState({
-      points: points!,
-      pointsUpdatedAt: pointsUpdatedAt!,
-      album: album ?? [],
-      lastCheckIn,
-    })
-    useTabGridStore.getState().saveItem({
-      id: next.id,
-      kind: "ecosystem",
-      name: next.name,
-      color: next.color,
-      size: "large",
-      species: next.species,
-      plants: next.plants,
-    })
+    void saveGardenWidget(next).catch(() => {})
   }
   function care(action: "water" | "feed") {
     const next = careForPlant(current(), action, now)

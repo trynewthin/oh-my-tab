@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest"
-import { snapshot, validateConfig } from "@/application/config-transfer"
+import { validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { DEFAULT_GRID_SCALE, GRID_COLUMNS } from "@/lib/grid/grid-layout"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { sanitizePersisted } from "@/lib/grid/persisted"
@@ -14,7 +15,7 @@ beforeEach(() => {
 
 describe("grid scale persistence", () => {
   test("defaults a missing scale and keeps a valid wide column count", () => {
-    const merged = useHomeSettingsStore.persist
+    const merged = useHomeSettingsStore.projection
       .getOptions()
       .merge?.({ wideGridColumns: 8 }, useHomeSettingsStore.getState())
     expect(merged?.gridScale).toBe(1)
@@ -22,7 +23,7 @@ describe("grid scale persistence", () => {
   })
 
   test("falls back to 100 percent for an illegal persisted scale", () => {
-    const merged = useHomeSettingsStore.persist
+    const merged = useHomeSettingsStore.projection
       .getOptions()
       .merge?.({ gridScale: 1.15 }, useHomeSettingsStore.getState())
     expect(merged?.gridScale).toBe(1)

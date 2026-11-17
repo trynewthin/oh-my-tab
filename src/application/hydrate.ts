@@ -12,11 +12,14 @@ import {
   drainReadIssues,
   flushStorage,
   initializeStorage,
+  readEntries,
   subscribeStorage,
 } from "@/lib/storage"
 import { appendMigrationReport } from "@/lib/migration-report"
 import { i18n } from "@/i18n"
 import { toast } from "@/stores/toast-store"
+import { workspace } from "@/application/workspace"
+import { documentKeys, DATA_KEYS, DEVICE_KEYS } from "@/lib/data/keys"
 const stores = [
   usePrivacyStore,
   useHomeSettingsStore,
@@ -29,11 +32,12 @@ const stores = [
 ]
 async function rehydrateStores(keys?: ReadonlySet<string>) {
   for (const store of stores) {
-    if (keys && !keys.has(store.persist.getOptions().name ?? "")) continue
-    await store.persist.rehydrate()
-    if (!store.persist.hasHydrated())
+    const controller = "projection" in store ? store.projection : store.persist
+    if (keys && !keys.has(controller.getOptions().name ?? "")) continue
+    await controller.rehydrate()
+    if (!controller.hasHydrated())
       throw new Error(
-        `${i18n.t("core.hydrate.readFailed")} [rehydrate: ${store.persist.getOptions().name}]`
+        `${i18n.t("core.hydrate.readFailed")} [rehydrate: ${controller.getOptions().name}]`
       )
   }
 }
@@ -80,11 +84,17 @@ export async function prepareData() {
     let stage = "initializeStorage"
     try {
       await initializeStorage()
+      const fresh =
+        Object.values(await readEntries(DATA_KEYS)).every(
+          (value) => value === undefined
+        ) && DATA_KEYS.every((key) => localStorage.getItem(key) === null)
+      await migrateStoredData()
+      const created = await workspace.initialize()
       stage = "rehydrateData"
       await rehydrateData()
       if (import.meta.env.DEV) {
         stage = "seedDemoData"
-        await seedDemoData()
+        await seedDemoData(fresh && created.includes("grid"))
       }
       stage = "flushStorage"
       await flushStorage()
@@ -94,8 +104,17 @@ export async function prepareData() {
     }
   })
   const unsubscribe = subscribeStorage((keys) => {
-    void rehydrateData(keys).catch(() =>
+    const deviceKeys = keys.filter((key) =>
+      (DEVICE_KEYS as readonly string[]).includes(key)
+    )
+    if (!deviceKeys.length) return
+    void rehydrateData(deviceKeys).catch(() =>
       toast(i18n.t("core.hydrate.updateFailed"), "error")
+    )
+  })
+  const unsubscribeWorkspace = workspace.subscribe((sections) => {
+    void rehydrateData(sections.map((section) => documentKeys[section])).catch(
+      () => toast(i18n.t("core.hydrate.updateFailed"), "error")
     )
   })
   const onError = (event: Event) =>
@@ -105,8 +124,21 @@ export async function prepareData() {
       "error"
     )
   window.addEventListener("omt-storage-error", onError)
+  const refresh = () => {
+    if (document.visibilityState === "hidden") return
+    void initializeStorage()
+      .then(() => rehydrateData())
+      .catch(() => toast(i18n.t("core.hydrate.updateFailed"), "error"))
+  }
+  window.addEventListener("focus", refresh)
+  window.addEventListener("pageshow", refresh)
+  document.addEventListener("visibilitychange", refresh)
   return () => {
     unsubscribe()
+    unsubscribeWorkspace()
     window.removeEventListener("omt-storage-error", onError)
+    window.removeEventListener("focus", refresh)
+    window.removeEventListener("pageshow", refresh)
+    document.removeEventListener("visibilitychange", refresh)
   }
 }

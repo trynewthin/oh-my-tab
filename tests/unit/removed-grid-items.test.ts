@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 
-import { snapshot, validateConfig } from "@/application/config-transfer"
+import { validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import { dropRemovedGridItems } from "@/lib/migrations/removed-items"
 import { sanitizePersisted } from "@/lib/grid/persisted"

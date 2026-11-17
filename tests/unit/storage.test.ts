@@ -71,7 +71,7 @@ describe("storage (IndexedDB backend)", () => {
   })
 })
 
-describe("storage (chrome.storage backend)", () => {
+describe("storage (extension origin)", () => {
   it("keeps binary assets lossless and restricts access", async () => {
     globalThis.location.protocol = "chrome-extension:"
     const values: Record<string, unknown> = {}
@@ -100,9 +100,10 @@ describe("storage (chrome.storage backend)", () => {
       type: "image/webp",
     })
     const id = await storage.putAsset(blob)
-    expect((values[id] as { value: string }).value).toMatch(
-      /^data:image\/webp;base64,/
-    )
+    expect((await storage.readEntries([id]))[id]).toMatchObject({
+      value: expect.any(Blob),
+    })
+    expect(values[id]).toBeUndefined()
     expect(await (await storage.getAsset(id)).arrayBuffer()).toEqual(
       await blob.arrayBuffer()
     )
@@ -117,38 +118,57 @@ describe("storage (chrome.storage backend)", () => {
       version: 0,
     })
     await storage.flushStorage()
-    expect(JSON.parse(values["omt.theme-mode"] as string).state.theme).toBe(
-      "light"
-    )
-    values["omt.theme-mode"] = JSON.stringify({
-      state: { theme: "system" },
-      version: 0,
+    expect(
+      JSON.parse(
+        (await storage.readEntries(["omt.theme-mode"]))[
+          "omt.theme-mode"
+        ] as string
+      ).state.theme
+    ).toBe("light")
+    await storage.writeEntries({
+      "omt.theme-mode": JSON.stringify({
+        state: { theme: "system" },
+        version: 0,
+      }),
     })
     persist!.setItem("omt.theme-mode", {
       state: { theme: "dark" },
       version: 0,
     })
     await expect(storage.flushStorage()).rejects.toThrow(/更新/)
-    expect(JSON.parse(values["omt.theme-mode"] as string).state.theme).toBe(
-      "system"
-    )
-    values["omt.home-settings"] = JSON.stringify({
-      state: { backgroundImage: id },
+    expect(
+      JSON.parse(
+        (await storage.readEntries(["omt.theme-mode"]))[
+          "omt.theme-mode"
+        ] as string
+      ).state.theme
+    ).toBe("system")
+    await storage.writeEntries({
+      "omt.home-settings": JSON.stringify({
+        state: { backgroundImage: id },
+      }),
     })
-    ;(values[id] as { createdAt: number }).createdAt = 1
-    values["asset:orphan"] = { createdAt: 1, value: "old" }
-    values["cache:favicon:x"] = {}
+    await storage.writeEntries({
+      [id]: {
+        ...((await storage.readEntries([id]))[id] as object),
+        createdAt: 1,
+      },
+      "asset:orphan": { createdAt: 1, value: "old" },
+      "cache:favicon:x": {},
+    })
     await storage.clearCachedData()
-    expect(values[id], "current image survives cleanup").toBeTruthy()
-    expect(values["asset:orphan"]).toBeUndefined()
-    expect(values["cache:favicon:x"]).toBeUndefined()
+    const cleaned = await storage.allEntries()
+    expect(cleaned[id], "current image survives cleanup").toBeTruthy()
+    expect(cleaned["asset:orphan"]).toBeUndefined()
+    expect(cleaned["cache:favicon:x"]).toBeUndefined()
     await storage.editStoredEntries(() => ({
       updates: { "omt.webdav": null },
       remove: [id],
     }))
-    expect(values["omt.webdav"]).toBeNull()
-    expect(values[id]).toBeUndefined()
-    expect(JSON.parse(values["omt.theme-mode"] as string).state.theme).toBe(
+    const remaining = await storage.allEntries()
+    expect(remaining["omt.webdav"]).toBeNull()
+    expect(remaining[id]).toBeUndefined()
+    expect(JSON.parse(remaining["omt.theme-mode"] as string).state.theme).toBe(
       "system"
     )
   })

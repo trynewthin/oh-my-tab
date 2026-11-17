@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { restoreBackup } from "@/application/backup"
-import { storageRevision } from "@/lib/storage"
+import { workspaceRevision } from "@/application/workspace"
 import type { Pending } from "./data-settings-types"
 
 export default function PendingConfirmation({
@@ -30,7 +30,7 @@ export default function PendingConfirmation({
           disabled={busy}
           onClick={() =>
             void run(async () => {
-              if ((await storageRevision()) !== pending.revision) {
+              if ((await workspaceRevision()) !== pending.revision) {
                 setPending(null)
                 throw new Error(t("settings.pending.changedRestore"))
               }

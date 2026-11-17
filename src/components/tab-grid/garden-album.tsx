@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useGardenStore } from "@/stores/garden-store"
+import { useGardenStore, setGardenState } from "@/stores/garden-store"
 import { plantSeed, plantName } from "@/lib/garden"
 import { toast } from "@/stores/toast-store"
 import type { EcosystemItem, GardenPlant } from "@/lib/grid/types"
@@ -32,7 +32,7 @@ export default function GardenAlbum({
     const current = useGardenStore.getState().album
     const removed = current.filter((plant) => selected.includes(keyOf(plant)))
     if (!removed.length) return
-    useGardenStore.setState({
+    setGardenState({
       album: current.filter((plant) => !selected.includes(keyOf(plant))),
     })
     setSelected([])
@@ -43,7 +43,7 @@ export default function GardenAlbum({
         label: t("grid.notify.undo"),
         run: () => {
           const latest = useGardenStore.getState().album
-          useGardenStore.setState({
+          setGardenState({
             album: [
               ...latest,
               ...removed.filter(

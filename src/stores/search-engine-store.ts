@@ -1,7 +1,6 @@
-import { storageOptions } from "@/lib/storage"
+import { project } from "@/lib/data/projection"
 import { usePrivacyStore } from "./privacy-store"
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
 import {
   defaultSearchEngines,
@@ -22,7 +21,7 @@ type SearchEngineState = {
 }
 
 export const useSearchEngineStore = create<SearchEngineState>()(
-  persist(
+  project(
     (set) => ({
       engines: defaultSearchEngines.filter((engine) =>
         ["google", "bing", "bingcn"].includes(engine.id)
@@ -67,8 +66,7 @@ export const useSearchEngineStore = create<SearchEngineState>()(
         }),
     }),
     {
-      ...storageOptions(),
-      name: "omt.search-engines",
+      section: "search",
       partialize: ({ engines, selectedId, openInNewTab }) => ({
         engines,
         selectedId,

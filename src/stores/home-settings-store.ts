@@ -1,8 +1,7 @@
-import { storageOptions } from "@/lib/storage"
+import { project } from "@/lib/data/projection"
 import { type MatrixPet } from "@/lib/matrix-pets"
 export type { MatrixPet } from "@/lib/matrix-pets"
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 import { type BackgroundPaletteId } from "@/lib/background-palettes"
 import {
   clampGridScale,
@@ -115,7 +114,7 @@ type HomeSettingsStore = HomeSettings & {
 }
 
 export const useHomeSettingsStore = create<HomeSettingsStore>()(
-  persist(
+  project(
     (set, get) => ({
       ...sanitizeHomeSettings(null),
       setBackgroundType: (backgroundType) => set({ backgroundType }),
@@ -327,8 +326,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       },
     }),
     {
-      ...storageOptions(),
-      name: "omt.home-settings",
+      section: "home",
       partialize: ({
         layoutMode,
         quickBar,

@@ -1,25 +1,10 @@
-import { describe, expect, it, vi } from "vitest"
-
+import { describe, expect, it } from "vitest"
+import { defaultConfig } from "@/lib/data/config"
+import { configEntries } from "@/lib/data/workspace"
+import { createCatalogComponent } from "@/lib/grid/factory"
+import { allEntries, clearEntries, writeEntries } from "@/lib/storage"
 let entries: Record<string, unknown> = {}
-const saved = (state: unknown) => JSON.stringify({ state, version: 0 })
-
-vi.mock("@/lib/storage", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/storage")>()
-  return {
-    ...actual,
-    editStoredEntries: async (
-      plan: (e: Record<string, unknown>) => {
-        updates: Record<string, unknown>
-        remove: string[]
-      }
-    ) => {
-      const { updates, remove } = plan(entries)
-      Object.assign(entries, updates)
-      for (const key of remove) delete entries[key]
-    },
-  }
-})
-
+const saved = (state: unknown) => JSON.stringify({ state, version: 5 })
 const { summarizeStorage, storedState, valueBytes, formatStorageBytes } =
   await import("@/lib/storage-usage")
 const { clearStorageCategories } =
@@ -27,13 +12,17 @@ const { clearStorageCategories } =
 const { MOCK_DATA_VERSION } = await import("@/lib/grid/mock-version")
 
 function setup() {
+  const config = defaultConfig()
+  config.home.backgroundImage = "asset:current"
+  config.home.backgroundType = "image"
+  config.home.color = "#ffffff"
+  config.grid = {
+    items: [createCatalogComponent("calendar")],
+    layouts: {},
+    mockDataVersion: MOCK_DATA_VERSION,
+  }
   entries = {
-    "omt.home-settings": saved({
-      backgroundImage: "asset:current",
-      backgroundType: "image",
-      color: "#ffffff",
-    }),
-    "omt.tab-grid": saved({ items: [{ id: "bookmark" }], layouts: {} }),
+    ...configEntries(config),
     "omt.privacy": saved({ icons: true }),
     "omt.webdav": JSON.stringify({
       url: "https://example.com/",
@@ -44,6 +33,12 @@ function setup() {
     "asset:recent": { createdAt: Date.now(), value: new Blob(["new"]) },
     "cache:favicon:x": { blob: new Blob(["icon"]) },
   }
+}
+
+async function seed() {
+  setup()
+  await clearEntries()
+  await writeEntries(entries, true)
 }
 
 describe("storage-usage", () => {
@@ -61,8 +56,9 @@ describe("storage-usage", () => {
 
 describe("clearStorageCategories", () => {
   it("preserves active, recent and unselected data on selective clear", async () => {
-    setup()
+    await seed()
     await clearStorageCategories(["icons", "unused-images", "system"])
+    entries = await allEntries()
     expect(entries["cache:favicon:x"]).toBeUndefined()
     expect(entries["asset:old"]).toBeUndefined()
     expect(entries["asset:current"]).toBeTruthy()
@@ -72,8 +68,9 @@ describe("clearStorageCategories", () => {
   })
 
   it("unlinks the background without resetting other preferences", async () => {
-    setup()
+    await seed()
     await clearStorageCategories(["background"])
+    entries = await allEntries()
     expect(entries["asset:current"]).toBeUndefined()
     expect(storedState(entries["omt.home-settings"]).backgroundImage).toBeNull()
     expect(storedState(entries["omt.home-settings"]).color).toBe("#ffffff")
@@ -81,8 +78,9 @@ describe("clearStorageCategories", () => {
   })
 
   it("preserves background while clearing bookmarks prevents mock-data resurrection", async () => {
-    setup()
+    await seed()
     await clearStorageCategories(["preferences", "bookmarks", "webdav"])
+    entries = await allEntries()
     expect(storedState(entries["omt.home-settings"]).backgroundImage).toBe(
       "asset:current"
     )

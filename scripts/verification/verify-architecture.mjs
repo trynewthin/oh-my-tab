@@ -276,12 +276,16 @@ function resolveSpecifier(importer, specifier) {
 
 // importer -> imported -> { static }
 const edges = new Map()
+const specifiersByFile = new Map()
 for (const file of files) {
   const outgoing = new Map()
   edges.set(file, outgoing)
-  for (const { specifier, kind } of readSpecifiers(
-    scan(await readFile(file, "utf8"))
-  )) {
+  const specifiers = readSpecifiers(scan(await readFile(file, "utf8")))
+  specifiersByFile.set(
+    file,
+    specifiers.map(({ specifier }) => specifier)
+  )
+  for (const { specifier, kind } of specifiers) {
     const target = resolveSpecifier(file, specifier)
     if (!target) continue
     const edge = outgoing.get(target) ?? { static: false }
@@ -351,7 +355,35 @@ function visit(node) {
 for (const file of files) if ((state.get(file) ?? 0) === 0) visit(file)
 cycles.sort()
 
+const domainRoots = ["config", "commands", "workspace", "repository"].map(
+  (name) => path.join(sourceDir, "lib/data", `${name}.ts`)
+)
+const domainFiles = new Set()
+function visitDomain(file) {
+  if (domainFiles.has(file)) return
+  domainFiles.add(file)
+  for (const target of edges.get(file)?.keys() ?? []) visitDomain(target)
+}
+domainRoots.forEach(visitDomain)
+const domainViolations = []
+for (const file of domainFiles) {
+  for (const specifier of specifiersByFile.get(file) ?? [])
+    if (
+      /^(?:react(?:-dom)?|zustand|dexie)(?:\/|$)/.test(specifier) ||
+      specifier.startsWith("@/i18n") ||
+      /\/(?:i18n|stores|application|components|pages)(?:\/|\.)/.test(specifier)
+    )
+      domainViolations.push(`${relative(file)} -> ${specifier}`)
+}
+
 let failed = false
+if (domainViolations.length) {
+  failed = true
+  console.error(
+    "Data contracts/domain services must remain independent of UI and platform adapters:"
+  )
+  domainViolations.forEach((violation) => console.error(`  ${violation}`))
+}
 if (violations.length) {
   failed = true
   console.error(`Forbidden import directions (${violations.length}):`)

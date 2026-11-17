@@ -43,7 +43,7 @@ describe("persist registration", () => {
   })
 
   it("declares every omt.* persist name as a storage key", async () => {
-    const storage = await read("src/lib/storage.ts")
+    const storage = await read("src/lib/data/keys.ts")
     const keys = new Set(
       [...storage.matchAll(/"(omt\.[^"]+)"/g)].map((m) => m[1])
     )

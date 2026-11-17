@@ -12,13 +12,12 @@ export { parseRemoteIndex, type WebdavSnapshot } from "@/lib/webdav-history"
 import { encodeBackup } from "@/lib/backup-codec"
 import { i18n } from "@/i18n"
 import {
-  createBackup,
-  readBackup,
+  captureBackup,
   readBackupContents,
   restoreBackup,
   type Backup,
 } from "@/application/backup"
-import { storageRevision } from "@/lib/storage"
+import { workspaceRevision } from "@/application/workspace"
 import type { SyncBackend } from "@/lib/sync/backend"
 import {
   compareBackupContent,
@@ -284,9 +283,11 @@ export async function prepareSync<S extends SyncSession>(options: {
   if (!current || typeof current.raw !== "string")
     throw new Error(i18n.t("settings.webdav.notConnected"))
   const { session, raw } = current
-  const revision = await storageRevision()
-  const localBlob = await createBackup()
-  const localBackup = await readBackup(localBlob)
+  const {
+    revision,
+    blob: localBlob,
+    backup: localBackup,
+  } = await captureBackup()
   const localHash = await contentHash(localBackup.config, localBackup.image)
   const remote = await remoteState(backend, session.snapshotLimit)
   const direction = syncDirection({
@@ -315,7 +316,7 @@ export async function prepareSync<S extends SyncSession>(options: {
 }
 
 async function assertCurrent<S extends SyncSession>(plan: SyncPlan<S>) {
-  if ((await storageRevision()) !== plan.revision)
+  if ((await workspaceRevision()) !== plan.revision)
     throw new Error(i18n.t("settings.webdav.dataChanged"))
   const current = await plan.store.read()
   if (!current || current.raw !== plan.raw)
@@ -604,7 +605,7 @@ export async function applySnapshot<S extends SyncSession>(
     if (!target) throw new Error(i18n.t("settings.webdav.conflict"))
     if (target.state === "corrupt")
       throw new Error(i18n.t("settings.webdav.invalidHistory"))
-    const revision = await storageRevision()
+    const revision = await workspaceRevision()
     if (!current.index) throw new Error(i18n.t("settings.webdav.conflict"))
     const contents = await readIndexedSnapshot(current.backend, target)
     if (contents.status !== "ok")

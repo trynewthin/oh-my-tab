@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest"
-import { snapshot, validateConfig } from "@/application/config-transfer"
+import { validateConfig } from "@/application/config-transfer"
+import { snapshot } from "../helpers/config-projection"
 import {
   DEFAULT_TAB_EFFECT_COVERAGE,
   MAX_TAB_EFFECT_COVERAGE,

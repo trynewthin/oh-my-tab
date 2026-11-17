@@ -1,4 +1,4 @@
-import { indexedDB } from "fake-indexeddb"
+import { indexedDB, IDBKeyRange } from "fake-indexeddb"
 
 // Direct assignments survive vi.unstubAllGlobals() between tests.
 const locks = new Map<string, Promise<void>>()
@@ -24,6 +24,10 @@ Object.defineProperty(globalThis, "navigator", {
 Object.defineProperty(globalThis, "indexedDB", {
   configurable: true,
   value: indexedDB,
+})
+Object.defineProperty(globalThis, "IDBKeyRange", {
+  configurable: true,
+  value: IDBKeyRange,
 })
 Object.defineProperty(globalThis, "location", {
   configurable: true,

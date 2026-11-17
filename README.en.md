@@ -52,6 +52,12 @@ See the [project documentation](docs/README.md) for development, testing, and re
 
 </details>
 
+## License
+
+The project's original code is source-available under the [Sustainable Use License 1.0](LICENSE) (`SUL-1.0`). Personal, non-commercial, and internal business use are free. Selling the software, charging for hosted access, or incorporating it into a customer-facing commercial product requires a [separate commercial agreement](https://github.com/trynewthin/oh-my-tab/issues).
+
+Third-party components, fonts, and icons retain their own licenses; see [NOTICE](NOTICE). The license text governs the specific rights and restrictions.
+
 ## Acknowledgments
 
 Built with React, shadcn/ui, and Tailwind CSS. Drag and drop uses dnd kit, animation uses GSAP, and icons come from Phosphor Icons.

@@ -1,0 +1,21 @@
+Oh My Tab
+Copyright (c) 2026 trynewthin and contributors.
+Source: https://github.com/trynewthin/oh-my-tab
+
+The project's original material is licensed under the Sustainable Use License
+Version 1.0 (SUL-1.0), provided in LICENSE. Uses outside its permissions require
+a separate commercial agreement with the relevant rights holders.
+Commercial licensing requests: https://github.com/trynewthin/oh-my-tab/issues
+
+Third-party components, fonts, and icons retain their original licenses and
+copyright notices. The project license does not replace those licenses or
+grant additional rights in third-party material.
+
+Builds include bundled JavaScript dependency notices in THIRD_PARTY_LICENSES.md
+and the Inter font's copyright notice and SIL Open Font License in
+licenses/inter.txt.
+
+GSAP
+Copyright 2008-2026, GreenSock. All rights reserved.
+Subject to the Standard "No Charge" GSAP License:
+https://gsap.com/standard-license

@@ -52,6 +52,12 @@ npm run dev
 
 </details>
 
+## 许可
+
+本项目原创代码采用 [Sustainable Use License 1.0](LICENSE)（`SUL-1.0`）源码可见许可。个人、非商业及企业内部使用免费；对外售卖、收费托管或集成到面向客户的商业产品，需[另行取得商业授权](https://github.com/trynewthin/oh-my-tab/issues)。
+
+第三方组件、字体和图标保留各自的许可证，见 [NOTICE](NOTICE)。具体权利与限制以许可证原文为准。
+
 ## 致谢
 
 界面基于 React、shadcn/ui 和 Tailwind CSS，拖拽使用 dnd kit，动画使用 GSAP，图标使用 Phosphor Icons。

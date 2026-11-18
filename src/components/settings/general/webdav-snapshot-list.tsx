@@ -49,22 +49,22 @@ export default function WebdavSnapshotList({
                 {webdavSnapshotName(snapshot)}
               </span>
               {snapshot.protected && (
-                <span className="rounded-md border border-border px-1.5 text-xs font-normal text-muted-foreground">
+                <span className="rounded-[calc(var(--ui-radius-control)/2)] border border-border px-1.5 text-xs font-normal text-muted-foreground">
                   {t("settings.webdav.protectedSnapshot")}
                 </span>
               )}
               {snapshot.state === "legacy" && (
-                <span className="rounded-md border border-border px-1.5 text-xs font-normal text-muted-foreground">
+                <span className="rounded-[calc(var(--ui-radius-control)/2)] border border-border px-1.5 text-xs font-normal text-muted-foreground">
                   {t("settings.webdav.legacySnapshot")}
                 </span>
               )}
               {snapshot.state === "corrupt" && (
-                <span className="rounded-md border border-destructive px-1.5 text-xs font-normal text-destructive">
+                <span className="rounded-[calc(var(--ui-radius-control)/2)] border border-destructive px-1.5 text-xs font-normal text-destructive">
                   {t("settings.webdav.corruptSnapshot")}
                 </span>
               )}
               {index === 0 && (
-                <span className="rounded-md border border-border px-1.5 text-xs font-normal text-muted-foreground">
+                <span className="rounded-[calc(var(--ui-radius-control)/2)] border border-border px-1.5 text-xs font-normal text-muted-foreground">
                   {t("settings.webdav.latestSnapshot")}
                 </span>
               )}
@@ -127,7 +127,7 @@ export default function WebdavSnapshotList({
           <li
             key={snapshot.id}
             className={cn(
-              "rounded-xl border bg-muted",
+              "rounded-(--ui-radius-panel) border bg-muted",
               selected ? "border-foreground/60" : "border-border",
               !onSelect && "p-3"
             )}
@@ -138,7 +138,7 @@ export default function WebdavSnapshotList({
                 role="radio"
                 aria-checked={selected}
                 disabled={busy}
-                className="flex w-full items-center justify-between gap-3 rounded-xl p-3 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-between gap-3 rounded-(--ui-radius-panel) p-3 text-left disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => onSelect(snapshot)}
               >
                 {content}

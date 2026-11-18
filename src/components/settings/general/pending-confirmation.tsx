@@ -20,7 +20,7 @@ export default function PendingConfirmation({
   return (
     <div
       role="alert"
-      className="space-y-3 rounded-xl border border-border bg-muted p-3"
+      className="space-y-3 rounded-(--ui-radius-panel) border border-border bg-muted p-3"
     >
       <p className="text-sm">
         {t("settings.pending.restore", { source: pending.source })}

@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createStore } from "zustand/vanilla"
 import { project } from "@/lib/data/projection"
 import { localWorkspace as workspace } from "@/lib/data/local-workspace"
+import { defaultUiAppearance } from "@/lib/ui-appearance"
+import { useThemeStore } from "@/stores/theme-store"
 import {
   clearEntries,
   flushStorage,
@@ -37,6 +39,39 @@ beforeEach(async () => {
 afterEach(() => vi.restoreAllMocks())
 
 describe("business projections", () => {
+  it("stores each interface appearance preference alongside the theme without changing home appearance", async () => {
+    const store = useThemeStore
+    const homeBefore = (await workspace.readSections(["home"])).data.home
+    await store.projection.rehydrate()
+    const { uiRadius, uiBorder, uiShadow } = store.getState()
+    expect([
+      uiRadius ?? defaultUiAppearance,
+      uiBorder ?? defaultUiAppearance,
+      uiShadow ?? defaultUiAppearance,
+    ]).toEqual(["medium", "medium", "medium"])
+
+    store.getState().setUiRadius("none")
+    store.getState().setUiBorder("strong")
+    store.getState().setUiShadow("subtle")
+    await flushStorage()
+    await workspace.execute({
+      command: { type: "theme.set", theme: "dark" },
+      requestId: crypto.randomUUID(),
+      issuedAt: Date.now(),
+      expectedRevision: (await workspace.readSections(["theme"])).revision,
+    })
+    await store.projection.rehydrate()
+    const appearance = {
+      theme: "dark",
+      uiRadius: "none",
+      uiBorder: "strong",
+      uiShadow: "subtle",
+    }
+    expect(store.getState()).toMatchObject(appearance)
+    expect((await workspace.read()).config.home).toEqual(homeBefore)
+    expect((await workspace.capture()).config.theme).toEqual(appearance)
+  })
+
   it("keeps runtime updates and hydration from independently writing a business copy", async () => {
     const store = createProjection()
     const before = await allEntries()

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
-import { ApplicationHeaderActions } from "@/components/application/application-dialog"
+import { ApplicationHeaderActions } from "@/components/application/app-sidebar-layout"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import EngineIcon from "@/components/search/engine-icon"
@@ -51,7 +51,7 @@ export default function SearchEngineSettings() {
           </Button>
         </ApplicationHeaderActions>
       </div>
-      <div className="flex items-center gap-4 rounded-2xl border p-4">
+      <div className="flex items-center gap-4 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">
             {t("settings.searchEngines.openInNewTab")}
@@ -67,7 +67,7 @@ export default function SearchEngineSettings() {
           onCheckedChange={setOpenInNewTab}
         />
       </div>
-      <div className="min-h-14 divide-y rounded-2xl border">
+      <div className="min-h-14 divide-y rounded-(--ui-radius-panel) border">
         {engines.map((engine) => (
           <div key={engine.id} className="flex items-center gap-3 p-3">
             <EngineIcon icon={engine.icon} />

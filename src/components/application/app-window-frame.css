@@ -1,0 +1,46 @@
+@media (prefers-reduced-motion: no-preference) {
+  [data-app-window-expansion="running"][data-open] {
+    animation: app-window-expand 420ms cubic-bezier(0.22, 0.82, 0.24, 1) both;
+  }
+
+  [data-app-window-expansion="done"][data-open] {
+    animation: none;
+  }
+
+  [data-app-window-expansion="running"][data-open] > [data-app-window-content] {
+    /* Keep the final layout in place while the window clips its edges. */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--app-window-content-width);
+    height: var(--app-window-content-height);
+    translate: -50% -50%;
+    animation: app-window-reveal-content 420ms ease-out both;
+  }
+}
+
+@keyframes app-window-expand {
+  from {
+    width: var(--app-window-from-width);
+    height: var(--app-window-from-height);
+    border-radius: var(--app-window-from-radius);
+    background-color: var(--color-card);
+  }
+
+  to {
+    width: var(--app-window-to-width);
+    height: var(--app-window-to-height);
+    border-radius: var(--app-window-to-radius);
+  }
+}
+
+@keyframes app-window-reveal-content {
+  0%,
+  30% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

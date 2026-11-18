@@ -55,6 +55,10 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-ui-border-control: var(--ui-border-control);
+  --color-ui-border-field: var(--ui-border-field);
+  --color-ui-border-panel: var(--ui-border-panel);
+  --color-ui-border-window: var(--ui-border-window);
   --color-tile-border: var(--tile-border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
@@ -106,6 +110,14 @@
   --chart-4: oklch(0.37 0.013 285.805);
   --chart-5: oklch(0.274 0.006 286.033);
   --radius: 0.625rem;
+  --ui-radius-control: 0.75rem;
+  --ui-radius-button: 0.5rem;
+  --ui-radius-panel: 1rem;
+  --ui-radius-window: 1.5rem;
+  --ui-padding-control: 0.75rem;
+  --ui-padding-panel: 1rem;
+  --ui-padding-window: 1.5rem;
+  --ui-shadow-ink: rgb(0 0 0 / 0.42);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.21 0.006 285.885);
@@ -116,7 +128,111 @@
   --sidebar-ring: oklch(0.705 0.015 286.067);
 }
 
+:root[data-ui-radius="none"] {
+  --ui-radius-control: 0px;
+  --ui-radius-panel: 0px;
+  --ui-radius-window: 0px;
+}
+
+:root[data-ui-radius="small"] {
+  --ui-radius-control: 0.375rem;
+  --ui-radius-panel: 0.625rem;
+  --ui-radius-window: 1rem;
+}
+
+:root[data-ui-radius="large"] {
+  --ui-radius-control: 1rem;
+  --ui-radius-panel: 1.5rem;
+  --ui-radius-window: 2rem;
+}
+
+:root[data-ui-radius]:not([data-ui-radius="medium"]),
+[data-home-ui] {
+  --ui-radius-button: var(--ui-radius-control);
+}
+
+[data-home-ui] {
+  --ui-radius-control: var(--radius-2xl, 1.125rem);
+  --ui-radius-panel: var(--radius-2xl, 1.125rem);
+  --ui-radius-window: min(calc(var(--radius) * 2.6), 24px);
+}
+
+:root,
+[data-home-ui] {
+  --ui-border-control: var(--border);
+  --ui-border-field: var(--ui-border-control);
+  --ui-border-panel: color-mix(in oklab, var(--border), var(--foreground) 5%);
+  --ui-border-window: color-mix(in oklab, var(--border), var(--foreground) 9%);
+  --ui-shadow-scale: 1;
+  --ui-shadow-strength: 50%;
+  --ui-shadow-button: var(--ui-shadow-control);
+  --ui-shadow-control: 0 1px calc(3px * var(--ui-shadow-scale))
+    color-mix(
+      in oklab,
+      var(--ui-shadow-ink) calc(var(--ui-shadow-strength) * 0.55),
+      transparent
+    );
+  --ui-shadow-panel: 0 calc(4px * var(--ui-shadow-scale))
+    calc(14px * var(--ui-shadow-scale))
+    color-mix(
+      in oklab,
+      var(--ui-shadow-ink) calc(var(--ui-shadow-strength) * 0.8),
+      transparent
+    );
+  --ui-shadow-window: 0 calc(12px * var(--ui-shadow-scale))
+    calc(34px * var(--ui-shadow-scale))
+    color-mix(
+      in oklab,
+      var(--ui-shadow-ink) var(--ui-shadow-strength),
+      transparent
+    );
+}
+
+:root[data-ui-border="none"] {
+  --ui-border-control: transparent;
+  --ui-border-panel: transparent;
+  --ui-border-window: transparent;
+}
+
+:root[data-ui-border="subtle"] {
+  --ui-border-control: color-mix(in oklab, var(--border) 60%, transparent);
+  --ui-border-panel: color-mix(in oklab, var(--border) 75%, transparent);
+  --ui-border-window: color-mix(in oklab, var(--border) 90%, transparent);
+}
+
+:root[data-ui-border="strong"] {
+  --ui-border-control: color-mix(
+    in oklab,
+    var(--border),
+    var(--foreground) 16%
+  );
+  --ui-border-panel: color-mix(in oklab, var(--border), var(--foreground) 23%);
+  --ui-border-window: color-mix(in oklab, var(--border), var(--foreground) 30%);
+}
+
+:root[data-ui-shadow="none"] {
+  --ui-shadow-control: 0 0 transparent;
+  --ui-shadow-panel: 0 0 transparent;
+  --ui-shadow-window: 0 0 transparent;
+}
+
+:root[data-ui-shadow="subtle"] {
+  --ui-shadow-scale: 0.65;
+  --ui-shadow-strength: 30%;
+}
+
+:root[data-ui-shadow="strong"] {
+  --ui-shadow-scale: 1.4;
+  --ui-shadow-strength: 72%;
+}
+
+[data-home-ui] {
+  --ui-border-field: transparent;
+  --ui-shadow-button: 0 0 transparent;
+}
+
 .dark {
+  --ui-shadow-ink: rgb(0 0 0 / 0.8);
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);

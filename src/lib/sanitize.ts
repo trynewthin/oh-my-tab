@@ -2,6 +2,7 @@ import { sanitizeHomeSettings } from "@/lib/home-settings"
 import { sanitizePersisted } from "@/lib/grid/persisted"
 import { validGardenPlant } from "@/lib/garden-plant"
 import { validSharedGarden } from "@/lib/shared-garden"
+import { uiDepthOptions, uiRadiusOptions } from "@/lib/ui-appearance"
 
 // Tolerant per-key readers: an envelope whose version this client does not
 // fully understand is reduced to the fields it can still interpret instead
@@ -57,12 +58,25 @@ const sanitizers: Record<
           true
         )
       : { ok: false },
-  "omt.theme-mode": (state) =>
-    state.theme === "light" ||
-    state.theme === "dark" ||
-    state.theme === "system"
-      ? ok({ theme: state.theme }, false)
-      : ok({ theme: "light" }, true),
+  "omt.theme-mode": (state) => {
+    const theme =
+      state.theme === "dark" || state.theme === "system" ? state.theme : "light"
+    const uiRadius = uiRadiusOptions.find((option) => option === state.uiRadius)
+    const uiBorder = uiDepthOptions.find((option) => option === state.uiBorder)
+    const uiShadow = uiDepthOptions.find((option) => option === state.uiShadow)
+    return ok(
+      {
+        theme,
+        ...(uiRadius === undefined ? {} : { uiRadius }),
+        ...(uiBorder === undefined ? {} : { uiBorder }),
+        ...(uiShadow === undefined ? {} : { uiShadow }),
+      },
+      theme !== state.theme ||
+        uiRadius !== state.uiRadius ||
+        uiBorder !== state.uiBorder ||
+        uiShadow !== state.uiShadow
+    )
+  },
   "omt.onboarding": (state) =>
     ok({ seen: state.seen === true, replay: false }, false),
   "omt.privacy": (state) =>

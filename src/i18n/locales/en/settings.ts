@@ -303,8 +303,25 @@ export default {
     sleepy: "Sleepy (-ω-)",
   },
   basic: {
-    radius: "Component corner radius",
-    resetRadius: "Reset corner radius",
+    radius: "Home component corner radius",
+    resetRadius: "Reset home component corner radius",
+  },
+  uiAppearance: {
+    radius: "Corner radius",
+    border: "Border",
+    shadow: "Shadow",
+    preview: "Control appearance preview",
+    window: "Window",
+    panel: "Panel",
+    control: "Control",
+    options: {
+      none: "None",
+      small: "Small",
+      subtle: "Light",
+      medium: "Medium",
+      large: "Large",
+      strong: "Strong",
+    },
   },
   appearance: {
     accentColor: "Accent color",

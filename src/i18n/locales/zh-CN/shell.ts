@@ -48,6 +48,8 @@ const shell = {
   apps: {
     title: "应用",
     description: "打开内置应用，或启用可选应用。",
+    systemApp: "系统应用",
+    optionalApp: "可选应用",
     loading: "正在加载…",
     open: "打开",
     openNamed: "打开{{name}}",

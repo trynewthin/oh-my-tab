@@ -42,7 +42,7 @@ export default function PrivacySettings({
     }
   }
   return (
-    <div className="space-y-3 rounded-2xl border p-4">
+    <div className="space-y-3 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
       <h3 className="text-sm font-medium">{t("settings.privacy.title")}</h3>
       <label className="flex items-start gap-3 text-sm">
         <Checkbox

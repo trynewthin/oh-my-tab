@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/popover"
 import { DEFAULT_TAB_APPEARANCE } from "@/lib/tab-appearance"
 import BackgroundSettings from "./background-settings"
+import UiAppearanceSettings from "./ui-appearance-settings"
 import SettingRange from "../shared/setting-range"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
@@ -50,6 +51,7 @@ export default function BasicPane() {
   )
   return (
     <>
+      <UiAppearanceSettings />
       <SettingItem label={t("settings.appearance.accentColor")}>
         <ColorPicker
           label={t("settings.appearance.accentColor")}

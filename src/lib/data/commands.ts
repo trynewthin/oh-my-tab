@@ -4,6 +4,7 @@ import {
   homePatchSchema,
   homeSchema,
   searchSchema,
+  themeSchema,
   type Config,
   defaultConfig,
 } from "./config"
@@ -28,9 +29,8 @@ export const workspaceCommandSchema = z.discriminatedUnion("type", [
       .min(1),
   }),
   z.object({ type: z.literal("settings.patch"), patch: homePatchSchema }),
-  z.object({
+  themeSchema.extend({
     type: z.literal("theme.set"),
-    theme: z.enum(["light", "dark", "system"]),
   }),
   z.object({ type: z.literal("search.configure"), search: searchSchema }),
   z.object({ type: z.literal("grid.replace"), grid: gridSchema }),
@@ -136,8 +136,19 @@ export function applyWorkspaceCommand(
         }
       return { ...config, home: homeSchema.parse(next) }
     }
-    case "theme.set":
-      return { ...config, theme: { theme: command.theme } }
+    case "theme.set": {
+      const { theme, uiRadius, uiBorder, uiShadow } = command
+      return {
+        ...config,
+        theme: {
+          ...config.theme,
+          theme,
+          ...(uiRadius === undefined ? {} : { uiRadius }),
+          ...(uiBorder === undefined ? {} : { uiBorder }),
+          ...(uiShadow === undefined ? {} : { uiShadow }),
+        },
+      }
+    }
     case "search.configure":
       return { ...config, search: command.search }
     case "grid.replace":

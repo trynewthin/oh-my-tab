@@ -1,10 +1,10 @@
 import { createElement, Suspense, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import ApplicationDialog, {
+import AppSidebarLayout, {
   type ApplicationNavigationGroup,
   type ApplicationNavigationItem,
-} from "@/components/application/application-dialog"
+} from "@/components/application/app-sidebar-layout"
 import MaterialSurface from "@/components/effects/material-surface"
 import {
   DEFAULT_STAR_TRAIL_SPEED,
@@ -75,7 +75,7 @@ export default function SettingsApplication({
   const [starTrailMode, setStarTrailMode] = useState<StarTrailMode>("dynamic")
 
   return (
-    <ApplicationDialog
+    <AppSidebarLayout
       applicationId="settings"
       size="large"
       onClose={onClose}
@@ -94,7 +94,7 @@ export default function SettingsApplication({
         setSection(route)
       }}
       accentColor={accentColor}
-      backgroundEffect={
+      background={
         <div
           className="absolute inset-0"
           style={{ opacity: materialVisible ? 1 : 0 }}
@@ -137,9 +137,10 @@ export default function SettingsApplication({
         >
           <Suspense
             fallback={
-              <div aria-busy="true" className="space-y-4 p-1">
-                <div className="h-8 w-1/3 rounded-lg bg-muted motion-safe:animate-pulse" />
-                <div className="h-24 rounded-xl bg-muted motion-safe:animate-pulse" />
+              <div role="status" className="space-y-4 p-1">
+                <span className="sr-only">{t("shell.apps.loading")}</span>
+                <div className="h-8 w-1/3 rounded-(--ui-radius-control) bg-muted" />
+                <div className="h-24 rounded-(--ui-radius-panel) bg-muted" />
               </div>
             }
           >
@@ -147,6 +148,6 @@ export default function SettingsApplication({
           </Suspense>
         </MaterialPreviewContext.Provider>
       </div>
-    </ApplicationDialog>
+    </AppSidebarLayout>
   )
 }

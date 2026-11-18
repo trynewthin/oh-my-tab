@@ -1,3 +1,4 @@
+import { AppWindow as AppWindowIcon } from "@phosphor-icons/react"
 import {
   Component,
   lazy,
@@ -9,10 +10,17 @@ import {
 } from "react"
 import { useTranslation } from "react-i18next"
 import { appRepository } from "@/application/apps"
+import AppCompactLayout from "@/components/application/app-compact-layout"
 import { appRegistry } from "@/components/application/app-registry"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import AppStatusCard from "@/components/application/app-status-card"
+import {
+  AppWindowExpansionContext,
+  useAppWindowExpansion,
+} from "@/components/application/app-window-expansion"
+import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
 import { isAppWindow, type AppWindowId } from "@/lib/apps/ids"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
+import "./app-window-backdrop.css"
 
 const AppDirectory = lazy(() => import("./app-directory"))
 
@@ -34,14 +42,17 @@ class AppErrorBoundary extends Component<
 function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
   const { t } = useTranslation()
   const [openedOnMount] = useState(open)
+  const [ready, setReady] = useState(false)
   const [storage] = useState(() =>
     id === "apps" ? null : appRepository.storageFor(id)
   )
   const pointerStartedInside = useRef(false)
+  const registerPopup = useAppWindowExpansion(setReady)
   const finishClosing = useSystemOverlayStore((state) => state.finishClosingApp)
   const close = () => useSystemOverlayStore.getState().close(id)
-  const title = t(id === "apps" ? "shell.apps.title" : appRegistry[id].title)
-  const View = id === "apps" ? null : appRegistry[id].View
+  const app = id === "apps" ? null : appRegistry[id]
+  const View = app?.View
+  const description = app ? app.description : "shell.apps.description"
 
   useEffect(() => {
     if (!openedOnMount && !open) finishClosing(id)
@@ -59,6 +70,23 @@ function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
   }, [finishClosing, id, open, openedOnMount])
 
   if (!open && !openedOnMount) return null
+
+  const frame = {
+    id,
+    title: t(app?.title ?? "shell.apps.title"),
+    description: description ? t(description) : undefined,
+    icon: app?.icon ?? AppWindowIcon,
+  }
+  const usesNavigation = app?.layout === "navigation"
+  const appContent =
+    View && storage ? (
+      <View frame={frame} onClose={close} storage={storage} />
+    ) : (
+      <AppCompactLayout {...frame}>
+        <AppDirectory />
+      </AppCompactLayout>
+    )
+  const loading = <AppStatusCard {...frame} variant="loading" />
 
   return (
     <Dialog
@@ -78,29 +106,26 @@ function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
         if (!next) finishClosing(id)
       }}
     >
-      <AppErrorBoundary
-        fallback={
-          <DialogContent data-app-window={id}>
-            <DialogTitle>{title}</DialogTitle>
-            <p role="alert">{t("shell.apps.openFailed")}</p>
-          </DialogContent>
-        }
-      >
-        <Suspense
-          fallback={
-            <DialogContent data-app-window={id}>
-              <DialogTitle>{title}</DialogTitle>
-              <p role="status">{t("shell.apps.loading")}</p>
-            </DialogContent>
-          }
-        >
-          {View && storage ? (
-            <View onClose={close} storage={storage} />
-          ) : (
-            <AppDirectory />
-          )}
-        </Suspense>
-      </AppErrorBoundary>
+      <DialogPortal>
+        <DialogOverlay
+          className="app-window-backdrop"
+          data-app-backdrop-ready={ready ? "" : undefined}
+          data-app-backdrop-blur={usesNavigation ? "" : undefined}
+        />
+        <AppWindowExpansionContext.Provider value={registerPopup}>
+          <AppErrorBoundary
+            fallback={
+              <AppStatusCard
+                {...frame}
+                variant="error"
+                message={t("shell.apps.openFailed")}
+              />
+            }
+          >
+            <Suspense fallback={loading}>{appContent}</Suspense>
+          </AppErrorBoundary>
+        </AppWindowExpansionContext.Provider>
+      </DialogPortal>
     </Dialog>
   )
 }

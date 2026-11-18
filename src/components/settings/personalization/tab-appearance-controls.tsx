@@ -338,7 +338,7 @@ export default function TabAppearanceControls({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="ml-auto h-auto shrink-0 gap-1.5 self-stretch rounded-lg border-0 px-2.5 text-xs font-normal text-muted-foreground"
+                  className="ml-auto h-auto shrink-0 gap-1.5 self-stretch border-0 px-2.5 text-xs font-normal text-muted-foreground"
                 />
               }
             >

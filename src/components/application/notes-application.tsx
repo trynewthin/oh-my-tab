@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
+import AppCompactLayout from "@/components/application/app-compact-layout"
 import type { AppWindowProps } from "@/components/application/app-registry"
+import AppStatusCard from "@/components/application/app-status-card"
 import { Button } from "@/components/ui/button"
-import {
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import type { AppStorage } from "@/lib/apps/storage"
 import { DataError } from "@/lib/data/errors"
@@ -98,7 +95,7 @@ function NoteEditor({
   )
 }
 
-export default function NotesApplication({ storage }: AppWindowProps) {
+export default function NotesApplication({ frame, storage }: AppWindowProps) {
   const { t } = useTranslation()
   const [state, setState] = useState<ReadState>({ status: "loading" })
 
@@ -128,24 +125,27 @@ export default function NotesApplication({ storage }: AppWindowProps) {
     }
   }, [storage])
 
-  return (
-    <DialogContent data-app-window="notes" className="sm:max-w-lg">
-      <header className="space-y-2 pr-8">
-        <DialogTitle>{t("shell.apps.notes")}</DialogTitle>
-        <DialogDescription>{t("shell.apps.noteDescription")}</DialogDescription>
-      </header>
-      {state.status === "ready" && (
+  if (state.status === "ready")
+    return (
+      <AppCompactLayout {...frame}>
         <NoteEditor initial={state.note} storage={storage} />
-      )}
-      {state.status === "loading" && (
-        <p role="status">{t("shell.apps.loading")}</p>
-      )}
-      {state.status === "failed" && (
-        <p role="alert">{t("shell.apps.noteReadFailed")}</p>
-      )}
-      {state.status === "unsupported" && (
-        <p role="alert">{t("shell.apps.noteUnsupported")}</p>
-      )}
-    </DialogContent>
+      </AppCompactLayout>
+    )
+
+  if (state.status === "loading")
+    return <AppStatusCard {...frame} variant="loading" />
+
+  return state.status === "unsupported" ? (
+    <AppStatusCard
+      {...frame}
+      variant="warning"
+      message={t("shell.apps.noteUnsupported")}
+    />
+  ) : (
+    <AppStatusCard
+      {...frame}
+      variant="error"
+      message={t("shell.apps.noteReadFailed")}
+    />
   )
 }

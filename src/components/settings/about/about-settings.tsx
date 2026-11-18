@@ -41,7 +41,7 @@ export default function AboutSettings({
                 href="https://github.com/trynewthin/oh-my-tab"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-w-0 items-center gap-2 rounded-lg text-base font-semibold hover:underline"
+                className="flex min-w-0 items-center gap-2 rounded-(--ui-radius-control) text-base font-semibold hover:underline"
               >
                 <GithubLogo className="size-6 shrink-0" />
                 <span className="break-all">trynewthin/oh-my-tab</span>

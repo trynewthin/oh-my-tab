@@ -1,10 +1,14 @@
 import { project } from "@/lib/data/projection"
+import { themeSchema, type Config } from "@/lib/data/config"
+import type { UiDepth, UiRadius } from "@/lib/ui-appearance"
 import { create } from "zustand"
 
-export type Theme = "light" | "dark" | "system"
-type ThemeState = {
-  theme: Theme
+export type Theme = Config["theme"]["theme"]
+type ThemeState = Config["theme"] & {
   setTheme: (theme: Theme) => void
+  setUiRadius: (uiRadius: UiRadius) => void
+  setUiBorder: (uiBorder: UiDepth) => void
+  setUiShadow: (uiShadow: UiDepth) => void
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -12,15 +16,26 @@ export const useThemeStore = create<ThemeState>()(
     (set) => ({
       theme: "light",
       setTheme: (theme) => set({ theme }),
+      setUiRadius: (uiRadius) => set({ uiRadius }),
+      setUiBorder: (uiBorder) => set({ uiBorder }),
+      setUiShadow: (uiShadow) => set({ uiShadow }),
     }),
     {
       section: "theme",
-      partialize: ({ theme }) => ({ theme }),
+      partialize: ({ theme, uiRadius, uiBorder, uiShadow }) => ({
+        theme,
+        uiRadius,
+        uiBorder,
+        uiShadow,
+      }),
       merge: (persisted, current) => {
-        const theme = (persisted as { theme?: unknown } | null)?.theme
+        const result = themeSchema.safeParse(persisted)
         return {
           ...current,
-          theme: theme === "dark" || theme === "system" ? theme : "light",
+          theme: result.data?.theme ?? "light",
+          uiRadius: result.data?.uiRadius,
+          uiBorder: result.data?.uiBorder,
+          uiShadow: result.data?.uiShadow,
         }
       },
     }

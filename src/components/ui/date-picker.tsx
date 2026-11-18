@@ -42,7 +42,7 @@ export default function DatePicker({
         })}
         <CalendarBlank aria-hidden="true" />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-auto rounded-2xl p-0">
+      <PopoverContent align="end" className="w-auto p-0">
         <Calendar
           mode="single"
           required

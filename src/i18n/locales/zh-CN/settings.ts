@@ -286,8 +286,25 @@ export default {
     sleepy: "困困 (-ω-)",
   },
   basic: {
-    radius: "组件圆角",
-    resetRadius: "重置圆角",
+    radius: "主页组件圆角",
+    resetRadius: "重置主页组件圆角",
+  },
+  uiAppearance: {
+    radius: "圆角",
+    border: "边框",
+    shadow: "阴影",
+    preview: "控件外观预览",
+    window: "窗口",
+    panel: "面板",
+    control: "控件",
+    options: {
+      none: "无",
+      small: "小",
+      subtle: "淡",
+      medium: "中",
+      large: "大",
+      strong: "强",
+    },
   },
   appearance: {
     accentColor: "主题色",

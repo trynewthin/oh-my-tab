@@ -65,7 +65,7 @@ export default function SettingItem({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-80 max-w-[calc(100vw-2rem)] gap-3 rounded-xl p-3"
+              className="w-80 max-w-[calc(100vw-2rem)] gap-3 p-3"
               aria-label={infoLabel}
             >
               <div className="text-xs leading-5 text-muted-foreground">

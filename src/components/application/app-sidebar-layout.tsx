@@ -5,24 +5,19 @@ import {
   useEffect,
   useState,
   type CSSProperties,
-  type Ref,
   type ReactNode,
 } from "react"
 import { createPortal } from "react-dom"
 
+import AppWindowFrame from "@/components/application/app-window-frame"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
-import {
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
+import type { AppId } from "@/lib/apps/ids"
 
 export type ApplicationNavigationItem<RouteId extends string> = {
   id: RouteId
@@ -118,7 +113,7 @@ function NavigationEntry<RouteId extends string>({
     <div>
       <Button
         variant="ghost"
-        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-xl" : "rounded-none rounded-r-full bg-clip-border"}`}
+        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-(--ui-radius-control)" : "rounded-none rounded-r-(--ui-radius-control) bg-clip-border"}`}
         style={
           selected
             ? {
@@ -239,7 +234,7 @@ function ApplicationNavigationMenu<RouteId extends string>({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="-ml-1 rounded-lg text-muted-foreground hover:text-foreground"
+            className="-ml-1 rounded-(--ui-radius-control) text-muted-foreground hover:text-foreground"
           />
         }
       >
@@ -287,7 +282,7 @@ function ApplicationNavigationMenu<RouteId extends string>({
   )
 }
 
-export default function ApplicationDialog<RouteId extends string>({
+export default function AppSidebarLayout<RouteId extends string>({
   applicationId,
   onClose,
   title,
@@ -301,12 +296,10 @@ export default function ApplicationDialog<RouteId extends string>({
   onRouteChange,
   accentColor,
   background,
-  backgroundEffect,
-  dialogRef,
   size = "default",
   children,
 }: {
-  applicationId: string
+  applicationId: AppId
   onClose: () => void
   title: string
   description: string
@@ -319,39 +312,23 @@ export default function ApplicationDialog<RouteId extends string>({
   onRouteChange: (route: RouteId) => void
   accentColor: string
   background?: ReactNode
-  backgroundEffect?: ReactNode
-  dialogRef?: Ref<HTMLDivElement>
   size?: "default" | "large"
   children: ReactNode
 }) {
-  const [navNode, setNavNode] = useState<HTMLDivElement | null>(null)
   const [mobileActionsNode, setMobileActionsNode] =
     useState<HTMLDivElement | null>(null)
-  const navProgress = useScrollProgress(navNode)
   const activeItem = navigation
     .flatMap((group) => navigationLeaves(group.items))
     .find((item) => item.id === activeRoute)
 
   return (
-    <DialogContent
-      data-app-window={applicationId}
-      ref={dialogRef}
-      showCloseButton={false}
-      overlayClassName="bg-black/10 backdrop-blur-xl"
-      className={`h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:rounded-[min(var(--radius-4xl),24px)] ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
+    <AppWindowFrame
+      id={applicationId}
+      title={title}
+      description={description}
+      background={background}
+      className={`h-svh w-screen max-w-none rounded-none ring-0 sm:h-auto sm:w-full sm:rounded-(--ui-radius-window) ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
     >
-      <DialogTitle className="sr-only">{title}</DialogTitle>
-      <DialogDescription className="sr-only">{description}</DialogDescription>
-      {background && (
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]">
-          {background}
-        </div>
-      )}
-      {backgroundEffect && (
-        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-[inherit]">
-          {backgroundEffect}
-        </div>
-      )}
       <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
         <div
           role="application"
@@ -397,10 +374,7 @@ export default function ApplicationDialog<RouteId extends string>({
                 {title}
               </div>
             </div>
-            <div
-              ref={setNavNode}
-              className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
-            >
+            <div className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden">
               <ApplicationNavigation
                 groups={navigation}
                 activeRoute={activeRoute}
@@ -414,40 +388,28 @@ export default function ApplicationDialog<RouteId extends string>({
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
               />
-              <div
-                className={`relative z-30 overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
-              >
+              <div className="relative z-30 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel bg-popover shadow-(--ui-shadow-panel)">
                 <Button
                   type="button"
                   variant="ghost"
-                  className="pointer-events-auto w-full justify-start rounded-none border-0 bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                  className="pointer-events-auto w-full justify-between rounded-none border-0 bg-transparent px-4 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
                   onClick={onClose}
                 >
-                  <X />
+                  <X aria-hidden="true" />
                   {closeLabel}
                 </Button>
-                <span
-                  role="progressbar"
-                  aria-label={navigationProgressAriaLabel}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={navProgress}
-                  className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-8 items-center justify-end pr-2.5 text-xs text-muted-foreground tabular-nums"
-                >
-                  {navProgress}
-                </span>
               </div>
             </div>
           </aside>
           <section
             aria-label={activeItem?.label}
             data-application-content
-            className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
+            className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-(--ui-padding-window)"
           >
             {children}
           </section>
         </div>
       </ApplicationHeaderActionsContext.Provider>
-    </DialogContent>
+    </AppWindowFrame>
   )
 }

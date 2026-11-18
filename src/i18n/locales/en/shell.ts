@@ -48,6 +48,8 @@ const shell = {
   apps: {
     title: "Apps",
     description: "Open a built-in app or enable an optional one.",
+    systemApp: "System app",
+    optionalApp: "Optional app",
     loading: "Loading…",
     open: "Open",
     openNamed: "Open {{name}}",

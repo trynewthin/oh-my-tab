@@ -35,7 +35,7 @@ function ToastCard({ item }: { item: ToastMessage }) {
       visible={!item.dismissed}
       direction="top"
       onHidden={() => useToastStore.getState().remove(item.id)}
-      className="relative isolate min-h-11 shrink-0 rounded-2xl border shadow-lg"
+      className="relative isolate min-h-11 shrink-0 rounded-(--ui-radius-panel) border border-ui-border-panel shadow-(--ui-shadow-panel)"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setFocused(true)}

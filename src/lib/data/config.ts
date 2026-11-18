@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { CONFIG_VERSION } from "@/lib/data-version"
+import { uiDepthOptions, uiRadiusOptions } from "@/lib/ui-appearance"
 import { isBackgroundPaletteId } from "@/lib/background-palette-model"
 import { sanitizeFolderBorder, validFolderBorder } from "@/lib/folder-border"
 import {
@@ -184,12 +185,19 @@ export const gridSchema = z
     }
   })
 
+export const themeSchema = z.object({
+  theme: z.enum(["light", "dark", "system"]),
+  uiRadius: z.enum(uiRadiusOptions).optional(),
+  uiBorder: z.enum(uiDepthOptions).optional(),
+  uiShadow: z.enum(uiDepthOptions).optional(),
+})
+
 export const configSchema = z.object({
   version: z.literal(CONFIG_VERSION),
   onboarding: z.object({ seen: z.boolean() }),
   garden: z.custom<SharedGarden>(validSharedGarden),
   home: homeSchema,
-  theme: z.object({ theme: z.enum(["light", "dark", "system"]) }),
+  theme: themeSchema,
   search: searchSchema,
   grid: gridSchema,
 })

@@ -13,7 +13,7 @@ export default function ReleaseNotesCard() {
   return (
     <section
       aria-labelledby="current-release-title"
-      className="rounded-2xl border bg-card p-4 text-card-foreground sm:p-5"
+      className="rounded-(--ui-radius-panel) border bg-card p-(--ui-padding-panel) text-card-foreground sm:p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 id="current-release-title" className="text-base font-semibold">

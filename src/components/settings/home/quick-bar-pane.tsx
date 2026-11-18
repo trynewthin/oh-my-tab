@@ -130,17 +130,17 @@ export function QuickBarSideEditor({
             <span>{t("settings.home.quickBarAdd")}</span>
             <Tabs.List
               aria-label={t("settings.home.quickBarType")}
-              className="flex rounded-2xl border border-border bg-muted p-0.5 text-sm"
+              className="flex rounded-(--ui-radius-panel) border border-border bg-muted p-0.5 text-sm"
             >
               <Tabs.Tab
                 value="system"
-                className="rounded-xl px-3 py-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-input"
+                className="rounded-(--ui-radius-control) px-3 py-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-input"
               >
                 {t("settings.home.quickBarTabSystem")}
               </Tabs.Tab>
               <Tabs.Tab
                 value="site"
-                className="rounded-xl px-3 py-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-input"
+                className="rounded-(--ui-radius-control) px-3 py-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 data-active:bg-background data-active:text-foreground data-active:shadow-sm dark:data-active:bg-input"
               >
                 {t("settings.home.quickBarTabSite")}
               </Tabs.Tab>

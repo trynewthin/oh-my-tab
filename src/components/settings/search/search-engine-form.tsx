@@ -33,7 +33,11 @@ export default function SearchEngineForm({
 
   return (
     <form
-      className={inDialog ? "space-y-4" : "space-y-4 rounded-2xl border p-4"}
+      className={
+        inDialog
+          ? "space-y-4"
+          : "space-y-4 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)"
+      }
       onSubmit={save}
     >
       {!inDialog && (

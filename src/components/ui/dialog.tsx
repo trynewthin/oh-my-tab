@@ -45,62 +45,70 @@ function DialogContent({
   showCloseButton = true,
   headerAction,
   overlayClassName,
+  inPortal = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
   headerAction?: React.ReactNode
   overlayClassName?: string
+  inPortal?: boolean
 }) {
   const { t } = useTranslation()
   const scrollClass = typeof className === "string" ? className : ""
   const internalScroll = scrollClass.includes("overflow-y-auto")
+  const popup = (
+    <DialogPrimitive.Popup
+      data-slot="dialog-content"
+      className={cn(
+        "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--ui-radius-window) border border-ui-border-window bg-popover p-(--ui-padding-window) text-sm text-popover-foreground shadow-(--ui-shadow-window) duration-240 outline-none [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.98] data-closed:animate-out data-closed:duration-160 data-closed:fade-out-0 data-closed:[animation-timing-function:cubic-bezier(0.4,0,1,1)] data-closed:zoom-out-[0.98]",
+        internalScroll
+          ? scrollClass.replace("overflow-y-auto", "overflow-hidden") +
+              " flex flex-col"
+          : className
+      )}
+      {...props}
+    >
+      {internalScroll ? (
+        <div className="grid min-h-0 gap-6 overflow-x-hidden overflow-y-auto overscroll-contain pr-1">
+          {children}
+        </div>
+      ) : (
+        children
+      )}
+      {headerAction && (
+        <div
+          className={cn(
+            "absolute top-4",
+            showCloseButton ? "right-12" : "right-4"
+          )}
+        >
+          {headerAction}
+        </div>
+      )}
+      {showCloseButton && (
+        <DialogPrimitive.Close
+          data-slot="dialog-close"
+          render={
+            <Button
+              variant="ghost"
+              className="absolute top-4 right-4 text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
+              size="icon-sm"
+            />
+          }
+        >
+          <CloseIcon />
+          <span className="sr-only">{t("shell.common.close")}</span>
+        </DialogPrimitive.Close>
+      )}
+    </DialogPrimitive.Popup>
+  )
+
+  if (inPortal) return popup
+
   return (
     <DialogPortal>
       <DialogOverlay className={overlayClassName} />
-      <DialogPrimitive.Popup
-        data-slot="dialog-content"
-        className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-[min(var(--radius-4xl),24px)] bg-popover p-6 text-sm text-popover-foreground shadow-xl duration-240 outline-none [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.98] data-closed:animate-out data-closed:duration-160 data-closed:fade-out-0 data-closed:[animation-timing-function:cubic-bezier(0.4,0,1,1)] data-closed:zoom-out-[0.98]",
-          internalScroll
-            ? scrollClass.replace("overflow-y-auto", "overflow-hidden") +
-                " flex flex-col"
-            : className
-        )}
-        {...props}
-      >
-        {internalScroll ? (
-          <div className="grid min-h-0 gap-6 overflow-x-hidden overflow-y-auto overscroll-contain pr-1">
-            {children}
-          </div>
-        ) : (
-          children
-        )}
-        {headerAction && (
-          <div
-            className={cn(
-              "absolute top-4",
-              showCloseButton ? "right-12" : "right-4"
-            )}
-          >
-            {headerAction}
-          </div>
-        )}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-4 right-4 text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
-                size="icon-sm"
-              />
-            }
-          >
-            <CloseIcon />
-            <span className="sr-only">{t("shell.common.close")}</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Popup>
+      {popup}
     </DialogPortal>
   )
 }

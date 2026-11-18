@@ -42,7 +42,7 @@ export default function SettingRange({
 
   return (
     <div
-      className={`flex h-8 w-full min-w-0 items-center gap-2 rounded-2xl px-3 transition-colors focus-within:border-ring ${settingsControlSurface}`}
+      className={`flex h-8 w-full min-w-0 items-center gap-2 rounded-(--ui-radius-control) px-(--ui-padding-control) transition-colors focus-within:border-ring ${settingsControlSurface}`}
     >
       <input
         id={id}

@@ -3,11 +3,6 @@ import { useTranslation } from "react-i18next"
 import { appRepository } from "@/application/apps"
 import { appRegistry } from "@/components/application/app-registry"
 import { Button } from "@/components/ui/button"
-import {
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { appIds, type AppId } from "@/lib/apps/ids"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
@@ -77,34 +72,32 @@ function OptionalAppControls({ id, name }: { id: AppId; name: string }) {
 export default function AppDirectory() {
   const { t } = useTranslation()
   return (
-    <DialogContent data-app-window="apps" className="sm:max-w-lg">
-      <header className="space-y-2 pr-8">
-        <DialogTitle>{t("shell.apps.title")}</DialogTitle>
-        <DialogDescription>{t("shell.apps.description")}</DialogDescription>
-      </header>
-      <ul className="grid gap-2">
-        {appIds.map((id) => {
-          const { title, icon: Icon, optional } = appRegistry[id]
-          const name = t(title)
-          return (
-            <li
-              key={id}
-              className="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2"
-            >
-              <Icon
-                aria-hidden="true"
-                className="size-5 text-muted-foreground"
-              />
-              <span className="min-w-0 flex-1 font-medium">{name}</span>
-              {optional ? (
-                <OptionalAppControls id={id} name={name} />
-              ) : (
-                <AppOpenButton id={id} />
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </DialogContent>
+    <ul className="divide-y divide-border/60 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel">
+      {appIds.map((id) => {
+        const { title, icon: Icon, optional } = appRegistry[id]
+        const name = t(title)
+        return (
+          <li
+            key={id}
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:px-4"
+          >
+            <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
+            <div className="min-w-16 flex-1">
+              <div className="font-medium">{name}</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                {t(
+                  optional ? "shell.apps.optionalApp" : "shell.apps.systemApp"
+                )}
+              </div>
+            </div>
+            {optional ? (
+              <OptionalAppControls id={id} name={name} />
+            ) : (
+              <AppOpenButton id={id} />
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }

@@ -133,7 +133,7 @@ export default function SearchShortcutsSetting() {
           role="group"
           aria-labelledby="search-shortcuts-label"
           className={cn(
-            "ml-auto flex w-max max-w-full min-w-0 items-center overflow-hidden rounded-2xl",
+            "ml-auto flex w-max max-w-full min-w-0 items-center overflow-hidden rounded-(--ui-radius-panel)",
             settingsControlSurface
           )}
           onDragOver={(event) => {

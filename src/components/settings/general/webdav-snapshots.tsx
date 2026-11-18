@@ -170,7 +170,7 @@ export default function WebdavSnapshots({
           {history?.indexCorrupt && (
             <div
               role="alert"
-              className="rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              className="rounded-(--ui-radius-control) border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive"
             >
               <p>{t("settings.webdav.indexCorrupt")}</p>
               <Button

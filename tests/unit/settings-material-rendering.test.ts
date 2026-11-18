@@ -25,14 +25,14 @@ vi.mock("@/stores/system-overlay-store", async (importOriginal) => {
   }
 })
 
-vi.mock("@/components/application/application-dialog", () => ({
+vi.mock("@/components/application/app-sidebar-layout", () => ({
   default: ({
-    backgroundEffect,
+    background,
     children,
   }: {
-    backgroundEffect?: ReactNode
+    background?: ReactNode
     children?: ReactNode
-  }) => createElement("div", null, backgroundEffect, children),
+  }) => createElement("div", null, background, children),
 }))
 
 vi.mock("@/components/effects/effect-surface", () => ({

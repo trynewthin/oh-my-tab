@@ -7,7 +7,7 @@ function ToggleGroup({ className, ...props }: ToggleGroupPrimitive.Props) {
     <ToggleGroupPrimitive
       data-slot="toggle-group"
       className={cn(
-        "flex rounded-2xl border border-border bg-muted p-0.5",
+        "flex rounded-(--ui-radius-panel) border border-ui-border-control bg-muted p-0.5",
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ function ToggleGroupItem({ className, ...props }: TogglePrimitive.Props) {
     <TogglePrimitive
       data-slot="toggle-group-item"
       className={cn(
-        "flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground transition-[background-color,color,box-shadow] outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm dark:aria-pressed:bg-input [&_svg]:size-3.5 [&_svg]:shrink-0",
+        "flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-(--ui-radius-control) px-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground transition-[background-color,color,box-shadow] outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-(--ui-shadow-control) dark:aria-pressed:bg-input [&_svg]:size-3.5 [&_svg]:shrink-0",
         className
       )}
       {...props}

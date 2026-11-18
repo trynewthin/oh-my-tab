@@ -9,9 +9,9 @@ import {
   Plus,
 } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
-import ApplicationDialog, {
+import AppSidebarLayout, {
   type ApplicationNavigationGroup,
-} from "@/components/application/application-dialog"
+} from "@/components/application/app-sidebar-layout"
 import {
   Dialog,
   DialogContent,
@@ -85,7 +85,7 @@ export default function GridItemDialog({ onClose }: { onClose: () => void }) {
     onClose()
   }
   return (
-    <ApplicationDialog
+    <AppSidebarLayout
       applicationId="components"
       size="large"
       onClose={onClose}
@@ -213,6 +213,6 @@ export default function GridItemDialog({ onClose }: { onClose: () => void }) {
           </Dialog>
         )}
       </div>
-    </ApplicationDialog>
+    </AppSidebarLayout>
   )
 }

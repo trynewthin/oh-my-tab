@@ -93,7 +93,7 @@ export default function EffectStylePicker(props: PickerProps) {
       <PopoverContent
         align="end"
         side="bottom"
-        className="w-(--anchor-width) gap-2 rounded-2xl p-2"
+        className="w-(--anchor-width) gap-2 p-2"
       >
         <div role="radiogroup" aria-label={label} className="grid gap-2">
           {choices.map((option) => {
@@ -104,7 +104,7 @@ export default function EffectStylePicker(props: PickerProps) {
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                className="relative isolate h-9 w-full overflow-hidden rounded-xl border border-border/60 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="relative isolate h-9 w-full overflow-hidden rounded-(--ui-radius-control) border border-border/60 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => {
                   if (option.value === "star-trails") {
                     if (props.includeStarTrails) props.onChange(option.value)

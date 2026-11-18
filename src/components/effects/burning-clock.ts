@@ -3,10 +3,11 @@ type FrameSubscription = {
   paint: FrameListener
   prepare?: () => void
   smooth: boolean
+  home: boolean
   lastPaint: number
 }
 const listeners = new Set<FrameSubscription>()
-let smoothListeners = 0
+let homePaused = false
 let motion: MediaQueryList | null = null
 let lastActivity = 0
 const activityEvents = [
@@ -30,26 +31,38 @@ function cancelFrame() {
   if (animationFrame !== undefined) cancelAnimationFrame(animationFrame)
   animationFrame = undefined
 }
+function canAnimate(listener: FrameSubscription) {
+  return !homePaused || !listener.home
+}
 function scheduleFrame() {
+  if (document.hidden || motion?.matches) return
+  let mode: "smooth" | "regular" | "idle" = "idle"
+  for (const listener of listeners) {
+    if (!canAnimate(listener)) continue
+    if (listener.smooth) {
+      mode = "smooth"
+      break
+    }
+    mode = "regular"
+  }
   if (
-    !listeners.size ||
-    document.hidden ||
-    motion?.matches ||
-    timer !== undefined ||
-    animationFrame !== undefined
+    (mode === "smooth" && animationFrame !== undefined) ||
+    (mode === "regular" && timer !== undefined)
   )
     return
-  if (smoothListeners) animationFrame = requestAnimationFrame(tick)
-  else timer = setTimeout(tick, frameDelay())
+  cancelFrame()
+  if (mode === "smooth") animationFrame = requestAnimationFrame(tick)
+  if (mode === "regular") timer = setTimeout(tick, frameDelay())
 }
 function paintFrame(time: number | undefined) {
   const now = performance.now()
   const interval = frameDelay()
   const active = [...listeners].filter(
     (listener) =>
-      time === undefined ||
-      listener.smooth ||
-      now - listener.lastPaint >= interval - 0.5
+      canAnimate(listener) &&
+      (time === undefined ||
+        listener.smooth ||
+        now - listener.lastPaint >= interval - 0.5)
   )
   active.forEach((listener) => listener.prepare?.())
   active.forEach((listener) => {
@@ -72,10 +85,18 @@ function updateMotion() {
   else tick()
 }
 
+export function setHomeBurningFramesPaused(paused: boolean) {
+  if (paused === homePaused) return
+  homePaused = paused
+  if (!listeners.size) return
+  if (!paused && motion?.matches && !document.hidden) paintFrame(undefined)
+  scheduleFrame()
+}
+
 export function subscribeBurningFrame(
   paint: FrameListener,
   prepare?: () => void,
-  options: { smooth?: boolean } = {}
+  options: { smooth?: boolean; element?: Element } = {}
 ) {
   if (!listeners.size) {
     recordActivity()
@@ -90,22 +111,19 @@ export function subscribeBurningFrame(
     paint,
     prepare,
     smooth: options.smooth ?? false,
+    home: Boolean(options.element?.closest("[data-home-ui]")),
     lastPaint: performance.now(),
   }
   listeners.add(listener)
-  if (listener.smooth) {
-    smoothListeners++
-    if (timer !== undefined) {
-      clearTimeout(timer)
-      timer = undefined
-    }
-  }
   prepare?.()
-  paint(motion?.matches ? undefined : performance.now() / 1000)
+  paint(
+    motion?.matches || !canAnimate(listener)
+      ? undefined
+      : performance.now() / 1000
+  )
   scheduleFrame()
   return () => {
     if (!listeners.delete(listener)) return
-    if (listener.smooth) smoothListeners--
     if (!listeners.size) {
       activityEvents.forEach((event) =>
         window.removeEventListener(event, recordActivity)
@@ -114,9 +132,6 @@ export function subscribeBurningFrame(
       motion?.removeEventListener("change", updateMotion)
       document.removeEventListener("visibilitychange", updateMotion)
       motion = null
-    } else if (!smoothListeners && animationFrame !== undefined) {
-      cancelFrame()
-      scheduleFrame()
-    }
+    } else scheduleFrame()
   }
 }

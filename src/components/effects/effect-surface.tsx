@@ -184,7 +184,7 @@ export default function EffectSurface({
         paint()
         return
       }
-      unsubscribe ??= subscribeBurningFrame(paint)
+      unsubscribe ??= subscribeBurningFrame(paint, undefined, { element })
     }
     const pause = () => {
       unsubscribe?.()

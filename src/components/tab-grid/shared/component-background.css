@@ -133,6 +133,16 @@
   animation: folder-color-flow 6s ease-in-out infinite alternate;
 }
 
+[data-home-effects-paused] .folder-glass[data-animated="true"]::before,
+[data-home-effects-paused]
+  .folder-glass[data-animated="true"]
+  .folder-noise-gradient,
+[data-home-effects-paused]
+  .folder-glass[data-animated="true"]
+  .folder-noise-texture {
+  animation-play-state: paused;
+}
+
 @keyframes folder-color-flow {
   from {
     opacity: 0.84;

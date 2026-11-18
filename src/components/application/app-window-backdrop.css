@@ -28,6 +28,12 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .app-window-backdrop[data-app-backdrop-ready]::before {
+    transition: opacity 140ms ease-out;
+  }
+
+  .app-window-backdrop[data-app-backdrop-ready]:not(
+      [data-app-backdrop-settled]
+    )::before {
     --app-backdrop-solid-edge: calc(var(--app-backdrop-reach) - 14vmin);
 
     /* The four gradients combine into a soft edge around the viewport. */
@@ -54,7 +60,6 @@
       );
     animation: app-backdrop-spread 2400ms cubic-bezier(0.16, 0.74, 0.26, 1)
       120ms both;
-    transition: opacity 140ms ease-out;
   }
 }
 

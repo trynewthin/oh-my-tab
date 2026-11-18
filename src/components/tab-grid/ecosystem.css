@@ -72,7 +72,7 @@
   }
 }
 
-[data-garden-paused="true"]
+:is([data-garden-paused="true"], [data-home-effects-paused])
   :is(.ecosystem-plant, .garden-growth, .garden-leaf, .garden-blossom) {
   animation-play-state: paused;
 }

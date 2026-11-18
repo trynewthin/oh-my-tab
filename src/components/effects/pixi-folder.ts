@@ -76,7 +76,7 @@ export function mountPixiFolder(
         unsubscribe?.()
         unsubscribe = undefined
         if (entry.isIntersecting && animated)
-          unsubscribe = subscribeBurningFrame(paint)
+          unsubscribe = subscribeBurningFrame(paint, undefined, { element })
         else if (entry.isIntersecting) paint()
       })
       resize.observe(element)

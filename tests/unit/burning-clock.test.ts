@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import { subscribeBurningFrame } from "@/components/effects/burning-clock"
+import {
+  setHomeBurningFramesPaused,
+  subscribeBurningFrame,
+} from "@/components/effects/burning-clock"
 
 let frameId = 0
 let frames: Map<number, FrameRequestCallback>
@@ -35,6 +38,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup.forEach((stop) => stop())
+  setHomeBurningFramesPaused(false)
   vi.useRealTimers()
   vi.unstubAllGlobals()
 })
@@ -48,6 +52,31 @@ function nextFrame() {
 }
 
 describe("shared effect clock", () => {
+  test("holds home paints while settings previews stay animated and resumes after close", () => {
+    const homeElement = { closest: () => ({}) } as unknown as HTMLElement
+    const home = vi.fn()
+    const preview = vi.fn()
+    cleanup.push(
+      subscribeBurningFrame(home, undefined, { element: homeElement })
+    )
+    const stopPreview = subscribeBurningFrame(preview, undefined, {
+      smooth: true,
+    })
+    cleanup.push(stopPreview)
+
+    setHomeBurningFramesPaused(true)
+    for (let index = 0; index < 10; index++) nextFrame()
+    expect(home).toHaveBeenCalledTimes(1)
+    expect(preview).toHaveBeenCalledTimes(11)
+
+    stopPreview()
+    expect(frames.size).toBe(0)
+    expect(vi.getTimerCount()).toBe(0)
+    setHomeBurningFramesPaused(false)
+    vi.advanceTimersByTime(100)
+    expect(home.mock.calls.length).toBeGreaterThan(1)
+  })
+
   test("keeps smooth motion running during inactivity while throttling other effects", () => {
     const regular = vi.fn()
     const smooth = vi.fn()

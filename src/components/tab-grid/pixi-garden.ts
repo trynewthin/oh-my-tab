@@ -1,4 +1,5 @@
 import { acquirePixiRenderer, presentPixi } from "@/lib/pixi/shared-renderer"
+import { subscribeBurningFrame } from "@/components/effects/burning-clock"
 import type { Container, Texture } from "pixi.js"
 
 const ANIMATED =
@@ -38,7 +39,7 @@ export function mountPixiGarden(svg: SVGSVGElement, animated = true) {
   let cleanup: (() => void) | undefined
   let stage: Container | undefined
   const previous = svg.style.visibility
-  const started = performance.now()
+  const started = performance.now() / 1000
   void Promise.all([lease.ready, import("pixi.js")])
     .then(async ([renderer, { Container, Sprite, Texture, Matrix }]) => {
       if (stopped) return
@@ -187,56 +188,51 @@ export function mountPixiGarden(svg: SVGSVGElement, animated = true) {
       svg.dataset.pixiSource = ""
       let width = svg.clientWidth,
         height = svg.clientHeight
-      let intersects = true,
-        frame = 0
-      const motion = matchMedia("(prefers-reduced-motion: reduce)")
-      const render = () => {
+      let intersects = true
+      let lastFrameTime: number | undefined
+      let unsubscribe: (() => void) | undefined
+      const render = (time?: number) => {
+        lastFrameTime = time
         const scale = Math.min(width, height) / 64
         art.scale.set(scale)
         art.position.set((width - 64 * scale) / 2, (height - 64 * scale) / 2)
         animations.forEach((animate) =>
-          animate(
-            (performance.now() - started) / 1000,
-            motion.matches || !animated
-          )
+          animate(time === undefined ? 0 : time - started, time === undefined)
         )
         presentPixi(renderer, stage!, canvas, width, height)
       }
-      const tick = () => {
-        frame = 0
-        if (stopped || !intersects || document.hidden) return
-        render()
-        if (animated && !motion.matches && animations.length)
-          frame = requestAnimationFrame(tick)
-      }
-      const resume = () => {
-        cancelAnimationFrame(frame)
-        frame = 0
-        tick()
+      const updateVisibility = () => {
+        if (!intersects) {
+          unsubscribe?.()
+          unsubscribe = undefined
+        } else if (animated && animations.length) {
+          unsubscribe ??= subscribeBurningFrame(render, undefined, {
+            element: svg,
+            smooth: true,
+          })
+        } else {
+          render()
+        }
       }
       const observer = new IntersectionObserver(([entry]) => {
         intersects = entry.isIntersecting
-        resume()
+        updateVisibility()
       })
       const resize = new ResizeObserver(() => {
         width = svg.clientWidth
         height = svg.clientHeight
-        resume()
+        if (intersects && !document.hidden) render(lastFrameTime)
       })
       observer.observe(svg)
       resize.observe(svg)
-      motion.addEventListener("change", resume)
-      document.addEventListener("visibilitychange", resume)
       cleanup = () => {
-        cancelAnimationFrame(frame)
+        unsubscribe?.()
         observer.disconnect()
         resize.disconnect()
-        motion.removeEventListener("change", resume)
-        document.removeEventListener("visibilitychange", resume)
         stage?.destroy({ children: true })
         textures.forEach((texture) => texture.destroy(true))
       }
-      resume()
+      updateVisibility()
     })
     .catch(() => {
       cleanup?.()

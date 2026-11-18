@@ -111,6 +111,13 @@ function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
           className="app-window-backdrop"
           data-app-backdrop-ready={ready ? "" : undefined}
           data-app-backdrop-blur={usesNavigation ? "" : undefined}
+          onAnimationEnd={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              event.animationName === "app-backdrop-spread"
+            )
+              event.currentTarget.dataset.appBackdropSettled = ""
+          }}
         />
         <AppWindowExpansionContext.Provider value={registerPopup}>
           <AppErrorBoundary

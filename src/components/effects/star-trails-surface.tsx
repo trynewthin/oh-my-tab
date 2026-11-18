@@ -111,6 +111,7 @@ export default function StarTrailsSurface({
       }
       unsubscribe ??= subscribeBurningFrame(onFrame, undefined, {
         smooth: true,
+        element,
       })
       if (stationary && !transitioning && settled()) pause()
     }

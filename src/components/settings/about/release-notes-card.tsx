@@ -1,8 +1,16 @@
 import { useTranslation } from "react-i18next"
 import currentReleaseConfig from "@/content/current-release.yaml"
+import nightlyReleaseConfig from "@/content/nightly-release.yaml"
 import { releaseNoteLocale, validateReleaseNotes } from "@/lib/release-notes"
 
-const currentRelease = validateReleaseNotes(currentReleaseConfig)
+const buildVersion: string | undefined = import.meta.env
+  .VITE_RELEASE_VERSION_NAME
+const nightly = buildVersion?.includes("-nightly.") ?? import.meta.env.DEV
+const currentRelease = validateReleaseNotes(
+  nightly ? nightlyReleaseConfig : currentReleaseConfig
+)
+const version =
+  buildVersion ?? `${currentRelease.version}${nightly ? "-nightly" : ""}`
 
 export default function ReleaseNotesCard() {
   const { t, i18n } = useTranslation()
@@ -20,7 +28,7 @@ export default function ReleaseNotesCard() {
           {t("settings.about.releaseNotes")}
         </h3>
         <span className="rounded-full border px-2.5 py-1 text-xs font-medium text-muted-foreground">
-          v{currentRelease.version}
+          v{version}
         </span>
       </div>
       <ul className="mt-4 space-y-2 text-sm leading-5 text-muted-foreground">

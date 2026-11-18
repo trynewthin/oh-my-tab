@@ -6,9 +6,15 @@ notes:
     - 备份、导入恢复与 WebDAV 共用校验和版本检查，避免过期操作覆盖新修改。
     - 迁移时保留旧数据，增强损坏数据、较新格式与背景图片的保护。
     - Nightly 版本现可从 GitHub Releases 下载，正式版继续通过 Chrome 商店发布。
+    - 设置、组件目录和便签使用统一的应用窗口，打开时按需加载。
+    - 新增圆角、边框、阴影设置，可实时预览不同尺寸控件的效果。
+    - 优化设置窗口的背景模糊，减少切换页面时的渲染开销。
   en:
     - New blue tab mascot with light, dark, and transparent variants for the extension, browser tabs, and posters.
     - Unified how bookmarks, layouts, personalization, and garden data are saved for more consistent use across pages.
     - Backups, imports, restores, and WebDAV now share validation and version checks to prevent stale changes from overwriting newer data.
     - Improved migration, unreadable-data recovery, newer-format protection, and background image handling while retaining legacy data.
     - Nightly builds are available as GitHub prereleases, while stable releases continue through the Chrome Web Store.
+    - Settings, the widget catalog, and Notes share an app window and load when opened.
+    - Added live previews for corner radius, borders, and shadows at different control sizes.
+    - Reduced background rendering work when switching between settings pages.

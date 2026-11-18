@@ -13,6 +13,12 @@
 
 标签版本必须与 `package.json`、`public/manifest.json` 一致。也支持推送 `vX.Y.Z-nightly.<标识>` 标签生成预发布；其他后缀不会触发商店发布。Nightly 的展示版本写入构建产物的 `version_name`，清单的数字 `version` 保持 Chrome 支持的格式。
 
+## 更新日志
+
+每个新发行版都需要中英文更新日志。正式版维护 `src/content/current-release.yaml`，Nightly 维护 `src/content/nightly-release.yaml`。推送会触发发布时，随代码一起更新对应文件，写清本次实际交付的新增功能、修复或其他可感知的变化。两个文件的基础版本号跟随扩展版本，Nightly 的完整版本号由构建注入。
+
+应用「关于 → 更新日志」和 GitHub Release 使用同一份渠道日志。发布流程会校验版本和双语条目，并检查每种语言是否相较该渠道上次发布新增了条目。已发布标签的重跑可以复用原日志。
+
 ## 材料位置
 
 - `docs/store-assets/description.txt`：完整商品说明，唯一维护位置。
@@ -62,5 +68,5 @@
 3. 确认 `https://ohmytab.vercel.app/privacy` 已发布当前政策，后台数据声明与之一致。
 4. 上传商品说明、五张功能截图和两张宣传图。
 5. 逐条对照 `public/manifest.json` 填写权限理由，不沿用旧版本的权限列表。
-6. 确认 `src/content/current-release.yaml` 的版本号与 `package.json`、`public/manifest.json` 一致。
+6. 写好本次正式版的中英文更新日志，确认其基础版本号与 `package.json`、`public/manifest.json` 一致。
 7. 在后台完成账号验证、两步验证和隐私声明后提交审核。

@@ -57,6 +57,8 @@ jobs:
       - name: Check code
         run: npm run check
       - name: Build extension
+        env:
+          VITE_RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
         run: npm run build
       - name: Label packaged version
         env:
@@ -113,7 +115,7 @@ jobs:
 
   publish:
     if: github.event_name == 'push' && needs.plan.outputs.channel == 'stable' && needs.plan.outputs.release == 'true' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') && !contains(github.ref_name, '+')
-    needs: [plan, build, e2e]
+    needs: [plan, release]
     runs-on: ubuntu-latest
     environment: chrome-web-store
     permissions:
@@ -165,6 +167,8 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Build extension
+        env:
+          VITE_RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
         run: npm run build
       - name: Run end-to-end tests
         run: npm test
@@ -173,10 +177,28 @@ jobs:
     if: needs.plan.outputs.release == 'true'
     needs: [plan, build, e2e]
     runs-on: ubuntu-latest
+    concurrency:
+      group: publish-extension-${{ needs.plan.outputs.channel }}
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify and render release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_CHANNEL: ${{ needs.plan.outputs.channel }}
+          RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
+        run: node --experimental-strip-types scripts/release/notes.ts > "$RUNNER_TEMP/release-notes.md"
       - uses: actions/download-artifact@v4
         with:
           name: ${{ needs.plan.outputs.package_name }}
@@ -189,22 +211,15 @@ jobs:
           RELEASE_CHANNEL: ${{ needs.plan.outputs.channel }}
           RELEASE_VERSION_NAME: ${{ needs.plan.outputs.version_name }}
         run: |
-          cat > release-notes.md <<'NOTES'
-          可自由整理的新标签页，包含常用网站、文件夹、搜索和实用小组件。
-
-          下载 ZIP，解压后在 Chrome / Edge 扩展管理页开启开发者模式，选择「加载已解压的扩展程序」。
-          CRX 使用固定密钥签名；浏览器可能限制商店外 CRX 安装。
-          NOTES
           if [ "$RELEASE_CHANNEL" = nightly ]; then
-            echo '' >> release-notes.md
-            echo 'Nightly 预发布版本，仅通过 GitHub Release 分发，不提交 Chrome Web Store。' >> release-notes.md
             FLAGS=(--prerelease --latest=false)
           else
             FLAGS=(--verify-tag --latest)
           fi
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" packages/* --clobber
+            gh release edit "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
           else
             gh release create "$RELEASE_TAG" packages/* --target "$GITHUB_SHA" \
-              --title "Oh My Tab $RELEASE_VERSION_NAME" --notes-file release-notes.md "${FLAGS[@]}"
+              --title "Oh My Tab $RELEASE_VERSION_NAME" --notes-file "$RUNNER_TEMP/release-notes.md" "${FLAGS[@]}"
           fi

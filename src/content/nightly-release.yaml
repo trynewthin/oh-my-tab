@@ -1,0 +1,10 @@
+version: 1.6.0
+notes:
+  zh-CN:
+    - 设置打开时暂停背后首页标签、文件夹和花园的装饰动画，关闭设置后恢复。
+    - App 遮罩从四周扩散完成后移除渐变遮罩，保留原有模糊并减少切页时的合成开销。
+    - Nightly 安装包在应用内显示完整预览版本号，应用内和 GitHub 使用同一份更新日志。
+  en:
+    - Decorative effects on home tabs, folders, and gardens pause while Settings is open and resume when it closes.
+    - App backdrops drop the gradient masks after the opening animation, keeping the blur while reducing work during navigation.
+    - Nightly builds show the full prerelease version in the app and share their release notes with GitHub.

@@ -20,6 +20,7 @@ test("todo supports adding, completing, size options and persistence", async ({
     detail.getByRole("button", { name: "4×4", exact: true })
   ).toHaveAttribute("aria-pressed", "true")
   await detail.getByRole("button", { name: "添加", exact: true }).click()
+  await expect(page.locator('[data-app-window="components"]')).toHaveCount(0)
   const region = page.getByRole("region", { name: "待办", exact: true })
   await expect(region.getByRole("textbox", { name: "新待办" })).toHaveCount(0)
   for (const text of ["完成今天的计划", "阅读"]) {

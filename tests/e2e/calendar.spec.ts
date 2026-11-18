@@ -19,6 +19,7 @@ test("calendar can be added, navigated, edited and restored", async ({
   const detail = page.getByRole("dialog", { name: "日历", exact: true })
   await detail.getByRole("button", { name: "4×4", exact: true }).click()
   await detail.getByRole("button", { name: "添加", exact: true }).click()
+  await expect(page.locator('[data-app-window="components"]')).toHaveCount(0)
   const calendar = page.getByRole("region", { name: "日历", exact: true })
   await expect(calendar.getByRole("heading")).toHaveText("2024年2月")
   await expect(calendar.locator('[aria-current="date"]')).toHaveText("29")

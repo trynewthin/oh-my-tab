@@ -60,6 +60,7 @@ export default function CatalogComponentPreview({
         >
           <div
             data-catalog-preview-content
+            aria-hidden="true"
             inert
             className={`absolute top-0 left-0 isolate origin-top-left overflow-hidden rounded-2xl ${definition.tileBorder ? "border" : ""}`}
             style={{

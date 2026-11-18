@@ -206,7 +206,7 @@ export default {
     erase: "清除所有数据",
     eraseTitle: "清除所有数据？",
     eraseBody:
-      "将删除本机的全部设置、网格组件、书签和缓存，页面恢复为新用户状态。此操作不可撤销，建议先导出备份。",
+      "将删除全部本地数据（包括独立便签），页面恢复为新用户状态。请先导出主页数据的备份，并单独复制便签内容。",
     eraseConfirm: "确认清除",
     migrationIssues: "部分数据降级恢复",
     migrationIssuesHint:

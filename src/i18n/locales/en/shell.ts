@@ -45,6 +45,27 @@ const shell = {
     edit: "Edit",
     editOn: "On",
   },
+  apps: {
+    title: "Apps",
+    description: "Open a built-in app or enable an optional one.",
+    loading: "Loading…",
+    open: "Open",
+    openNamed: "Open {{name}}",
+    enableNamed: "Enable {{name}}",
+    openFailed: "Could not open this app. Reload the page to try again.",
+    preferenceFailed:
+      "Could not update app availability. Close and reopen Apps to try again.",
+    notes: "Notes",
+    noteDescription:
+      "This note is saved in this browser only. It is not included in backups or sync.",
+    saveNote: "Save note",
+    noteSaved: "Saved",
+    noteSaveFailed: "Could not save the note. Try again.",
+    noteReadFailed: "Could not read the saved note. Reopen Notes to try again.",
+    noteUnsupported: "This note was saved by an unsupported app version.",
+    noteConflict:
+      "The saved note changed in another tab or was cleared. Copy your edits before reopening Notes.",
+  },
   systemActions: {
     toggleTheme: "Toggle light/dark",
     addTab: "Add tab",

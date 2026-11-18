@@ -54,10 +54,12 @@ function settingsNavigation(
   })
 }
 
-export default function SettingsApplication() {
+export default function SettingsApplication({
+  onClose,
+}: {
+  onClose: () => void
+}) {
   const { t } = useTranslation()
-  const open = useSystemOverlayStore((state) => state.active === "settings")
-  const close = useSystemOverlayStore((state) => state.close)
   const section = useSystemOverlayStore((state) => state.settingsSection)
   const setSection = useSystemOverlayStore((state) => state.setSettingsSection)
   const accentColor = useHomeSettingsStore((state) => state.color)
@@ -76,12 +78,7 @@ export default function SettingsApplication() {
     <ApplicationDialog
       applicationId="settings"
       size="large"
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) {
-          close("settings")
-        }
-      }}
+      onClose={onClose}
       title={t("settings.dialog.title")}
       description={t("settings.dialog.description")}
       closeLabel={t("settings.common.close")}

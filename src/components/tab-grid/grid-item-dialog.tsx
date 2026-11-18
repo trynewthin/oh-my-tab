@@ -35,13 +35,7 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 
 type CatalogRoute = CatalogSection
 
-export default function GridItemDialog({
-  onClose,
-  open = true,
-}: {
-  onClose: () => void
-  open?: boolean
-}) {
+export default function GridItemDialog({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState<CatalogComponentKind | null>(null)
   const [confirmSize, setConfirmSize] = useState<GridItemSize | false>(false)
   const [route, setRoute] = useState<CatalogRoute>("common")
@@ -85,24 +79,16 @@ export default function GridItemDialog({
   const visibleKinds = catalogComponentKinds.filter(
     (kind) => getComponentDefinition(kind).catalogSection === route
   )
-  function closeCatalog() {
-    setSelected(null)
-    setConfirmSize(false)
-    setRoute("common")
-    onClose()
-  }
   function addComponent(kind: CatalogComponentKind, size?: GridItemSize) {
     saveItem(createCatalogComponent(kind, size))
-    closeCatalog()
+    setSelected(null)
+    onClose()
   }
   return (
     <ApplicationDialog
       applicationId="components"
       size="large"
-      open={open}
-      onOpenChange={(open: boolean) => {
-        if (!open) closeCatalog()
-      }}
+      onClose={onClose}
       title={t("grid.dialog.catalogTitle")}
       description={t("grid.dialog.catalogDescription")}
       closeLabel={t("shell.common.close")}

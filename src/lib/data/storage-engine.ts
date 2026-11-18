@@ -263,9 +263,11 @@ export async function clearEntries() {
       "rw",
       repository.database.entries,
       repository.database.metadata,
+      repository.database.appRecords,
       async () => {
         await repository.database.entries.clear()
         await repository.database.metadata.clear()
+        await repository.database.appRecords.clear()
         await repository.database.metadata.put({
           key: "legacy-import",
           value: {

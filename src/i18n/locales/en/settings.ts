@@ -221,7 +221,7 @@ export default {
     erase: "Clear all data",
     eraseTitle: "Clear all data?",
     eraseBody:
-      "This deletes all settings, grid components, bookmarks, and cached data on this device, returning the page to a fresh state. This cannot be undone; export a backup first.",
+      "This deletes all local data, including the standalone note, and resets the page. Export a backup for your dashboard and copy your note separately before continuing.",
     eraseConfirm: "Clear data",
     migrationIssues: "Partial restore",
     migrationIssuesHint:

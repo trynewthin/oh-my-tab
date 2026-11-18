@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { SquaresFour } from "@phosphor-icons/react"
+import { AppWindow, SquaresFour } from "@phosphor-icons/react"
 import { runSystemAction } from "@/application/system-actions"
 import { systemActionMenuIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
@@ -20,6 +20,7 @@ import {
 } from "@/lib/system-actions"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
 const defaultMenuActions = systemActionIdsFor("more-actions")
 
@@ -111,6 +112,17 @@ export default function MoreActions({
               }}
             />
           ))}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              setOpen(false)
+              useSystemOverlayStore.getState().open("apps")
+            }}
+          >
+            <AppWindow />
+            {t("shell.apps.title")}
+          </Button>
         </PopoverContent>
       </Popover>
     </div>

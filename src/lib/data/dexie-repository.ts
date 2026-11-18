@@ -19,10 +19,12 @@ type Metadata = { key: string; value: unknown }
 export class EntryDatabase extends Dexie {
   entries!: Table<Entry, string>
   metadata!: Table<Metadata, string>
+  appRecords!: Table<Entry, string>
 
   constructor(name = "oh-my-tab-workspace") {
     super(name)
     this.version(1).stores({ entries: "&key", metadata: "&key" })
+    this.version(2).stores({ appRecords: "&key" })
   }
 }
 

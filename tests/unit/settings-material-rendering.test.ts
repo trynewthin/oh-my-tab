@@ -54,14 +54,17 @@ vi.mock("@/components/settings/settings-views", () => ({
 beforeEach(() => {
   useSystemOverlayStore.setState({
     active: null,
+    closingApp: null,
     settingsSection: "personalization-material",
   })
 })
 
+const props = { onClose: () => {} }
+
 describe("material initial render state", () => {
   test("shows material immediately without overriding the dialog background", () => {
     useSystemOverlayStore.getState().openSettings()
-    const html = renderToStaticMarkup(createElement(SettingsApplication))
+    const html = renderToStaticMarkup(createElement(SettingsApplication, props))
 
     expect(html).toContain('style="opacity:1"')
     expect(html).toContain('data-visible="true"')
@@ -73,20 +76,24 @@ describe("material initial render state", () => {
   test("keeps material mounted throughout the dialog exit animation", () => {
     useSystemOverlayStore.getState().openSettings()
     useSystemOverlayStore.getState().close("settings")
-    const closed = renderToStaticMarkup(createElement(SettingsApplication))
+    const closed = renderToStaticMarkup(
+      createElement(SettingsApplication, props)
+    )
     expect(closed).toContain('style="opacity:1"')
     expect(closed).toContain('data-visible="true"')
     expect(closed).not.toContain("background-color:")
 
     useSystemOverlayStore.getState().openSettings()
-    const reopened = renderToStaticMarkup(createElement(SettingsApplication))
+    const reopened = renderToStaticMarkup(
+      createElement(SettingsApplication, props)
+    )
     expect(reopened).toContain('style="opacity:1"')
     expect(reopened).toContain('data-visible="true"')
   })
 
   test("hides material and restores the palette on other settings pages", () => {
     useSystemOverlayStore.getState().openSettings("personalization-appearance")
-    const html = renderToStaticMarkup(createElement(SettingsApplication))
+    const html = renderToStaticMarkup(createElement(SettingsApplication, props))
     expect(html).toContain('style="opacity:0"')
     expect(html).toContain('data-visible="false"')
     expect(html).not.toContain("background-color:")

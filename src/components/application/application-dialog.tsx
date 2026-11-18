@@ -3,7 +3,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
   type CSSProperties,
   type Ref,
@@ -14,7 +13,6 @@ import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -291,8 +289,7 @@ function ApplicationNavigationMenu<RouteId extends string>({
 
 export default function ApplicationDialog<RouteId extends string>({
   applicationId,
-  open,
-  onOpenChange,
+  onClose,
   title,
   description,
   closeLabel,
@@ -310,8 +307,7 @@ export default function ApplicationDialog<RouteId extends string>({
   children,
 }: {
   applicationId: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  onClose: () => void
   title: string
   description: string
   closeLabel: string
@@ -328,8 +324,6 @@ export default function ApplicationDialog<RouteId extends string>({
   size?: "default" | "large"
   children: ReactNode
 }) {
-  const applicationNode = useRef<HTMLDivElement>(null)
-  const pointerStartedInside = useRef(false)
   const [navNode, setNavNode] = useState<HTMLDivElement | null>(null)
   const [mobileActionsNode, setMobileActionsNode] =
     useState<HTMLDivElement | null>(null)
@@ -338,149 +332,122 @@ export default function ApplicationDialog<RouteId extends string>({
     .flatMap((group) => navigationLeaves(group.items))
     .find((item) => item.id === activeRoute)
 
-  useEffect(() => {
-    if (!open) return
-    const trackPointerOrigin = (event: PointerEvent) => {
-      pointerStartedInside.current =
-        event.target instanceof Node &&
-        !!applicationNode.current?.contains(event.target)
-    }
-    document.addEventListener("pointerdown", trackPointerOrigin, true)
-    return () =>
-      document.removeEventListener("pointerdown", trackPointerOrigin, true)
-  }, [open])
-
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen, eventDetails) => {
-        if (
-          !nextOpen &&
-          eventDetails.reason === "outside-press" &&
-          pointerStartedInside.current
-        ) {
-          pointerStartedInside.current = false
-          return
-        }
-        onOpenChange(nextOpen)
-      }}
+    <DialogContent
+      data-app-window={applicationId}
+      ref={dialogRef}
+      showCloseButton={false}
+      overlayClassName="bg-black/10 backdrop-blur-xl"
+      className={`h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:rounded-[min(var(--radius-4xl),24px)] ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
     >
-      <DialogContent
-        ref={dialogRef}
-        showCloseButton={false}
-        overlayClassName="bg-black/10 backdrop-blur-xl"
-        className={`h-svh w-screen max-w-none gap-0 overflow-hidden rounded-none p-0 ring-0 sm:h-auto sm:w-full sm:rounded-[min(var(--radius-4xl),24px)] ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
-      >
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        <DialogDescription className="sr-only">{description}</DialogDescription>
-        {background && (
-          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]">
-            {background}
-          </div>
-        )}
-        {backgroundEffect && (
-          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-[inherit]">
-            {backgroundEffect}
-          </div>
-        )}
-        <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
-          <div
-            ref={applicationNode}
-            role="application"
-            aria-label={title}
-            data-application={applicationId}
-            className={`relative flex h-full min-h-0 min-w-0 flex-col sm:flex-row ${size === "large" ? "sm:h-[min(720px,85svh)]" : "sm:h-[min(560px,80svh)]"}`}
-          >
-            <header className="relative z-30 flex shrink-0 items-center gap-3 px-4 pt-4 pb-2 sm:hidden">
-              <ApplicationNavigationMenu
+      <DialogTitle className="sr-only">{title}</DialogTitle>
+      <DialogDescription className="sr-only">{description}</DialogDescription>
+      {background && (
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]">
+          {background}
+        </div>
+      )}
+      {backgroundEffect && (
+        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-[inherit]">
+          {backgroundEffect}
+        </div>
+      )}
+      <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
+        <div
+          role="application"
+          aria-label={title}
+          data-application={applicationId}
+          className={`relative flex h-full min-h-0 min-w-0 flex-col sm:flex-row ${size === "large" ? "sm:h-[min(720px,85svh)]" : "sm:h-[min(560px,80svh)]"}`}
+        >
+          <header className="relative z-30 flex shrink-0 items-center gap-3 px-4 pt-4 pb-2 sm:hidden">
+            <ApplicationNavigationMenu
+              groups={navigation}
+              activeRoute={activeRoute}
+              onRouteChange={onRouteChange}
+              ariaLabel={navigationAriaLabel}
+              title={title}
+              accentColor={accentColor}
+              progressAriaLabel={navigationProgressAriaLabel}
+            />
+            <span className="min-w-0 truncate text-base font-medium">
+              {activeItem?.label ?? title}
+            </span>
+            <div
+              ref={setMobileActionsNode}
+              className="ml-auto flex shrink-0 items-center gap-2"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={closeAriaLabel}
+              className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
+              onClick={onClose}
+            >
+              <CloseIcon />
+            </Button>
+          </header>
+          <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
+            <div className="pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent"
+              />
+              <div className="relative z-30 text-left text-base leading-6 font-medium">
+                {title}
+              </div>
+            </div>
+            <div
+              ref={setNavNode}
+              className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
+            >
+              <ApplicationNavigation
                 groups={navigation}
                 activeRoute={activeRoute}
                 onRouteChange={onRouteChange}
                 ariaLabel={navigationAriaLabel}
-                title={title}
                 accentColor={accentColor}
-                progressAriaLabel={navigationProgressAriaLabel}
               />
-              <span className="min-w-0 truncate text-base font-medium">
-                {activeItem?.label ?? title}
-              </span>
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4">
               <div
-                ref={setMobileActionsNode}
-                className="ml-auto flex shrink-0 items-center gap-2"
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={closeAriaLabel}
-                className="text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
-                onClick={() => onOpenChange(false)}
-              >
-                <CloseIcon />
-              </Button>
-            </header>
-            <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
-              <div className="pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4">
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent"
-                />
-                <div className="relative z-30 text-left text-base leading-6 font-medium">
-                  {title}
-                </div>
-              </div>
               <div
-                ref={setNavNode}
-                className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden"
+                className={`relative z-30 overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
               >
-                <ApplicationNavigation
-                  groups={navigation}
-                  activeRoute={activeRoute}
-                  onRouteChange={onRouteChange}
-                  ariaLabel={navigationAriaLabel}
-                  accentColor={accentColor}
-                />
-              </div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
-                />
-                <div
-                  className={`relative z-30 overflow-hidden rounded-2xl bg-popover dark:border dark:border-border ${surfaceShadowClassName}`}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="pointer-events-auto w-full justify-start rounded-none border-0 bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                  onClick={onClose}
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="pointer-events-auto w-full justify-start rounded-none border-0 bg-transparent px-2 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    <X />
-                    {closeLabel}
-                  </Button>
-                  <span
-                    role="progressbar"
-                    aria-label={navigationProgressAriaLabel}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={navProgress}
-                    className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-8 items-center justify-end pr-2.5 text-xs text-muted-foreground tabular-nums"
-                  >
-                    {navProgress}
-                  </span>
-                </div>
+                  <X />
+                  {closeLabel}
+                </Button>
+                <span
+                  role="progressbar"
+                  aria-label={navigationProgressAriaLabel}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={navProgress}
+                  className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-8 items-center justify-end pr-2.5 text-xs text-muted-foreground tabular-nums"
+                >
+                  {navProgress}
+                </span>
               </div>
-            </aside>
-            <section
-              aria-label={activeItem?.label}
-              data-application-content
-              className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
-            >
-              {children}
-            </section>
-          </div>
-        </ApplicationHeaderActionsContext.Provider>
-      </DialogContent>
-    </Dialog>
+            </div>
+          </aside>
+          <section
+            aria-label={activeItem?.label}
+            data-application-content
+            className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-6"
+          >
+            {children}
+          </section>
+        </div>
+      </ApplicationHeaderActionsContext.Provider>
+    </DialogContent>
   )
 }

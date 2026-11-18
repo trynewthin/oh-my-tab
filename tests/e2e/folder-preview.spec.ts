@@ -73,29 +73,31 @@ for (const [size, expectedRows] of [
     expect((geometry.rowHeight - 1) % 9).toBeCloseTo(0, 5)
     expect(geometry.step - geometry.rowHeight).toBeLessThanOrEqual(8)
     await expect(region.getByRole("link")).toHaveCount(geometry.fitted)
-    const bounds = (await region.boundingBox())!
-    const boxes = await region
-      .getByRole("link")
-      .evaluateAll((elements) =>
-        elements.map((element) => element.getBoundingClientRect())
+    // The resize observer centers the visible rows after the preview is shown.
+    await expect(async () => {
+      const bounds = (await region.boundingBox())!
+      const boxes = await region
+        .getByRole("link")
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getBoundingClientRect())
+        )
+      expect(boxes).toHaveLength(geometry.fitted)
+      for (const box of boxes) {
+        expect(box.top).toBeGreaterThanOrEqual(bounds.y - 0.5)
+        expect(box.bottom).toBeLessThanOrEqual(bounds.y + bounds.height + 0.5)
+      }
+      const highest = Math.min(...boxes.map((box) => box.top))
+      const lowest = Math.max(...boxes.map((box) => box.bottom))
+      const contentTop =
+        bounds.y +
+        (await region.evaluate((element) =>
+          Number.parseFloat(getComputedStyle(element).paddingTop)
+        ))
+      expect(highest - contentTop).toBeCloseTo(
+        bounds.y + bounds.height - lowest,
+        0
       )
-    expect(boxes).toHaveLength(geometry.fitted)
-    for (const box of boxes) {
-      expect(box.top).toBeGreaterThanOrEqual(bounds.y - 0.5)
-      expect(box.bottom).toBeLessThanOrEqual(bounds.y + bounds.height + 0.5)
-    }
-    // Surplus space is split around the stack instead of stretching row gaps.
-    const highest = Math.min(...boxes.map((box) => box.top))
-    const lowest = Math.max(...boxes.map((box) => box.bottom))
-    const contentTop =
-      bounds.y +
-      (await region.evaluate((element) =>
-        Number.parseFloat(getComputedStyle(element).paddingTop)
-      ))
-    expect(highest - contentTop).toBeCloseTo(
-      bounds.y + bounds.height - lowest,
-      0
-    )
+    }).toPass({ timeout: 5_000 })
     expect(geometry.fitted).toBeGreaterThan(1)
     expect(geometry.fitted).toBeLessThan(geometry.total)
     await page.getByRole("button", { name: "资料", exact: true }).click()

@@ -13,7 +13,8 @@
 ## 开发与验证
 
 - `npm ci` 安装依赖；`npm run dev` 启动 Vite 开发服务。
-- 按改动范围选择验证：`npm run check` 执行格式、Lint、类型、架构检查及单元测试；`npm run build` 将扩展构建到 `dist/`。交付时如实说明验证情况。
+- 仅在浏览器扩展中可见或生效的改动，完成后运行 `npm run build` 更新本地 `dist/`；可通过 Vite 热重载查看的普通网页改动无需重建。
+- 按改动范围选择验证：`npm run check` 执行格式、Lint、类型、架构检查及单元测试。交付时如实说明验证情况。
 - 单元测试位于 `tests/unit/*.test.ts`（Vitest），端到端测试位于 `tests/e2e/*.spec.ts`（Playwright），共享辅助工具位于 `tests/helpers/`。直接导入源码模块；`tests/unit/setup.ts` 提供浏览器存储桩。
 - 测试应覆盖用户可见行为与数据边界，尤其是持久化数据、布局、权限和小组件注册。生成的测试产物放在 `tests/results/`；截图路径使用 `testInfo.outputPath()`。
 - **每次进行浏览器验证前，都必须单独获得用户明确确认**，包括页面导航、检查、截图和自动化操作。未获确认、确认含糊或用户未回复时，不得操作浏览器。

@@ -104,16 +104,14 @@ for (const effectStyle of ["burning", "particles"] as const) {
     await expect.poll(() => changes(last)).toBe(0)
     await page.getByRole("button", { name: "打开设置", exact: true }).click()
     const backdrop = page.locator(".app-window-backdrop")
-    await expect(backdrop).toHaveAttribute("data-app-backdrop-settled", "")
-    const { maskImage, backdropFilter } = await backdrop.evaluate((element) => {
-      const style = getComputedStyle(element, "::before")
-      return {
-        maskImage: style.maskImage,
-        backdropFilter: style.backdropFilter,
-      }
-    })
-    expect(maskImage).toBe("none")
-    expect(backdropFilter).toBe("blur(24px)")
+    await expect
+      .poll(() =>
+        backdrop.evaluate((element) => {
+          const style = getComputedStyle(element, "::before")
+          return { maskImage: style.maskImage, blur: style.backdropFilter }
+        })
+      )
+      .toEqual({ maskImage: "none", blur: "blur(24px)" })
     await expect.poll(() => changes(first)).toBe(0)
     await page.getByRole("button", { name: "关闭", exact: true }).click()
     await expect.poll(() => changes(first)).toBeGreaterThan(0)

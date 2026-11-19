@@ -1,6 +1,8 @@
 version: 1.6.0
 notes:
   zh-CN:
-    - 在浏览器扩展的「个性化」中，「主页」下方新增 Popup 外观。可实时预览和调整工具栏弹窗的宽度、内边距、背景效果、颜色与动画。设置随工作区备份保存。
+    - 打开设置等带模糊背景的 App 窗口时，背景现在会在全屏同时渐渐模糊，不再从四边向中心推进。
+    - Popup 外观预览与基础、标签和文件夹预览共用背景样式，并移除了多余的「实时预览」标题。
   en:
-    - The browser extension adds Popup appearance below Home in Personalization. Preview and adjust the toolbar popup’s width, padding, background effect, color, and animation. These settings are included in workspace backups.
+    - When opening Settings or another app window with a blurred backdrop, the blur now builds across the whole screen instead of spreading inward from the edges.
+    - The Popup appearance preview shares its backdrop style with the Basic, Tabs, and Folders previews and no longer displays a redundant Live preview heading.

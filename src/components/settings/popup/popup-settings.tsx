@@ -19,6 +19,7 @@ import {
   popupSizeLimits,
 } from "@/lib/popup-appearance"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import { AppearancePreviewFrame } from "../personalization/appearance-preview-stage"
 import AppearanceResetButton from "../personalization/appearance-reset-button"
 import SettingItem from "../shared/setting-item"
 import SettingRange from "../shared/setting-range"
@@ -47,18 +48,12 @@ export default function PopupSettings() {
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
-      <figure className="shrink-0 overflow-hidden rounded-(--ui-radius-panel) border border-border bg-muted/60">
-        <figcaption
-          id={`${id}-preview`}
-          className="px-3 pt-2.5 pb-1.5 text-xs font-medium text-muted-foreground"
-        >
-          {t("settings.popup.preview")}
-        </figcaption>
+      <AppearancePreviewFrame className="shrink-0">
         <div
           role="region"
-          aria-labelledby={`${id}-preview`}
+          aria-label={t("settings.popup.preview")}
           tabIndex={0}
-          className="max-h-[min(18rem,42dvh)] overflow-auto px-3 pt-1 pb-3 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset"
+          className="max-h-[min(18rem,42dvh)] overflow-auto p-3 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset"
         >
           <div aria-hidden="true" inert>
             <PopupSurface preview>
@@ -70,7 +65,7 @@ export default function PopupSettings() {
             </PopupSurface>
           </div>
         </div>
-      </figure>
+      </AppearancePreviewFrame>
       <div
         role="region"
         aria-label={t("settings.popup.controls")}

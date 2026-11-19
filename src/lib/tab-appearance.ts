@@ -1,3 +1,8 @@
+import {
+  tileAppearanceLevels,
+  type TileAppearanceLevel,
+} from "@/lib/tile-appearance"
+
 export type TabAppearance = {
   direction: "left" | "right" | "top" | "bottom"
   display: "both" | "icon" | "text"
@@ -10,6 +15,7 @@ export type TabAppearance = {
   borderWidth: number
   borderColor: "theme" | string
   borderOpacity: number
+  shadow: TileAppearanceLevel
   radius: number
   backgroundMode: "default" | "transparent" | "solid" | "gradient"
   backgroundColor: "item" | string
@@ -92,6 +98,7 @@ const RULES = {
   borderWidth: { kind: "number", min: 0, max: 8, fallback: 1 },
   borderColor: { kind: "color", fixed: ["theme"], fallback: "theme" },
   borderOpacity: { kind: "number", min: 0, max: 100, fallback: 100 },
+  shadow: { kind: "enum", values: tileAppearanceLevels, fallback: "none" },
   radius: { kind: "number", min: 0, max: 48, fallback: 16 },
   backgroundMode: {
     kind: "enum",

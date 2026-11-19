@@ -85,7 +85,7 @@ export default function TabCreateDialog({
       previewBorder={false}
       previewClip={false}
       preview={
-        <TabSurface size={preview.size}>
+        <TabSurface size={preview.size} showShadow>
           <TabBackground item={preview} />
           <TabUI item={preview} preview />
         </TabSurface>

@@ -48,13 +48,13 @@ test("settings flame mounts with its pane and stops when hidden", async ({
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await openStripTabSettings(dialog)
   const flame = dialog
-    .locator("[data-scaled-grid-preview] [data-effect-phase]")
+    .locator("[data-appearance-preview] [data-effect-phase]")
     .first()
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
   await expect(flame.locator("[data-burn-cell]").first()).toBeAttached()
   await dialog.getByRole("button", { name: "主页", exact: true }).click()
   await expect(
-    dialog.locator("[data-scaled-grid-preview] [data-effect-phase]")
+    dialog.locator("[data-appearance-preview] [data-effect-phase]")
   ).toHaveCount(0)
   await openStripTabSettings(dialog)
   await expect(flame).toHaveAttribute("data-effect-phase", "visible")
@@ -75,13 +75,120 @@ test("toast disposal follows the exit lifecycle", async ({ page }) => {
   await expect(dialog).toBeVisible()
 })
 
+test("material cards configure independent preview surfaces and enforce placement support", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await page.setViewportSize({ width: 900, height: 540 })
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  await openStripTabSettings(dialog)
+  await dialog.getByRole("button", { name: "材质", exact: true }).click()
+  const preview = dialog.getByRole("group", { name: "材质预览" })
+  const catalog = dialog.getByRole("group", { name: "材质列表" })
+  const viewport = catalog.locator("[data-material-carousel-viewport]")
+  const none = catalog.getByRole("button", { name: "无", exact: true })
+  const previous = catalog.getByRole("button", { name: "上一个材质" })
+  const next = catalog.getByRole("button", { name: "下一个材质" })
+  await expect(
+    catalog.getByRole("button", { name: "像素火焰" })
+  ).toHaveAttribute("aria-pressed", "true")
+  await previous.click()
+  await expect
+    .poll(async () => {
+      const cardBox = await none.boundingBox()
+      const viewportBox = await viewport.boundingBox()
+      if (!cardBox || !viewportBox) return Infinity
+      return Math.abs(cardBox.x - viewportBox.x)
+    })
+    .toBeLessThan(2)
+
+  await next.click()
+  await next.click()
+  await catalog.getByRole("button", { name: "浮游点阵" }).click()
+  const particles = dialog.getByRole("region", { name: "浮游点阵" })
+  await particles.getByRole("tab", { name: "控件" }).click()
+
+  await next.click()
+  await catalog.getByRole("button", { name: "星轨唱片" }).click()
+  const starTrails = dialog.getByRole("region", { name: "星轨唱片" })
+  await expect(
+    starTrails.getByRole("slider", { name: "运行速度" })
+  ).toBeVisible()
+  await expect(starTrails.getByRole("tab", { name: "控件" })).toBeDisabled()
+  const cardTab = starTrails.getByRole("tab", { name: "卡片背景" })
+  await cardTab.click()
+  await expect(cardTab).toHaveAttribute("aria-selected", "true")
+  await expect(
+    preview.locator('[data-material-placement="background"] dd')
+  ).toHaveText("像素火焰")
+  await expect(
+    preview.locator('[data-material-placement="card"] dd')
+  ).toHaveText("星轨唱片")
+  await expect(
+    preview.locator('[data-material-placement="control"] dd')
+  ).toHaveText("浮游点阵")
+  await expect(
+    preview.locator('[data-material-placement="card"] [data-effect-style]')
+  ).toHaveAttribute("data-effect-style", "star-trails")
+
+  const configuration = dialog.getByRole("region", { name: "材质配置" })
+  const previewTop = () =>
+    preview.evaluate((element) => element.getBoundingClientRect().top)
+  const configurationScroll = () =>
+    configuration.evaluate((element) => element.scrollTop)
+  await configuration.focus()
+  await configuration.press("Home")
+  await expect.poll(configurationScroll).toBe(0)
+  const fixedPreviewTop = await previewTop()
+  await configuration.press("End")
+  await expect.poll(configurationScroll).toBeGreaterThan(0)
+  expect(await previewTop()).toBeCloseTo(fixedPreviewTop, 0)
+
+  const materials = preview.locator(
+    "[data-material-preview-stage] [data-effect-style]"
+  )
+  await expect(materials).toHaveCount(3)
+
+  const scrollable = preview.getByRole("region", { name: "可滚动的材质预览" })
+  await scrollable.focus()
+  const surfacePositions = () =>
+    materials.evaluateAll((surfaces) =>
+      surfaces.map((surface) => {
+        const stage = surface.closest("[data-material-placement-preview]")!
+        return (
+          surface.getBoundingClientRect().top -
+          stage.getBoundingClientRect().top
+        )
+      })
+    )
+  const [backgroundTop, cardTop, controlTop] = await surfacePositions()
+  await scrollable.press("ArrowDown")
+  await expect
+    .poll(() => scrollable.evaluate((node) => node.scrollTop))
+    .toBeGreaterThan(0)
+  const [scrolledBackgroundTop, scrolledCardTop, scrolledControlTop] =
+    await surfacePositions()
+  expect(scrolledBackgroundTop).toBeLessThan(backgroundTop)
+  expect(scrolledCardTop).toBeCloseTo(cardTop, 0)
+  expect(scrolledControlTop).toBeCloseTo(controlTop, 0)
+  await preview.getByRole("button", { name: "重置材质预览" }).click()
+  await expect(
+    preview.locator('[data-material-placement="card"] dd')
+  ).toHaveText("无")
+  await expect(
+    preview.locator('[data-material-placement="control"] dd')
+  ).toHaveText("无")
+  await expect(materials).toHaveCount(1)
+})
+
 test("particle style switches across surfaces and persists", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "打开设置", exact: true }).click()
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await openStripTabSettings(dialog)
-  const preview = dialog.locator("[data-scaled-grid-preview]")
+  const preview = dialog.locator("[data-appearance-preview]")
   await dialog.getByRole("tab", { name: "背景", exact: true }).click()
   await dialog.getByRole("button", { name: "选择背景样式" }).click()
   await page.getByRole("radio", { name: "浮游点阵", exact: true }).click()

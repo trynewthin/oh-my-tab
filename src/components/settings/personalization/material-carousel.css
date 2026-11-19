@@ -1,0 +1,14 @@
+.material-carousel-glass-backdrop {
+  background:
+    radial-gradient(ellipse at 80% 115%, #86cdd2, #4382a7 31%, transparent 61%),
+    linear-gradient(
+      132deg,
+      #211f42 9%,
+      #54649b 35%,
+      #839ec1 47%,
+      #daeee6 48%,
+      #daeee6 52%,
+      #437f9f 53%,
+      #172b46 88%
+    );
+}

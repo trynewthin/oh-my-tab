@@ -11,12 +11,20 @@ import {
 import { sanitizeHomeSettings } from "@/lib/home-settings"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { createTabItem } from "@/lib/grid/factory"
+import { DEFAULT_FOLDER_BORDER } from "@/lib/folder-border"
+import {
+  tileAppearanceLevels,
+  tileBorderLevel,
+  tileBorderStroke,
+} from "@/lib/tile-appearance"
 
 beforeEach(async () => {
   await storage.flushStorage().catch(() => {})
   await storage.clearAllData()
   useHomeSettingsStore.setState({
     tabAppearance: DEFAULT_TAB_APPEARANCE,
+    folderBorder: DEFAULT_FOLDER_BORDER,
+    folderShadow: "auto",
     squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
     squareTabTexture: "burning",
     squareTabEffectCoverage: 65,
@@ -29,6 +37,8 @@ beforeEach(async () => {
 afterEach(() => {
   useHomeSettingsStore.setState({
     tabAppearance: DEFAULT_TAB_APPEARANCE,
+    folderBorder: DEFAULT_FOLDER_BORDER,
+    folderShadow: "auto",
     squareTabAppearance: DEFAULT_SQUARE_TAB_APPEARANCE,
     squareTabTexture: "burning",
     squareTabEffectCoverage: 65,
@@ -53,6 +63,45 @@ test.each(["square-small", "square-medium", "square-large"] as const)(
 )
 
 describe("tab appearance model", () => {
+  test("distinguishes border presets, hidden strokes and existing custom values", () => {
+    for (const level of tileAppearanceLevels) {
+      const stroke = tileBorderStroke(level, "dashed")
+      expect(stroke.style).toBe("dashed")
+      expect(tileBorderLevel(stroke)).toBe(level)
+    }
+    expect(tileBorderLevel({ style: "none", width: 7, opacity: 90 })).toBe(
+      "none"
+    )
+    expect(tileBorderLevel({ style: "dotted", width: 2, opacity: 0 })).toBe(
+      "none"
+    )
+    expect(
+      tileBorderLevel({ style: "solid", width: 2, opacity: 55 })
+    ).toBeNull()
+    expect(
+      tileBorderLevel({ style: "solid", width: 6.5, opacity: 100 })
+    ).toBeNull()
+    expect(tileBorderStroke("medium", "none")).toEqual({
+      style: "solid",
+      width: 2,
+      opacity: 100,
+    })
+  })
+
+  test("falls back to the previous shadow behavior when hydrated values are unknown", () => {
+    expect(
+      sanitizeHomeSettings({
+        tabAppearance: { shadow: "unknown" },
+        squareTabAppearance: { shadow: -1 },
+        folderShadow: "unknown",
+      })
+    ).toMatchObject({
+      tabAppearance: { shadow: "none" },
+      squareTabAppearance: { shadow: "none" },
+      folderShadow: "auto",
+    })
+  })
+
   test("defaults every field and ignores unusable records", () => {
     for (const value of [undefined, null, "corrupt", [], 42])
       expect(sanitizeTabAppearance(value)).toEqual(DEFAULT_TAB_APPEARANCE)
@@ -268,6 +317,7 @@ describe("tab appearance persistence and backups", () => {
       { backgroundRotation: "90" },
       { backgroundFlipX: "true" },
       { backgroundFlipY: 1 },
+      { shadow: "strong" },
       "corrupt",
       [],
     ]) {
@@ -275,6 +325,67 @@ describe("tab appearance persistence and backups", () => {
       config.home.tabAppearance = invalid
       expect(() => validateConfig(config)).toThrow()
     }
+  })
+
+  test("keeps old borders intact when importing a backup and saving shadows", async () => {
+    const strip = {
+      borderStyle: "dashed",
+      borderWidth: 6.5,
+      borderOpacity: 28,
+      borderColor: "#12ab34",
+    }
+    const square = {
+      borderStyle: "solid",
+      borderWidth: 2,
+      borderOpacity: 0,
+      borderColor: "#ab12ef",
+    }
+    const folder = {
+      style: "dotted",
+      width: 4,
+      opacity: 61,
+      color: "#12abcd",
+    } as const
+    const source = JSON.parse(JSON.stringify(snapshot()))
+    source.home.tabAppearance = strip
+    source.home.squareTabAppearance = square
+    source.home.folderBorder = folder
+    delete source.home.folderShadow
+    const config = validateConfig(source)
+
+    await importConfig(config, await storage.storageRevision())
+    await rehydrateData()
+    expect(snapshot().home).toMatchObject({
+      tabAppearance: { ...strip, shadow: "none" },
+      squareTabAppearance: { ...square, shadow: "none" },
+      folderBorder: folder,
+      folderShadow: "auto",
+    })
+
+    const settings = useHomeSettingsStore.getState()
+    settings.setTabAppearance({ shadow: "small" })
+    settings.setSquareTabAppearance({ shadow: "large" })
+    settings.setFolderShadow("medium")
+    await storage.flushStorage()
+    await rehydrateData()
+    expect(
+      validateConfig(JSON.parse(JSON.stringify(snapshot()))).home
+    ).toMatchObject({
+      tabAppearance: { ...strip, shadow: "small" },
+      squareTabAppearance: { ...square, shadow: "large" },
+      folderBorder: folder,
+      folderShadow: "medium",
+    })
+
+    settings.setFolderBorder(tileBorderStroke("large", folder.style))
+    await storage.flushStorage()
+    await rehydrateData()
+    expect(snapshot().home.folderBorder).toEqual({
+      style: folder.style,
+      color: folder.color,
+      width: 3,
+      opacity: 100,
+    })
   })
 
   test("roundtrips through storage without touching unrelated layout settings", async () => {

@@ -8,12 +8,17 @@ export default function ComponentBackground({
   color,
   appearanceId,
   animated = false,
+  applyFolderShadow = false,
 }: {
   color: string
   appearanceId?: string
   animated?: boolean
+  applyFolderShadow?: boolean
 }) {
   const folderStyle = useHomeSettingsStore((state) => state.folderStyle)
+  const folderShadow = useHomeSettingsStore((state) =>
+    applyFolderShadow ? state.folderShadow : undefined
+  )
   const backgroundType = useHomeSettingsStore((state) => state.backgroundType)
   const glass = backgroundType !== "solid"
   const ref = useRef<HTMLDivElement>(null)
@@ -30,6 +35,7 @@ export default function ComponentBackground({
       ref={ref}
       aria-hidden="true"
       data-animated={animated ? "true" : undefined}
+      data-folder-shadow={folderShadow}
       className={`folder-glass folder-glass--${folderStyle} ${glass ? "folder-glass--blur" : ""} pointer-events-none absolute inset-0 z-0 rounded-[inherit]`}
       style={
         {

@@ -1,5 +1,10 @@
 import { isMatrixPet, type MatrixPet } from "@/lib/matrix-pets"
 import {
+  defaultLiquidGlass,
+  liquidGlassSchema,
+  type LiquidGlassSettings,
+} from "@/lib/liquid-glass"
+import {
   isBackgroundPaletteId,
   type BackgroundPaletteId,
 } from "@/lib/background-palette-model"
@@ -32,6 +37,11 @@ import {
   type TabAppearance,
 } from "@/lib/tab-appearance"
 import { sanitizeFolderBorder, type FolderBorder } from "@/lib/folder-border"
+import { folderShadowOptions, type FolderShadow } from "@/lib/tile-appearance"
+import {
+  sanitizeFairIsleSettings,
+  type FairIsleSettings,
+} from "@/lib/fair-isle-settings"
 
 export type TopComponent = "none" | "dot-matrix"
 export type MatrixContent = "time" | "text" | "pet" | "breathing"
@@ -67,6 +77,7 @@ export type HomeSettings = {
   folderStyle: FolderStyle
   folderRadius: number
   folderBorder: FolderBorder
+  folderShadow: FolderShadow
   tabTexture: TabTexture
   tabEffectCoverage: number
   newTabsDynamicEffect: boolean
@@ -77,6 +88,8 @@ export type HomeSettings = {
   pet: MatrixPet
   color: string
   burningAmplitude: number
+  fairIsle: FairIsleSettings
+  liquidGlass: LiquidGlassSettings
   transitionsEnabled: boolean
   tabAppearance: TabAppearance
   squareTabAppearance: TabAppearance
@@ -148,6 +161,9 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
         : "noise",
     folderRadius: tabAppearance.radius,
     folderBorder: sanitizeFolderBorder(saved?.folderBorder),
+    folderShadow:
+      folderShadowOptions.find((option) => option === saved?.folderShadow) ??
+      "auto",
     tabTexture:
       saved?.tabTexture === "none" || saved?.tabTexture === "particles"
         ? saved.tabTexture
@@ -168,6 +184,10 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
       Number.isFinite(saved.burningAmplitude)
         ? Math.min(2, Math.max(0, saved.burningAmplitude))
         : 1,
+    fairIsle: sanitizeFairIsleSettings(saved?.fairIsle),
+    liquidGlass:
+      liquidGlassSchema.safeParse(saved?.liquidGlass).data ??
+      defaultLiquidGlass,
     transitionsEnabled: saved?.transitionsEnabled === true,
     topComponent: saved?.topComponent === "none" ? "none" : "dot-matrix",
     traditionalTopSpacing: isTraditionalTopSpacing(saved?.traditionalTopSpacing)

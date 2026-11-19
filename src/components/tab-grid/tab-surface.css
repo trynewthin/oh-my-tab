@@ -1,0 +1,29 @@
+[data-tab-shadow] {
+  --tab-shadow-unit: 1px;
+}
+
+[data-tab-shadow-size="square-small"] {
+  --tab-shadow-unit: 0.75px;
+}
+
+[data-tab-shadow-size="square-large"] {
+  --tab-shadow-unit: 1.4px;
+}
+
+[data-tab-shadow="small"] {
+  box-shadow: 0 calc(2 * var(--tab-shadow-unit))
+    calc(6 * var(--tab-shadow-unit))
+    color-mix(in srgb, var(--ui-shadow-ink) 24%, transparent);
+}
+
+[data-tab-shadow="medium"] {
+  box-shadow: 0 calc(4 * var(--tab-shadow-unit))
+    calc(12 * var(--tab-shadow-unit))
+    color-mix(in srgb, var(--ui-shadow-ink) 36%, transparent);
+}
+
+[data-tab-shadow="large"] {
+  box-shadow: 0 calc(7 * var(--tab-shadow-unit))
+    calc(20 * var(--tab-shadow-unit))
+    color-mix(in srgb, var(--ui-shadow-ink) 48%, transparent);
+}

@@ -1,4 +1,10 @@
 import { project } from "@/lib/data/projection"
+import { liquidGlassSchema, type LiquidGlassSettings } from "@/lib/liquid-glass"
+import type { FolderShadow } from "@/lib/tile-appearance"
+import {
+  fairIsleSettingsSchema,
+  type FairIsleSettings,
+} from "@/lib/fair-isle-settings"
 import { type MatrixPet } from "@/lib/matrix-pets"
 export type { MatrixPet } from "@/lib/matrix-pets"
 import { create } from "zustand"
@@ -69,6 +75,8 @@ import {
   MAX_TAB_EFFECT_COVERAGE,
 } from "@/lib/home-settings"
 type HomeSettingsStore = HomeSettings & {
+  setFairIsle: (patch: Partial<FairIsleSettings>) => void
+  setLiquidGlass: (patch: Partial<LiquidGlassSettings>) => void
   addQuickSystemControl: (side: QuickBarSide, action: SystemActionId) => void
   addQuickSiteControl: (
     side: QuickBarSide,
@@ -95,6 +103,7 @@ type HomeSettingsStore = HomeSettings & {
   setComponentRadius: (value: number) => void
   setFolderRadius: (value: number) => void
   setFolderBorder: (patch: Partial<FolderBorder>) => void
+  setFolderShadow: (value: FolderShadow) => void
   resetFolderStyle: () => void
   setTabTexture: (value: TabTexture) => void
   setTabEffectCoverage: (value: number) => void
@@ -239,6 +248,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
             : { searchShortcuts: next }
         }),
       setFolderStyle: (folderStyle) => set({ folderStyle }),
+      setFolderShadow: (folderShadow) => set({ folderShadow }),
       setComponentRadius: (value) => {
         if (Number.isFinite(value)) get().setTabAppearance({ radius: value })
       },
@@ -254,6 +264,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         set({
           folderStyle: "noise",
           folderBorder: DEFAULT_FOLDER_BORDER,
+          folderShadow: "auto",
         }),
       setTabTexture: (tabTexture) => set({ tabTexture }),
       setTabEffectCoverage: (value) => {
@@ -272,6 +283,34 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
       setBurningAmplitude: (value) => {
         if (Number.isFinite(value))
           set({ burningAmplitude: Math.min(2, Math.max(0, value)) })
+      },
+      setLiquidGlass: (patch) => {
+        const parsed = liquidGlassSchema.safeParse({
+          ...get().liquidGlass,
+          ...patch,
+        })
+        if (parsed.success) set({ liquidGlass: parsed.data })
+      },
+      setFairIsle: (patch) => {
+        const current = get().fairIsle
+        const parsed = fairIsleSettingsSchema.safeParse({
+          ...current,
+          ...patch,
+        })
+        if (parsed.success)
+          set({
+            fairIsle: {
+              ...parsed.data,
+              motifs:
+                patch.motifs === undefined
+                  ? current.motifs
+                  : parsed.data.motifs,
+              colors:
+                patch.colors === undefined
+                  ? current.colors
+                  : parsed.data.colors,
+            },
+          })
       },
       setTransitionsEnabled: (transitionsEnabled) =>
         set({ transitionsEnabled }),
@@ -341,6 +380,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         folderStyle,
         folderRadius,
         folderBorder,
+        folderShadow,
         tabTexture,
         tabEffectCoverage,
         newTabsDynamicEffect,
@@ -351,6 +391,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         pet,
         color,
         burningAmplitude,
+        fairIsle,
+        liquidGlass,
         transitionsEnabled,
         tabAppearance,
         squareTabAppearance,
@@ -370,6 +412,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         folderStyle,
         folderRadius,
         folderBorder,
+        folderShadow,
         tabTexture,
         tabEffectCoverage,
         newTabsDynamicEffect,
@@ -380,6 +423,8 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         pet,
         color,
         burningAmplitude,
+        fairIsle,
+        liquidGlass,
         transitionsEnabled,
         tabAppearance,
         squareTabAppearance,

@@ -85,6 +85,7 @@ export default function FolderCreateDialog({
       preview={
         <>
           <ComponentBackground
+            applyFolderShadow
             appearanceId={preview.id}
             color={preview.color}
           />

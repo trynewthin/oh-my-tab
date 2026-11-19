@@ -1,12 +1,10 @@
 import BasicPane from "./basic-pane"
 import FolderPane from "./folder-pane"
-import MaterialPane from "./material-pane"
 import TabsPane from "./tabs-pane"
 import SquareTabsPane from "./square-tabs-pane"
 
 const panes = {
   appearance: BasicPane,
-  material: MaterialPane,
   tabs: TabsPane,
   "tabs-square": SquareTabsPane,
   folders: FolderPane,

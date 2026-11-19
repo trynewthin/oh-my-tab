@@ -1,38 +1,26 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
-import TabUI from "@/components/tab-grid/tab-ui"
-import TabSurface from "@/components/tab-grid/tab-surface"
-import TabBackground from "@/components/tab-grid/tab-background"
+import { useMemo } from "react"
 import { createTabItem } from "@/lib/grid/factory"
-import type { TabItem, SquareTabSize } from "@/lib/grid/types"
+import type { SquareTabSize } from "@/lib/grid/types"
 import { DEFAULT_SQUARE_TAB_APPEARANCE } from "@/lib/tab-appearance"
-import {
-  GRID_CELL_SIZE,
-  GRID_GAP,
-  gridTrackWidth,
-} from "@/lib/grid/grid-layout"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
+import AppearancePreviewStage from "./appearance-preview-stage"
+import AppearancePreviewTile from "./appearance-preview-tile"
 import TabAppearanceControls from "./tab-appearance-controls"
 import TabBackgroundControls from "./tab-background-controls"
+
 const previewTiles = [
-  { size: 4, column: 1, row: 1 },
-  { size: 1, column: 5, row: 1 },
-  { size: 1, column: 6, row: 1 },
-  { size: 1, column: 5, row: 2 },
-  { size: 1, column: 6, row: 2 },
-  { size: 2, column: 5, row: 3 },
-] as const
-const previewWidth = gridTrackWidth(6)
-const previewHeight = gridTrackWidth(4)
-const previewReferenceWidth = gridTrackWidth(8)
-const squareSizes: Record<1 | 2 | 4, SquareTabSize> = {
-  1: "square-small",
-  2: "square-medium",
-  4: "square-large",
-}
+  { size: "square-large", className: "top-[9%] left-[7%] -rotate-4" },
+  {
+    size: "square-medium",
+    className: "top-[29%] left-[max(51%,11.5rem)] rotate-2",
+  },
+  {
+    size: "square-small",
+    className: "top-[70%] left-[max(45%,9.75rem)] rotate-6",
+  },
+] satisfies { size: SquareTabSize; className: string }[]
 
 export default function SquareTabsPane() {
-  const { t } = useTranslation()
   const color = useHomeSettingsStore((state) => state.color)
   const animated = useHomeSettingsStore((state) => state.newTabsDynamicEffect)
   const appearance = useHomeSettingsStore((state) => state.squareTabAppearance)
@@ -47,31 +35,22 @@ export default function SquareTabsPane() {
   const setCoverage = useHomeSettingsStore(
     (state) => state.setSquareTabEffectCoverage
   )
-  const item = useMemo(
-    () => ({
-      ...createTabItem({ name: "Oh My Tab", url: "https://oh-my-tab.example" }),
-      icon: `${import.meta.env.BASE_URL}icons/mark-128.png`,
-      color,
-    }),
-    [color]
+  const samples = useMemo(
+    () =>
+      previewTiles.map(({ size, className }) => ({
+        className,
+        item: {
+          ...createTabItem({
+            name: "Oh My Tab",
+            url: "https://oh-my-tab.example",
+          }),
+          size,
+          icon: `${import.meta.env.BASE_URL}icons/mark-128.png`,
+        },
+      })),
+    []
   )
-  const previewRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(448 / previewReferenceWidth)
-  useLayoutEffect(() => {
-    const container = previewRef.current
-    if (!container) return
-    const update = () =>
-      setScale(
-        Math.min(
-          1,
-          Math.min(container.clientWidth, 448) / previewReferenceWidth
-        )
-      )
-    update()
-    const observer = new ResizeObserver(update)
-    observer.observe(container)
-    return () => observer.disconnect()
-  }, [])
+
   return (
     <TabAppearanceControls
       value={appearance}
@@ -83,72 +62,15 @@ export default function SquareTabsPane() {
         setCoverage(defaults.squareTabEffectCoverage)
       }}
       preview={
-        <div className="space-y-3">
-          <h2 className="text-base font-medium">
-            {t("settings.nav.tabsSquare")}
-          </h2>
-          <div
-            ref={previewRef}
-            aria-label={t("settings.tabs.squareDescription")}
-            className="w-full"
-          >
-            <div
-              className="relative mx-auto"
-              style={{
-                width: previewWidth * scale,
-                height: previewHeight * scale,
-              }}
-            >
-              <div
-                className="absolute top-0 left-0 grid"
-                style={{
-                  width: previewWidth,
-                  height: previewHeight,
-                  gridTemplateColumns: `repeat(6, ${GRID_CELL_SIZE}px)`,
-                  gridTemplateRows: `repeat(4, ${GRID_CELL_SIZE}px)`,
-                  gap: GRID_GAP,
-                  transform: `scale(${scale})`,
-                  transformOrigin: "top left",
-                }}
-              >
-                {previewTiles.map(({ size, column, row }) => {
-                  const previewItem: TabItem = {
-                    ...item,
-                    size: squareSizes[size],
-                  }
-                  return (
-                    <div
-                      key={`${column}-${row}`}
-                      data-square-tab-preview={size}
-                      aria-label={`${size}×${size}`}
-                      className="relative shrink-0"
-                      style={{
-                        gridColumn: `${column} / span ${size}`,
-                        gridRow: `${row} / span ${size}`,
-                      }}
-                    >
-                      <TabSurface appearance={appearance}>
-                        <TabBackground
-                          item={previewItem}
-                          textureId={`${item.id}-${column}-${row}`}
-                          appearance={appearance}
-                          effectStyle={texture}
-                          coverage={coverage}
-                          animated={animated}
-                        />
-                        <TabUI
-                          item={previewItem}
-                          appearance={appearance}
-                          preview
-                        />
-                      </TabSurface>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AppearancePreviewStage>
+          {samples.map(({ item, className }) => (
+            <AppearancePreviewTile
+              key={item.id}
+              item={{ ...item, color, dynamicEffect: animated }}
+              className={className}
+            />
+          ))}
+        </AppearancePreviewStage>
       }
       backgroundControls={
         <TabBackgroundControls

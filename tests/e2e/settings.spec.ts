@@ -136,7 +136,7 @@ test("personalization persists global burning controls", async ({ page }) => {
   await expect(entrance).toBeChecked()
 })
 
-test("switching from a dragged folder preview keeps settings open", async ({
+test("appearance previews use full-size samples and keep settings navigation available", async ({
   page,
 }) => {
   await page.goto("/")
@@ -144,26 +144,65 @@ test("switching from a dragged folder preview keeps settings open", async ({
   const dialog = page.getByRole("dialog", { name: "设置", exact: true })
   await dialog.getByRole("button", { name: "文件夹", exact: true }).click()
 
-  const previewItems = dialog.locator(
-    "[data-scaled-grid-preview] [data-grid-item-id]"
+  const preview = dialog.locator("[data-appearance-preview]")
+  const folderSamples = preview.locator(
+    '[data-appearance-preview-size="large"]'
   )
-  const source = await previewItems.nth(0).boundingBox()
-  const target = await previewItems.nth(1).boundingBox()
-  if (!source || !target) throw new Error("folder preview was not measurable")
-
-  await page.mouse.move(
-    source.x + source.width / 2,
-    source.y + source.height / 2
+  await expect(folderSamples).toHaveCount(2)
+  await expect(folderSamples.first()).toHaveCSS("width", "286px")
+  await expect(folderSamples.first()).toHaveCSS("height", "286px")
+  await expect(preview).toHaveCSS("overflow", "hidden")
+  await expect(preview).toHaveAttribute("inert", "")
+  await expect(preview.getByText("收藏", { exact: true })).toBeAttached()
+  await expect(
+    preview.getByRole("button", { name: "收藏", exact: true })
+  ).toHaveCount(0)
+  const folderShadow = dialog.getByRole("tablist", {
+    name: "阴影",
+    exact: true,
+  })
+  await folderShadow.getByRole("tab", { name: "无", exact: true }).click()
+  await expect(preview.locator(".folder-glass").first()).toHaveCSS(
+    "box-shadow",
+    "none"
   )
-  await page.mouse.down()
-  await page.mouse.move(
-    target.x + target.width / 2,
-    target.y + target.height / 2,
-    { steps: 8 }
+  await folderShadow.getByRole("tab", { name: "大", exact: true }).click()
+  await expect(preview.locator(".folder-glass").first()).not.toHaveCSS(
+    "box-shadow",
+    "none"
   )
-  await page.mouse.up()
 
   await openStripTabSettings(dialog)
+  await expect(
+    preview.locator('[data-appearance-preview-size="medium"]')
+  ).toHaveCSS("height", "135px")
+  await expect(
+    preview.locator('[data-appearance-preview-size="small"]')
+  ).toHaveCount(2)
+  await dialog.getByRole("button", { name: "方形标签", exact: true }).click()
+  await expect(preview.locator("[data-appearance-preview-size]")).toHaveCount(3)
+  await expect(
+    preview.locator('[data-appearance-preview-size="square-large"]')
+  ).toHaveCSS("width", "286px")
+  await expect(
+    preview.locator('[data-appearance-preview-size="square-medium"]')
+  ).toHaveCSS("width", "135px")
+  await expect(
+    preview.locator('[data-appearance-preview-size="square-small"]')
+  ).toHaveCSS("width", "59.5px")
+  await dialog.getByRole("tab", { name: "边框与阴影", exact: true }).click()
+  await dialog
+    .getByRole("tablist", { name: "阴影", exact: true })
+    .getByRole("tab", { name: "中", exact: true })
+    .click()
+  const squareSurface = preview.locator("[data-tab-surface]").first()
+  await expect(squareSurface).not.toHaveCSS("box-shadow", "none")
+
+  await openStripTabSettings(dialog)
+  await expect(preview.locator("[data-tab-surface]").first()).toHaveCSS(
+    "box-shadow",
+    "none"
+  )
   await dialog.getByRole("tab", { name: "背景", exact: true }).click()
   await expect(dialog).toBeVisible()
   await expect(

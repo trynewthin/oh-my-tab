@@ -45,6 +45,7 @@
     "cn": "^0.2.5",
     "date-fns": "^4.4.0",
     "dexie": "4.0.11",
+    "embla-carousel-react": "8.6.0",
     "fflate": "^0.8.3",
     "gsap": "^3.15.0",
     "i18next": "^26.4.2",

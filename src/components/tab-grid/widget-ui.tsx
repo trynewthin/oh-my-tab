@@ -128,7 +128,7 @@ export function WidgetTile({
           preview
         />
       ) : (
-        <TabSurface size={item.size}>
+        <TabSurface size={item.size} showShadow>
           <TabBackground
             item={item}
             animated={!!item.dynamicEffect}
@@ -141,6 +141,7 @@ export function WidgetTile({
       return (
         <>
           <ComponentBackground
+            applyFolderShadow
             appearanceId={item.id}
             color={item.color}
             animated={!preview && !!item.dynamicEffect}

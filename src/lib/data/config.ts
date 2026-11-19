@@ -3,6 +3,9 @@ import { CONFIG_VERSION } from "@/lib/data-version"
 import { uiDepthOptions, uiRadiusOptions } from "@/lib/ui-appearance"
 import { isBackgroundPaletteId } from "@/lib/background-palette-model"
 import { sanitizeFolderBorder, validFolderBorder } from "@/lib/folder-border"
+import { folderShadowOptions } from "@/lib/tile-appearance"
+import { fairIsleSettingsSchema } from "@/lib/fair-isle-settings"
+import { liquidGlassSchema } from "@/lib/liquid-glass"
 import {
   clampGridScale,
   GRID_COLUMNS,
@@ -66,6 +69,7 @@ const homeFields = z.object({
   folderBorder: z
     .custom<Parameters<typeof sanitizeFolderBorder>[0]>(validFolderBorder)
     .optional(),
+  folderShadow: z.enum(folderShadowOptions).optional(),
   tabTexture: texture,
   tabEffectCoverage: coverage,
   newTabsDynamicEffect: z.boolean(),
@@ -78,6 +82,8 @@ const homeFields = z.object({
   pet: z.custom<ReturnType<typeof sanitizeHomeSettings>["pet"]>(isMatrixPet),
   color,
   burningAmplitude: z.number().min(0).max(2),
+  fairIsle: fairIsleSettingsSchema.optional(),
+  liquidGlass: liquidGlassSchema.optional(),
   transitionsEnabled: z.boolean(),
   tabAppearance: z.custom<TabAppearance>(validTabAppearance).optional(),
   squareTabAppearance: z.custom<TabAppearance>(validTabAppearance).optional(),
@@ -103,6 +109,7 @@ export const homeSchema = homeFields
       },
       folderRadius: tabAppearance.radius,
       folderBorder: sanitizeFolderBorder(home.folderBorder),
+      folderShadow: home.folderShadow ?? ("auto" as const),
       squareTabTexture: home.squareTabTexture ?? ("burning" as const),
       squareTabEffectCoverage:
         home.squareTabEffectCoverage ?? DEFAULT_TAB_EFFECT_COVERAGE,

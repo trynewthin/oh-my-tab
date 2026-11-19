@@ -7,6 +7,7 @@ const HomeSettings = lazy(() => import("./home/home-settings"))
 const PersonalizationSettings = lazy(
   () => import("./personalization/personalization-settings")
 )
+const MaterialPane = lazy(() => import("./personalization/material-pane"))
 const SearchEngineSettings = lazy(
   () => import("./search/search-engine-settings")
 )
@@ -19,7 +20,7 @@ export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />
   ),
-  "personalization-material": () => <PersonalizationSettings pane="material" />,
+  "personalization-material": () => <MaterialPane />,
   "personalization-tabs": () => <PersonalizationSettings pane="tabs" />,
   "personalization-tabs-square": () => (
     <PersonalizationSettings pane="tabs-square" />

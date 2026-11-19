@@ -5,7 +5,6 @@ import AppSidebarLayout, {
   type ApplicationNavigationGroup,
   type ApplicationNavigationItem,
 } from "@/components/application/app-sidebar-layout"
-import MaterialSurface from "@/components/effects/material-surface"
 import {
   DEFAULT_STAR_TRAIL_SPEED,
   MAX_STAR_TRAIL_SPEED,
@@ -65,10 +64,6 @@ export default function SettingsApplication({
   const accentColor = useHomeSettingsStore((state) => state.color)
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
   const View = settingsViews[section] ?? settingsViews[defaultSettingsSection]
-  const material = section === "personalization-material"
-  // Base UI keeps the portal mounted during the exit animation; hold the
-  // material surface so the dialog does not flash back while it closes.
-  const materialVisible = material
   const [materialPreview, setMaterialPreview] =
     useState<MaterialPreviewStyle>(tabTexture)
   const [starTrailSpeed, setStarTrailSpeed] = useState(DEFAULT_STAR_TRAIL_SPEED)
@@ -94,27 +89,6 @@ export default function SettingsApplication({
         setSection(route)
       }}
       accentColor={accentColor}
-      background={
-        <div
-          className="absolute inset-0"
-          style={{ opacity: materialVisible ? 1 : 0 }}
-        >
-          <MaterialSurface
-            color={accentColor}
-            textureId="settings-material-background"
-            coverage={materialPreview === "star-trails" ? 90 : 72}
-            effectStyle={materialPreview}
-            speed={starTrailSpeed}
-            animated={
-              materialPreview !== "star-trails" || starTrailMode === "dynamic"
-            }
-            staticFrame={starTrailMode === "static"}
-            entrance
-            transparent
-            visible={materialVisible}
-          />
-        </div>
-      }
     >
       <div data-settings-content className="contents">
         <MaterialPreviewContext.Provider

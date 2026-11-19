@@ -1,6 +1,11 @@
 .folder-glass {
+  --folder-soft-shadow: 0 6px 20px rgb(0 0 0 / 3%);
   overflow: hidden;
   isolation: isolate;
+}
+
+.dark .folder-glass {
+  --folder-soft-shadow: 0 6px 20px rgb(0 0 0 / 16%);
 }
 
 .folder-glass--none {
@@ -9,7 +14,7 @@
 
 .folder-glass--noise {
   background: color-mix(in srgb, var(--card) 96%, transparent);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 3%);
+  box-shadow: var(--folder-soft-shadow);
 }
 
 .folder-noise-gradient {
@@ -46,7 +51,6 @@
 
 .dark .folder-glass--noise {
   background: color-mix(in srgb, var(--card) 98%, black 2%);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
 }
 
 .dark .folder-noise-gradient {
@@ -72,7 +76,7 @@
     color-mix(in srgb, var(--card) 98%, transparent),
     color-mix(in srgb, var(--card) 92%, transparent)
   );
-  box-shadow: 0 6px 20px rgb(0 0 0 / 3%);
+  box-shadow: var(--folder-soft-shadow);
 }
 
 .folder-glass--classic::before,
@@ -119,7 +123,6 @@
     color-mix(in srgb, var(--card) 98%, transparent),
     color-mix(in srgb, var(--card) 92%, transparent)
   );
-  box-shadow: 0 6px 20px rgb(0 0 0 / 16%);
 }
 
 .dark .folder-glass--classic::after {
@@ -160,14 +163,33 @@
 }
 
 .folder-glass.folder-glass--blur {
+  --folder-soft-shadow: 0 6px 20px rgb(0 0 0 / 8%);
   background: color-mix(in srgb, var(--card) 55%, transparent);
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 8%);
+  box-shadow: var(--folder-soft-shadow);
 }
 
 .dark .folder-glass.folder-glass--blur {
   background: color-mix(in srgb, var(--card) 55%, transparent);
+}
+
+.folder-glass[data-folder-shadow="none"] {
+  box-shadow: none;
+}
+
+.folder-glass[data-folder-shadow="small"] {
+  box-shadow: var(--folder-soft-shadow);
+}
+
+.folder-glass[data-folder-shadow="medium"] {
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--ui-shadow-ink) 38%, transparent);
+}
+
+.folder-glass[data-folder-shadow="large"] {
+  box-shadow: 0 12px 32px
+    color-mix(in srgb, var(--ui-shadow-ink) 52%, transparent);
 }
 
 [data-grid-item-id][data-grid-editing] .folder-glass {

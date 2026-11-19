@@ -3,11 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { expect, test } from "vitest"
 import MaterialSurface from "@/components/effects/material-surface"
 
-test("renders the star-trail layer on the original dialog background", () => {
+test("renders star trails over a transparent surface", () => {
   const html = renderToStaticMarkup(
     createElement(MaterialSurface, {
       color: "#3478f6",
-      textureId: "settings-material-background",
+      textureId: "star-trail-preview",
       effectStyle: "star-trails",
       speed: 1.4,
       transparent: true,

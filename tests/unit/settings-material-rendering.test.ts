@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { beforeEach, describe, expect, test, vi } from "vitest"
+import { beforeEach, expect, test, vi } from "vitest"
 import SettingsApplication from "@/components/settings/settings-application"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
@@ -32,24 +32,31 @@ vi.mock("@/components/application/app-sidebar-layout", () => ({
   }: {
     background?: ReactNode
     children?: ReactNode
-  }) => createElement("div", null, background, children),
+  }) =>
+    createElement(
+      "div",
+      null,
+      createElement("div", { "data-shell-background": true }, background),
+      children
+    ),
 }))
 
-vi.mock("@/components/effects/effect-surface", () => ({
-  default: ({ visible, entrance }: { visible: boolean; entrance?: boolean }) =>
-    createElement("div", {
-      "data-visible": String(visible),
-      "data-entrance": String(entrance),
-    }),
+vi.mock("@/components/effects/material-surface", () => ({
+  default: ({ textureId }: { textureId: string }) =>
+    createElement("div", { "data-texture": textureId }),
 }))
 
-vi.mock("@/components/settings/settings-views", () => ({
-  settingsViews: {
-    "search-engines": () => null,
-    "personalization-appearance": () => null,
-    "personalization-material": () => null,
-  },
-}))
+vi.mock("@/components/settings/settings-views", async () => {
+  const { default: MaterialPane } =
+    await import("@/components/settings/personalization/material-pane")
+  return {
+    settingsViews: {
+      "search-engines": () => null,
+      "personalization-appearance": () => null,
+      "personalization-material": MaterialPane,
+    },
+  }
+})
 
 beforeEach(() => {
   useSystemOverlayStore.setState({
@@ -61,42 +68,19 @@ beforeEach(() => {
 
 const props = { onClose: () => {} }
 
-describe("material initial render state", () => {
-  test("shows material immediately without overriding the dialog background", () => {
-    useSystemOverlayStore.getState().openSettings()
-    const html = renderToStaticMarkup(createElement(SettingsApplication, props))
+test("renders the default material only inside the page preview", () => {
+  useSystemOverlayStore.getState().openSettings()
+  const html = renderToStaticMarkup(createElement(SettingsApplication, props))
 
-    expect(html).toContain('style="opacity:1"')
-    expect(html).toContain('data-visible="true"')
-    expect(html).toContain('data-entrance="true"')
-    expect(html).not.toContain("background-color:")
-    expect(html).not.toContain("--foreground:")
-  })
+  expect(html).toContain('<div data-shell-background="true"></div>')
+  expect(html.match(/data-texture="settings-material-preview-[^"]*"/g)).toEqual(
+    ['data-texture="settings-material-preview-background"']
+  )
+})
 
-  test("keeps material mounted throughout the dialog exit animation", () => {
-    useSystemOverlayStore.getState().openSettings()
-    useSystemOverlayStore.getState().close("settings")
-    const closed = renderToStaticMarkup(
-      createElement(SettingsApplication, props)
-    )
-    expect(closed).toContain('style="opacity:1"')
-    expect(closed).toContain('data-visible="true"')
-    expect(closed).not.toContain("background-color:")
+test("does not mount a material when another settings page is open", () => {
+  useSystemOverlayStore.getState().openSettings("personalization-appearance")
+  const html = renderToStaticMarkup(createElement(SettingsApplication, props))
 
-    useSystemOverlayStore.getState().openSettings()
-    const reopened = renderToStaticMarkup(
-      createElement(SettingsApplication, props)
-    )
-    expect(reopened).toContain('style="opacity:1"')
-    expect(reopened).toContain('data-visible="true"')
-  })
-
-  test("hides material and restores the palette on other settings pages", () => {
-    useSystemOverlayStore.getState().openSettings("personalization-appearance")
-    const html = renderToStaticMarkup(createElement(SettingsApplication, props))
-    expect(html).toContain('style="opacity:0"')
-    expect(html).toContain('data-visible="false"')
-    expect(html).not.toContain("background-color:")
-    expect(html).not.toContain("--foreground:")
-  })
+  expect(html).not.toContain("data-texture")
 })

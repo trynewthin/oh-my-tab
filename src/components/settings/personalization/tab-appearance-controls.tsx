@@ -27,6 +27,9 @@ import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import SettingItem from "../shared/setting-item"
 import RangeField from "../shared/setting-range"
 import { settingsControlClassName } from "../shared/control-styles"
+import TileBorderLevelField from "./tile-border-level-field"
+import AppearanceTabs from "./appearance-tabs"
+import { tileAppearanceLevels, tileBorderLevel } from "@/lib/tile-appearance"
 
 type Option<T extends string = string> = { value: T; labelKey: string }
 type FontWeightValue = "400" | "500" | "600" | "700"
@@ -67,7 +70,6 @@ const alignOptions: readonly Option<TabAppearance["align"]>[] = [
 ]
 
 const borderStyleOptions: readonly Option<TabAppearance["borderStyle"]>[] = [
-  { value: "none", labelKey: `${appearance}.borderNone` },
   { value: "solid", labelKey: `${appearance}.borderSolid` },
   { value: "dashed", labelKey: `${appearance}.borderDashed` },
   { value: "dotted", labelKey: `${appearance}.borderDotted` },
@@ -127,6 +129,7 @@ const borderKeys = [
   "borderWidth",
   "borderColor",
   "borderOpacity",
+  "shadow",
 ] as const
 
 const backgroundKeys = [
@@ -303,6 +306,11 @@ export default function TabAppearanceControls({
   const { t } = useTranslation()
   const color = useHomeSettingsStore((state) => state.color)
   const [resetOpen, setResetOpen] = useState(false)
+  const stroke = {
+    style: tabAppearance.borderStyle,
+    width: tabAppearance.borderWidth,
+    opacity: tabAppearance.borderOpacity,
+  }
 
   const resetGroup = (keys: readonly (keyof TabAppearance)[]) => {
     setTabAppearance(defaultsOf(keys, defaults))
@@ -484,32 +492,27 @@ export default function TabAppearanceControls({
         })}
         onReset={() => resetGroup(borderKeys)}
       >
-        <SettingItem
-          label={t("settings.tabs.appearance.borderStyle")}
-          htmlFor="tab-appearance-border-style"
-        >
-          <SelectField
-            id="tab-appearance-border-style"
-            value={tabAppearance.borderStyle}
-            options={borderStyleOptions}
-            onChange={(borderStyle) => setTabAppearance({ borderStyle })}
-          />
-        </SettingItem>
-        {tabAppearance.borderStyle !== "none" && (
+        <TileBorderLevelField
+          stroke={stroke}
+          onChange={({ style, width, opacity }) =>
+            setTabAppearance({
+              borderStyle: style,
+              borderWidth: width,
+              borderOpacity: opacity,
+            })
+          }
+        />
+        {tileBorderLevel(stroke) !== "none" && (
           <>
             <SettingItem
-              label={t("settings.tabs.appearance.borderWidth")}
-              htmlFor="tab-appearance-border-width"
+              label={t("settings.tabs.appearance.borderStyle")}
+              htmlFor="tab-appearance-border-style"
             >
-              <RangeField
-                id="tab-appearance-border-width"
-                label={t("settings.tabs.appearance.borderWidth")}
-                unit="px"
-                value={tabAppearance.borderWidth}
-                min={0}
-                max={8}
-                accentColor={color}
-                onChange={(borderWidth) => setTabAppearance({ borderWidth })}
+              <SelectField
+                id="tab-appearance-border-style"
+                value={tabAppearance.borderStyle}
+                options={borderStyleOptions}
+                onChange={(borderStyle) => setTabAppearance({ borderStyle })}
               />
             </SettingItem>
             <SettingItem
@@ -525,25 +528,14 @@ export default function TabAppearanceControls({
                 onChange={(borderColor) => setTabAppearance({ borderColor })}
               />
             </SettingItem>
-            <SettingItem
-              label={t("settings.tabs.appearance.borderOpacity")}
-              htmlFor="tab-appearance-border-opacity"
-            >
-              <RangeField
-                id="tab-appearance-border-opacity"
-                label={t("settings.tabs.appearance.borderOpacity")}
-                unit="%"
-                value={tabAppearance.borderOpacity}
-                min={0}
-                max={100}
-                accentColor={color}
-                onChange={(borderOpacity) =>
-                  setTabAppearance({ borderOpacity })
-                }
-              />
-            </SettingItem>
           </>
         )}
+        <AppearanceTabs
+          label={t("settings.uiAppearance.shadow")}
+          options={tileAppearanceLevels}
+          value={tabAppearance.shadow}
+          onChange={(shadow) => setTabAppearance({ shadow })}
+        />
       </AppearanceGroup>
 
       <AppearanceGroup

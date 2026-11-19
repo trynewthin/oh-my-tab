@@ -15,22 +15,21 @@ import type {
   MaterialPreviewStyle,
   StarTrailMode,
 } from "./personalization/material-preview-context"
-import {
-  defaultSettingsSection,
-  type SettingsSection,
-} from "@/lib/settings-sections"
+import type { SettingsSection } from "@/lib/settings-sections"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
 import {
+  availableSettingsNav,
+  resolveSettingsSection,
   settingsIcon,
-  settingsNav,
   type SettingsNavNode,
 } from "./settings-routes"
 import { settingsViews } from "./settings-views"
 
 function settingsNavigation(
-  t: (key: string) => string
+  t: (key: string) => string,
+  routes: SettingsNavNode[]
 ): ApplicationNavigationGroup<SettingsSection>[] {
   const navigationItem = (
     route: SettingsNavNode
@@ -43,12 +42,12 @@ function settingsNavigation(
       children: route.children?.map(navigationItem),
     }
   }
-  return settingsNav.map((node) => {
-    const routes = node.children?.length ? node.children : [node]
+  return routes.map((node) => {
+    const items = node.children?.length ? node.children : [node]
     return {
       id: node.id,
       label: node.children?.length ? t(node.labelKey) : undefined,
-      items: routes.map(navigationItem),
+      items: items.map(navigationItem),
     }
   })
 }
@@ -59,11 +58,15 @@ export default function SettingsApplication({
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  const section = useSystemOverlayStore((state) => state.settingsSection)
+  const requestedSection = useSystemOverlayStore(
+    (state) => state.settingsSection
+  )
   const setSection = useSystemOverlayStore((state) => state.setSettingsSection)
   const accentColor = useHomeSettingsStore((state) => state.color)
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
-  const View = settingsViews[section] ?? settingsViews[defaultSettingsSection]
+  const routes = availableSettingsNav()
+  const section = resolveSettingsSection(requestedSection, routes)
+  const View = settingsViews[section]
   const [materialPreview, setMaterialPreview] =
     useState<MaterialPreviewStyle>(tabTexture)
   const [starTrailSpeed, setStarTrailSpeed] = useState(DEFAULT_STAR_TRAIL_SPEED)
@@ -80,7 +83,7 @@ export default function SettingsApplication({
       closeAriaLabel={t("settings.dialog.closeAria")}
       navigationAriaLabel={t("settings.sidebar.categoriesAria")}
       navigationProgressAriaLabel={t("settings.dialog.sidebarScrollProgress")}
-      navigation={settingsNavigation(t)}
+      navigation={settingsNavigation(t, routes)}
       activeRoute={section}
       onRouteChange={(route) => {
         if (route === "personalization-material") {

@@ -1,5 +1,10 @@
 import { isMatrixPet, type MatrixPet } from "@/lib/matrix-pets"
 import {
+  defaultPopupAppearance,
+  popupAppearanceSchema,
+  type PopupAppearance,
+} from "@/lib/popup-appearance"
+import {
   defaultLiquidGlass,
   liquidGlassSchema,
   type LiquidGlassSettings,
@@ -90,6 +95,7 @@ export type HomeSettings = {
   burningAmplitude: number
   fairIsle: FairIsleSettings
   liquidGlass: LiquidGlassSettings
+  popupAppearance: PopupAppearance
   transitionsEnabled: boolean
   tabAppearance: TabAppearance
   squareTabAppearance: TabAppearance
@@ -185,6 +191,8 @@ export function sanitizeHomeSettings(persisted: unknown): HomeSettings {
         ? Math.min(2, Math.max(0, saved.burningAmplitude))
         : 1,
     fairIsle: sanitizeFairIsleSettings(saved?.fairIsle),
+    popupAppearance: popupAppearanceSchema.safeParse(saved?.popupAppearance)
+      .data ?? { ...defaultPopupAppearance },
     liquidGlass:
       liquidGlassSchema.safeParse(saved?.liquidGlass).data ??
       defaultLiquidGlass,

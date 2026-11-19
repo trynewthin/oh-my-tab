@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useOnboardingStore } from "@/stores/onboarding-store"
+import { appEnvironment } from "@/lib/app-environment"
 
 const steps: {
   key: string
@@ -89,7 +90,7 @@ const steps: {
     key: "dataManagement",
     body: true,
   },
-  ...(location.protocol === "chrome-extension:"
+  ...(appEnvironment.platform === "chromium-extension"
     ? [
         {
           key: "quickSave",

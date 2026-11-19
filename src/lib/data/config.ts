@@ -7,6 +7,10 @@ import { folderShadowOptions } from "@/lib/tile-appearance"
 import { fairIsleSettingsSchema } from "@/lib/fair-isle-settings"
 import { liquidGlassSchema } from "@/lib/liquid-glass"
 import {
+  defaultPopupAppearance,
+  popupAppearanceSchema,
+} from "@/lib/popup-appearance"
+import {
   clampGridScale,
   GRID_COLUMNS,
   isGridComponentColumnCount,
@@ -84,6 +88,7 @@ const homeFields = z.object({
   burningAmplitude: z.number().min(0).max(2),
   fairIsle: fairIsleSettingsSchema.optional(),
   liquidGlass: liquidGlassSchema.optional(),
+  popupAppearance: popupAppearanceSchema.optional(),
   transitionsEnabled: z.boolean(),
   tabAppearance: z.custom<TabAppearance>(validTabAppearance).optional(),
   squareTabAppearance: z.custom<TabAppearance>(validTabAppearance).optional(),
@@ -102,6 +107,7 @@ export const homeSchema = homeFields
     })
     return {
       ...home,
+      popupAppearance: home.popupAppearance ?? { ...defaultPopupAppearance },
       tabAppearance,
       squareTabAppearance: {
         ...sanitizeSquareTabAppearance(home.squareTabAppearance),

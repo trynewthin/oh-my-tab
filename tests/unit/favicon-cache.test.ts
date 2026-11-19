@@ -60,9 +60,7 @@ describe("favicon-cache", () => {
     vi.resetModules()
     vi.unstubAllGlobals()
     stubBrowserApis()
-    vi.stubGlobal("window", {
-      location: { protocol: "chrome-extension:" },
-    })
+    vi.stubGlobal("location", { protocol: "chrome-extension:" })
   })
 
   it("persists downloads across page instances and coalesces requests", async () => {

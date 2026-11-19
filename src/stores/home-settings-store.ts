@@ -1,5 +1,9 @@
 import { project } from "@/lib/data/projection"
 import { liquidGlassSchema, type LiquidGlassSettings } from "@/lib/liquid-glass"
+import {
+  popupAppearanceSchema,
+  type PopupAppearance,
+} from "@/lib/popup-appearance"
 import type { FolderShadow } from "@/lib/tile-appearance"
 import {
   fairIsleSettingsSchema,
@@ -77,6 +81,7 @@ import {
 type HomeSettingsStore = HomeSettings & {
   setFairIsle: (patch: Partial<FairIsleSettings>) => void
   setLiquidGlass: (patch: Partial<LiquidGlassSettings>) => void
+  setPopupAppearance: (patch: Partial<PopupAppearance>) => void
   addQuickSystemControl: (side: QuickBarSide, action: SystemActionId) => void
   addQuickSiteControl: (
     side: QuickBarSide,
@@ -291,6 +296,13 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         })
         if (parsed.success) set({ liquidGlass: parsed.data })
       },
+      setPopupAppearance: (patch) => {
+        const parsed = popupAppearanceSchema.safeParse({
+          ...get().popupAppearance,
+          ...patch,
+        })
+        if (parsed.success) set({ popupAppearance: parsed.data })
+      },
       setFairIsle: (patch) => {
         const current = get().fairIsle
         const parsed = fairIsleSettingsSchema.safeParse({
@@ -393,6 +405,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         fairIsle,
         liquidGlass,
+        popupAppearance,
         transitionsEnabled,
         tabAppearance,
         squareTabAppearance,
@@ -425,6 +438,7 @@ export const useHomeSettingsStore = create<HomeSettingsStore>()(
         burningAmplitude,
         fairIsle,
         liquidGlass,
+        popupAppearance,
         transitionsEnabled,
         tabAppearance,
         squareTabAppearance,

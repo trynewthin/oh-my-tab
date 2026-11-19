@@ -1,4 +1,5 @@
 import { i18n } from "@/i18n"
+import { appEnvironment } from "@/lib/app-environment"
 import { DexieEntryRepository, legacySourceHash } from "./dexie-repository"
 import {
   chromeStorage,
@@ -180,7 +181,7 @@ export async function storageRevision() {
 }
 
 export async function initializeStorage() {
-  if (location.protocol === "chrome-extension:" && !chromeStorage())
+  if (appEnvironment.platform === "chromium-extension" && !chromeStorage())
     throw new Error(i18n.t("core.storage.permission"))
   await chromeStorage()?.local.setAccessLevel?.({
     accessLevel: "TRUSTED_CONTEXTS",

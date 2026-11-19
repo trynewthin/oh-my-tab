@@ -1,4 +1,5 @@
 import Dexie from "dexie"
+import { appEnvironment } from "@/lib/app-environment"
 import type { Entries } from "./repository"
 import { DataError } from "./errors"
 
@@ -11,7 +12,7 @@ type ChromeStorage = {
 }
 
 export const chromeStorage = () =>
-  location.protocol === "chrome-extension:"
+  appEnvironment.platform === "chromium-extension"
     ? (
         globalThis as typeof globalThis & {
           chrome?: { storage?: ChromeStorage }

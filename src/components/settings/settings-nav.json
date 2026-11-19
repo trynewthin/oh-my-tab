@@ -24,6 +24,11 @@
         },
         { "id": "home-top", "labelKey": "settings.nav.home" },
         {
+          "id": "popup-appearance",
+          "labelKey": "settings.nav.popupAppearance",
+          "requires": "toolbarPopup"
+        },
+        {
           "id": "tabs",
           "labelKey": "settings.nav.personalizationTabs",
           "children": [

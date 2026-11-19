@@ -4,6 +4,7 @@ import type { SettingsSection } from "@/lib/settings-sections"
 const AboutSettings = lazy(() => import("./about/about-settings"))
 const GeneralSettings = lazy(() => import("./general/general-settings"))
 const HomeSettings = lazy(() => import("./home/home-settings"))
+const PopupSettings = lazy(() => import("./popup/popup-settings"))
 const PersonalizationSettings = lazy(
   () => import("./personalization/personalization-settings")
 )
@@ -16,6 +17,7 @@ export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   "general-basic": () => <GeneralSettings pane="basic" />,
   "general-data": () => <GeneralSettings pane="data" />,
   "home-top": () => <HomeSettings />,
+  "popup-appearance": () => <PopupSettings />,
   "search-engines": () => <SearchEngineSettings />,
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />

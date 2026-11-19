@@ -43,6 +43,7 @@ export function snapshot(): Config {
       burningAmplitude: home.burningAmplitude,
       fairIsle: home.fairIsle,
       liquidGlass: home.liquidGlass,
+      popupAppearance: home.popupAppearance,
       transitionsEnabled: home.transitionsEnabled,
       tabAppearance: home.tabAppearance,
       squareTabAppearance: home.squareTabAppearance,

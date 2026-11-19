@@ -1,4 +1,5 @@
 import { suggestionUrl } from "@/lib/search-suggestions"
+import { appEnvironment } from "@/lib/app-environment"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
 import { canSelectBrowserSearch } from "@/stores/privacy-store"
 import { networkAllowed, usePrivacyStore } from "@/stores/privacy-store"
@@ -31,7 +32,7 @@ export function useSearchSuggestions(query: string, enabled: boolean) {
       try {
         if (!(await networkAllowed("suggestions")) || cancelled) return
         const endpoint =
-          location.protocol === "chrome-extension:"
+          appEnvironment.platform === "chromium-extension"
             ? remote!
             : `/__suggestions?q=${encodeURIComponent(query)}&engine=${encodeURIComponent(engine)}`
         const response = await fetch(endpoint, {

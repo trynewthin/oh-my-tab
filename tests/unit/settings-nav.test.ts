@@ -1,7 +1,9 @@
-import { describe, expect, test } from "vitest"
+import { afterEach, describe, expect, test, vi } from "vitest"
 import {
+  availableSettingsNav,
   collectSettingsRoutes,
   isSettingsRouteId,
+  resolveSettingsSection,
   settingsIcons,
   settingsNav,
 } from "@/components/settings/settings-routes"
@@ -13,6 +15,32 @@ import {
 } from "@/lib/settings-sections"
 
 describe("settings nav routes", () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  test.each([
+    ["chrome-extension:", "popup.html", true],
+    ["chrome-extension:", undefined, false],
+    ["https:", "popup.html", false],
+  ])(
+    "guards Popup appearance on %s with manifest popup %s",
+    (protocol, popup, available) => {
+      vi.stubGlobal("location", { protocol })
+      vi.stubGlobal("chrome", {
+        runtime: { getManifest: () => ({ action: { default_popup: popup } }) },
+      })
+      const navigation = availableSettingsNav()
+      const ids = collectSettingsRoutes(navigation).map(({ route }) => route.id)
+      if (available) {
+        expect(ids[ids.indexOf("home-top") + 1]).toBe("popup-appearance")
+      } else {
+        expect(ids).not.toContain("popup-appearance")
+      }
+      expect(resolveSettingsSection("popup-appearance", navigation)).toBe(
+        available ? "popup-appearance" : defaultSettingsSection
+      )
+    }
+  )
+
   test("json nav registers unique routes and a valid default", () => {
     const ids = collectSettingsRoutes().map(({ route }) => route.id)
     expect(new Set(ids).size).toBe(ids.length)

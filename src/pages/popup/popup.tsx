@@ -1,11 +1,10 @@
 import { flushStorage } from "@/lib/storage"
 import { rehydrateData } from "@/application/hydrate"
 import { findBookmarkByUrl } from "@/lib/bookmark-lookup"
-import PopupBackground from "./popup-background"
-import { useEffect, useState, type ReactNode, type FormEvent } from "react"
+import PopupSurface from "@/components/popup/popup-surface"
+import PopupBookmarkForm from "@/components/popup/popup-bookmark-form"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useTabGridStore } from "@/stores/tab-grid-store"
 import { normalizeTabUrl } from "@/lib/grid/types"
 
@@ -19,24 +18,6 @@ interface TabAPI {
 }
 
 type PopupError = "" | "extensionOnly" | "readCurrentPageFailed" | "saveFailed"
-
-function PopupSurface({
-  children,
-  loading = false,
-}: {
-  children?: ReactNode
-  loading?: boolean
-}) {
-  return (
-    <main
-      className="relative isolate min-h-28 w-[360px] overflow-hidden p-5"
-      aria-busy={loading}
-    >
-      <PopupBackground />
-      {children}
-    </main>
-  )
-}
 
 export default function Popup() {
   const { t } = useTranslation()
@@ -96,8 +77,7 @@ export default function Popup() {
       cancelled = true
     }
   }, [])
-  async function submit(event: FormEvent) {
-    event.preventDefault()
+  async function submit() {
     const address = normalizeTabUrl(url)
     if (!address || !name.trim() || saving || success) return
     setSaving(true)
@@ -126,75 +106,37 @@ export default function Popup() {
     )
   }
   if (loading) return <PopupSurface loading />
+  const submitAction = success
+    ? "success"
+    : saving
+      ? existing
+        ? "updating"
+        : "adding"
+      : existing
+        ? "update"
+        : "add"
   return (
     <PopupSurface>
-      <form className="space-y-4" onSubmit={(event) => void submit(event)}>
-        <div className="space-y-3">
-          <label htmlFor="tab-name" className="block text-sm">
-            {t("shell.popup.nameLabel")}
-          </label>
-          <Input
-            id="tab-name"
-            className="border-border bg-popover dark:bg-popover"
-            value={name}
-            disabled={loading || saving}
-            maxLength={120}
-            onChange={(event) => {
-              setName(event.target.value)
-              setSuccess(false)
-            }}
-          />
-        </div>
-        <div className="space-y-3">
-          <label htmlFor="tab-url" className="block text-sm">
-            {t("shell.popup.urlLabel")}
-          </label>
-          <Input
-            id="tab-url"
-            className="border-border bg-popover dark:bg-popover"
-            value={url}
-            disabled={loading || saving}
-            placeholder="https://"
-            onChange={(event) => {
-              setUrl(event.target.value)
-              setSuccess(false)
-            }}
-          />
-        </div>
-        <Button
-          type="submit"
-          className={
-            success
-              ? "w-full border-border bg-emerald-600 text-white disabled:opacity-100"
-              : "w-full border-border"
-          }
-          disabled={
-            loading ||
-            saving ||
-            success ||
-            !name.trim() ||
-            !normalizeTabUrl(url)
-          }
-          aria-live="polite"
-        >
-          {success
-            ? t("shell.popup.success")
-            : loading
-              ? t("shell.popup.loading")
-              : saving
-                ? existing
-                  ? t("shell.popup.updating")
-                  : t("shell.popup.adding")
-                : existing
-                  ? t("shell.popup.update")
-                  : t("shell.popup.add")}
-        </Button>
-        {error && (
-          <p role="alert" className="text-xs text-destructive">
-            {t(`shell.popup.${error}`)}
-          </p>
-        )}
-      </form>
+      <PopupBookmarkForm
+        name={name}
+        url={url}
+        submitLabel={t(`shell.popup.${submitAction}`)}
+        onNameChange={(value) => {
+          setName(value)
+          setSuccess(false)
+        }}
+        onUrlChange={(value) => {
+          setUrl(value)
+          setSuccess(false)
+        }}
+        onSave={() => void submit()}
+        fieldsDisabled={saving}
+        submitDisabled={
+          saving || success || !name.trim() || !normalizeTabUrl(url)
+        }
+        success={success}
+        error={error ? t(`shell.popup.${error}`) : undefined}
+      />
     </PopupSurface>
   )
 }

@@ -7,6 +7,7 @@ import {
   subscribeStorage,
 } from "@/lib/storage"
 import { networkAllowed } from "@/stores/privacy-store"
+import { appEnvironment } from "@/lib/app-environment"
 const RETRY_DELAY = 15 * 60 * 1000
 const MAX_BYTES = 2 * 1024 * 1024
 
@@ -101,9 +102,6 @@ async function downloadIcon(
   source: IconSource,
   fresh = false
 ): Promise<Blob> {
-  const extension = ["chrome-extension:", "moz-extension:"].includes(
-    window.location.protocol
-  )
   const site = new URL(url)
   const domain = encodeURIComponent(site.hostname)
   const remote =
@@ -112,9 +110,10 @@ async function downloadIcon(
       : source === "duckduckgo"
         ? `https://icons.duckduckgo.com/ip3/${domain}.ico`
         : url
-  const endpoint = extension
-    ? remote
-    : `/__favicon?origin=${encodeURIComponent(site.origin)}&source=${source}`
+  const endpoint =
+    appEnvironment.platform === "web"
+      ? `/__favicon?origin=${encodeURIComponent(site.origin)}&source=${source}`
+      : remote
   return fetchBlob(endpoint, fresh)
 }
 

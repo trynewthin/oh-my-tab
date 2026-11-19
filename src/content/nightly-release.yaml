@@ -1,14 +1,6 @@
 version: 1.6.0
 notes:
   zh-CN:
-    - 新增折光玻璃材质，提供清透和柔雾两种质感。卡片和控件会折射当前预览的底层内容，可调节色调、通透度、折射、模糊、饱和度与高光。轮播缩略图用独立背景展示折射。
-    - 费尔岛针织支持混搭十种花纹、自定义纱线、调整条带和种子，并可预览或导出无缝纹样。
-    - 材质页固定显示背景、卡片和控件的预览及当前用材。下方的横向轮播铺满可用宽度，保留紧凑卡片及两端渐隐，并可用 Tab 将所选材质应用到支持的位置。
-    - 条形标签、方形标签和文件夹的边框与阴影可选无、小、中、大四档，旧边框在主动换档前保留原样。
-    - 条形标签、方形标签和文件夹的设置预览改为原尺寸叠放展示，局部裁切以保留真实的材质和细节。
+    - 在浏览器扩展的「个性化」中，「主页」下方新增 Popup 外观。可实时预览和调整工具栏弹窗的宽度、内边距、背景效果、颜色与动画。设置随工作区备份保存。
   en:
-    - Added Refractive Glass for cards and controls, with clear and frosted finishes. It refracts the existing preview backdrop and offers controls for tint, clarity, refraction, blur, saturation, and highlights. Its carousel thumbnail uses a separate backdrop to show refraction.
-    - Fair Isle Knit supports ten mixable motifs, custom yarn colors, band and seed controls, and seamless pattern export.
-    - The Material page keeps a live preview and current materials in view. The full-width carousel keeps compact cards and faded edges. Use tabs to apply the selected material to compatible surfaces.
-    - Strip tabs, square tabs, and folders now offer four border and shadow presets. Existing borders keep their appearance until you choose a preset.
-    - Strip tab, square tab, and folder settings previews now show overlapping, cropped samples at their native sizes.
+    - The browser extension adds Popup appearance below Home in Personalization. Preview and adjust the toolbar popup’s width, padding, background effect, color, and animation. These settings are included in workspace backups.

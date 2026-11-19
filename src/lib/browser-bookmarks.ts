@@ -1,4 +1,5 @@
 import { i18n } from "@/i18n"
+import { appEnvironment } from "@/lib/app-environment"
 import type { ImportedBookmark } from "./bookmark-import"
 
 export type BrowserBookmarkNode = {
@@ -17,7 +18,7 @@ const browserApi = () =>
   (globalThis as typeof globalThis & { chrome?: BookmarkApi }).chrome
 
 export const supportsBrowserBookmarks = () =>
-  location.protocol === "chrome-extension:" &&
+  appEnvironment.platform === "chromium-extension" &&
   typeof browserApi()?.permissions?.request === "function"
 
 export function parseBookmarkTree(tree: BrowserBookmarkNode[]) {

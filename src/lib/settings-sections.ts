@@ -2,6 +2,7 @@ export const settingsSections = [
   "general-basic",
   "general-data",
   "home-top",
+  "popup-appearance",
   "search-engines",
   "personalization-appearance",
   "personalization-material",

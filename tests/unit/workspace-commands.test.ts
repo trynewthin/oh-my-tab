@@ -4,11 +4,13 @@ import {
   EntryDatabase,
 } from "@/lib/data/dexie-repository"
 import { WorkspaceService, configEntries } from "@/lib/data/workspace"
-import { defaultConfig } from "@/lib/data/config"
+import { configSchema, defaultConfig } from "@/lib/data/config"
 import type { WorkspaceCommand } from "@/lib/data/commands"
 import { createCatalogComponent } from "@/lib/grid/factory"
 import { cacheDeletionPlan } from "@/lib/data/maintenance"
 import { STORAGE_VERSION } from "@/lib/data-version"
+import { decodeBackup, encodeBackup } from "@/lib/backup-codec"
+import { defaultPopupAppearance } from "@/lib/popup-appearance"
 
 let database: EntryDatabase
 let repository: DexieEntryRepository
@@ -33,6 +35,40 @@ async function request(command: WorkspaceCommand) {
 }
 
 describe("domain transactions", () => {
+  it("defaults Popup appearance for old backups and preserves changes in new backups", async () => {
+    const { popupAppearance, ...oldHome } = defaultConfig().home
+    const oldBackup = await encodeBackup({ ...defaultConfig(), home: oldHome })
+    const oldSource = await decodeBackup(oldBackup)
+    const oldPreview = await service.previewRestore({
+      config: configSchema.parse(oldSource.config),
+    })
+    expect(oldPreview.config.home.popupAppearance).toEqual(
+      defaultPopupAppearance
+    )
+    const appearance = {
+      ...popupAppearance,
+      width: 480,
+      padding: 28,
+      color: "#8844cc",
+      effect: "particles" as const,
+      animated: false,
+    }
+    await service.execute(
+      await request({
+        type: "settings.patch",
+        patch: { popupAppearance: appearance },
+      })
+    )
+    const { config } = await service.read()
+    const backup = await encodeBackup(config)
+    const source = await decodeBackup(backup)
+    const restored = await service.previewRestore({
+      config: configSchema.parse(source.config),
+    })
+    expect(restored.config.home.popupAppearance).toEqual(appearance)
+    expect(restored.config.home.color).toBe(oldHome.color)
+  })
+
   it("commits a garden widget and shared garden together, with rollback and an idempotent retry", async () => {
     const config = defaultConfig()
     const widget = createCatalogComponent("ecosystem")

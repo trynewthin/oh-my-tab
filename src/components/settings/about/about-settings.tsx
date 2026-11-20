@@ -1,5 +1,6 @@
-import { GithubLogo } from "@phosphor-icons/react"
+import { GithubLogo, Shield } from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
+import SettingSection from "../shared/setting-section"
 import PrivacySettings from "./privacy-settings"
 import ReleaseNotesCard from "./release-notes-card"
 
@@ -8,12 +9,12 @@ export default function AboutSettings() {
   return (
     <div className="space-y-6">
       <ReleaseNotesCard />
-      <section aria-labelledby="about-privacy-title" className="space-y-4">
-        <h3 id="about-privacy-title" className="text-base font-semibold">
-          {t("settings.about.privacyAndData")}
-        </h3>
+      <SettingSection
+        title={t("settings.about.privacyAndData")}
+        icon={<Shield />}
+      >
         <PrivacySettings showTitle={false} />
-      </section>
+      </SettingSection>
       <footer className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 py-2">
         <div className="flex min-w-0 items-center gap-3">
           <img

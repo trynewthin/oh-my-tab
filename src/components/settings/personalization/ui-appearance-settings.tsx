@@ -18,7 +18,7 @@ export default function UiAppearanceSettings() {
   const setShadow = useThemeStore((state) => state.setUiShadow)
 
   return (
-    <div className="space-y-4 border-b border-border pb-4">
+    <div className="space-y-4">
       <UiAppearancePreview
         id={previewId}
         appearance={{ radius, border, shadow }}

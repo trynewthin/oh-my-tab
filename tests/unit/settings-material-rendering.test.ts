@@ -122,6 +122,9 @@ test("renders assigned materials on the settings window outside the material pag
       backgroundMaterial: "fair-isle",
       sidebarMaterial: "liquid-glass",
       controlMaterial: "particles",
+      panelOpacity: 0,
+      panelBlur: 12,
+      panelTitleBackground: true,
     },
   })
   useSystemOverlayStore.getState().openSettings("personalization-appearance")
@@ -134,8 +137,31 @@ test("renders assigned materials on the settings window outside the material pag
     'data-settings-material-surface="sidebar" data-material="liquid-glass"'
   )
   expect(html).toContain("--settings-control-image:url(")
+  expect(html).toContain("--settings-panel-opacity:0%")
+  expect(html).toContain("--settings-panel-blur:blur(12px)")
+  expect(html).toContain("--settings-title-panel-opacity:65%")
+  expect(html).toContain('data-settings-title-panels=""')
   expect(html).toContain("var(--popover) 60%, transparent")
   expect(html).not.toContain("backdrop-filter:")
+})
+
+test("renders the side panel with the settings panel opacity and blur when following", () => {
+  useThemeStore.setState({
+    settingsAppearance: {
+      sidebarMaterial: "settings-panel",
+      panelOpacity: 24,
+      panelBlur: 9,
+    },
+  })
+  useSystemOverlayStore.getState().openSettings("personalization-appearance")
+  const html = renderToStaticMarkup(createElement(SettingsApplication, props))
+
+  expect(html).toContain(
+    'data-settings-material-surface="sidebar" data-material="settings-panel"'
+  )
+  expect(html).toContain("var(--muted) 24%, transparent")
+  expect(html).toContain("backdrop-filter:blur(9px)")
+  expect(html).not.toContain("data-settings-title-panels")
 })
 
 test("renders a blur-only background mask without tinting the material", () => {

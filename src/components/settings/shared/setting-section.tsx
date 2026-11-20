@@ -2,6 +2,7 @@ import { useId, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 export default function SettingSection({
+  id,
   title,
   icon,
   actions,
@@ -9,6 +10,7 @@ export default function SettingSection({
   headerClassName,
   children,
 }: {
+  id?: string
   title: string
   icon?: ReactNode
   actions?: ReactNode
@@ -20,8 +22,9 @@ export default function SettingSection({
 
   return (
     <section
+      id={id}
       aria-labelledby={headingId}
-      className={cn("flex flex-col gap-4", className)}
+      className={cn("flex min-w-0 flex-col gap-4", className)}
     >
       <div
         className={cn(
@@ -31,6 +34,7 @@ export default function SettingSection({
       >
         <h3
           id={headingId}
+          data-settings-panel-title
           className="flex min-w-0 items-center gap-2 text-base font-semibold"
         >
           {icon && (
@@ -45,7 +49,12 @@ export default function SettingSection({
         </h3>
         {actions}
       </div>
-      {children}
+      <div
+        data-settings-panel
+        className="flex min-w-0 flex-col gap-4 rounded-(--ui-radius-panel) border p-3 sm:p-(--ui-padding-panel)"
+      >
+        {children}
+      </div>
     </section>
   )
 }

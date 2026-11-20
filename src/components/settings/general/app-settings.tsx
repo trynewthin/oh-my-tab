@@ -16,14 +16,14 @@ export default function AppSettings() {
       icon={<SquaresFour />}
       className="gap-3"
     >
-      <ul className="divide-y divide-border/60 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel">
+      <ul className="space-y-3">
         {managedAppIds.map((id) => {
           const { title, icon: Icon } = appRegistry[id]
           const name = t(title)
           return (
             <li
               key={id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:px-4"
+              className="flex flex-wrap items-center gap-x-3 gap-y-2"
             >
               <Icon
                 aria-hidden="true"

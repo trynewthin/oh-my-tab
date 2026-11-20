@@ -1,3 +1,4 @@
+import { GridFour } from "@phosphor-icons/react"
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import { useTranslation } from "react-i18next"
 import SettingItem from "../shared/setting-item"
 import { settingsControlClassName } from "../shared/control-styles"
 import SettingRange from "../shared/setting-range"
+import SettingSection from "../shared/setting-section"
 
 export default function GridPane() {
   const { t } = useTranslation()
@@ -54,8 +56,7 @@ export default function GridPane() {
   ] as const
 
   return (
-    <div className="space-y-4">
-      <div className="border-t" aria-hidden="true" />
+    <SettingSection title={t("settings.home.gridTitle")} icon={<GridFour />}>
       <SettingItem
         label={t("settings.home.gridScale")}
         htmlFor="home-grid-scale"
@@ -107,6 +108,6 @@ export default function GridPane() {
           </Select>
         </SettingItem>
       ))}
-    </div>
+    </SettingSection>
   )
 }

@@ -106,7 +106,10 @@ describe("business projections", () => {
     const materials = {
       backgroundMaterial: "fair-isle",
       backgroundMask: { strength: 18, blur: 8 },
-      sidebarMaterial: "liquid-glass",
+      panelOpacity: 35,
+      panelBlur: 12,
+      panelTitleBackground: true,
+      sidebarMaterial: "settings-panel",
       controlMaterial: "particles",
       materialParameters: {
         background: { "star-trails": { speed: 1.5, mode: "dynamic" } },

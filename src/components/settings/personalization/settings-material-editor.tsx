@@ -168,6 +168,7 @@ function MaterialEditorContent({
         </DialogTitle>
       </DialogHeader>
       <AppearancePreviewFrame
+        surface="sample"
         ref={slot === "background" ? frame : undefined}
         aria-hidden="true"
         className="relative h-[clamp(5rem,24svh,10rem)] shrink-0"

@@ -72,8 +72,9 @@ export default function SettingsBackgroundMaskSetting({
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
           <AppearancePreviewFrame
+            surface="sample"
             aria-hidden="true"
-            className="relative h-[clamp(6rem,25svh,10rem)] bg-popover bg-none"
+            className="relative h-[clamp(6rem,25svh,10rem)] bg-none"
           >
             <SettingsMaterialSurface
               placement="background"

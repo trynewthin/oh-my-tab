@@ -23,6 +23,10 @@ import type {
   StarTrailMode,
 } from "./personalization/material-preview-context"
 import type { SettingsSection } from "@/lib/settings-sections"
+import {
+  defaultSettingsPanelOpacity,
+  settingsPanelMaterial,
+} from "@/lib/ui-appearance"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import { useThemeStore } from "@/stores/theme-store"
@@ -75,6 +79,7 @@ export default function SettingsApplication({
   const accentColor = useHomeSettingsStore((state) => state.color)
   const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
   const appearance = useThemeStore((state) => state.settingsAppearance)
+  const sidebarMaterial = appearance?.sidebarMaterial
   const controlParameters = appearance?.materialParameters?.control
   const glass = useHomeSettingsStore(
     (state) => controlParameters?.["liquid-glass"] ?? state.liquidGlass
@@ -108,9 +113,16 @@ export default function SettingsApplication({
       size="large"
       appearance={appearance}
       windowStyle={
-        controlImage
-          ? ({ "--settings-control-image": controlImage } as CSSProperties)
-          : undefined
+        {
+          "--settings-control-image": controlImage,
+          "--settings-panel-opacity": `${appearance?.panelOpacity ?? defaultSettingsPanelOpacity}%`,
+          "--settings-panel-blur": appearance?.panelBlur
+            ? `blur(${appearance.panelBlur}px)`
+            : undefined,
+          "--settings-title-panel-opacity": appearance?.panelTitleBackground
+            ? `${Math.max(defaultSettingsPanelOpacity, appearance.panelOpacity ?? 0)}%`
+            : undefined,
+        } as CSSProperties
       }
       background={
         appearance?.backgroundMaterial &&
@@ -124,16 +136,21 @@ export default function SettingsApplication({
         ) : undefined
       }
       sidebarBackground={
-        appearance?.sidebarMaterial && appearance.sidebarMaterial !== "none" ? (
+        sidebarMaterial && sidebarMaterial !== "none" ? (
           <SettingsMaterialSurface
             placement="sidebar"
-            material={appearance.sidebarMaterial}
-            parameters={appearance.materialParameters?.sidebar}
+            material={sidebarMaterial}
+            parameters={appearance?.materialParameters?.sidebar}
+            panelOpacity={appearance?.panelOpacity}
+            panelBlur={appearance?.panelBlur}
           />
         ) : undefined
       }
       sidebarStyle="panel"
-      sidebarTranslucent={appearance?.sidebarMaterial === "liquid-glass"}
+      sidebarTranslucent={
+        sidebarMaterial === "liquid-glass" ||
+        sidebarMaterial === settingsPanelMaterial
+      }
       sidebarFooter={{
         id: "about",
         label: t("settings.nav.about"),
@@ -173,7 +190,13 @@ export default function SettingsApplication({
       }}
       accentColor={accentColor}
     >
-      <div data-settings-content className="contents">
+      <div
+        data-settings-content
+        data-settings-title-panels={
+          appearance?.panelTitleBackground ? "" : undefined
+        }
+        className="contents"
+      >
         <MaterialPreviewContext.Provider
           value={{
             value: materialPreview,

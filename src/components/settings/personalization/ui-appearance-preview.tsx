@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import SettingsMaterialSurface from "../settings-material-surface"
 import {
+  settingsPanelMaterial,
   uiAppearanceAttributes,
   type SettingsAppearance,
   type UiAppearanceOverrides,
@@ -25,6 +26,8 @@ export default function UiAppearancePreview({
   const { t } = useTranslation()
   const background = settingsMaterials?.backgroundMaterial
   const sidebar = settingsMaterials?.sidebarMaterial
+  const sidebarTranslucent =
+    sidebar === "liquid-glass" || sidebar === settingsPanelMaterial
 
   return (
     <div
@@ -69,13 +72,15 @@ export default function UiAppearancePreview({
           </div>
         </div>
         <div
-          className={`${previewCardClassName} top-[40%] right-[13%] left-[30%] z-10 -rotate-1 rounded-(--ui-radius-panel) border-ui-border-panel shadow-(--ui-shadow-panel) ${sidebar === "liquid-glass" ? "" : "bg-card"}`}
+          className={`${previewCardClassName} top-[40%] right-[13%] left-[30%] z-10 -rotate-1 rounded-(--ui-radius-panel) border-ui-border-panel shadow-(--ui-shadow-panel) ${sidebarTranslucent ? "" : "bg-card"}`}
         >
           {sidebar && sidebar !== "none" && (
             <SettingsMaterialSurface
               placement="sidebar"
               material={sidebar}
               parameters={settingsMaterials?.materialParameters?.sidebar}
+              panelOpacity={settingsMaterials?.panelOpacity}
+              panelBlur={settingsMaterials?.panelBlur}
             />
           )}
           <div className="relative flex items-center justify-between gap-2">

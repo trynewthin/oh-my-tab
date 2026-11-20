@@ -8,6 +8,7 @@ import {
 } from "@/stores/privacy-store"
 import { toast } from "@/stores/toast-store"
 import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 
 export type NetworkChoices = { suggestions: boolean; icons: boolean }
 
@@ -44,7 +45,12 @@ export default function PrivacySettings({
     }
   }
   return (
-    <div className="space-y-3 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
+    <div
+      className={cn(
+        "space-y-3",
+        showTitle && "rounded-(--ui-radius-panel) border p-(--ui-padding-panel)"
+      )}
+    >
       {showTitle && (
         <h3 className="text-sm font-medium">{t("settings.privacy.title")}</h3>
       )}

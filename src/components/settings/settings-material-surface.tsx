@@ -3,7 +3,9 @@ import MaterialSurface from "@/components/effects/material-surface"
 import { createFairIsleTexture } from "@/lib/fair-isle"
 import type { MaterialStyle } from "@/lib/material"
 import {
+  defaultSettingsPanelOpacity,
   resolveSettingsBackgroundMask,
+  settingsPanelMaterial,
   type SettingsBackgroundMask,
   type SettingsMaterialParameters,
 } from "@/lib/ui-appearance"
@@ -15,12 +17,16 @@ export default function SettingsMaterialSurface({
   backgroundMask,
   parameters,
   fairIslePreview,
+  panelOpacity = defaultSettingsPanelOpacity,
+  panelBlur = 0,
 }: {
-  material: MaterialStyle
+  material: MaterialStyle | typeof settingsPanelMaterial
   placement: "background" | "sidebar"
   backgroundMask?: SettingsBackgroundMask
   parameters?: SettingsMaterialParameters
   fairIslePreview?: { guides: boolean; fit: boolean }
+  panelOpacity?: number
+  panelBlur?: number
 }) {
   const color = useHomeSettingsStore((state) => state.color)
   const fairIsle = useHomeSettingsStore(
@@ -40,10 +46,27 @@ export default function SettingsMaterialSurface({
     [material, fairIsle]
   )
   const mask =
-    placement === "background"
+    placement === "background" && material !== settingsPanelMaterial
       ? resolveSettingsBackgroundMask(material, backgroundMask)
       : null
   const blur = mask?.blur ? `blur(${mask.blur}px)` : undefined
+
+  if (material === settingsPanelMaterial) {
+    const panelFilter = panelBlur > 0 ? `blur(${panelBlur}px)` : undefined
+    return (
+      <div
+        aria-hidden="true"
+        data-settings-material-surface={placement}
+        data-material={material}
+        className="pointer-events-none absolute inset-0 rounded-[inherit]"
+        style={{
+          backgroundColor: `color-mix(in oklab, var(--muted) ${panelOpacity}%, transparent)`,
+          backdropFilter: panelFilter,
+          WebkitBackdropFilter: panelFilter,
+        }}
+      />
+    )
+  }
 
   return (
     <div

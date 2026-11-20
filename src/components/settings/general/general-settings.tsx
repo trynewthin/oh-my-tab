@@ -33,7 +33,6 @@ export default function GeneralSettings() {
       <SettingSection
         title={t("settings.general.dataTitle")}
         icon={<Database />}
-        className="border-t border-border pt-4"
       >
         <CacheSettings />
         <BookmarkImport />

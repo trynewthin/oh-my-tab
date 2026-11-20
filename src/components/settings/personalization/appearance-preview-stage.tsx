@@ -3,13 +3,17 @@ import { cn } from "@/lib/utils"
 
 export function AppearancePreviewFrame({
   className,
+  surface = "panel",
   ...props
-}: ComponentProps<"div">) {
+}: ComponentProps<"div"> & { surface?: "panel" | "sample" }) {
   return (
     <div
       data-appearance-preview
+      data-settings-panel={surface === "panel" ? "" : undefined}
       className={cn(
-        "isolate overflow-hidden rounded-(--ui-radius-panel) border border-border bg-muted/60 bg-[radial-gradient(ellipse_at_22%_0%,var(--background),transparent_78%)]",
+        "isolate overflow-hidden rounded-(--ui-radius-panel) border",
+        surface === "sample" &&
+          "border-border bg-popover bg-[radial-gradient(ellipse_at_22%_0%,var(--background),transparent_78%)]",
         className
       )}
       {...props}

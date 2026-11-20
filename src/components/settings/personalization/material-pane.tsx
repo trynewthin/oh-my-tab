@@ -17,6 +17,7 @@ import {
 } from "@/lib/material"
 import { useMaterialPreview } from "./material-preview-context"
 import SettingItem from "../shared/setting-item"
+import SettingSection from "../shared/setting-section"
 import { settingsControlSurface } from "../shared/control-styles"
 import SettingRange from "../shared/setting-range"
 import { createFairIsleTexture } from "@/lib/fair-isle"
@@ -145,10 +146,9 @@ export default function MaterialPane() {
         tabIndex={0}
         className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset sm:-mr-(--ui-padding-window) sm:pr-(--ui-padding-window)"
       >
-        <section
+        <SettingSection
           id={`${id}-configuration`}
-          aria-label={t(selectedOption.labelKey)}
-          className="space-y-4 border-t border-border pt-4"
+          title={t(selectedOption.labelKey)}
         >
           {starTrails && (
             <SettingItem
@@ -252,7 +252,7 @@ export default function MaterialPane() {
               </SettingItem>
             </>
           )}
-        </section>
+        </SettingSection>
       </div>
     </div>
   )

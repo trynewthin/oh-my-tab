@@ -16,6 +16,9 @@ export type UiRadius = (typeof uiRadiusOptions)[number]
 export type UiDepth = (typeof uiDepthOptions)[number]
 
 export const defaultUiAppearance = "medium"
+export const defaultSettingsPanelOpacity = 65
+export const maxSettingsPanelBlur = 32
+export const settingsPanelMaterial = "settings-panel"
 
 export const uiAppearanceOverridesSchema = z.object({
   radius: z.enum(uiRadiusOptions).optional(),
@@ -75,11 +78,19 @@ export type SettingsMaterialParameters = z.infer<
 >
 
 export const settingsAppearanceSchema = uiAppearanceOverridesSchema.extend({
+  panelOpacity: z.number().int().min(0).max(100).optional(),
+  panelBlur: z.number().int().min(0).max(maxSettingsPanelBlur).optional(),
+  panelTitleBackground: z.boolean().optional(),
   backgroundMaterial: materialFor(
     settingsMaterialPlacements.backgroundMaterial
   ),
   backgroundMask: backgroundMaskSchema.optional(),
-  sidebarMaterial: materialFor(settingsMaterialPlacements.sidebarMaterial),
+  sidebarMaterial: z
+    .union([
+      z.literal(settingsPanelMaterial),
+      materialFor(settingsMaterialPlacements.sidebarMaterial),
+    ])
+    .optional(),
   controlMaterial: materialFor(settingsMaterialPlacements.controlMaterial),
   materialParameters: z
     .object({

@@ -63,7 +63,7 @@ export default function SearchEngineSettings() {
         </ApplicationHeaderActions>
       }
     >
-      <div className="flex items-center gap-4 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
+      <div className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">
             {t("settings.searchEngines.openInNewTab")}
@@ -79,9 +79,9 @@ export default function SearchEngineSettings() {
           onCheckedChange={setOpenInNewTab}
         />
       </div>
-      <div className="min-h-14 divide-y rounded-(--ui-radius-panel) border">
+      <div className="space-y-2">
         {engines.map((engine) => (
-          <div key={engine.id} className="flex items-center gap-3 p-3">
+          <div key={engine.id} className="flex items-center gap-3">
             <EngineIcon icon={engine.icon} />
             <span className="min-w-0 flex-1 truncate text-sm font-medium">
               {searchEngineLabel(engine, t)}

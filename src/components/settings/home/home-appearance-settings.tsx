@@ -28,11 +28,7 @@ export default function HomeAppearanceSettings() {
   const resetRadiusLabel = t("settings.home.resetComponentRadius")
 
   return (
-    <SettingSection
-      title={t("settings.home.appearance")}
-      icon={<Palette />}
-      className="border-t border-border pt-4"
-    >
+    <SettingSection title={t("settings.home.appearance")} icon={<Palette />}>
       <SettingItem label={radiusLabel} htmlFor="home-component-radius">
         <div className="flex min-w-0 items-center gap-2">
           <SettingRange

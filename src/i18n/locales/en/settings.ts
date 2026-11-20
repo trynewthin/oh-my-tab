@@ -420,6 +420,7 @@ export default {
       finishes: { clear: "Clear", frost: "Frosted" },
       clarity: "Clarity",
       tint: "Glass tint",
+      automaticTint: "Follow theme",
       optics: "Refraction and backdrop",
       refraction: "Refraction strength",
       rimWidth: "Refraction band width",

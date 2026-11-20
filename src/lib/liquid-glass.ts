@@ -52,7 +52,7 @@ export function liquidGlassOptics(settings: LiquidGlassSettings) {
 
   return {
     opacity: Number(opacity.toFixed(3)),
-    tint: settings.tint ?? "#ffffff",
+    tint: settings.tint ?? "var(--card)",
     refraction: settings.refraction ?? (frost ? 35 : 55),
     blur: settings.blur ?? (frost ? 14 : 10),
     sheenIntensity: settings.sheenIntensity ?? 19,

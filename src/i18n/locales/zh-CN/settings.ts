@@ -403,6 +403,7 @@ export default {
       finishes: { clear: "清透", frost: "柔雾" },
       clarity: "通透度",
       tint: "玻璃色调",
+      automaticTint: "跟随主题",
       optics: "折射与背景",
       refraction: "折射强度",
       rimWidth: "折射带宽度",

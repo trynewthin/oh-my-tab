@@ -27,6 +27,7 @@ export default function ColorPicker({
   className,
   disabled = false,
   popoverLayer,
+  automatic,
 }: {
   value: string
   onChange: (value: string) => void
@@ -34,6 +35,12 @@ export default function ColorPicker({
   className?: string
   disabled?: boolean
   popoverLayer?: number
+  automatic?: {
+    label: string
+    swatch: string
+    selected: boolean
+    onSelect: () => void
+  }
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -53,11 +60,21 @@ export default function ColorPicker({
         aria-label={t("shell.colorPicker.select", { label })}
       >
         <span
-          className="h-4 w-7 shrink-0 rounded-full"
-          style={{ backgroundColor: value }}
+          className={cn(
+            "h-4 w-7 shrink-0 rounded-full",
+            automatic?.selected && "border border-border"
+          )}
+          style={{
+            backgroundColor: automatic?.selected ? automatic.swatch : value,
+          }}
         />
-        <span className="truncate font-mono text-xs">
-          {value.toUpperCase()}
+        <span
+          className={cn(
+            "truncate text-xs",
+            !automatic?.selected && "font-mono"
+          )}
+        >
+          {automatic?.selected ? automatic.label : value.toUpperCase()}
         </span>
       </PopoverTrigger>
       <PopoverContent
@@ -65,6 +82,17 @@ export default function ColorPicker({
         className="w-64 gap-4 p-4"
         layer={popoverLayer}
       >
+        {automatic && (
+          <Button
+            type="button"
+            variant="outline"
+            aria-pressed={automatic.selected}
+            onClick={automatic.onSelect}
+          >
+            {automatic.label}
+            {automatic.selected && <Check />}
+          </Button>
+        )}
         <div
           role="group"
           aria-label={t("shell.colorPicker.presets", { label })}
@@ -75,12 +103,14 @@ export default function ColorPicker({
               key={preset.color}
               type="button"
               aria-label={t(`shell.colorPicker.colors.${preset.nameKey}`)}
-              aria-pressed={value.toLowerCase() === preset.color}
+              aria-pressed={
+                !automatic?.selected && value.toLowerCase() === preset.color
+              }
               className="flex size-8 items-center justify-center rounded-full border border-black/10 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               style={{ backgroundColor: preset.color }}
               onClick={() => onChange(preset.color)}
             >
-              {value.toLowerCase() === preset.color && (
+              {!automatic?.selected && value.toLowerCase() === preset.color && (
                 <Check className="size-4 text-white drop-shadow" />
               )}
             </button>
@@ -106,8 +136,10 @@ export default function ColorPicker({
             className="col-span-3 font-mono text-sm"
             onBlur={(event) => {
               const next = event.currentTarget.value.trim()
-              if (/^#[0-9a-f]{6}$/i.test(next)) onChange(next.toLowerCase())
-              else event.currentTarget.value = value
+              if (/^#[0-9a-f]{6}$/i.test(next)) {
+                if (!automatic?.selected || next.toLowerCase() !== value)
+                  onChange(next.toLowerCase())
+              } else event.currentTarget.value = value
             }}
             onKeyDown={(event) => {
               if (event.key === "Enter") {

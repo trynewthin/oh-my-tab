@@ -1,6 +1,7 @@
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { expect, test, vi } from "vitest"
+import { controlMaterialImage } from "@/components/effects/control-material-image"
 import MaterialSurface from "@/components/effects/material-surface"
 import { LiquidGlassRefraction } from "@/components/effects/liquid-glass-refraction"
 import MaterialCarousel from "@/components/settings/personalization/material-carousel"
@@ -48,7 +49,7 @@ const customizedGlass: LiquidGlassSettings = {
   glintSize: 210,
 }
 
-test("liquid glass uses the selected tint and finish on cards and controls", () => {
+test("default glass follows the theme on surfaces and controls", () => {
   expect(materialOptions["liquid-glass"].placements).toEqual([
     "card",
     "control",
@@ -62,7 +63,7 @@ test("liquid glass uses the selected tint and finish on cards and controls", () 
   })
   expect(liquidGlassOptics(frostedGlass)).toMatchObject({
     opacity: 0.248,
-    tint: "#ffffff",
+    tint: "var(--card)",
     blur: 14,
     refraction: 35,
     sheenIntensity: 19,
@@ -82,8 +83,15 @@ test("liquid glass uses the selected tint and finish on cards and controls", () 
   expect(surface).toContain('data-sheen="false"')
   expect(surface).toContain("--glass-blur:14px")
   expect(surface).toContain('data-sample="true"')
+  expect(surface).toContain("--glass-tint:var(--card)")
   expect(surface).not.toContain("<svg")
   expect(surface).not.toContain("feDisplacementMap")
+  expect(
+    controlMaterialImage("liquid-glass", "#3478f6", defaultLiquidGlass)
+  ).toContain("var(--card)")
+  expect(
+    controlMaterialImage("liquid-glass", "#3478f6", customizedGlass)
+  ).toContain("#6a83b8")
 })
 
 test("custom optics override the finish defaults on the live surface", () => {

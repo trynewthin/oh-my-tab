@@ -61,7 +61,13 @@ export default function LiquidGlassSettingsFields({
       <SettingItem label={t("settings.material.liquidGlass.tint")}>
         <ColorPicker
           label={t("settings.material.liquidGlass.tint")}
-          value={optics.tint}
+          value={value.tint ?? color}
+          automatic={{
+            label: t("settings.material.liquidGlass.automaticTint"),
+            swatch: "var(--card)",
+            selected: value.tint === null,
+            onSelect: () => onChange({ tint: null }),
+          }}
           className={settingsControlClassName}
           onChange={(tint) => onChange({ tint })}
         />

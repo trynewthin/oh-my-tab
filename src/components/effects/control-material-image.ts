@@ -11,10 +11,9 @@ export function controlMaterialImage(
 ) {
   if (material === "liquid-glass") {
     const { tint, opacity, sheenIntensity } = liquidGlassOptics(glass)
-    const highlight = glass.sheen
-      ? Math.min(100 - opacity * 50, sheenIntensity)
-      : 0
-    return `linear-gradient(135deg, color-mix(in srgb, ${tint} ${highlight + opacity * 50}%, transparent), color-mix(in srgb, ${tint} ${opacity * 60}%, transparent) 55%, color-mix(in srgb, ${tint} ${opacity * 100}%, transparent))`
+    const tintLayer = `linear-gradient(135deg, color-mix(in srgb, ${tint} ${opacity * 50}%, transparent), color-mix(in srgb, ${tint} ${opacity * 100}%, transparent))`
+    if (!glass.sheen || sheenIntensity === 0) return tintLayer
+    return `linear-gradient(135deg, color-mix(in srgb, var(--glass-highlight-color) ${sheenIntensity}%, transparent), transparent 55%), ${tintLayer}`
   }
   if ((material !== "burning" && material !== "particles") || strength === 0)
     return

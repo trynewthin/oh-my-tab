@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import { systemActionRegistry } from "@/lib/system-actions"
 import {
   MAX_QUICK_CONTROLS_PER_SIDE,
@@ -162,12 +161,12 @@ export default function QuickBarPreview() {
   const [addingSide, setAddingSide] = useState<QuickBarSide | null>(null)
 
   return (
-    <div className={`rounded-2xl bg-card px-2 py-1 ${surfaceShadowClassName}`}>
+    <div className="mx-auto flex h-full max-w-xl items-center px-3 sm:px-5">
       <div
         data-quick-bar-preview
         role="group"
         aria-label={t("settings.home.quickBarPreview")}
-        className="grid h-7 w-full grid-cols-3 items-center"
+        className="grid h-9 w-full grid-cols-3 items-center rounded-(--ui-radius-control) border border-ui-border-control bg-card px-2"
       >
         <PreviewSide
           side="left"

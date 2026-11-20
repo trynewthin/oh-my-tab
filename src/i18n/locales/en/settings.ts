@@ -15,6 +15,7 @@ export default {
     home: "Home",
     popupAppearance: "Popup appearance",
     search: "Search",
+    apps: "Apps",
     personalization: "Personalization",
     personalizationBasic: "Basic",
     personalizationMaterial: "Material",
@@ -23,8 +24,6 @@ export default {
     tabsSquare: "Square tabs",
     personalizationFolders: "Folders",
     about: "About",
-    aboutProject: "Project",
-    aboutPrivacy: "Privacy",
   },
   dialog: {
     title: "Settings",
@@ -222,7 +221,7 @@ export default {
     erase: "Clear all data",
     eraseTitle: "Clear all data?",
     eraseBody:
-      "This deletes all local data, including the standalone note, and resets the page. Export a backup for your dashboard and copy your note separately before continuing.",
+      "This deletes all local data, including any note from the retired standalone Notes app, and resets the page. Export a dashboard backup before continuing. It does not include the standalone note.",
     eraseConfirm: "Clear data",
     migrationIssues: "Partial restore",
     migrationIssuesHint:
@@ -380,9 +379,11 @@ export default {
     placementPreview: "Material preview",
     scrollablePreview: "Scrollable material preview",
     catalog: "Material list",
+    expandCatalog: "Expand material list",
+    collapseCatalog: "Collapse material list",
     previous: "Previous material",
     next: "Next material",
-    applyToPreview: "Apply to preview",
+    selectPlacement: "Choose material for {{placement}}",
     configuration: "Material configuration",
     reset: "Reset",
     resetPreview: "Reset material preview",
@@ -649,6 +650,7 @@ export default {
     confirmDelete: "Confirm delete",
   },
   about: {
+    privacyAndData: "Privacy and data",
     releaseNotes: "Release notes",
     supportTitleLine1: "Light up a star",
     supportTitleLine2: "for your next open.",

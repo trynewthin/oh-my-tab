@@ -142,11 +142,28 @@
 
 :root[data-ui-radius="large"] {
   --ui-radius-control: 1rem;
+  --ui-radius-button: var(--ui-radius-control);
   --ui-radius-panel: 1.5rem;
   --ui-radius-window: 2rem;
 }
 
-:root[data-ui-radius]:not([data-ui-radius="medium"]),
+@supports (corner-shape: squircle) {
+  :root:not([data-ui-radius]),
+  :root[data-ui-radius="medium"] {
+    --ui-radius-control: 0.875rem;
+    --ui-radius-button: 0.875rem;
+    --ui-radius-panel: 1.5rem;
+    --ui-radius-window: 2.25rem;
+  }
+
+  :root[data-ui-radius="large"] {
+    --ui-radius-control: 1.125rem;
+    --ui-radius-panel: 2.25rem;
+    --ui-radius-window: 3rem;
+  }
+}
+
+:root:is([data-ui-radius="none"], [data-ui-radius="small"]),
 [data-home-ui] {
   --ui-radius-button: var(--ui-radius-control);
 }
@@ -231,6 +248,29 @@
   --ui-shadow-button: 0 0 transparent;
 }
 
+/* Let opted-in homepage controls recover the configured values. */
+:root {
+  --ui-configured-radius-control: var(--ui-radius-control);
+  --ui-configured-radius-button: var(--ui-radius-button);
+  --ui-configured-border-control: var(--ui-border-control);
+  --ui-configured-shadow-control: var(--ui-shadow-control);
+}
+
+[data-home-search-appearance] {
+  --ui-radius-control: var(--ui-configured-radius-control);
+  --ui-radius-button: var(--ui-configured-radius-button);
+  --ui-border-control: color-mix(
+    in oklab,
+    var(--ui-configured-border-control),
+    var(--foreground) 10%
+  );
+  --ui-shadow-control: var(--ui-configured-shadow-control);
+}
+
+:root[data-ui-border="none"] [data-home-search-appearance] {
+  --ui-border-control: transparent;
+}
+
 .dark {
   --ui-shadow-ink: rgb(0 0 0 / 0.8);
   --background: oklch(0.141 0.005 285.823);
@@ -273,6 +313,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+  @supports (corner-shape: squircle) {
+    *,
+    *::before,
+    *::after {
+      corner-shape: squircle;
+    }
+
+    /* Keep token-based controls round even when the radius reaches half their height. */
+    [class*="(--ui-radius-control)"],
+    [class*="(--ui-radius-button)"],
+    .rounded-full,
+    .after\:rounded-full::after {
+      corner-shape: round;
+    }
+  }
   body {
     @apply bg-background text-foreground;
   }
@@ -307,5 +362,16 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in srgb, var(--foreground) 45%, transparent);
+  }
+}
+
+@layer components {
+  .segmented-control {
+    /* Match the inner arc plus the track's padding and border, even at zero. */
+    border-radius: min(
+      calc(var(--ui-radius-control) * 2),
+      calc(var(--ui-radius-control) + var(--spacing) * 0.5 + 1px)
+    );
+    corner-shape: round;
   }
 }

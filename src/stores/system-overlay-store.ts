@@ -1,21 +1,21 @@
 import { create } from "zustand"
-import { isAppWindow, type AppWindowId } from "@/lib/apps/ids"
+import { isAppWindow, type AppId } from "@/lib/apps/ids"
 import {
   defaultSettingsSection,
   type SettingsSection,
 } from "@/lib/settings-sections"
 
-export type SystemOverlay = AppWindowId | "add-tab" | "add-folder"
+export type SystemOverlay = AppId | "add-tab" | "add-folder"
 type OpenableOverlay = Exclude<SystemOverlay, "settings">
 
 type SystemOverlayState = {
   active: SystemOverlay | null
-  closingApp: AppWindowId | null
+  closingApp: AppId | null
   settingsSection: SettingsSection
   open: (overlay: OpenableOverlay) => void
   openSettings: (section?: SettingsSection) => void
   close: (overlay: SystemOverlay) => void
-  finishClosingApp: (id: AppWindowId) => void
+  finishClosingApp: (id: AppId) => void
   setSettingsSection: (section: SettingsSection) => void
 }
 

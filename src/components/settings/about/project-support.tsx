@@ -16,14 +16,14 @@ export default function ProjectSupport() {
         aria-labelledby="project-support-title"
         className="relative min-w-0 p-4 sm:p-5"
       >
-        <h3
+        <h4
           id="project-support-title"
           className="text-lg leading-snug font-semibold tracking-tight sm:text-xl"
         >
           {t("settings.about.supportTitleLine1")}
           <br />
           {t("settings.about.supportTitleLine2")}
-        </h3>
+        </h4>
         <p className="mt-2 max-w-2xl text-sm leading-5 text-muted-foreground">
           {t("settings.about.supportBody")}
         </p>

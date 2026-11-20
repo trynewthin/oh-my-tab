@@ -1,6 +1,6 @@
 import type { ReactElement } from "react"
 import { useTranslation } from "react-i18next"
-import { AppWindow, FolderPlus, Gear, Plus } from "@phosphor-icons/react"
+import { FolderPlus, Gear, Plus } from "@phosphor-icons/react"
 import { runSystemAction } from "@/application/system-actions"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import {
@@ -44,12 +44,6 @@ export default function HomeContextMenu({
         <ContextMenuItem onClick={() => runSystemAction("open-settings")}>
           <Gear />
           {t("shell.settingsButton.open")}
-        </ContextMenuItem>
-        <ContextMenuItem
-          onClick={() => useSystemOverlayStore.getState().open("apps")}
-        >
-          <AppWindow />
-          {t("shell.apps.title")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

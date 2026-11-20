@@ -1,5 +1,5 @@
 import { openStripTabSettings } from "../helpers/settings"
-import { expect, test } from "@playwright/test"
+import { expect, test, type Locator } from "@playwright/test"
 import { readStoredState } from "../helpers/storage"
 
 test.beforeEach(async ({ page }) => {
@@ -85,43 +85,76 @@ test("material cards configure independent preview surfaces and enforce placemen
   await openStripTabSettings(dialog)
   await dialog.getByRole("button", { name: "材质", exact: true }).click()
   const preview = dialog.getByRole("group", { name: "材质预览" })
+  const backgroundMaterial = preview.locator(
+    '[data-material-placement="background"] dd'
+  )
   const catalog = dialog.getByRole("group", { name: "材质列表" })
   const viewport = catalog.locator("[data-material-carousel-viewport]")
+  const configuration = dialog.getByRole("region", { name: "材质配置" })
+  const configurationScroll = () =>
+    configuration.evaluate((element) => element.scrollTop)
   const none = catalog.getByRole("button", { name: "无", exact: true })
+  const particlesCard = catalog.getByRole("button", { name: "浮游点阵" })
+  const starTrailsCard = catalog.getByRole("button", { name: "星轨唱片" })
   const previous = catalog.getByRole("button", { name: "上一个材质" })
   const next = catalog.getByRole("button", { name: "下一个材质" })
+  const leadingOffset = async (card: Locator) => {
+    const cardBox = await card.boundingBox()
+    const viewportBox = await viewport.boundingBox()
+    if (!cardBox || !viewportBox) return Infinity
+    return Math.abs(cardBox.x - viewportBox.x)
+  }
+
   await expect(
     catalog.getByRole("button", { name: "像素火焰" })
   ).toHaveAttribute("aria-pressed", "true")
   await previous.click()
-  await expect
-    .poll(async () => {
-      const cardBox = await none.boundingBox()
-      const viewportBox = await viewport.boundingBox()
-      if (!cardBox || !viewportBox) return Infinity
-      return Math.abs(cardBox.x - viewportBox.x)
-    })
-    .toBeLessThan(2)
+  await expect.poll(() => leadingOffset(none)).toBeLessThan(2)
 
   await next.click()
-  await next.click()
-  await catalog.getByRole("button", { name: "浮游点阵" }).click()
-  const particles = dialog.getByRole("region", { name: "浮游点阵" })
-  await particles.getByRole("tab", { name: "控件" }).click()
+  await viewport.hover()
+  const scrollTopBeforeWheel = await configurationScroll()
+  await page.mouse.wheel(0, 100)
+  await expect.poll(() => leadingOffset(particlesCard)).toBeLessThan(2)
+  expect(await configurationScroll()).toBe(scrollTopBeforeWheel)
+  await particlesCard.click()
+  await expect(particlesCard).toHaveAttribute("aria-pressed", "true")
 
-  await next.click()
-  await catalog.getByRole("button", { name: "星轨唱片" }).click()
+  const chooseMaterial = (placement: string) =>
+    preview
+      .getByRole("combobox", { name: `选择${placement}材质`, exact: true })
+      .click()
+  const materialOption = (name: string) =>
+    page.getByRole("option", { name, exact: true })
+
+  await chooseMaterial("背景")
+  await expect(materialOption("折光玻璃")).toHaveCount(0)
+  await expect(materialOption("无")).toHaveAttribute("aria-selected", "true")
+  await materialOption("像素火焰").click()
+
+  await chooseMaterial("控件")
+  await expect(materialOption("星轨唱片")).toHaveCount(0)
+  await expect(materialOption("折光玻璃")).toBeVisible()
+  await materialOption("浮游点阵").click()
+
+  await chooseMaterial("卡片背景")
+  await materialOption("星轨唱片").click()
+  const starTrailsName = preview.getByRole("button", {
+    name: "星轨唱片",
+    exact: true,
+  })
+  await expect(starTrailsName).toBeVisible()
+  await expect(particlesCard).toHaveAttribute("aria-pressed", "true")
+  await expect.poll(() => leadingOffset(particlesCard)).toBeLessThan(2)
+
+  await starTrailsName.click()
+  await expect(starTrailsCard).toHaveAttribute("aria-pressed", "true")
+  await expect.poll(() => leadingOffset(starTrailsCard)).toBeLessThan(2)
   const starTrails = dialog.getByRole("region", { name: "星轨唱片" })
   await expect(
     starTrails.getByRole("slider", { name: "运行速度" })
   ).toBeVisible()
-  await expect(starTrails.getByRole("tab", { name: "控件" })).toBeDisabled()
-  const cardTab = starTrails.getByRole("tab", { name: "卡片背景" })
-  await cardTab.click()
-  await expect(cardTab).toHaveAttribute("aria-selected", "true")
-  await expect(
-    preview.locator('[data-material-placement="background"] dd')
-  ).toHaveText("像素火焰")
+  await expect(backgroundMaterial).toHaveText("像素火焰")
   await expect(
     preview.locator('[data-material-placement="card"] dd')
   ).toHaveText("星轨唱片")
@@ -132,18 +165,28 @@ test("material cards configure independent preview surfaces and enforce placemen
     preview.locator('[data-material-placement="card"] [data-effect-style]')
   ).toHaveAttribute("data-effect-style", "star-trails")
 
-  const configuration = dialog.getByRole("region", { name: "材质配置" })
   const previewTop = () =>
     preview.evaluate((element) => element.getBoundingClientRect().top)
-  const configurationScroll = () =>
-    configuration.evaluate((element) => element.scrollTop)
+  const catalogTop = () =>
+    catalog.evaluate((element) => element.getBoundingClientRect().top)
   await configuration.focus()
   await configuration.press("Home")
   await expect.poll(configurationScroll).toBe(0)
   const fixedPreviewTop = await previewTop()
+  const fixedCatalogTop = await catalogTop()
   await configuration.press("End")
   await expect.poll(configurationScroll).toBeGreaterThan(0)
   expect(await previewTop()).toBeCloseTo(fixedPreviewTop, 0)
+  expect(await catalogTop()).toBeCloseTo(fixedCatalogTop, 0)
+
+  await preview.getByRole("button", { name: "收起材质列表" }).click()
+  await expect(catalog).toBeHidden()
+  const expandCatalog = preview.getByRole("button", { name: "展开材质列表" })
+  await expect(expandCatalog).toHaveAttribute("aria-expanded", "false")
+  await expect(starTrails).toBeVisible()
+  await expandCatalog.click()
+  await expect(catalog).toBeVisible()
+  await expect(starTrailsCard).toHaveAttribute("aria-pressed", "true")
 
   const materials = preview.locator(
     "[data-material-preview-stage] [data-effect-style]"
@@ -173,13 +216,14 @@ test("material cards configure independent preview surfaces and enforce placemen
   expect(scrolledCardTop).toBeCloseTo(cardTop, 0)
   expect(scrolledControlTop).toBeCloseTo(controlTop, 0)
   await preview.getByRole("button", { name: "重置材质预览" }).click()
+  await expect(backgroundMaterial).toHaveText("无")
   await expect(
     preview.locator('[data-material-placement="card"] dd')
   ).toHaveText("无")
   await expect(
     preview.locator('[data-material-placement="control"] dd')
   ).toHaveText("无")
-  await expect(materials).toHaveCount(1)
+  await expect(materials).toHaveCount(0)
 })
 
 test("particle style switches across surfaces and persists", async ({

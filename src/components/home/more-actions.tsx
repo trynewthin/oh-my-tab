@@ -1,12 +1,11 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AppWindow, SquaresFour } from "@phosphor-icons/react"
+import { SquaresFour } from "@phosphor-icons/react"
 import { runSystemAction } from "@/application/system-actions"
 import { systemActionMenuIcons } from "@/components/system-action-icons"
 import { useSystemActionState } from "@/components/system-action-state"
-import { compactSearchButtonBackgroundClassName } from "@/components/search/search-surface-styles"
+import { compactSearchButtonClassName } from "@/components/search/search-surface-styles"
 import { Button } from "@/components/ui/button"
-import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import {
   Popover,
   PopoverContent,
@@ -20,7 +19,6 @@ import {
 } from "@/lib/system-actions"
 import { useGridSelectionStore } from "@/stores/grid-selection-store"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 
 const defaultMenuActions = systemActionIdsFor("more-actions")
 
@@ -60,9 +58,11 @@ function SystemMenuAction({
 export default function MoreActions({
   compact = false,
   actions,
+  preview = false,
 }: {
   compact?: boolean
   actions?: readonly SystemActionId[]
+  preview?: boolean
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -80,7 +80,7 @@ export default function MoreActions({
     >
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
-          data-tour="more"
+          data-tour={preview ? undefined : "more"}
           aria-label={t("shell.moreActions.trigger")}
           title={t("shell.moreActions.trigger")}
           render={
@@ -89,7 +89,7 @@ export default function MoreActions({
               size="icon"
               className={
                 compact
-                  ? `size-10 rounded-full border-border bg-clip-padding backdrop-blur-xl ${compactSearchButtonBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`
+                  ? compactSearchButtonClassName(backgroundType)
                   : undefined
               }
             />
@@ -112,17 +112,6 @@ export default function MoreActions({
               }}
             />
           ))}
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => {
-              setOpen(false)
-              useSystemOverlayStore.getState().open("apps")
-            }}
-          >
-            <AppWindow />
-            {t("shell.apps.title")}
-          </Button>
         </PopoverContent>
       </Popover>
     </div>

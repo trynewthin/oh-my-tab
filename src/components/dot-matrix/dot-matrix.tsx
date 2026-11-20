@@ -17,14 +17,16 @@ import {
 function MatrixContent({
   columns,
   showSeconds,
+  preview,
 }: {
   columns: number
   showSeconds: boolean
+  preview: boolean
 }) {
   const { t } = useTranslation()
   const renderer = useMatrixRendererStore((state) => state.renderer)
   const [failed, setFailed] = useState(false)
-  const usePixi = renderer === "pixi" && !failed
+  const usePixi = !preview && renderer === "pixi" && !failed
   const content = useHomeSettingsStore((state) => state.content)
   const text = useHomeSettingsStore((state) => state.text)
   const color = useHomeSettingsStore((state) => state.color)
@@ -34,6 +36,7 @@ function MatrixContent({
   const textPixels = useMemo(() => textBitmap(text), [text])
 
   useEffect(() => {
+    if (preview && content !== "time") return
     if (content === "text" && (textPixels[0]?.length ?? 0) <= columns) return
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
     const timer = window.setInterval(
@@ -51,7 +54,7 @@ function MatrixContent({
             : 80
     )
     return () => window.clearInterval(timer)
-  }, [content, columns, textPixels])
+  }, [content, columns, textPixels, preview])
 
   const time = clock.toLocaleTimeString("en-GB", { hour12: false })
   const clockDisplay = clockBitmap(time, columns, showSeconds)
@@ -77,9 +80,11 @@ function MatrixContent({
       <div
         role="img"
         aria-label={label}
-        data-matrix-columns={columns}
-        data-matrix-renderer={usePixi ? "pixi" : "dom"}
-        data-time-format={content === "time" ? clockDisplay.format : undefined}
+        data-matrix-columns={preview ? undefined : columns}
+        data-matrix-renderer={preview ? undefined : usePixi ? "pixi" : "dom"}
+        data-time-format={
+          !preview && content === "time" ? clockDisplay.format : undefined
+        }
         className="mx-auto grid w-fit [contain:layout_paint_style]"
         style={{
           gridTemplateColumns: usePixi
@@ -123,8 +128,10 @@ function MatrixContent({
 
 export default function DotMatrix({
   showSeconds = true,
+  preview = false,
 }: {
   showSeconds?: boolean
+  preview?: boolean
 }) {
   const container = useRef<HTMLDivElement>(null)
   const [columns, setColumns] = useState(0)
@@ -146,6 +153,7 @@ export default function DotMatrix({
           key={`${columns}-${content}-${text}`}
           columns={columns}
           showSeconds={showSeconds}
+          preview={preview}
         />
       )}
     </div>

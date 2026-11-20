@@ -11,6 +11,41 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
+test("apps are managed after search in settings instead of the home menus", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("button", { name: "更多操作", exact: true }).click()
+  await expect(
+    page.getByRole("button", { name: "应用", exact: true })
+  ).toHaveCount(0)
+  await page.keyboard.press("Escape")
+  await page
+    .locator("[data-grid-scroll]")
+    .click({ button: "right", position: { x: 4, y: 4 } })
+  const menu = page.getByRole("menu")
+  await expect(menu).toBeVisible()
+  await expect(
+    menu.getByRole("menuitem", { name: "应用", exact: true })
+  ).toHaveCount(0)
+  await menu.getByRole("menuitem", { name: "打开设置", exact: true }).click()
+
+  const settings = page.getByRole("dialog", { name: "设置", exact: true })
+  const general = settings.getByRole("group", { name: "常规", exact: true })
+  await expect(general.getByRole("button")).toHaveText([
+    "基础",
+    "数据",
+    "搜索",
+    "应用",
+  ])
+  await general.getByRole("button", { name: "应用", exact: true }).click()
+  await expect(settings.getByText("便签", { exact: true })).toHaveCount(0)
+  await settings.getByRole("button", { name: "打开组件", exact: true }).click()
+  await expect(
+    page.getByRole("dialog", { name: "组件", exact: true })
+  ).toBeVisible()
+})
+
 test("custom search engines validate URLs and persist selection", async ({
   page,
 }) => {
@@ -134,6 +169,84 @@ test("personalization persists global burning controls", async ({ page }) => {
   await dialog.getByRole("button", { name: "材质", exact: true }).click()
   await expect(amplitude).toHaveValue("2")
   await expect(entrance).toBeChecked()
+})
+
+test("top-bar preview reflects browser search without adding active search controls", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.assign(window, { chrome: { search: { query: async () => {} } } })
+  })
+  await page.goto("/")
+  const engineLabel = "搜索引擎：浏览器默认"
+  await expect(
+    page.getByRole("button", { name: engineLabel, exact: true })
+  ).toBeVisible()
+  const homeSearchRadius = await page
+    .getByRole("button", { name: "搜索", exact: true })
+    .evaluate((button) => getComputedStyle(button).borderRadius)
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
+
+  const preview = dialog.locator("[data-traditional-preview]")
+  await expect(preview.locator(`[aria-label="${engineLabel}"]`)).toBeVisible()
+  const previewSearch = preview.locator('button[aria-label="搜索"]')
+  await expect(previewSearch).toBeDisabled()
+  await expect(previewSearch).toHaveCSS("border-radius", homeSearchRadius)
+  await expect(preview.getByRole("combobox")).toHaveCount(0)
+  await expect(preview.locator("[data-tour]")).toHaveCount(0)
+})
+
+test("both top-bar search forms follow control appearance in the page and preview", async ({
+  page,
+}) => {
+  await page.goto("/")
+  const homeSearch = page.locator("main [data-home-search-control]")
+  const defaultShadow = await homeSearch.evaluate(
+    (element) => getComputedStyle(element).boxShadow
+  )
+  await page.getByRole("button", { name: "打开设置", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "设置", exact: true })
+  await dialog
+    .getByRole("group", { name: "个性化", exact: true })
+    .getByRole("button", { name: "基础", exact: true })
+    .click()
+  for (const name of ["圆角", "边框", "阴影"]) {
+    await dialog
+      .getByRole("tablist", { name, exact: true })
+      .getByRole("tab", { name: "无", exact: true })
+      .click()
+  }
+  await expect(homeSearch).not.toHaveCSS("box-shadow", defaultShadow)
+  await dialog.getByRole("button", { name: "主页", exact: true }).click()
+  const previewSearch = dialog.locator("[data-home-search-control]")
+  const expectUnstyledSearch = async () => {
+    for (const search of [homeSearch, previewSearch]) {
+      await expect(search).toHaveCSS("border-radius", "0px")
+      await expect(search).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)")
+    }
+  }
+  await expectUnstyledSearch()
+  await dialog.getByRole("combobox", { name: "搜索框样式" }).click()
+  await page.getByRole("option", { name: "简约", exact: true }).click()
+  await expect(previewSearch).toHaveAttribute("data-search-input-shell", "")
+  await expectUnstyledSearch()
+
+  const configuredShadow = await homeSearch.evaluate(
+    (element) => getComputedStyle(element).boxShadow
+  )
+  for (const search of [
+    page.locator("main [data-home-search-appearance]"),
+    dialog.locator("[data-home-search-appearance]"),
+  ]) {
+    for (const label of ["更多操作", "打开设置"]) {
+      const shortcut = search.locator(`button[aria-label="${label}"]`)
+      await expect(shortcut).toHaveCSS("border-radius", "0px")
+      await expect(shortcut).toHaveCSS("border-top-color", "rgba(0, 0, 0, 0)")
+      await expect(shortcut).toHaveCSS("box-shadow", configuredShadow)
+    }
+  }
 })
 
 test("appearance previews use full-size samples and keep settings navigation available", async ({

@@ -26,10 +26,10 @@ it("keeps a newly opened app when another app finishes closing", () => {
   const overlays = useSystemOverlayStore.getState()
   overlays.open("components")
   overlays.close("components")
-  overlays.open("notes")
+  overlays.openSettings()
   overlays.finishClosingApp("components")
   expect(useSystemOverlayStore.getState()).toMatchObject({
-    active: "notes",
+    active: "settings",
     closingApp: null,
   })
 })

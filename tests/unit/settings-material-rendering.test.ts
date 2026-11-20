@@ -68,14 +68,13 @@ beforeEach(() => {
 
 const props = { onClose: () => {} }
 
-test("renders the default material only inside the page preview", () => {
+test("renders the preview without applying a default material", () => {
   useSystemOverlayStore.getState().openSettings()
   const html = renderToStaticMarkup(createElement(SettingsApplication, props))
 
   expect(html).toContain('<div data-shell-background="true"></div>')
-  expect(html.match(/data-texture="settings-material-preview-[^"]*"/g)).toEqual(
-    ['data-texture="settings-material-preview-background"']
-  )
+  expect(html).toContain("data-material-preview-stage")
+  expect(html).not.toContain('data-texture="settings-material-preview-')
 })
 
 test("does not mount a material when another settings page is open", () => {

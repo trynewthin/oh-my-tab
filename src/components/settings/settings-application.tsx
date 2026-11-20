@@ -76,6 +76,29 @@ export default function SettingsApplication({
     <AppSidebarLayout
       applicationId="settings"
       size="large"
+      sidebarStyle="panel"
+      sidebarFooter={{
+        id: "about",
+        label: t("settings.nav.about"),
+        icon: (
+          <>
+            <img
+              src={`${import.meta.env.BASE_URL}icons/mark-32.png`}
+              alt=""
+              className="size-5 dark:hidden"
+              width={20}
+              height={20}
+            />
+            <img
+              src={`${import.meta.env.BASE_URL}icons/mark-dark-32.png`}
+              alt=""
+              className="hidden size-5 dark:block"
+              width={20}
+              height={20}
+            />
+          </>
+        ),
+      }}
       onClose={onClose}
       title={t("settings.dialog.title")}
       description={t("settings.dialog.description")}

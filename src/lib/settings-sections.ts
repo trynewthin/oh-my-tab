@@ -4,13 +4,13 @@ export const settingsSections = [
   "home-top",
   "popup-appearance",
   "search-engines",
+  "general-apps",
   "personalization-appearance",
   "personalization-material",
   "personalization-tabs",
   "personalization-tabs-square",
   "personalization-folders",
-  "about-project",
-  "about-privacy",
+  "about",
 ] as const
 
 export type SettingsSection = (typeof settingsSections)[number]

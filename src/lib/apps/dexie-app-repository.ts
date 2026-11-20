@@ -5,6 +5,9 @@ import { DataError } from "@/lib/data/errors"
 import type { AppId } from "./ids"
 import type { AppStorage } from "./storage"
 
+// The retired Notes app still has local records from older versions.
+type AppRecordId = AppId | "notes"
+
 const appDocument = z.object({
   version: z.number().int().positive(),
   revision: z.string().min(1),
@@ -18,7 +21,7 @@ export class DexieAppRepository {
     this.database = database
   }
 
-  storageFor(id: AppId): AppStorage {
+  storageFor(id: AppRecordId): AppStorage {
     const key = `document:${id}`
     const { appRecords } = this.database
     const read = async () => {
@@ -45,7 +48,11 @@ export class DexieAppRepository {
     }
   }
 
-  watchEnabled(id: AppId, next: (enabled: boolean) => void, error: () => void) {
+  watchEnabled(
+    id: AppRecordId,
+    next: (enabled: boolean) => void,
+    error: () => void
+  ) {
     const subscription = liveQuery(async () => {
       const entry = await this.database.appRecords.get(`enabled:${id}`)
       return entry?.value === true
@@ -53,7 +60,7 @@ export class DexieAppRepository {
     return () => subscription.unsubscribe()
   }
 
-  async setEnabled(id: AppId, enabled: boolean) {
+  async setEnabled(id: AppRecordId, enabled: boolean) {
     const key = `enabled:${id}`
     await this.database.appRecords.put({ key, value: enabled })
   }

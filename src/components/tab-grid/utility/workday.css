@@ -84,6 +84,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  corner-shape: round;
   background: currentColor;
   transform: translate(-50%, -50%);
 }

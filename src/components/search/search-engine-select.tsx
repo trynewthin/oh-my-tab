@@ -17,8 +17,10 @@ import { runSystemAction } from "@/application/system-actions"
 
 export default function SearchEngineSelect({
   inset,
+  preview = false,
 }: {
   inset?: "flush" | "padded"
+  preview?: boolean
 }) {
   const { t } = useTranslation()
   const available = canSelectBrowserSearch()
@@ -38,7 +40,7 @@ export default function SearchEngineSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        data-tour="engine"
+        data-tour={preview ? undefined : "engine"}
         render={
           <Button
             variant="ghost"
@@ -46,8 +48,8 @@ export default function SearchEngineSelect({
             className={
               inset
                 ? cn(
-                    "size-10 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:hover:bg-transparent",
-                    inset === "padded" && "ml-1.5"
+                    "size-10 bg-transparent text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent dark:hover:bg-transparent",
+                    inset === "padded" && "ml-1.5 rounded-full"
                   )
                 : undefined
             }

@@ -15,12 +15,14 @@ type PrivacySettingsProps = {
   choices?: NetworkChoices
   onChange?: (feature: NetworkFeature, enabled: boolean) => void
   disabled?: boolean
+  showTitle?: boolean
 }
 
 export default function PrivacySettings({
   choices,
   onChange,
   disabled = false,
+  showTitle = true,
 }: PrivacySettingsProps = {}) {
   const { t } = useTranslation()
   const settings = usePrivacyStore()
@@ -43,7 +45,9 @@ export default function PrivacySettings({
   }
   return (
     <div className="space-y-3 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
-      <h3 className="text-sm font-medium">{t("settings.privacy.title")}</h3>
+      {showTitle && (
+        <h3 className="text-sm font-medium">{t("settings.privacy.title")}</h3>
+      )}
       <label className="flex items-start gap-3 text-sm">
         <Checkbox
           checked={choices?.suggestions ?? settings.suggestions}

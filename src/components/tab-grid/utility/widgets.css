@@ -50,6 +50,7 @@
 .utility-action {
   color: var(--utility-secondary);
   border-radius: 50%;
+  corner-shape: round;
 }
 .utility-settings {
   margin-right: -6px;
@@ -187,6 +188,7 @@
   height: 48px;
   padding: 0;
   border-radius: 50%;
+  corner-shape: round;
   background: var(--foreground);
   color: var(--background);
 }
@@ -366,6 +368,7 @@
   justify-content: center;
   color: var(--utility-secondary);
   border-radius: 50%;
+  corner-shape: round;
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .utility-timer-status {
@@ -408,6 +411,7 @@
   height: 40px;
   padding: 0;
   border-radius: 50%;
+  corner-shape: round;
   background: var(--foreground);
   color: var(--background);
   font-size: 12px;
@@ -474,6 +478,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  corner-shape: round;
   background: var(--card);
   color: var(--card-foreground);
 }

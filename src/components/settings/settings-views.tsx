@@ -2,6 +2,7 @@
 import { lazy, type ReactElement } from "react"
 import type { SettingsSection } from "@/lib/settings-sections"
 const AboutSettings = lazy(() => import("./about/about-settings"))
+const AppSettings = lazy(() => import("./general/app-settings"))
 const GeneralSettings = lazy(() => import("./general/general-settings"))
 const HomeSettings = lazy(() => import("./home/home-settings"))
 const PopupSettings = lazy(() => import("./popup/popup-settings"))
@@ -19,6 +20,7 @@ export const settingsViews: Record<SettingsSection, () => ReactElement> = {
   "home-top": () => <HomeSettings />,
   "popup-appearance": () => <PopupSettings />,
   "search-engines": () => <SearchEngineSettings />,
+  "general-apps": () => <AppSettings />,
   "personalization-appearance": () => (
     <PersonalizationSettings pane="appearance" />
   ),
@@ -28,6 +30,5 @@ export const settingsViews: Record<SettingsSection, () => ReactElement> = {
     <PersonalizationSettings pane="tabs-square" />
   ),
   "personalization-folders": () => <PersonalizationSettings pane="folders" />,
-  "about-project": () => <AboutSettings pane="project" />,
-  "about-privacy": () => <AboutSettings pane="privacy" />,
+  about: () => <AboutSettings />,
 }

@@ -85,6 +85,8 @@ function navigationLeaves<RouteId extends string>(
   )
 }
 
+type NavigationSurface = "sidebar" | "menu" | "panel"
+
 function NavigationEntry<RouteId extends string>({
   item,
   activeRoute,
@@ -95,7 +97,7 @@ function NavigationEntry<RouteId extends string>({
   item: ApplicationNavigationItem<RouteId>
   activeRoute: RouteId
   onRouteChange: (route: RouteId) => void
-  surface: "sidebar" | "menu"
+  surface: NavigationSurface
   nested?: boolean
 }) {
   const children = item.children
@@ -109,11 +111,19 @@ function NavigationEntry<RouteId extends string>({
   const expanded =
     activeChild && disclosure.route !== activeRoute ? true : disclosure.expanded
   const selected = !children?.length && activeRoute === item.id
+  const padding =
+    surface === "panel"
+      ? nested
+        ? "pr-2 pl-6"
+        : "px-2"
+      : nested
+        ? "pr-3 pl-8"
+        : "px-4"
   return (
     <div>
       <Button
         variant="ghost"
-        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${nested ? "pr-3 pl-8" : "px-4"} ${selected ? "z-30" : ""} ${surface === "menu" ? "rounded-(--ui-radius-control)" : "rounded-none rounded-r-(--ui-radius-control) bg-clip-border"}`}
+        className={`relative w-full justify-start text-sm hover:z-30 hover:bg-[color-mix(in_srgb,var(--application-accent)_12%,var(--popover))] ${padding} ${selected ? "z-30" : ""} ${surface === "sidebar" ? "rounded-none rounded-r-(--ui-radius-control) bg-clip-border" : "rounded-(--ui-radius-control)"}`}
         style={
           selected
             ? {
@@ -170,7 +180,7 @@ function ApplicationNavigation<RouteId extends string>({
   onRouteChange: (route: RouteId) => void
   ariaLabel: string
   accentColor: string
-  surface?: "sidebar" | "menu"
+  surface?: NavigationSurface
 }) {
   return (
     <nav
@@ -186,7 +196,9 @@ function ApplicationNavigation<RouteId extends string>({
           className="space-y-1"
         >
           {group.label && (
-            <div className="px-4 py-1 text-xs font-medium text-muted-foreground">
+            <div
+              className={`py-1 text-xs font-medium text-muted-foreground ${surface === "panel" ? "px-2" : "px-4"}`}
+            >
               {group.label}
             </div>
           )}
@@ -297,6 +309,8 @@ export default function AppSidebarLayout<RouteId extends string>({
   accentColor,
   background,
   size = "default",
+  sidebarStyle = "floating",
+  sidebarFooter,
   children,
 }: {
   applicationId: AppId
@@ -313,10 +327,28 @@ export default function AppSidebarLayout<RouteId extends string>({
   accentColor: string
   background?: ReactNode
   size?: "default" | "large"
+  sidebarStyle?: "floating" | "panel"
+  sidebarFooter?: ApplicationNavigationItem<RouteId>
   children: ReactNode
 }) {
   const [mobileActionsNode, setMobileActionsNode] =
     useState<HTMLDivElement | null>(null)
+  const panelSidebar = sidebarStyle === "panel"
+  const pinnedItem = panelSidebar ? sidebarFooter : undefined
+  const sidebarNavigation = pinnedItem
+    ? navigation.flatMap((group) => {
+        const items = group.items.filter((item) => item.id !== pinnedItem.id)
+        if (items.length === group.items.length) return [group]
+        if (!items.length) return []
+        return [
+          {
+            ...group,
+            items,
+            label: items.length === 1 ? undefined : group.label,
+          },
+        ]
+      })
+    : navigation
   const activeItem = navigation
     .flatMap((group) => navigationLeaves(group.items))
     .find((item) => item.id === activeRoute)
@@ -364,47 +396,102 @@ export default function AppSidebarLayout<RouteId extends string>({
               <CloseIcon />
             </Button>
           </header>
-          <aside className="relative hidden h-full min-h-0 w-36 shrink-0 sm:block">
-            <div className="pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent"
-              />
+          <aside
+            className={`relative hidden min-h-0 shrink-0 ${
+              panelSidebar
+                ? "my-5 ms-5 w-44 flex-col overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel bg-(--settings-sidebar-bg) shadow-(--ui-shadow-panel) [--settings-sidebar-bg:color-mix(in_oklab,var(--muted)_35%,var(--popover))] sm:flex"
+                : "h-full w-36 sm:block"
+            }`}
+          >
+            <div
+              className={
+                panelSidebar
+                  ? "absolute inset-x-0 top-0 z-10 flex h-13 items-center justify-between gap-2 bg-[linear-gradient(to_bottom,var(--settings-sidebar-bg)_65%,transparent)] ps-4 pe-3"
+                  : "pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4"
+              }
+            >
+              {!panelSidebar && (
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 z-10 bg-gradient-to-b from-popover from-70% to-transparent"
+                />
+              )}
               <div className="relative z-30 text-left text-base leading-6 font-medium">
                 {title}
               </div>
+              {panelSidebar && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={closeLabel}
+                  title={closeAriaLabel}
+                  className="text-muted-foreground"
+                  onClick={onClose}
+                >
+                  <CloseIcon className="size-4" />
+                </Button>
+              )}
             </div>
-            <div className="relative z-0 h-full min-h-0 [scrollbar-width:none] overflow-y-auto pt-14 pb-[4.5rem] [&::-webkit-scrollbar]:hidden">
+            <div
+              className={`relative z-0 min-h-0 [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden ${
+                panelSidebar
+                  ? `flex-1 scroll-pt-13 px-2 pt-13 ${pinnedItem ? "scroll-pb-13 pb-13" : "pb-3"}`
+                  : "h-full pt-14 pb-[4.5rem]"
+              }`}
+            >
               <ApplicationNavigation
-                groups={navigation}
+                groups={sidebarNavigation}
                 activeRoute={activeRoute}
                 onRouteChange={onRouteChange}
                 ariaLabel={navigationAriaLabel}
                 accentColor={accentColor}
+                surface={panelSidebar ? "panel" : "sidebar"}
               />
             </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4">
+            {pinnedItem && (
               <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
-              />
-              <div className="relative z-30 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel bg-popover shadow-(--ui-shadow-panel)">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="pointer-events-auto w-full justify-between rounded-none border-0 bg-transparent px-4 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
-                  onClick={onClose}
-                >
-                  <X aria-hidden="true" />
-                  {closeLabel}
-                </Button>
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-13 items-center bg-[linear-gradient(to_top,var(--settings-sidebar-bg)_65%,transparent)] px-2"
+                style={{ "--application-accent": accentColor } as CSSProperties}
+              >
+                <div className="pointer-events-auto w-full">
+                  <NavigationEntry
+                    item={pinnedItem}
+                    activeRoute={activeRoute}
+                    onRouteChange={onRouteChange}
+                    surface="panel"
+                  />
+                </div>
               </div>
-            </div>
+            )}
+            {!panelSidebar && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 px-4 pb-4">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 -top-16 bottom-0 z-10 bg-gradient-to-t from-popover/75 via-popover/30 to-transparent"
+                />
+                <div className="relative z-30 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel bg-popover shadow-(--ui-shadow-panel)">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="pointer-events-auto w-full justify-between rounded-none border-0 bg-transparent px-4 text-sm shadow-none hover:bg-muted dark:hover:bg-muted"
+                    onClick={onClose}
+                  >
+                    <X aria-hidden="true" />
+                    {closeLabel}
+                  </Button>
+                </div>
+              </div>
+            )}
           </aside>
           <section
             aria-label={activeItem?.label}
             data-application-content
-            className="relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 sm:p-(--ui-padding-window)"
+            className={`relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 ${
+              panelSidebar
+                ? "sm:px-(--ui-padding-window)"
+                : "sm:p-(--ui-padding-window)"
+            }`}
           >
             {children}
           </section>

@@ -46,17 +46,12 @@ const shell = {
     editOn: "On",
   },
   apps: {
-    title: "Apps",
-    description: "Open a built-in app or enable an optional one.",
+    description: "Open a built-in app.",
     systemApp: "System app",
-    optionalApp: "Optional app",
     loading: "Loading…",
     open: "Open",
     openNamed: "Open {{name}}",
-    enableNamed: "Enable {{name}}",
     openFailed: "Could not open this app. Reload the page to try again.",
-    preferenceFailed:
-      "Could not update app availability. Close and reopen Apps to try again.",
     notes: "Notes",
     noteDescription:
       "This note is saved in this browser only. It is not included in backups or sync.",

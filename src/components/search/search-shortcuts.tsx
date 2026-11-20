@@ -5,12 +5,11 @@ import MoreActions from "@/components/home/more-actions"
 import SettingsButton from "@/components/home/settings-button"
 import { useSystemActionState } from "@/components/system-action-state"
 import { Button } from "@/components/ui/button"
-import { surfaceShadowClassName } from "@/components/ui/surface-shadow"
 import { systemActionRegistry, type SystemActionId } from "@/lib/system-actions"
 import { searchShortcutGroups } from "@/lib/search-shortcuts"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
 import { searchShortcutIcons } from "./search-shortcut-icons"
-import { compactSearchButtonBackgroundClassName } from "./search-surface-styles"
+import { compactSearchButtonClassName } from "./search-surface-styles"
 
 function SystemShortcutButton({
   action,
@@ -30,9 +29,7 @@ function SystemShortcutButton({
       variant="ghost"
       size="icon"
       className={
-        compact
-          ? `size-10 shrink-0 rounded-full border-border bg-clip-padding backdrop-blur-xl ${compactSearchButtonBackgroundClassName(backgroundType)} ${surfaceShadowClassName}`
-          : undefined
+        compact ? compactSearchButtonClassName(backgroundType) : undefined
       }
       aria-label={label}
       title={label}
@@ -48,7 +45,13 @@ function SystemShortcutButton({
   )
 }
 
-export default function SearchShortcuts({ compact }: { compact: boolean }) {
+export default function SearchShortcuts({
+  compact,
+  preview = false,
+}: {
+  compact: boolean
+  preview?: boolean
+}) {
   const config = useHomeSettingsStore((state) => state.searchShortcuts)
   if (!config.controls.length) return null
   const { hidden, visible } = searchShortcutGroups(config)
@@ -63,12 +66,17 @@ export default function SearchShortcuts({ compact }: { compact: boolean }) {
       {hidden.length > 0 && (
         <MoreActions
           compact={compact}
+          preview={preview}
           actions={hidden.map((control) => control.action)}
         />
       )}
       {visible.map((control) =>
         control.action === "open-settings" ? (
-          <SettingsButton key={control.id} compact={compact} />
+          <SettingsButton
+            key={control.id}
+            compact={compact}
+            preview={preview}
+          />
         ) : (
           <SystemShortcutButton
             key={control.id}

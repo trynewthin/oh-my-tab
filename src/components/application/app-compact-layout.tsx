@@ -5,7 +5,7 @@ import AppWindowFrame from "@/components/application/app-window-frame"
 import { Button } from "@/components/ui/button"
 import CloseIcon from "@/components/ui/close-icon"
 import { DialogClose } from "@/components/ui/dialog"
-import type { AppWindowId } from "@/lib/apps/ids"
+import type { AppId } from "@/lib/apps/ids"
 
 export default function AppCompactLayout({
   id,
@@ -14,7 +14,7 @@ export default function AppCompactLayout({
   icon: Icon,
   children,
 }: {
-  id: AppWindowId
+  id: AppId
   title: string
   description?: string
   icon: Icon

@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useHomeSettingsStore } from "@/stores/home-settings-store"
-import AppearanceTabs from "@/components/settings/personalization/appearance-tabs"
-import MaterialCarousel from "@/components/settings/personalization/material-carousel"
+import MaterialCarousel, {
+  type MaterialCarouselHandle,
+} from "@/components/settings/personalization/material-carousel"
 import MaterialPlacementPreview from "@/components/settings/personalization/material-placement-preview"
 import FairIsleSettingsFields from "@/components/settings/personalization/fair-isle-settings"
 import LiquidGlassSettingsFields from "@/components/settings/personalization/liquid-glass-settings"
@@ -21,25 +22,29 @@ import SettingRange from "../shared/setting-range"
 import { createFairIsleTexture } from "@/lib/fair-isle"
 import { MAX_STAR_TRAIL_SPEED, MIN_STAR_TRAIL_SPEED } from "@/lib/star-trails"
 
+const defaultAssignments: MaterialAssignments = {
+  background: "none",
+  card: "none",
+  control: "none",
+}
+
 export default function MaterialPane() {
   const { t } = useTranslation()
   const id = useId()
   const materialPreview = useMaterialPreview()
   const selected = materialPreview.value
   const selectedOption = materialOptions[selected]
-  const tabTexture = useHomeSettingsStore((state) => state.tabTexture)
-  const defaultAssignments: MaterialAssignments = {
-    background: tabTexture,
-    card: "none",
-    control: "none",
-  }
   const [assignments, setAssignments] = useState(defaultAssignments)
+  const [catalogExpanded, setCatalogExpanded] = useState(true)
+  const catalogId = `${id}-catalog`
   const fairIsleSettings = useHomeSettingsStore((state) => state.fairIsle)
   const setFairIsleSettings = useHomeSettingsStore((state) => state.setFairIsle)
   const liquidGlass = useHomeSettingsStore((state) => state.liquidGlass)
   const setLiquidGlass = useHomeSettingsStore((state) => state.setLiquidGlass)
   const backgroundPreview = useRef<HTMLDivElement>(null)
   const cardPreview = useRef<HTMLDivElement>(null)
+  const configurationRef = useRef<HTMLDivElement>(null)
+  const carouselRef = useRef<MaterialCarouselHandle>(null)
   const [previewOptions, setPreviewOptions] = useState({
     guides: false,
     fit: false,
@@ -91,7 +96,20 @@ export default function MaterialPane() {
         onPan={(x, y) =>
           setOffset((previous) => ({ x: previous.x + x, y: previous.y + y }))
         }
+        catalogId={catalogId}
+        catalogExpanded={catalogExpanded}
+        onToggleCatalog={() => setCatalogExpanded((expanded) => !expanded)}
         assignments={assignments}
+        onAssign={(placement, style) => {
+          setAssignments((current) => ({ ...current, [placement]: style }))
+        }}
+        onEdit={(placement) => {
+          const style = assignments[placement]
+          setLastPlacement(placement)
+          materialPreview.setValue(style)
+          configurationRef.current?.scrollTo({ top: 0 })
+          carouselRef.current?.scrollToStyle(style)
+        }}
         onReset={() => {
           setAssignments(defaultAssignments)
           setLastPlacement(null)
@@ -100,43 +118,38 @@ export default function MaterialPane() {
         }}
       />
       <div
+        id={catalogId}
+        hidden={!catalogExpanded}
+        className="min-w-0 shrink-0"
+      >
+        {catalogExpanded && (
+          <MaterialCarousel
+            ref={carouselRef}
+            value={selected}
+            onChange={materialPreview.setValue}
+            color={color}
+            liquidGlass={liquidGlass}
+            fairIsle={{
+              ...fairIsle,
+              stitchSize: Math.min(fairIsle.stitchSize, 4),
+            }}
+            configurationId={`${id}-configuration`}
+          />
+        )}
+      </div>
+      <div
+        ref={configurationRef}
         role="region"
         aria-label={t("settings.material.configuration")}
+        hidden={selected === "none"}
         tabIndex={0}
-        className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] space-y-4 overflow-y-auto overscroll-contain pr-4 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset sm:-mr-(--ui-padding-window) sm:pr-(--ui-padding-window)"
+        className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset sm:-mr-(--ui-padding-window) sm:pr-(--ui-padding-window)"
       >
-        <MaterialCarousel
-          value={selected}
-          onChange={materialPreview.setValue}
-          color={color}
-          liquidGlass={liquidGlass}
-          fairIsle={{
-            ...fairIsle,
-            stitchSize: Math.min(fairIsle.stitchSize, 4),
-          }}
-          configurationId={`${id}-configuration`}
-        />
         <section
           id={`${id}-configuration`}
           aria-label={t(selectedOption.labelKey)}
           className="space-y-4 border-t border-border pt-4"
         >
-          <AppearanceTabs
-            label={t("settings.material.applyToPreview")}
-            options={materialPlacements}
-            value={activePlacement}
-            disabledOptions={materialPlacements.filter(
-              (placement) => !selectedOption.placements.includes(placement)
-            )}
-            getOptionLabel={(placement) => t(`settings.material.${placement}`)}
-            onChange={(placement) => {
-              setAssignments((current) => ({
-                ...current,
-                [placement]: selected,
-              }))
-              setLastPlacement(placement)
-            }}
-          />
           {starTrails && (
             <SettingItem
               label={t("settings.material.runningMode")}

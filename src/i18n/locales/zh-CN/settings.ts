@@ -15,6 +15,7 @@ export default {
     home: "主页",
     popupAppearance: "Popup 外观",
     search: "搜索",
+    apps: "应用",
     personalization: "个性化",
     personalizationBasic: "基础",
     personalizationMaterial: "材质",
@@ -23,8 +24,6 @@ export default {
     tabsSquare: "方形标签",
     personalizationFolders: "文件夹",
     about: "关于",
-    aboutProject: "项目",
-    aboutPrivacy: "隐私",
   },
   dialog: {
     title: "设置",
@@ -207,7 +206,7 @@ export default {
     erase: "清除所有数据",
     eraseTitle: "清除所有数据？",
     eraseBody:
-      "将删除全部本地数据（包括独立便签），页面恢复为新用户状态。请先导出主页数据的备份，并单独复制便签内容。",
+      "将删除全部本地数据（包括旧版独立便签），页面恢复为新用户状态。建议先导出主页数据备份；备份不包含旧版独立便签。",
     eraseConfirm: "确认清除",
     migrationIssues: "部分数据降级恢复",
     migrationIssuesHint:
@@ -363,9 +362,11 @@ export default {
     placementPreview: "材质预览",
     scrollablePreview: "可滚动的材质预览",
     catalog: "材质列表",
+    expandCatalog: "展开材质列表",
+    collapseCatalog: "收起材质列表",
     previous: "上一个材质",
     next: "下一个材质",
-    applyToPreview: "应用到预览",
+    selectPlacement: "选择{{placement}}材质",
     configuration: "材质配置",
     reset: "重置",
     resetPreview: "重置材质预览",
@@ -623,6 +624,7 @@ export default {
     confirmDelete: "确认删除",
   },
   about: {
+    privacyAndData: "隐私与数据",
     releaseNotes: "更新日志",
     supportTitleLine1: "为下一次打开，",
     supportTitleLine2: "点亮一颗星。",

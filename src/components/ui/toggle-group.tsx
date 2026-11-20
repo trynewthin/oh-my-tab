@@ -7,7 +7,7 @@ function ToggleGroup({ className, ...props }: ToggleGroupPrimitive.Props) {
     <ToggleGroupPrimitive
       data-slot="toggle-group"
       className={cn(
-        "flex rounded-(--ui-radius-panel) border border-ui-border-control bg-muted p-0.5",
+        "segmented-control flex border border-ui-border-control bg-muted p-0.5",
         className
       )}
       {...props}

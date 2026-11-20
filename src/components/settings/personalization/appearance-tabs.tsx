@@ -38,7 +38,7 @@ export default function AppearanceTabs<T extends string>({
       >
         <Tabs.List
           aria-labelledby={id}
-          className={`flex min-w-0 rounded-(--ui-radius-panel) p-0.5 ${settingsControlSurface}`}
+          className={`segmented-control flex min-w-0 p-0.5 ${settingsControlSurface}`}
         >
           {options.map((option) => (
             <Tabs.Tab

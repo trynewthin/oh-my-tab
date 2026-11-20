@@ -1,16 +1,25 @@
-import { Sparkle } from "@phosphor-icons/react"
-import { useRef, type RefObject } from "react"
+import { CaretDown, CaretUp, Sparkle } from "@phosphor-icons/react"
+import { useId, useRef, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import type { LiquidGlassSettings } from "@/lib/liquid-glass"
 import MaterialSurface, {
   type FairIsleAppearance,
+  type MaterialStyle,
 } from "@/components/effects/material-surface"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select"
+import { AppearancePreviewFrame } from "@/components/settings/personalization/appearance-preview-stage"
 import { useMaterialPreview } from "@/components/settings/personalization/material-preview-context"
 import {
   materialOptions,
   materialPlacements,
+  materialStyles,
   type MaterialAssignments,
   type MaterialPlacement,
 } from "@/components/settings/personalization/material-preview-options"
@@ -22,7 +31,12 @@ export default function MaterialPlacementPreview({
   backgroundRef,
   cardRef,
   onPan,
+  catalogId,
+  catalogExpanded,
+  onToggleCatalog,
   assignments,
+  onAssign,
+  onEdit,
   onReset,
 }: {
   color: string
@@ -31,10 +45,22 @@ export default function MaterialPlacementPreview({
   backgroundRef: RefObject<HTMLDivElement | null>
   cardRef: RefObject<HTMLDivElement | null>
   onPan: (x: number, y: number) => void
+  catalogId: string
+  catalogExpanded: boolean
+  onToggleCatalog: () => void
   assignments: MaterialAssignments
+  onAssign: (placement: MaterialPlacement, style: MaterialStyle) => void
+  onEdit: (placement: MaterialPlacement) => void
   onReset: () => void
 }) {
   const { t } = useTranslation()
+  const id = useId()
+  const catalogToggleLabel = t(
+    catalogExpanded
+      ? "settings.material.collapseCatalog"
+      : "settings.material.expandCatalog"
+  )
+  const CatalogIcon = catalogExpanded ? CaretUp : CaretDown
   const { starTrailSpeed, starTrailMode } = useMaterialPreview()
   const drag = useRef<{ id: number; x: number; y: number } | null>(null)
   const fairIsleBackground = assignments.background === "fair-isle"
@@ -78,17 +104,14 @@ export default function MaterialPlacementPreview({
       aria-label={t("settings.material.placementPreview")}
       className="shrink-0 space-y-2"
     >
-      <div
-        data-material-preview-stage
-        className="relative isolate overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel"
-      >
+      <AppearancePreviewFrame data-material-preview-stage className="relative">
         <div
           ref={backgroundRef}
           role="region"
           aria-label={t("settings.material.scrollablePreview")}
           tabIndex={0}
           className={cn(
-            "h-[clamp(7.5rem,30svh,18rem)] overflow-y-auto overscroll-contain bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset dark:bg-background",
+            "h-[clamp(7.5rem,30svh,18rem)] overflow-y-auto overscroll-contain outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
             canPan && "cursor-grab touch-pan-y active:cursor-grabbing"
           )}
           onPointerDown={(event) => {
@@ -162,12 +185,26 @@ export default function MaterialPlacementPreview({
             </Button>
           </div>
         </div>
-      </div>
+      </AppearancePreviewFrame>
       <div className="flex items-start gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-expanded={catalogExpanded}
+          aria-controls={catalogId}
+          aria-label={catalogToggleLabel}
+          title={catalogToggleLabel}
+          onClick={onToggleCatalog}
+        >
+          <CatalogIcon aria-hidden="true" />
+        </Button>
         <dl className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {materialPlacements.map((placement) => {
             const value = assignments[placement]
             const name = t(materialOptions[value].labelKey)
+            const label = t(`settings.material.${placement}`)
+            const valueId = `${id}-${placement}`
             return (
               <div
                 key={placement}
@@ -197,12 +234,48 @@ export default function MaterialPlacementPreview({
                       />
                     </>
                   )}
-                  <span className="relative">
-                    {t(`settings.material.${placement}`)}
-                  </span>
+                  <span className="relative">{label}</span>
                 </dt>
-                <dd className="relative truncate font-medium" title={name}>
-                  {name}
+                <dd className="relative flex min-w-0 items-center gap-1">
+                  <button
+                    type="button"
+                    id={valueId}
+                    className="min-w-0 cursor-pointer truncate rounded-sm text-left font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                    title={name}
+                    onClick={() => onEdit(placement)}
+                  >
+                    {name}
+                  </button>
+                  <Select
+                    value={value}
+                    onValueChange={(style) => {
+                      if (style !== null) onAssign(placement, style)
+                    }}
+                  >
+                    <SelectTrigger
+                      size="sm"
+                      aria-label={t("settings.material.selectPlacement", {
+                        placement: label,
+                      })}
+                      aria-describedby={valueId}
+                      className="-mr-1 size-6 shrink-0 cursor-pointer justify-center border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring data-[size=sm]:h-6 [&_svg]:size-3"
+                    />
+                    <SelectContent
+                      align="end"
+                      alignItemWithTrigger={false}
+                      className="w-max"
+                    >
+                      {materialStyles
+                        .filter((style) =>
+                          materialOptions[style].placements.includes(placement)
+                        )
+                        .map((style) => (
+                          <SelectItem key={style} value={style}>
+                            {t(materialOptions[style].labelKey)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </dd>
               </div>
             )

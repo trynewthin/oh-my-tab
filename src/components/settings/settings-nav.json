@@ -7,7 +7,8 @@
       "children": [
         { "id": "general-basic", "labelKey": "settings.nav.generalBasic" },
         { "id": "general-data", "labelKey": "settings.nav.generalData" },
-        { "id": "search-engines", "labelKey": "settings.nav.search" }
+        { "id": "search-engines", "labelKey": "settings.nav.search" },
+        { "id": "general-apps", "labelKey": "settings.nav.apps" }
       ]
     },
     {
@@ -48,13 +49,6 @@
         }
       ]
     },
-    {
-      "id": "about",
-      "labelKey": "settings.nav.about",
-      "children": [
-        { "id": "about-project", "labelKey": "settings.nav.aboutProject" },
-        { "id": "about-privacy", "labelKey": "settings.nav.aboutPrivacy" }
-      ]
-    }
+    { "id": "about", "labelKey": "settings.nav.about" }
   ]
 }

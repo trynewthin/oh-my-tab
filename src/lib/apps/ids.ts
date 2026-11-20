@@ -1,7 +1,6 @@
-export const appIds = ["settings", "components", "notes"] as const
+export const appIds = ["settings", "components"] as const
 export type AppId = (typeof appIds)[number]
-export type AppWindowId = AppId | "apps"
 
-export function isAppWindow(id: string | null): id is AppWindowId {
-  return id === "apps" || appIds.some((appId) => appId === id)
+export function isAppWindow(id: string | null): id is AppId {
+  return appIds.some((appId) => appId === id)
 }

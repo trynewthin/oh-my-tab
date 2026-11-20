@@ -1,7 +1,5 @@
-import { AppWindow as AppWindowIcon } from "@phosphor-icons/react"
 import {
   Component,
-  lazy,
   Suspense,
   useEffect,
   useRef,
@@ -10,7 +8,6 @@ import {
 } from "react"
 import { useTranslation } from "react-i18next"
 import { appRepository } from "@/application/apps"
-import AppCompactLayout from "@/components/application/app-compact-layout"
 import { appRegistry } from "@/components/application/app-registry"
 import AppStatusCard from "@/components/application/app-status-card"
 import {
@@ -18,11 +15,9 @@ import {
   useAppWindowExpansion,
 } from "@/components/application/app-window-expansion"
 import { Dialog, DialogOverlay, DialogPortal } from "@/components/ui/dialog"
-import { isAppWindow, type AppWindowId } from "@/lib/apps/ids"
+import { isAppWindow, type AppId } from "@/lib/apps/ids"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
 import "./app-window-backdrop.css"
-
-const AppDirectory = lazy(() => import("./app-directory"))
 
 class AppErrorBoundary extends Component<
   { fallback: ReactNode; children: ReactNode },
@@ -39,20 +34,16 @@ class AppErrorBoundary extends Component<
   }
 }
 
-function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
+function AppWindow({ id, open }: { id: AppId; open: boolean }) {
   const { t } = useTranslation()
   const [openedOnMount] = useState(open)
   const [ready, setReady] = useState(false)
-  const [storage] = useState(() =>
-    id === "apps" ? null : appRepository.storageFor(id)
-  )
+  const [storage] = useState(() => appRepository.storageFor(id))
   const pointerStartedInside = useRef(false)
   const registerPopup = useAppWindowExpansion(setReady)
   const finishClosing = useSystemOverlayStore((state) => state.finishClosingApp)
   const close = () => useSystemOverlayStore.getState().close(id)
-  const app = id === "apps" ? null : appRegistry[id]
-  const View = app?.View
-  const description = app ? app.description : "shell.apps.description"
+  const { View, title, description, icon, layout } = appRegistry[id]
 
   useEffect(() => {
     if (!openedOnMount && !open) finishClosing(id)
@@ -73,19 +64,11 @@ function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
 
   const frame = {
     id,
-    title: t(app?.title ?? "shell.apps.title"),
+    title: t(title),
     description: description ? t(description) : undefined,
-    icon: app?.icon ?? AppWindowIcon,
+    icon,
   }
-  const usesNavigation = app?.layout === "navigation"
-  const appContent =
-    View && storage ? (
-      <View frame={frame} onClose={close} storage={storage} />
-    ) : (
-      <AppCompactLayout {...frame}>
-        <AppDirectory />
-      </AppCompactLayout>
-    )
+  const usesNavigation = layout === "navigation"
   const loading = <AppStatusCard {...frame} variant="loading" />
 
   return (
@@ -122,7 +105,9 @@ function AppWindow({ id, open }: { id: AppWindowId; open: boolean }) {
               />
             }
           >
-            <Suspense fallback={loading}>{appContent}</Suspense>
+            <Suspense fallback={loading}>
+              <View frame={frame} onClose={close} storage={storage} />
+            </Suspense>
           </AppErrorBoundary>
         </AppWindowExpansionContext.Provider>
       </DialogPortal>

@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type { AppWindowId } from "@/lib/apps/ids"
+import type { AppId } from "@/lib/apps/ids"
 import "./app-window-frame.css"
 
 export default function AppWindowFrame({
@@ -21,7 +21,7 @@ export default function AppWindowFrame({
   background,
   children,
 }: {
-  id: AppWindowId
+  id: AppId
   title: string
   description?: string
   className?: string

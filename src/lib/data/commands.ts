@@ -137,7 +137,8 @@ export function applyWorkspaceCommand(
       return { ...config, home: homeSchema.parse(next) }
     }
     case "theme.set": {
-      const { theme, uiRadius, uiBorder, uiShadow } = command
+      const { theme, uiRadius, uiBorder, uiShadow, settingsAppearance } =
+        command
       return {
         ...config,
         theme: {
@@ -146,6 +147,7 @@ export function applyWorkspaceCommand(
           ...(uiRadius === undefined ? {} : { uiRadius }),
           ...(uiBorder === undefined ? {} : { uiBorder }),
           ...(uiShadow === undefined ? {} : { uiShadow }),
+          ...(settingsAppearance === undefined ? {} : { settingsAppearance }),
         },
       }
     }

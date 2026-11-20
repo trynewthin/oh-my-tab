@@ -14,7 +14,7 @@ import {
   materialPlacements,
   type MaterialAssignments,
   type MaterialPlacement,
-} from "@/components/settings/personalization/material-preview-options"
+} from "@/lib/material"
 import { useMaterialPreview } from "./material-preview-context"
 import SettingItem from "../shared/setting-item"
 import { settingsControlSurface } from "../shared/control-styles"

@@ -1,18 +1,21 @@
+import { SquaresFour } from "@phosphor-icons/react"
 import { useTranslation } from "react-i18next"
 import { appRegistry } from "@/components/application/app-registry"
 import { Button } from "@/components/ui/button"
 import { appIds } from "@/lib/apps/ids"
 import { useSystemOverlayStore } from "@/stores/system-overlay-store"
+import SettingSection from "../shared/setting-section"
 
 const managedAppIds = appIds.filter((id) => id !== "settings")
 
 export default function AppSettings() {
   const { t } = useTranslation()
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        {t("shell.apps.description")}
-      </p>
+    <SettingSection
+      title={t("shell.apps.builtIn")}
+      icon={<SquaresFour />}
+      className="gap-3"
+    >
       <ul className="divide-y divide-border/60 overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel">
         {managedAppIds.map((id) => {
           const { title, icon: Icon } = appRegistry[id]
@@ -44,6 +47,6 @@ export default function AppSettings() {
           )
         })}
       </ul>
-    </div>
+    </SettingSection>
   )
 }

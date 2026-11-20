@@ -72,6 +72,60 @@ describe("business projections", () => {
     expect((await workspace.capture()).config.theme).toEqual(appearance)
   })
 
+  it("persists and clears a Settings-only override independently of the global appearance", async () => {
+    const store = useThemeStore
+    await store.projection.rehydrate()
+    store.getState().setUiRadius("large")
+    store.getState().setSettingsAppearance({
+      radius: "none",
+      border: "strong",
+      shadow: "subtle",
+    })
+    await flushStorage()
+    await store.projection.rehydrate()
+    expect(store.getState().settingsAppearance).toEqual({
+      radius: "none",
+      border: "strong",
+      shadow: "subtle",
+    })
+
+    store.getState().setSettingsAppearance({ radius: undefined })
+    await flushStorage()
+    await store.projection.rehydrate()
+    expect(store.getState().settingsAppearance?.radius).toBeUndefined()
+    expect((await workspace.capture()).config.theme).toMatchObject({
+      uiRadius: "large",
+      settingsAppearance: { border: "strong", shadow: "subtle" },
+    })
+  })
+
+  it("persists Settings materials and the background mask without changing the homepage", async () => {
+    const store = useThemeStore
+    const homeBefore = (await workspace.readSections(["home"])).data.home
+    await store.projection.rehydrate()
+    const materials = {
+      backgroundMaterial: "fair-isle",
+      backgroundMask: { strength: 18, blur: 8 },
+      sidebarMaterial: "liquid-glass",
+      controlMaterial: "particles",
+      materialParameters: {
+        background: { "star-trails": { speed: 1.5, mode: "dynamic" } },
+        sidebar: { particles: 1.7 },
+        control: { particles: 0 },
+      },
+    } as const
+    store.getState().setSettingsAppearance(materials)
+    await flushStorage()
+    await store.projection.rehydrate()
+    expect(store.getState().settingsAppearance).toEqual(materials)
+    expect((await workspace.capture()).config.theme.settingsAppearance).toEqual(
+      materials
+    )
+    expect((await workspace.readSections(["home"])).data.home).toEqual(
+      homeBefore
+    )
+  })
+
   it("keeps runtime updates and hydration from independently writing a business copy", async () => {
     const store = createProjection()
     const before = await allEntries()

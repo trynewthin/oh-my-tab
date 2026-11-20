@@ -9,13 +9,12 @@ import {
   defaultLiquidGlass,
   type LiquidGlassSettings,
 } from "@/lib/liquid-glass"
-import type { EffectStyle } from "@/stores/home-settings-store"
+import type { MaterialStyle } from "@/lib/material"
 import EffectSurface from "./effect-surface"
 import LiquidGlassSurface from "./liquid-glass-surface"
 import StarTrailsSurface from "./star-trails-surface"
 
-export type MaterialStyle =
-  EffectStyle | "star-trails" | "fair-isle" | "liquid-glass"
+export type { MaterialStyle } from "@/lib/material"
 
 export type FairIsleAppearance = {
   texture: FairIsleTexture
@@ -41,7 +40,7 @@ export default function MaterialSurface({
   fairIsle?: FairIsleAppearance
   liquidGlass?: LiquidGlassSettings
   liquidGlassSample?: boolean
-  liquidGlassPointerTarget?: RefObject<HTMLDivElement | null>
+  liquidGlassPointerTarget?: RefObject<HTMLElement | null>
 }) {
   if (effectStyle === "liquid-glass") {
     return (

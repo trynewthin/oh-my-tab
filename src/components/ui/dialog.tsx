@@ -4,6 +4,7 @@ import { cn } from "cn"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
+import { useUiAppearanceAttributes } from "@/components/ui/appearance-scope"
 import CloseIcon from "@/components/ui/close-icon"
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -54,11 +55,13 @@ function DialogContent({
   inPortal?: boolean
 }) {
   const { t } = useTranslation()
+  const appearance = useUiAppearanceAttributes()
   const scrollClass = typeof className === "string" ? className : ""
   const internalScroll = scrollClass.includes("overflow-y-auto")
   const popup = (
     <DialogPrimitive.Popup
       data-slot="dialog-content"
+      {...appearance}
       className={cn(
         "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-(--ui-radius-window) border border-ui-border-window bg-popover p-(--ui-padding-window) text-sm text-popover-foreground shadow-(--ui-shadow-window) duration-240 outline-none [animation-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.98] data-closed:animate-out data-closed:duration-160 data-closed:fade-out-0 data-closed:[animation-timing-function:cubic-bezier(0.4,0,1,1)] data-closed:zoom-out-[0.98]",
         internalScroll

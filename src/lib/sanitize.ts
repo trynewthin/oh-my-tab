@@ -2,7 +2,11 @@ import { sanitizeHomeSettings } from "@/lib/home-settings"
 import { sanitizePersisted } from "@/lib/grid/persisted"
 import { validGardenPlant } from "@/lib/garden-plant"
 import { validSharedGarden } from "@/lib/shared-garden"
-import { uiDepthOptions, uiRadiusOptions } from "@/lib/ui-appearance"
+import {
+  settingsAppearanceSchema,
+  uiDepthOptions,
+  uiRadiusOptions,
+} from "@/lib/ui-appearance"
 
 // Tolerant per-key readers: an envelope whose version this client does not
 // fully understand is reduced to the fields it can still interpret instead
@@ -64,17 +68,23 @@ const sanitizers: Record<
     const uiRadius = uiRadiusOptions.find((option) => option === state.uiRadius)
     const uiBorder = uiDepthOptions.find((option) => option === state.uiBorder)
     const uiShadow = uiDepthOptions.find((option) => option === state.uiShadow)
+    const settingsAppearance = settingsAppearanceSchema.safeParse(
+      state.settingsAppearance
+    ).data
     return ok(
       {
         theme,
         ...(uiRadius === undefined ? {} : { uiRadius }),
         ...(uiBorder === undefined ? {} : { uiBorder }),
         ...(uiShadow === undefined ? {} : { uiShadow }),
+        ...(settingsAppearance === undefined ? {} : { settingsAppearance }),
       },
       theme !== state.theme ||
         uiRadius !== state.uiRadius ||
         uiBorder !== state.uiBorder ||
-        uiShadow !== state.uiShadow
+        uiShadow !== state.uiShadow ||
+        (settingsAppearance === undefined &&
+          state.settingsAppearance !== undefined)
     )
   },
   "omt.onboarding": (state) =>

@@ -11,7 +11,7 @@ export default function LiquidGlassSurface({
 }: {
   settings: LiquidGlassSettings
   sample?: boolean
-  pointerTarget?: RefObject<HTMLDivElement | null>
+  pointerTarget?: RefObject<HTMLElement | null>
 }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const glintRef = useRef<HTMLSpanElement>(null)

@@ -1,11 +1,11 @@
 export const settingsSections = [
   "general-basic",
-  "general-data",
   "home-top",
   "popup-appearance",
   "search-engines",
   "general-apps",
   "personalization-appearance",
+  "settings-appearance",
   "personalization-material",
   "personalization-tabs",
   "personalization-tabs-square",

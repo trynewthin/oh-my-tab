@@ -228,7 +228,10 @@ try {
   await setText(b, "DEVICE B")
   async function openSettings(page) {
     await page.getByRole("button", { name: "打开设置", exact: true }).click()
-    await page.getByRole("button", { name: "数据", exact: true }).click()
+    await page
+      .getByRole("group", { name: "常规", exact: true })
+      .getByRole("button", { name: "基础", exact: true })
+      .click()
     return page.locator('section[aria-labelledby="sync-settings-title"]')
   }
   async function configure(page) {

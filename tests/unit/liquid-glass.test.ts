@@ -6,10 +6,7 @@ import { LiquidGlassRefraction } from "@/components/effects/liquid-glass-refract
 import MaterialCarousel from "@/components/settings/personalization/material-carousel"
 import MaterialPlacementPreview from "@/components/settings/personalization/material-placement-preview"
 import { MaterialPreviewContext } from "@/components/settings/personalization/material-preview-context"
-import {
-  materialOptions,
-  type MaterialAssignments,
-} from "@/components/settings/personalization/material-preview-options"
+import { materialOptions, type MaterialAssignments } from "@/lib/material"
 import {
   applyWorkspaceCommand,
   workspaceCommandSchema,
@@ -139,6 +136,11 @@ test("glass previews keep the assigned background and leave an unassigned card o
           liquidGlass: customizedGlass,
           backgroundRef: { current: null },
           cardRef: { current: null },
+          catalogId: "test-material-catalog",
+          catalogExpanded: false,
+          onToggleCatalog: () => {},
+          onAssign: () => {},
+          onEdit: () => {},
           onPan: () => {},
           onReset: () => {},
         })

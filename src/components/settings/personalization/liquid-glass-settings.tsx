@@ -19,10 +19,12 @@ export default function LiquidGlassSettingsFields({
   color,
   value,
   onChange,
+  compact = false,
 }: {
   color: string
   value: LiquidGlassSettings
   onChange: (patch: Partial<LiquidGlassSettings>) => void
+  compact?: boolean
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -64,15 +66,17 @@ export default function LiquidGlassSettingsFields({
           onChange={(tint) => onChange({ tint })}
         />
       </SettingItem>
-      <fieldset className="min-w-0 space-y-3 border-t border-ui-border-panel pt-3">
-        <legend className="pr-2 text-sm font-medium">
-          {t("settings.material.liquidGlass.optics")}
-        </legend>
-        {range("refraction", optics.refraction)}
-        {range("rimWidth", value.rimWidth)}
-        {range("blur", optics.blur)}
-        {range("saturation", value.saturation)}
-      </fieldset>
+      {!compact && (
+        <fieldset className="min-w-0 space-y-3 border-t border-ui-border-panel pt-3">
+          <legend className="pr-2 text-sm font-medium">
+            {t("settings.material.liquidGlass.optics")}
+          </legend>
+          {range("refraction", optics.refraction)}
+          {range("rimWidth", value.rimWidth)}
+          {range("blur", optics.blur)}
+          {range("saturation", value.saturation)}
+        </fieldset>
+      )}
       <fieldset className="min-w-0 space-y-3 border-t border-ui-border-panel pt-3">
         <legend className="pr-2 text-sm font-medium">
           {t("settings.material.liquidGlass.lighting")}
@@ -91,21 +95,25 @@ export default function LiquidGlassSettingsFields({
           />
         </SettingItem>
         {range("sheenIntensity", optics.sheenIntensity)}
-        <SettingItem
-          label={t("settings.material.liquidGlass.pointerHighlight")}
-          labelId={`${id}-pointer`}
-        >
-          <Switch
-            aria-labelledby={`${id}-pointer`}
-            checked={optics.pointerHighlight}
-            className="justify-self-end"
-            onCheckedChange={(pointerHighlight) =>
-              onChange({ pointerHighlight })
-            }
-          />
-        </SettingItem>
-        {range("glintIntensity", value.glintIntensity)}
-        {range("glintSize", value.glintSize)}
+        {!compact && (
+          <>
+            <SettingItem
+              label={t("settings.material.liquidGlass.pointerHighlight")}
+              labelId={`${id}-pointer`}
+            >
+              <Switch
+                aria-labelledby={`${id}-pointer`}
+                checked={optics.pointerHighlight}
+                className="justify-self-end"
+                onCheckedChange={(pointerHighlight) =>
+                  onChange({ pointerHighlight })
+                }
+              />
+            </SettingItem>
+            {range("glintIntensity", value.glintIntensity)}
+            {range("glintSize", value.glintSize)}
+          </>
+        )}
       </fieldset>
       <div className="flex justify-end">
         <Button

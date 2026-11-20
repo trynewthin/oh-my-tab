@@ -1,5 +1,10 @@
 import { cn } from "cn"
-import { useCallback, useContext, type ReactNode } from "react"
+import {
+  useCallback,
+  useContext,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import {
   AppWindowExpansionContext,
   type AppWindowPhase,
@@ -10,6 +15,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { AppId } from "@/lib/apps/ids"
+import { UiAppearanceContext } from "@/components/ui/appearance-scope"
+import {
+  uiAppearanceAttributes,
+  type UiAppearanceOverrides,
+} from "@/lib/ui-appearance"
 import "./app-window-frame.css"
 
 export default function AppWindowFrame({
@@ -17,16 +27,20 @@ export default function AppWindowFrame({
   title,
   description,
   className,
+  style,
   phase = "ready",
   background,
+  appearance,
   children,
 }: {
   id: AppId
   title: string
   description?: string
   className?: string
+  style?: CSSProperties
   phase?: AppWindowPhase
   background?: ReactNode
+  appearance?: UiAppearanceOverrides
   children: ReactNode
 }) {
   const registerPopup = useContext(AppWindowExpansionContext)
@@ -41,6 +55,8 @@ export default function AppWindowFrame({
     <DialogContent
       ref={connectPopup}
       data-app-window={id}
+      style={style}
+      {...uiAppearanceAttributes(appearance)}
       showCloseButton={false}
       inPortal
       className={cn("isolate gap-0 overflow-hidden p-0", className)}
@@ -69,7 +85,9 @@ export default function AppWindowFrame({
         data-app-window-content
         className="relative z-10 flex min-h-0 min-w-0 flex-col"
       >
-        {children}
+        <UiAppearanceContext.Provider value={appearance}>
+          {children}
+        </UiAppearanceContext.Provider>
       </div>
     </DialogContent>
   )

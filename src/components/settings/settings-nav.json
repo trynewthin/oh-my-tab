@@ -5,10 +5,21 @@
       "id": "general",
       "labelKey": "settings.nav.general",
       "children": [
-        { "id": "general-basic", "labelKey": "settings.nav.generalBasic" },
-        { "id": "general-data", "labelKey": "settings.nav.generalData" },
-        { "id": "search-engines", "labelKey": "settings.nav.search" },
-        { "id": "general-apps", "labelKey": "settings.nav.apps" }
+        {
+          "id": "general-basic",
+          "labelKey": "settings.nav.generalBasic",
+          "icon": "gear"
+        },
+        {
+          "id": "search-engines",
+          "labelKey": "settings.nav.search",
+          "icon": "magnifying-glass"
+        },
+        {
+          "id": "general-apps",
+          "labelKey": "settings.nav.apps",
+          "icon": "squares-four"
+        }
       ]
     },
     {
@@ -17,21 +28,29 @@
       "children": [
         {
           "id": "personalization-appearance",
-          "labelKey": "settings.nav.personalizationBasic"
+          "labelKey": "settings.nav.personalizationGlobalStyles",
+          "icon": "palette"
         },
         {
-          "id": "personalization-material",
-          "labelKey": "settings.nav.personalizationMaterial"
+          "id": "settings-appearance",
+          "labelKey": "settings.nav.settingsAppearance",
+          "icon": "app-window"
         },
-        { "id": "home-top", "labelKey": "settings.nav.home" },
+        {
+          "id": "home-top",
+          "labelKey": "settings.nav.home",
+          "icon": "house"
+        },
         {
           "id": "popup-appearance",
           "labelKey": "settings.nav.popupAppearance",
+          "icon": "app-window",
           "requires": "toolbarPopup"
         },
         {
           "id": "tabs",
           "labelKey": "settings.nav.personalizationTabs",
+          "icon": "tabs",
           "children": [
             {
               "id": "personalization-tabs",
@@ -45,10 +64,16 @@
         },
         {
           "id": "personalization-folders",
-          "labelKey": "settings.nav.personalizationFolders"
+          "labelKey": "settings.nav.personalizationFolders",
+          "icon": "folder-simple"
+        },
+        {
+          "id": "personalization-material",
+          "labelKey": "settings.nav.personalizationMaterial",
+          "icon": "stack"
         }
       ]
     },
-    { "id": "about", "labelKey": "settings.nav.about" }
+    { "id": "about", "labelKey": "settings.nav.about", "icon": "info" }
   ]
 }

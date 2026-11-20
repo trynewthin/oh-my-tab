@@ -1,9 +1,14 @@
 import {
+  AppWindow,
+  FolderSimple,
   Gear,
   House,
   Info,
   MagnifyingGlass,
   Palette,
+  SquaresFour,
+  Stack,
+  Tabs,
 } from "@phosphor-icons/react"
 import { appEnvironment } from "@/lib/app-environment"
 import {
@@ -47,11 +52,16 @@ export function resolveSettingsSection(
 }
 
 export const settingsIcons = {
+  "app-window": AppWindow,
+  "folder-simple": FolderSimple,
   gear: Gear,
   house: House,
+  info: Info,
   "magnifying-glass": MagnifyingGlass,
   palette: Palette,
-  info: Info,
+  "squares-four": SquaresFour,
+  stack: Stack,
+  tabs: Tabs,
 } as const
 
 export type SettingsIconName = keyof typeof settingsIcons

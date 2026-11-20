@@ -17,6 +17,7 @@ export default function EffectSurface({
   color,
   textureId,
   effectStyle: effectStyleOverride,
+  amplitude: amplitudeOverride,
   textureRow = 0,
   coverage = 65,
   animated = false,
@@ -28,6 +29,7 @@ export default function EffectSurface({
   color: string
   textureId: string
   effectStyle?: EffectStyle
+  amplitude?: number
   textureRow?: number
   coverage?: number
   animated?: boolean
@@ -40,7 +42,9 @@ export default function EffectSurface({
     (state) => state.tabTexture
   )
   const effectStyle = effectStyleOverride ?? configuredEffectStyle
-  const amplitude = useHomeSettingsStore((state) => state.burningAmplitude)
+  const amplitude = useHomeSettingsStore(
+    (state) => amplitudeOverride ?? state.burningAmplitude
+  )
   const {
     progress: reveal,
     initial: initialVisibility,

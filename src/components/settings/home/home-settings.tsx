@@ -1,4 +1,5 @@
 import GridPane from "./grid-pane"
+import HomeAppearanceSettings from "./home-appearance-settings"
 import LayoutPane from "./layout-pane"
 import SearchPane from "./search-pane"
 import SearchShortcutsSetting from "./search-shortcuts-setting"
@@ -31,6 +32,7 @@ export default function HomeSettings() {
         <QuickBarPane />
       )}
       <GridPane />
+      <HomeAppearanceSettings />
     </section>
   )
 }

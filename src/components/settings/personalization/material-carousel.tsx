@@ -15,10 +15,7 @@ import MaterialSurface, {
 } from "@/components/effects/material-surface"
 import { Button } from "@/components/ui/button"
 import type { LiquidGlassSettings } from "@/lib/liquid-glass"
-import {
-  materialOptions,
-  materialStyles,
-} from "@/components/settings/personalization/material-preview-options"
+import { materialOptions, materialStyles } from "@/lib/material"
 import "./material-carousel.css"
 
 const arrowClassName =

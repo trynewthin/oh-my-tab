@@ -22,7 +22,7 @@ import {
   materialStyles,
   type MaterialAssignments,
   type MaterialPlacement,
-} from "@/components/settings/personalization/material-preview-options"
+} from "@/lib/material"
 
 export default function MaterialPlacementPreview({
   color,

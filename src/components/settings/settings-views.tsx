@@ -6,6 +6,9 @@ const AppSettings = lazy(() => import("./general/app-settings"))
 const GeneralSettings = lazy(() => import("./general/general-settings"))
 const HomeSettings = lazy(() => import("./home/home-settings"))
 const PopupSettings = lazy(() => import("./popup/popup-settings"))
+const SettingsAppearance = lazy(
+  () => import("./personalization/settings-appearance")
+)
 const PersonalizationSettings = lazy(
   () => import("./personalization/personalization-settings")
 )
@@ -15,10 +18,10 @@ const SearchEngineSettings = lazy(
 )
 
 export const settingsViews: Record<SettingsSection, () => ReactElement> = {
-  "general-basic": () => <GeneralSettings pane="basic" />,
-  "general-data": () => <GeneralSettings pane="data" />,
+  "general-basic": () => <GeneralSettings />,
   "home-top": () => <HomeSettings />,
   "popup-appearance": () => <PopupSettings />,
+  "settings-appearance": () => <SettingsAppearance />,
   "search-engines": () => <SearchEngineSettings />,
   "general-apps": () => <AppSettings />,
   "personalization-appearance": () => (

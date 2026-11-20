@@ -18,6 +18,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import type { AppId } from "@/lib/apps/ids"
+import type { UiAppearanceOverrides } from "@/lib/ui-appearance"
+import { cn } from "@/lib/utils"
 
 export type ApplicationNavigationItem<RouteId extends string> = {
   id: RouteId
@@ -225,6 +227,8 @@ function ApplicationNavigationMenu<RouteId extends string>({
   title,
   accentColor,
   progressAriaLabel,
+  background,
+  translucent,
 }: {
   groups: ApplicationNavigationGroup<RouteId>[]
   activeRoute: RouteId
@@ -233,6 +237,8 @@ function ApplicationNavigationMenu<RouteId extends string>({
   title: string
   accentColor: string
   progressAriaLabel: string
+  background?: ReactNode
+  translucent: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [scrollNode, setScrollNode] = useState<HTMLDivElement | null>(null)
@@ -256,8 +262,12 @@ function ApplicationNavigationMenu<RouteId extends string>({
         side="bottom"
         align="start"
         aria-label={ariaLabel}
-        className="w-56 max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-0"
+        className={cn(
+          "w-56 max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-0",
+          translucent && "bg-transparent"
+        )}
       >
+        {background}
         <div
           ref={setScrollNode}
           className="relative max-h-[min(58svh,24rem)] [scrollbar-width:none] overflow-y-auto p-2 [&::-webkit-scrollbar]:hidden"
@@ -308,6 +318,10 @@ export default function AppSidebarLayout<RouteId extends string>({
   onRouteChange,
   accentColor,
   background,
+  sidebarBackground,
+  sidebarTranslucent = false,
+  windowStyle,
+  appearance,
   size = "default",
   sidebarStyle = "floating",
   sidebarFooter,
@@ -326,6 +340,10 @@ export default function AppSidebarLayout<RouteId extends string>({
   onRouteChange: (route: RouteId) => void
   accentColor: string
   background?: ReactNode
+  sidebarBackground?: ReactNode
+  sidebarTranslucent?: boolean
+  windowStyle?: CSSProperties
+  appearance?: UiAppearanceOverrides
   size?: "default" | "large"
   sidebarStyle?: "floating" | "panel"
   sidebarFooter?: ApplicationNavigationItem<RouteId>
@@ -359,6 +377,8 @@ export default function AppSidebarLayout<RouteId extends string>({
       title={title}
       description={description}
       background={background}
+      style={windowStyle}
+      appearance={appearance}
       className={`h-svh w-screen max-w-none rounded-none ring-0 sm:h-auto sm:w-full sm:rounded-(--ui-radius-window) ${size === "large" ? "sm:max-w-[min(960px,calc(100vw-3rem))]" : "sm:max-w-3xl"}`}
     >
       <ApplicationHeaderActionsContext.Provider value={mobileActionsNode}>
@@ -377,6 +397,8 @@ export default function AppSidebarLayout<RouteId extends string>({
               title={title}
               accentColor={accentColor}
               progressAriaLabel={navigationProgressAriaLabel}
+              background={sidebarBackground}
+              translucent={sidebarTranslucent}
             />
             <span className="min-w-0 truncate text-base font-medium">
               {activeItem?.label ?? title}
@@ -397,18 +419,26 @@ export default function AppSidebarLayout<RouteId extends string>({
             </Button>
           </header>
           <aside
-            className={`relative hidden min-h-0 shrink-0 ${
+            className={cn(
+              "relative hidden min-h-0 shrink-0",
               panelSidebar
-                ? "my-5 ms-5 w-44 flex-col overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel bg-(--settings-sidebar-bg) shadow-(--ui-shadow-panel) [--settings-sidebar-bg:color-mix(in_oklab,var(--muted)_35%,var(--popover))] sm:flex"
-                : "h-full w-36 sm:block"
-            }`}
+                ? "my-5 ms-5 w-44 flex-col overflow-hidden rounded-(--ui-radius-panel) border border-ui-border-panel shadow-(--ui-shadow-panel) sm:flex"
+                : "h-full w-36 sm:block",
+              panelSidebar &&
+                !sidebarTranslucent &&
+                "bg-(--settings-sidebar-bg) [--settings-sidebar-bg:color-mix(in_oklab,var(--muted)_35%,var(--popover))]"
+            )}
           >
+            {sidebarBackground}
             <div
-              className={
+              className={cn(
                 panelSidebar
-                  ? "absolute inset-x-0 top-0 z-10 flex h-13 items-center justify-between gap-2 bg-[linear-gradient(to_bottom,var(--settings-sidebar-bg)_65%,transparent)] ps-4 pe-3"
-                  : "pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4"
-              }
+                  ? "absolute inset-x-0 top-0 z-10 flex h-13 items-center justify-between gap-2 ps-4 pe-3"
+                  : "pointer-events-none absolute inset-x-0 top-0 px-4 pt-6 pb-4",
+                panelSidebar &&
+                  !sidebarTranslucent &&
+                  "bg-[linear-gradient(to_bottom,var(--settings-sidebar-bg)_65%,transparent)]"
+              )}
             >
               {!panelSidebar && (
                 <div
@@ -434,11 +464,19 @@ export default function AppSidebarLayout<RouteId extends string>({
               )}
             </div>
             <div
-              className={`relative z-0 min-h-0 [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden ${
+              className={cn(
+                "relative z-0 min-h-0 [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden",
                 panelSidebar
                   ? `flex-1 scroll-pt-13 px-2 pt-13 ${pinnedItem ? "scroll-pb-13 pb-13" : "pb-3"}`
-                  : "h-full pt-14 pb-[4.5rem]"
-              }`}
+                  : "h-full pt-14 pb-[4.5rem]",
+                // Fade the scrolling items without painting over the glass.
+                panelSidebar &&
+                  sidebarTranslucent &&
+                  "[mask-image:linear-gradient(to_bottom,transparent_2.125rem,black_3.25rem,black_calc(100%_-_var(--sidebar-footer-height,0px)),transparent_calc(100%_-_var(--sidebar-footer-height,0px)*0.65))]",
+                sidebarTranslucent &&
+                  pinnedItem &&
+                  "[--sidebar-footer-height:3.25rem]"
+              )}
             >
               <ApplicationNavigation
                 groups={sidebarNavigation}
@@ -451,7 +489,11 @@ export default function AppSidebarLayout<RouteId extends string>({
             </div>
             {pinnedItem && (
               <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-13 items-center bg-[linear-gradient(to_top,var(--settings-sidebar-bg)_65%,transparent)] px-2"
+                className={cn(
+                  "pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-13 items-center px-2",
+                  !sidebarTranslucent &&
+                    "bg-[linear-gradient(to_top,var(--settings-sidebar-bg)_65%,transparent)]"
+                )}
                 style={{ "--application-accent": accentColor } as CSSProperties}
               >
                 <div className="pointer-events-auto w-full">

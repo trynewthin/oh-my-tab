@@ -1,7 +1,13 @@
 import { canSelectBrowserSearch, usePrivacyStore } from "@/stores/privacy-store"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Check, PencilSimple, Plus, Trash } from "@phosphor-icons/react"
+import {
+  Check,
+  MagnifyingGlass,
+  PencilSimple,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 import { ApplicationHeaderActions } from "@/components/application/app-sidebar-layout"
@@ -15,6 +21,7 @@ import {
   type SearchEngine,
 } from "@/lib/search-engines"
 import { useSearchEngineStore } from "@/stores/search-engine-store"
+import SettingSection from "../shared/setting-section"
 
 import SearchEngineForm from "./search-engine-form"
 import AddSearchEngineDialog from "./add-search-engine-dialog"
@@ -37,8 +44,12 @@ export default function SearchEngineSettings() {
   const [editing, setEditing] = useState<SearchEngine | null>(null)
 
   return (
-    <section className="space-y-5">
-      <div className="hidden justify-end sm:flex">
+    <SettingSection
+      title={t("settings.nav.search")}
+      icon={<MagnifyingGlass />}
+      className="gap-5"
+      headerClassName="sr-only sm:not-sr-only"
+      actions={
         <ApplicationHeaderActions>
           <Button
             variant="outline"
@@ -50,7 +61,8 @@ export default function SearchEngineSettings() {
             {t("settings.searchEngines.add")}
           </Button>
         </ApplicationHeaderActions>
-      </div>
+      }
+    >
       <div className="flex items-center gap-4 rounded-(--ui-radius-panel) border p-(--ui-padding-panel)">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">
@@ -121,9 +133,9 @@ export default function SearchEngineSettings() {
         ))}
       </div>
       <section className="space-y-3" aria-labelledby="preset-engines-title">
-        <h3 id="preset-engines-title" className="text-sm font-medium">
+        <h4 id="preset-engines-title" className="text-sm font-medium">
           {t("settings.searchEngines.presets")}
-        </h3>
+        </h4>
         <div className="flex flex-wrap gap-2">
           {defaultSearchEngines.map((engine) => {
             const enrolled = engines.some((item) => item.id === engine.id)
@@ -170,6 +182,6 @@ export default function SearchEngineSettings() {
             onClose={() => setEditing(null)}
           />
         ))}
-    </section>
+    </SettingSection>
   )
 }

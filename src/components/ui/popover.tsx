@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { cn } from "cn"
+import { useUiAppearanceAttributes } from "@/components/ui/appearance-scope"
 
 const PopoverLayerContext = React.createContext(50)
 
@@ -34,6 +35,7 @@ function PopoverContent({
     "align" | "alignOffset" | "side" | "sideOffset" | "anchor"
   >) {
   const inheritedLayer = React.useContext(PopoverLayerContext)
+  const appearance = useUiAppearanceAttributes()
   const layer = layerOverride ?? inheritedLayer
   const positionedCallback = React.useRef(onPositioned)
   React.useLayoutEffect(() => {
@@ -120,6 +122,7 @@ function PopoverContent({
         <PopoverLayerContext.Provider value={layer + 1}>
           <PopoverPrimitive.Popup
             data-slot="popover-content"
+            {...appearance}
             className={cn(
               "z-50 flex w-72 origin-(--transform-origin) flex-col gap-4 rounded-(--ui-radius-panel) border border-ui-border-panel bg-popover p-(--ui-padding-panel) text-sm text-popover-foreground shadow-(--ui-shadow-panel) outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
               className

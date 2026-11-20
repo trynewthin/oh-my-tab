@@ -1,4 +1,12 @@
-import type { MaterialStyle } from "@/components/effects/material-surface"
+export const materialStyles = [
+  "burning",
+  "particles",
+  "star-trails",
+  "fair-isle",
+  "liquid-glass",
+  "none",
+] as const
+export type MaterialStyle = (typeof materialStyles)[number]
 
 export const materialPlacements = ["background", "card", "control"] as const
 export type MaterialPlacement = (typeof materialPlacements)[number]
@@ -34,4 +42,9 @@ export const materialOptions: Record<
   },
 }
 
-export const materialStyles = Object.keys(materialOptions) as MaterialStyle[]
+export function supportsMaterial(
+  style: MaterialStyle,
+  placement: MaterialPlacement
+) {
+  return materialOptions[style].placements.includes(placement)
+}

@@ -1,6 +1,10 @@
 import { z } from "zod"
 import { CONFIG_VERSION } from "@/lib/data-version"
-import { uiDepthOptions, uiRadiusOptions } from "@/lib/ui-appearance"
+import {
+  settingsAppearanceSchema,
+  uiDepthOptions,
+  uiRadiusOptions,
+} from "@/lib/ui-appearance"
 import { isBackgroundPaletteId } from "@/lib/background-palette-model"
 import { sanitizeFolderBorder, validFolderBorder } from "@/lib/folder-border"
 import { folderShadowOptions } from "@/lib/tile-appearance"
@@ -203,6 +207,7 @@ export const themeSchema = z.object({
   uiRadius: z.enum(uiRadiusOptions).optional(),
   uiBorder: z.enum(uiDepthOptions).optional(),
   uiShadow: z.enum(uiDepthOptions).optional(),
+  settingsAppearance: settingsAppearanceSchema.optional(),
 })
 
 export const configSchema = z.object({

@@ -46,7 +46,7 @@ const shell = {
     editOn: "On",
   },
   apps: {
-    description: "Open a built-in app.",
+    builtIn: "Built-in apps",
     systemApp: "System app",
     loading: "Loading…",
     open: "Open",
@@ -163,7 +163,7 @@ const shell = {
       },
       dataManagement: {
         title: "Data management: backup and restore",
-        text: "In General → Data click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set cross-device sync to WebDAV and enter your directory and account under Manage. Connection details are saved on this device. Click Sync to transfer data; a version choice appears when needed, or confirm applying a specific version from Sync snapshots to this device.",
+        text: "In the Data section of General → Basic, click Backup to save a backup that includes original images. Click Restore to choose a ZIP or a legacy text file, then confirm overwriting local data after validation. Set cross-device sync to WebDAV and enter your directory and account under Manage. Connection details are saved on this device. Click Sync to transfer data; a version choice appears when needed, or confirm applying a specific version from Sync snapshots to this device.",
       },
       quickSave: {
         title: "Quickly bookmark the current page",

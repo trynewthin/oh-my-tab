@@ -1,0 +1,20 @@
+@layer components {
+  [data-global-ui-preview] {
+    --settings-control-image: initial;
+  }
+
+  [data-app-window="settings"]
+    :where(
+      [data-slot="button"]:not([data-variant="ghost"], [data-variant="link"]),
+      [data-slot="input"],
+      [data-slot="textarea"],
+      [data-slot="select-trigger"],
+      [data-slot="checkbox"],
+      [data-slot="switch"],
+      [data-slot="toggle-group"],
+      .segmented-control,
+      [data-settings-material-control]
+    ) {
+    background-image: var(--settings-control-image, revert-layer);
+  }
+}

@@ -24,6 +24,9 @@ import {
   type MaterialPlacement,
 } from "@/lib/material"
 
+const placementControlSurface =
+  "border-ui-border-control bg-muted bg-clip-padding dark:bg-muted"
+
 export default function MaterialPlacementPreview({
   color,
   fairIsle,
@@ -191,6 +194,7 @@ export default function MaterialPlacementPreview({
           type="button"
           variant="outline"
           size="icon"
+          className={placementControlSurface}
           aria-expanded={catalogExpanded}
           aria-controls={catalogId}
           aria-label={catalogToggleLabel}
@@ -208,8 +212,14 @@ export default function MaterialPlacementPreview({
             return (
               <div
                 key={placement}
-                className="relative isolate flex h-8 max-w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-(--ui-radius-button) border border-ui-border-control bg-muted px-2.5 text-xs"
+                className={cn(
+                  "relative isolate flex h-8 max-w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-(--ui-radius-button) border px-2.5 text-xs",
+                  placementControlSurface
+                )}
                 data-material-placement={placement}
+                data-settings-material-control={
+                  value === "none" ? "" : undefined
+                }
               >
                 <dt className="shrink-0 text-muted-foreground">
                   {value !== "none" && (
@@ -258,7 +268,7 @@ export default function MaterialPlacementPreview({
                         placement: label,
                       })}
                       aria-describedby={valueId}
-                      className="-mr-1 size-6 shrink-0 cursor-pointer justify-center border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-ring data-[size=sm]:h-6 [&_svg]:size-3"
+                      className="-mr-1 size-6 shrink-0 cursor-pointer justify-center border-0 bg-transparent bg-none p-0 focus-visible:ring-2 focus-visible:ring-ring data-[size=sm]:h-6 [&_svg]:size-3"
                     />
                     <SelectContent
                       align="end"
@@ -285,6 +295,7 @@ export default function MaterialPlacementPreview({
           type="button"
           variant="outline"
           size="default"
+          className={placementControlSurface}
           aria-label={t("settings.material.resetPreview")}
           onClick={onReset}
         >

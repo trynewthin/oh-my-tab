@@ -15,6 +15,7 @@ import {
   type MaterialAssignments,
   type MaterialPlacement,
 } from "@/lib/material"
+import { cn } from "@/lib/utils"
 import { useMaterialPreview } from "./material-preview-context"
 import SettingItem from "../shared/setting-item"
 import SettingSection from "../shared/setting-section"
@@ -45,6 +46,7 @@ export default function MaterialPane() {
   const backgroundPreview = useRef<HTMLDivElement>(null)
   const cardPreview = useRef<HTMLDivElement>(null)
   const configurationRef = useRef<HTMLDivElement>(null)
+  const [configurationScrolled, setConfigurationScrolled] = useState(false)
   const carouselRef = useRef<MaterialCarouselHandle>(null)
   const [previewOptions, setPreviewOptions] = useState({
     guides: false,
@@ -144,7 +146,14 @@ export default function MaterialPane() {
         aria-label={t("settings.material.configuration")}
         hidden={selected === "none"}
         tabIndex={0}
-        className="-mr-4 min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 pb-1 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset sm:-mr-(--ui-padding-window) sm:pr-(--ui-padding-window)"
+        onScroll={(event) =>
+          setConfigurationScrolled(event.currentTarget.scrollTop > 0)
+        }
+        className={cn(
+          "-mr-4 min-h-0 flex-1 scroll-pt-3 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain pr-4 pb-5 outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset sm:-mr-(--ui-padding-window) sm:pr-(--ui-padding-window)",
+          configurationScrolled &&
+            "[mask-image:linear-gradient(to_bottom,transparent,black_0.75rem)]"
+        )}
       >
         <SettingSection
           id={`${id}-configuration`}

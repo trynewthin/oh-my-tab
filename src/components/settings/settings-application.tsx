@@ -147,6 +147,7 @@ export default function SettingsApplication({
         ) : undefined
       }
       sidebarStyle="panel"
+      contentFlushBottom={section === "personalization-material"}
       sidebarTranslucent={
         sidebarMaterial === "liquid-glass" ||
         sidebarMaterial === settingsPanelMaterial

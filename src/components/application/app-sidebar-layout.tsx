@@ -325,6 +325,7 @@ export default function AppSidebarLayout<RouteId extends string>({
   size = "default",
   sidebarStyle = "floating",
   sidebarFooter,
+  contentFlushBottom = false,
   children,
 }: {
   applicationId: AppId
@@ -347,6 +348,7 @@ export default function AppSidebarLayout<RouteId extends string>({
   size?: "default" | "large"
   sidebarStyle?: "floating" | "panel"
   sidebarFooter?: ApplicationNavigationItem<RouteId>
+  contentFlushBottom?: boolean
   children: ReactNode
 }) {
   const [mobileActionsNode, setMobileActionsNode] =
@@ -529,11 +531,14 @@ export default function AppSidebarLayout<RouteId extends string>({
           <section
             aria-label={activeItem?.label}
             data-application-content
-            className={`relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-5 ${
+            className={cn(
+              "relative z-30 min-h-0 min-w-0 flex-1 overflow-y-auto px-4 pt-5",
               panelSidebar
                 ? "sm:px-(--ui-padding-window)"
-                : "sm:p-(--ui-padding-window)"
-            }`}
+                : "sm:px-(--ui-padding-window) sm:pt-(--ui-padding-window)",
+              !contentFlushBottom &&
+                (panelSidebar ? "pb-5" : "pb-5 sm:pb-(--ui-padding-window)")
+            )}
           >
             {children}
           </section>

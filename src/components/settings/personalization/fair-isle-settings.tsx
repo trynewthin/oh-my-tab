@@ -1,4 +1,4 @@
-import { useId, useState } from "react"
+import { useId, useState, type ReactNode } from "react"
 import {
   ArrowClockwise,
   DownloadSimple,
@@ -95,6 +95,7 @@ export default function FairIsleSettingsFields({
   preview,
   setPreview,
   getPreviewFrame,
+  renderSection,
 }: {
   value: FairIsleSettings
   onChange: (patch: Partial<FairIsleSettings>) => void
@@ -103,6 +104,7 @@ export default function FairIsleSettingsFields({
   preview: PreviewOptions
   setPreview: (next: PreviewOptions) => void
   getPreviewFrame: () => Parameters<typeof exportFairIsle>[4]
+  renderSection: (actions: ReactNode, fields: ReactNode) => ReactNode
 }) {
   const { t } = useTranslation()
   const id = useId()
@@ -160,27 +162,40 @@ export default function FairIsleSettingsFields({
     }
   }
 
-  return (
+  const actions = (
+    <div className="flex shrink-0 gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="max-md:w-8 max-md:px-0"
+        title={translate("randomize")}
+        onClick={randomize}
+      >
+        <Shuffle aria-hidden="true" />
+        <span className="max-md:sr-only">{translate("randomize")}</span>
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="max-md:w-8 max-md:px-0"
+        title={translate("reset")}
+        onClick={() => {
+          setSeedDraft(null)
+          setPreview({ guides: false, fit: false })
+          onChange(defaultFairIsleSettings)
+        }}
+      >
+        <ArrowClockwise aria-hidden="true" />
+        <span className="max-md:sr-only">{translate("reset")}</span>
+      </Button>
+    </div>
+  )
+
+  return renderSection(
+    actions,
     <div className="space-y-4">
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={randomize}>
-          <Shuffle aria-hidden="true" />
-          {translate("randomize")}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setSeedDraft(null)
-            setPreview({ guides: false, fit: false })
-            onChange(defaultFairIsleSettings)
-          }}
-        >
-          <ArrowClockwise aria-hidden="true" />
-          {translate("reset")}
-        </Button>
-      </div>
       <SettingItem label={translate("pattern")} htmlFor={`${id}-pattern`}>
         <FairIsleSelect
           id={`${id}-pattern`}

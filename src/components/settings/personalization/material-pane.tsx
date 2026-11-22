@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from "react"
+import { useId, useMemo, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -88,6 +88,16 @@ export default function MaterialPane() {
       ? "settings.material.burningAmplitude"
       : "settings.material.breathingAmplitude"
 
+  const renderSection = (actions?: ReactNode, fields?: ReactNode) => (
+    <SettingSection
+      id={`${id}-configuration`}
+      title={t(selectedOption.labelKey)}
+      actions={actions}
+    >
+      {fields}
+    </SettingSection>
+  )
+
   return (
     <div className="relative isolate flex h-full min-h-0 min-w-0 flex-col gap-3">
       <MaterialPlacementPreview
@@ -155,113 +165,115 @@ export default function MaterialPane() {
             "[mask-image:linear-gradient(to_bottom,transparent,black_0.75rem)]"
         )}
       >
-        <SettingSection
-          id={`${id}-configuration`}
-          title={t(selectedOption.labelKey)}
-        >
-          {starTrails && (
-            <SettingItem
-              label={t("settings.material.runningMode")}
-              labelId="star-trail-mode-label"
-            >
-              <ToggleGroup
-                aria-labelledby="star-trail-mode-label"
-                className={settingsControlSurface}
-                value={[materialPreview.starTrailMode]}
-                onValueChange={(values) => {
-                  const value = values[0]
-                  if (value === "dynamic" || value === "static")
-                    materialPreview.setStarTrailMode(value)
-                }}
-              >
-                <ToggleGroupItem value="dynamic">
-                  {t("settings.material.dynamic")}
-                </ToggleGroupItem>
-                <ToggleGroupItem value="static">
-                  {t("settings.material.static")}
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </SettingItem>
-          )}
-          {selected === "fair-isle" && (
-            <FairIsleSettingsFields
-              color={color}
-              value={fairIsleSettings}
-              texture={fairIsleTexture}
-              onChange={(patch) => {
-                if (
-                  patch.seed !== undefined ||
-                  patch.motifs !== undefined ||
-                  patch.bands !== undefined ||
-                  patch.symmetry !== undefined
-                )
-                  setOffset({ x: 0, y: 0 })
-                setFairIsleSettings(patch)
-              }}
-              preview={previewOptions}
-              setPreview={(next) => {
-                if (next.fit !== previewOptions.fit) setOffset({ x: 0, y: 0 })
-                setPreviewOptions(next)
-              }}
-              getPreviewFrame={() => {
-                const useCard = activePlacement === "card"
-                const frame = useCard
-                  ? cardPreview.current
-                  : backgroundPreview.current
-                return {
-                  width: frame?.clientWidth || 640,
-                  height: frame?.clientHeight || 360,
-                  offset: useCard
-                    ? { x: 0, y: 0 }
-                    : {
-                        x: offset.x,
-                        y: offset.y - (frame?.scrollTop ?? 0),
-                      },
-                  fit: previewOptions.fit,
-                }
-              }}
-            />
-          )}
-          {selected === "liquid-glass" && (
-            <LiquidGlassSettingsFields
-              color={color}
-              value={liquidGlass}
-              onChange={setLiquidGlass}
-            />
-          )}
-          {(selected === "burning" ||
-            selected === "particles" ||
-            starTrails) && (
+        {selected === "fair-isle" ? (
+          <FairIsleSettingsFields
+            color={color}
+            renderSection={renderSection}
+            value={fairIsleSettings}
+            texture={fairIsleTexture}
+            onChange={(patch) => {
+              if (
+                patch.seed !== undefined ||
+                patch.motifs !== undefined ||
+                patch.bands !== undefined ||
+                patch.symmetry !== undefined
+              )
+                setOffset({ x: 0, y: 0 })
+              setFairIsleSettings(patch)
+            }}
+            preview={previewOptions}
+            setPreview={(next) => {
+              if (next.fit !== previewOptions.fit) setOffset({ x: 0, y: 0 })
+              setPreviewOptions(next)
+            }}
+            getPreviewFrame={() => {
+              const useCard = activePlacement === "card"
+              const frame = useCard
+                ? cardPreview.current
+                : backgroundPreview.current
+              return {
+                width: frame?.clientWidth || 640,
+                height: frame?.clientHeight || 360,
+                offset: useCard
+                  ? { x: 0, y: 0 }
+                  : {
+                      x: offset.x,
+                      y: offset.y - (frame?.scrollTop ?? 0),
+                    },
+                fit: previewOptions.fit,
+              }
+            }}
+          />
+        ) : selected === "liquid-glass" ? (
+          <LiquidGlassSettingsFields
+            color={color}
+            renderSection={renderSection}
+            value={liquidGlass}
+            onChange={setLiquidGlass}
+          />
+        ) : (
+          renderSection(
+            undefined,
             <>
-              <SettingItem label={t(intensityKey)} htmlFor={controlId}>
-                <SettingRange
-                  id={controlId}
-                  label={t(intensityKey)}
-                  min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
-                  max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
-                  step={0.1}
-                  value={controlValue}
-                  onChange={(value) => {
-                    if (starTrails) materialPreview.setStarTrailSpeed(value)
-                    else setAmplitude(value)
-                  }}
-                  accentColor={color}
-                  editable={false}
-                  formatValue={(value) => `${Math.round(value * 100)}%`}
-                />
-              </SettingItem>
-              <SettingItem label={t("settings.material.transition")}>
-                <Switch
-                  aria-label={t("settings.material.transition")}
-                  checked={entrance}
-                  className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
-                  style={{ backgroundColor: entrance ? color : undefined }}
-                  onCheckedChange={setEntrance}
-                />
-              </SettingItem>
+              {starTrails && (
+                <SettingItem
+                  label={t("settings.material.runningMode")}
+                  labelId="star-trail-mode-label"
+                >
+                  <ToggleGroup
+                    aria-labelledby="star-trail-mode-label"
+                    className={settingsControlSurface}
+                    value={[materialPreview.starTrailMode]}
+                    onValueChange={(values) => {
+                      const value = values[0]
+                      if (value === "dynamic" || value === "static")
+                        materialPreview.setStarTrailMode(value)
+                    }}
+                  >
+                    <ToggleGroupItem value="dynamic">
+                      {t("settings.material.dynamic")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="static">
+                      {t("settings.material.static")}
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </SettingItem>
+              )}
+              {(selected === "burning" ||
+                selected === "particles" ||
+                starTrails) && (
+                <>
+                  <SettingItem label={t(intensityKey)} htmlFor={controlId}>
+                    <SettingRange
+                      id={controlId}
+                      label={t(intensityKey)}
+                      min={starTrails ? MIN_STAR_TRAIL_SPEED : 0}
+                      max={starTrails ? MAX_STAR_TRAIL_SPEED : 2}
+                      step={0.1}
+                      value={controlValue}
+                      onChange={(value) => {
+                        if (starTrails) materialPreview.setStarTrailSpeed(value)
+                        else setAmplitude(value)
+                      }}
+                      accentColor={color}
+                      editable={false}
+                      formatValue={(value) => `${Math.round(value * 100)}%`}
+                    />
+                  </SettingItem>
+                  <SettingItem label={t("settings.material.transition")}>
+                    <Switch
+                      aria-label={t("settings.material.transition")}
+                      checked={entrance}
+                      className={`justify-self-end ${settingsControlSurface} focus-visible:border-ring`}
+                      style={{ backgroundColor: entrance ? color : undefined }}
+                      onCheckedChange={setEntrance}
+                    />
+                  </SettingItem>
+                </>
+              )}
             </>
-          )}
-        </SettingSection>
+          )
+        )}
       </div>
     </div>
   )

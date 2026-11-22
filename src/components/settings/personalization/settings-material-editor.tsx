@@ -1,5 +1,5 @@
 import { Gear } from "@phosphor-icons/react"
-import { useId, useRef, useState } from "react"
+import { useId, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { controlMaterialImage } from "@/components/effects/control-material-image"
 import { Button } from "@/components/ui/button"
@@ -154,18 +154,19 @@ function MaterialEditorContent({
       )
     : undefined
 
-  return (
+  const renderSection = (actions?: ReactNode, fields?: ReactNode) => (
     <DialogContent
       className="flex max-h-[calc(100svh-2rem)] flex-col gap-4 sm:max-w-xl"
       showCloseButton={false}
     >
-      <DialogHeader>
-        <DialogTitle>
+      <DialogHeader className="flex-row items-center justify-between gap-3">
+        <DialogTitle className="min-w-0">
           {t("settings.material.editorTitle", {
             placement: label,
             material: t(materialOptions[material].labelKey),
           })}
         </DialogTitle>
+        {actions}
       </DialogHeader>
       <AppearancePreviewFrame
         surface="sample"
@@ -264,34 +265,7 @@ function MaterialEditorContent({
             </SettingItem>
           </>
         )}
-        {texture && (
-          <FairIsleSettingsFields
-            color={color}
-            value={fairIsle}
-            texture={texture}
-            onChange={(value) =>
-              patch({ "fair-isle": { ...fairIsle, ...value } })
-            }
-            preview={preview}
-            setPreview={setPreview}
-            getPreviewFrame={() => ({
-              width: frame.current?.clientWidth || 640,
-              height: frame.current?.clientHeight || 360,
-              offset: { x: 0, y: 0 },
-              fit: preview.fit,
-            })}
-          />
-        )}
-        {material === "liquid-glass" && (
-          <LiquidGlassSettingsFields
-            color={color}
-            value={glass}
-            onChange={(value) =>
-              patch({ "liquid-glass": { ...glass, ...value } })
-            }
-            compact={control}
-          />
-        )}
+        {fields}
       </div>
       <DialogFooter className="shrink-0">
         <DialogClose render={<Button variant="outline" />}>
@@ -308,4 +282,38 @@ function MaterialEditorContent({
       </DialogFooter>
     </DialogContent>
   )
+
+  if (texture) {
+    return (
+      <FairIsleSettingsFields
+        color={color}
+        renderSection={renderSection}
+        value={fairIsle}
+        texture={texture}
+        onChange={(value) => patch({ "fair-isle": { ...fairIsle, ...value } })}
+        preview={preview}
+        setPreview={setPreview}
+        getPreviewFrame={() => ({
+          width: frame.current?.clientWidth || 640,
+          height: frame.current?.clientHeight || 360,
+          offset: { x: 0, y: 0 },
+          fit: preview.fit,
+        })}
+      />
+    )
+  }
+
+  if (material === "liquid-glass") {
+    return (
+      <LiquidGlassSettingsFields
+        color={color}
+        renderSection={renderSection}
+        value={glass}
+        onChange={(value) => patch({ "liquid-glass": { ...glass, ...value } })}
+        compact={control}
+      />
+    )
+  }
+
+  return renderSection()
 }

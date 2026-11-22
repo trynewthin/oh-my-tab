@@ -1,4 +1,5 @@
-import { useId } from "react"
+import { ArrowClockwise } from "@phosphor-icons/react"
+import { useId, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import ColorPicker from "@/components/ui/color-picker"
@@ -19,11 +20,13 @@ export default function LiquidGlassSettingsFields({
   color,
   value,
   onChange,
+  renderSection,
   compact = false,
 }: {
   color: string
   value: LiquidGlassSettings
   onChange: (patch: Partial<LiquidGlassSettings>) => void
+  renderSection: (actions: ReactNode, fields: ReactNode) => ReactNode
   compact?: boolean
 }) {
   const { t } = useTranslation()
@@ -46,7 +49,19 @@ export default function LiquidGlassSettingsFields({
     )
   }
 
-  return (
+  const resetLabel = t("settings.material.liquidGlass.reset")
+  return renderSection(
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="shrink-0 max-md:w-8 max-md:px-0"
+      title={resetLabel}
+      onClick={() => onChange(defaultLiquidGlass)}
+    >
+      <ArrowClockwise aria-hidden="true" />
+      <span className="max-md:sr-only">{resetLabel}</span>
+    </Button>,
     <>
       <AppearanceTabs
         label={t("settings.material.liquidGlass.finish")}
@@ -121,15 +136,6 @@ export default function LiquidGlassSettingsFields({
           </>
         )}
       </fieldset>
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onChange(defaultLiquidGlass)}
-        >
-          {t("settings.material.liquidGlass.reset")}
-        </Button>
-      </div>
     </>
   )
 }
